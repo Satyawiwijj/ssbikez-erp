@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Bays — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Service Bays</h2>
+<p><a href="{% url 'service:bay_create' %}">+ Add Bay</a></p>
+
+<div>
+    {% for bay in bays %}
+    <div style="display:inline-block; border:1px solid #ccc; padding:1rem; margin:0.5rem; min-width:150px; text-align:center;">
+        <strong>{{ bay.bay_name }}</strong><br>
+        <span>{{ bay.get_status_display }}</span><br>
+        <a href="{% url 'service:bay_update' bay.pk %}">Edit</a>
+    </div>
+    {% empty %}
+    <p>No bays configured yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

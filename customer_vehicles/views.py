@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from service.models import JobCard
+
 from .forms import CustomerVehicleForm
 from .models import CustomerVehicle
 
@@ -27,17 +29,17 @@ def customervehicle_list(request):
 def customervehicle_detail(request, pk):
     # context:
     #   cv              — CustomerVehicle instance
-    #   job_cards       — TODO: wire in service.JobCard queryset (Team 2)
-    #   amc_packages    — TODO: wire in vas.AMCPackage queryset (Team 2)
-    #   rsa_packages    — TODO: wire in vas.RSAPackage queryset (Team 2)
-    #   protection_plus — TODO: wire in vas.ProtectionPlusPackage queryset (Team 2)
+    #   job_cards       — JobCard queryset for this vehicle
+    #   amc_packages    — TODO: wire in vas.AMCPackage queryset
+    #   rsa_packages    — TODO: wire in vas.RSAPackage queryset
+    #   protection_plus — TODO: wire in vas.ProtectionPlusPackage queryset
     cv = get_object_or_404(
         CustomerVehicle.objects.select_related('customer', 'vehicle__bike_model', 'vehicle__branch'),
         pk=pk
     )
     return render(request, 'customer_vehicles/customervehicle_detail.html', {
         'cv':              cv,
-        'job_cards':       [],   # TODO: cv.job_cards.all() once service app is wired
+        'job_cards':       JobCard.objects.filter(customer_vehicle=cv).select_related('service_advisor', 'branch'),
         'amc_packages':    [],   # TODO: cv.amc_packages.all() once vas app is wired
         'rsa_packages':    [],   # TODO: cv.rsa_packages.all() once vas app is wired
         'protection_plus': [],   # TODO: cv.protection_plus_packages.all() once vas app is wired

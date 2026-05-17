@@ -10,5 +10,6 @@ urlpatterns = [
     path('sales/', include('sales.urls', namespace='sales')),
     path('billing/', include('billing.urls', namespace='billing')),
     path('rto/', include('rto.urls', namespace='rto')),
+    path('service/', include('service.urls', namespace='service')),
     path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
 ]

@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}JC-{{ job_card.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Job Card — JC-{{ job_card.pk }}</h2>
+<a href="{% url 'service:jobcard_list' %}">← Back to list</a>
+
+<h3>Vehicle &amp; Customer</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Customer</th><td>{{ job_card.customer_vehicle.customer.full_name }}</td></tr>
+    <tr><th>Phone</th><td>{{ job_card.customer_vehicle.customer.phone }}</td></tr>
+    <tr><th>Vehicle</th><td>{{ job_card.customer_vehicle.vehicle.bike_model }}</td></tr>
+    <tr><th>Reg. No.</th><td>{{ job_card.customer_vehicle.registration_no }}</td></tr>
+    <tr><th>Odometer</th><td>{{ job_card.odometer_reading|default:"—" }} km</td></tr>
+    <tr><th>Problem</th><td>{{ job_card.problem_description|default:"—" }}</td></tr>
+    <tr><th>Advisor</th><td>{{ job_card.service_advisor|default:"—" }}</td></tr>
+    <tr><th>Supervisor</th><td>{{ job_card.floor_supervisor|default:"—" }}</td></tr>
+    <tr><th>Branch</th><td>{{ job_card.branch|default:"—" }}</td></tr>
+    <tr><th>Created</th><td>{{ job_card.created_at }}</td></tr>
+</table>
+
+<h3>Current Status: {{ job_card.get_service_status_display }}</h3>
+<form method="post" action="{% url 'service:jobcard_status_update' job_card.pk %}">
+    {% csrf_token %}
+    <select name="service_status">
+        {% for val, label in job_card.ServiceStatus.choices %}
+        <option value="{{ val }}" {% if val == job_card.service_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+<p><a href="{% url 'service:jobcard_update' job_card.pk %}">Edit Job Card</a></p>
+
+<hr>
+
+<h3>Bay Assignments</h3>
+<p><a href="{% url 'service:bay_assignment_create' %}?jc={{ job_card.pk }}">+ Assign Bay</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Bay</th>
+            <th>Mechanic</th>
+            <th>Start Time</th>
+            <th>End Time</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ba in bay_assignments %}
+        <tr>
+            <td>{{ ba.bay.bay_name }}</td>
+            <td>{{ ba.mechanic|default:"—" }}</td>
+            <td>{{ ba.start_time|default:"—" }}</td>
+            <td>{{ ba.end_time|default:"—" }}</td>
+            <td>{{ ba.get_assignment_status_display }}</td>
+            <td><a href="{% url 'service:bay_assignment_update' ba.pk %}">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No bay assignments yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h3>Labor Charges</h3>
+<p><a href="{% url 'service:labor_charge_create' %}?jc={{ job_card.pk }}">+ Add Labor Charge</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Service</th>
+            <th>Cost</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for lc in labor_charges %}
+        <tr>
+            <td>{{ lc.service_name }}</td>
+            <td>{{ lc.labor_cost }}</td>
+            <td>
+                <a href="{% url 'service:labor_charge_update' lc.pk %}">Edit</a>
+                | <form method="post" action="{% url 'service:labor_charge_delete' lc.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                  </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No labor charges yet.</td></tr>
+        {% endfor %}
+        {% if labor_charges %}
+        <tr>
+            <th>Total</th>
+            <td><strong>{{ total_labor }}</strong></td>
+            <td></td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<hr>
+
+<h3>Spares Issued</h3>
+{# TODO: wire spares app — spares_issues queryset will be populated once spares app is built #}
+{% if spares_issues %}
+<p>Spares list goes here.</p>
+{% else %}
+<p>No spares issued yet.</p>
+{% endif %}
+{% endblock %}

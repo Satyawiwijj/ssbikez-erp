@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}Enquiry {{ enquiry.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Service Enquiry — {{ enquiry.customer_vehicle.customer.full_name }}</h2>
+<a href="{% url 'service:enquiry_list' %}">← Back to list</a>
+
+<h3>Enquiry Details</h3>
+<table border="1" cellpadding="4">
+    <tr><th>ID</th><td>SENQ-{{ enquiry.pk }}</td></tr>
+    <tr><th>Customer</th><td>{{ enquiry.customer_vehicle.customer.full_name }}</td></tr>
+    <tr><th>Vehicle</th><td>{{ enquiry.customer_vehicle.vehicle.bike_model }}</td></tr>
+    <tr><th>Reg. No.</th><td>{{ enquiry.customer_vehicle.registration_no }}</td></tr>
+    <tr><th>Issue</th><td>{{ enquiry.issue_description|default:"—" }}</td></tr>
+    <tr><th>Status</th><td>{{ enquiry.get_status_display }}</td></tr>
+    <tr><th>Created By</th><td>{{ enquiry.created_by|default:"—" }}</td></tr>
+    <tr><th>Created At</th><td>{{ enquiry.created_at }}</td></tr>
+</table>
+
+<p>
+    <a href="{% url 'service:enquiry_update' enquiry.pk %}">Edit Enquiry</a>
+    | <a href="{% url 'service:jobcard_create' %}?cv={{ enquiry.customer_vehicle_id }}">+ Create Job Card</a>
+</p>
+
+<hr>
+
+<h3>Appointments</h3>
+<p><a href="{% url 'service:appointment_create' %}?enquiry={{ enquiry.pk }}">+ Add Appointment</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Date</th>
+            <th>Service Type</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for appt in appointments %}
+        <tr>
+            <td>{{ appt.appointment_date|date:"d M Y H:i" }}</td>
+            <td>{{ appt.get_service_type_display|default:"—" }}</td>
+            <td>{{ appt.get_status_display }}</td>
+            <td>
+                <a href="{% url 'service:appointment_update' appt.pk %}">Edit</a>
+                {% if appt.status != 'cancelled' %}
+                | <form method="post" action="{% url 'service:appointment_cancel' appt.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Cancel</button>
+                  </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No appointments yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

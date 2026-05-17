@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Service Enquiries — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Service Enquiries</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer, phone, reg. no.">
+    <button type="submit">Search</button>
+    {% if q %}<a href="?">Clear</a>{% endif %}
+</form>
+
+<p><a href="{% url 'service:enquiry_create' %}">+ New Service Enquiry</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Reg. No.</th>
+            <th>Bike Model</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enq in enquiries %}
+        <tr>
+            <td>{{ enq.customer_vehicle.customer.full_name }}</td>
+            <td>{{ enq.customer_vehicle.registration_no }}</td>
+            <td>{{ enq.customer_vehicle.vehicle.bike_model }}</td>
+            <td>{{ enq.get_status_display }}</td>
+            <td>{{ enq.created_at|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'service:enquiry_detail' enq.pk %}">View</a>
+                | <a href="{% url 'service:enquiry_update' enq.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No enquiries found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

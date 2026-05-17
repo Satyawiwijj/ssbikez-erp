@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Cards — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Job Cards</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer, reg. no.">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <button type="submit">Search</button>
+    {% if q %}<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}">Clear</a>{% endif %}
+</form>
+
+<div>
+    <a href="?{% if q %}q={{ q }}{% endif %}">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<p><a href="{% url 'service:jobcard_create' %}">+ New Job Card</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>JC No.</th>
+            <th>Customer</th>
+            <th>Reg. No.</th>
+            <th>Bike Model</th>
+            <th>Advisor</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for jc in job_cards %}
+        <tr>
+            <td>JC-{{ jc.pk }}</td>
+            <td>{{ jc.customer_vehicle.customer.full_name }}</td>
+            <td>{{ jc.customer_vehicle.registration_no }}</td>
+            <td>{{ jc.customer_vehicle.vehicle.bike_model }}</td>
+            <td>{{ jc.service_advisor|default:"—" }}</td>
+            <td>{{ jc.get_service_status_display }}</td>
+            <td>{{ jc.created_at|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'service:jobcard_detail' jc.pk %}">View</a>
+                | <a href="{% url 'service:jobcard_update' jc.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No job cards found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
