@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+
+{% block title %}Stock — {{ stock }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Vehicle Stock Detail</h2>
+<a href="{% url 'customers:vehicle_stock_update' stock.pk %}">Edit</a> |
+<a href="{% url 'customers:vehicle_stock_list' %}">Back to list</a>
+
+<h3>{{ stock.bike_model }}</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Chassis No</th><td>{{ stock.chassis_no|default:"—" }}</td></tr>
+    <tr><th>Engine No</th><td>{{ stock.engine_no|default:"—" }}</td></tr>
+    <tr><th>Color</th><td>{{ stock.color|default:"—" }}</td></tr>
+    <tr><th>Status</th><td>{{ stock.get_stock_status_display }}</td></tr>
+    <tr><th>Branch</th><td>{{ stock.branch|default:"—" }}</td></tr>
+    <tr><th>Warehouse Location</th><td>{{ stock.warehouse_location|default:"—" }}</td></tr>
+    <tr><th>Purchase Date</th><td>{{ stock.purchase_date|date:"d M Y"|default:"—" }}</td></tr>
+    <tr><th>Added On</th><td>{{ stock.created_at|date:"d M Y" }}</td></tr>
+</table>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ bike_model }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>{{ bike_model }}</h2>
+<a href="{% url 'customers:bike_model_update' bike_model.pk %}">Edit</a> |
+<a href="{% url 'customers:bike_model_list' %}">Back to list</a>
+
+<h3>Details</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Brand</th><td>{{ bike_model.brand }}</td></tr>
+    <tr><th>Model Name</th><td>{{ bike_model.model_name }}</td></tr>
+    <tr><th>Variant</th><td>{{ bike_model.variant|default:"—" }}</td></tr>
+    <tr><th>Fuel Type</th><td>{{ bike_model.get_fuel_type_display }}</td></tr>
+    <tr><th>Available Colors</th><td>{{ bike_model.available_colors|default:"—" }}</td></tr>
+    <tr><th>Ex-Showroom Price</th><td>Rs. {{ bike_model.ex_showroom_price }}</td></tr>
+    <tr><th>Added On</th><td>{{ bike_model.created_at|date:"d M Y" }}</td></tr>
+</table>
+
+<h3>Stock Units</h3>
+{% if stock %}
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Chassis No</th>
+            <th>Engine No</th>
+            <th>Color</th>
+            <th>Status</th>
+            <th>Branch</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unit in stock %}
+        <tr>
+            <td>{{ unit.chassis_no|default:"—" }}</td>
+            <td>{{ unit.engine_no|default:"—" }}</td>
+            <td>{{ unit.color|default:"—" }}</td>
+            <td>{{ unit.get_stock_status_display }}</td>
+            <td>{{ unit.branch|default:"—" }}</td>
+            <td><a href="{% url 'customers:vehicle_stock_detail' unit.pk %}">View</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No stock units for this model yet.</p>
+{% endif %}
+{% endblock %}

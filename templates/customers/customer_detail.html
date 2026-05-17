@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ customer.full_name }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>{{ customer.full_name }}</h2>
+<a href="{% url 'customers:customer_update' customer.pk %}">Edit</a> |
+<a href="{% url 'customers:customer_list' %}">Back to list</a>
+
+<h3>Profile</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Phone</th><td>{{ customer.phone }}</td></tr>
+    <tr><th>Email</th><td>{{ customer.email|default:"—" }}</td></tr>
+    <tr><th>Address</th><td>{{ customer.address|default:"—" }}</td></tr>
+    <tr><th>Aadhaar No</th><td>{{ customer.aadhaar_no|default:"—" }}</td></tr>
+    <tr><th>PAN No</th><td>{{ customer.pan_no|default:"—" }}</td></tr>
+    <tr><th>Joined</th><td>{{ customer.created_at|date:"d M Y" }}</td></tr>
+    <tr><th>Last Updated</th><td>{{ customer.updated_at|date:"d M Y" }}</td></tr>
+</table>
+
+<h3>Vehicles</h3>
+{% if vehicles %}
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Bike Model</th>
+            <th>Registration No</th>
+            <th>Purchase Date</th>
+            <th>Insurance Expiry</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cv in vehicles %}
+        <tr>
+            <td>{{ cv.vehicle.bike_model }}</td>
+            <td>{{ cv.registration_no|default:"Unregistered" }}</td>
+            <td>{{ cv.purchase_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No vehicles linked to this customer yet.</p>
+{% endif %}
+{% endblock %}

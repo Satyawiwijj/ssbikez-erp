@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Vehicle Stock — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Vehicle Stock</h2>
+<a href="{% url 'customers:vehicle_stock_create' %}">+ Add Stock Unit</a>
+<br><br>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Bike Model</th>
+            <th>Chassis No</th>
+            <th>Engine No</th>
+            <th>Color</th>
+            <th>Status</th>
+            <th>Branch</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unit in stock_list %}
+        <tr>
+            <td>{{ unit.bike_model }}</td>
+            <td>{{ unit.chassis_no|default:"—" }}</td>
+            <td>{{ unit.engine_no|default:"—" }}</td>
+            <td>{{ unit.color|default:"—" }}</td>
+            <td>
+                {% if unit.stock_status == 'available' %}[AVAILABLE]
+                {% elif unit.stock_status == 'reserved' %}[RESERVED]
+                {% else %}[SOLD]
+                {% endif %}
+            </td>
+            <td>{{ unit.branch|default:"—" }}</td>
+            <td>
+                <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}">View</a> |
+                <a href="{% url 'customers:vehicle_stock_update' unit.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No stock units found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
