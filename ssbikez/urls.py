@@ -9,5 +9,6 @@ urlpatterns = [
     path('customer-vehicles/', include('customer_vehicles.urls', namespace='customer_vehicles')),
     path('sales/', include('sales.urls', namespace='sales')),
     path('billing/', include('billing.urls', namespace='billing')),
+    path('rto/', include('rto.urls', namespace='rto')),
     path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
 ]

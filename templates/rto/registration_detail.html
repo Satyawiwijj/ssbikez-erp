@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}RTO Registration — {{ rto.sales_order.customer.full_name }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>RTO Registration — {{ rto.sales_order.customer.full_name }}</h2>
+<a href="{% url 'rto:registration_list' %}">← Back to list</a>
+
+<h3>Registration Details</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Sales Order</th><td>{{ rto.sales_order }}</td></tr>
+    <tr><th>Vehicle</th><td>{{ rto.sales_order.vehicle.bike_model }}</td></tr>
+    <tr><th>Form 20 Number</th><td>{{ rto.form20_number|default:"—" }}</td></tr>
+    <tr><th>Registration Number</th><td>{{ rto.registration_number|default:"—" }}</td></tr>
+    <tr><th>RTO Charges</th><td>{{ rto.rto_charges }}</td></tr>
+    <tr><th>Status</th><td>{{ rto.get_registration_status_display }}</td></tr>
+    <tr><th>Created</th><td>{{ rto.created_at }}</td></tr>
+</table>
+
+<p>
+    <a href="{% url 'rto:registration_update' rto.pk %}">Edit Registration</a>
+</p>
+
+<h4>Update Status</h4>
+<form method="post" action="{% url 'rto:registration_status_update' rto.pk %}">
+    {% csrf_token %}
+    <select name="registration_status">
+        {% for val, label in rto.RegistrationStatus.choices %}
+        <option value="{{ val }}" {% if val == rto.registration_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+
+<hr>
+
+<h3>Number Plate Order</h3>
+{% if plate %}
+<table border="1" cellpadding="4">
+    <tr><th>Plate Number</th><td>{{ plate.plate_number|default:"—" }}</td></tr>
+    <tr><th>Vendor</th><td>{{ plate.vendor_name|default:"—" }}</td></tr>
+    <tr><th>Issue Date</th><td>{{ plate.issue_date|default:"—" }}</td></tr>
+    <tr><th>Status</th><td>{{ plate.get_status_display }}</td></tr>
+    <tr><th>Created</th><td>{{ plate.created_at }}</td></tr>
+</table>
+<p><a href="{% url 'rto:plate_update' plate.pk %}">Edit Plate Order</a></p>
+{% else %}
+<p>No number plate order yet.</p>
+<a href="{% url 'rto:plate_create' %}?rto={{ rto.pk }}">+ Add Number Plate Order</a>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}RTO Registrations — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>RTO Registrations</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer, form20, reg. no.">
+    <button type="submit">Search</button>
+    {% if q %}<a href="?">Clear</a>{% endif %}
+</form>
+
+<div>
+    <a href="?status={% if status_filter != '' %}{% endif %}">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<p>
+    <a href="{% url 'rto:registration_create' %}">+ New RTO Registration</a>
+</p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Vehicle</th>
+            <th>Form 20 No.</th>
+            <th>Reg. Number</th>
+            <th>RTO Charges</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for reg in registrations %}
+        <tr>
+            <td>{{ reg.sales_order.customer.full_name }}</td>
+            <td>{{ reg.sales_order.vehicle.bike_model }}</td>
+            <td>{{ reg.form20_number|default:"—" }}</td>
+            <td>{{ reg.registration_number|default:"—" }}</td>
+            <td>{{ reg.rto_charges }}</td>
+            <td>{{ reg.get_registration_status_display }}</td>
+            <td>
+                <a href="{% url 'rto:registration_detail' reg.pk %}">View</a>
+                | <a href="{% url 'rto:registration_update' reg.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No registrations found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
