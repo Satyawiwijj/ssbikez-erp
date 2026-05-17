@@ -1,1 +1,24 @@
- 
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Django
+db.sqlite3
+*.log
+media/
+
+# Virtualenv
+venv/
+env/
+
+# Extracted/temp files
+files_extracted/
+files.zip
+
+# Claude Code worktrees
+.claude/worktrees/
+
+# OS
+.DS_Store
+Thumbs.db
