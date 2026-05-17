@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Orders — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Sales Orders</h2>
+
+<form method="get" style="margin-bottom: 12px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name or phone">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <button type="submit">Search</button>
+    {% if q or status_filter %}<a href="{% url 'sales:order_list' %}">Clear</a>{% endif %}
+</form>
+
+<div style="margin-bottom: 12px;">
+    <a href="{% url 'sales:order_list' %}{% if q %}?q={{ q }}{% endif %}">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<a href="{% url 'sales:order_create' %}">+ New Order</a>
+<br><br>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Order</th>
+            <th>Customer</th>
+            <th>Bike Model</th>
+            <th>Executive</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in orders %}
+        <tr>
+            <td><a href="{% url 'sales:order_detail' order.pk %}">ORD-{{ order.pk }}</a></td>
+            <td>{{ order.customer.full_name }}<br><small>{{ order.customer.phone }}</small></td>
+            <td>{{ order.vehicle.bike_model }}</td>
+            <td>{{ order.sales_executive|default:"—" }}</td>
+            <td>Rs. {{ order.total_amount }}</td>
+            <td>{{ order.get_sales_status_display }}</td>
+            <td>{{ order.created_at|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'sales:order_detail' order.pk %}">View</a> |
+                <a href="{% url 'sales:order_update' order.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No orders found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

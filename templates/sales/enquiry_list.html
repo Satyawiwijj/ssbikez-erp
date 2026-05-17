@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Enquiries — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Sales Enquiries</h2>
+
+<form method="get" style="margin-bottom: 12px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name or phone">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <button type="submit">Search</button>
+    {% if q or status_filter %}<a href="{% url 'sales:enquiry_list' %}">Clear</a>{% endif %}
+</form>
+
+<div style="margin-bottom: 12px;">
+    <a href="{% url 'sales:enquiry_list' %}{% if q %}?q={{ q }}{% endif %}">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<a href="{% url 'sales:enquiry_create' %}">+ New Enquiry</a>
+<br><br>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Bike Model</th>
+            <th>Source</th>
+            <th>Executive</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for enq in enquiries %}
+        <tr>
+            <td>{{ enq.customer.full_name }}<br><small>{{ enq.customer.phone }}</small></td>
+            <td>{{ enq.bike_model|default:"—" }}</td>
+            <td>{{ enq.get_enquiry_source_display|default:"—" }}</td>
+            <td>{{ enq.sales_executive|default:"—" }}</td>
+            <td>{{ enq.get_status_display }}</td>
+            <td>{{ enq.created_at|date:"d M Y" }}</td>
+            <td>
+                <a href="{% url 'sales:enquiry_detail' enq.pk %}">View</a> |
+                <a href="{% url 'sales:enquiry_update' enq.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No enquiries found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

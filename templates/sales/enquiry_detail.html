@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+
+{% block title %}ENQ-{{ enquiry.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>ENQ-{{ enquiry.pk }}</h2>
+<a href="{% url 'sales:enquiry_update' enquiry.pk %}">Edit</a> |
+<a href="{% url 'sales:enquiry_list' %}">Back to list</a>
+
+<!-- Quick status change -->
+<form method="post" action="{% url 'sales:enquiry_status_update' enquiry.pk %}" style="display:inline; margin-left:16px;">
+    {% csrf_token %}
+    <select name="status">
+        {% for val, label in enquiry.Status.choices %}
+        <option value="{{ val }}" {% if enquiry.status == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+
+<h3>Customer</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Name</th><td>{{ enquiry.customer.full_name }}</td></tr>
+    <tr><th>Phone</th><td>{{ enquiry.customer.phone }}</td></tr>
+    <tr><th>Email</th><td>{{ enquiry.customer.email|default:"—" }}</td></tr>
+</table>
+
+<h3>Enquiry Info</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Bike Model</th><td>{{ enquiry.bike_model|default:"—" }}</td></tr>
+    <tr><th>Source</th><td>{{ enquiry.get_enquiry_source_display|default:"—" }}</td></tr>
+    <tr><th>Status</th><td>{{ enquiry.get_status_display }}</td></tr>
+    <tr><th>Sales Executive</th><td>{{ enquiry.sales_executive|default:"—" }}</td></tr>
+    <tr><th>Branch</th><td>{{ enquiry.branch|default:"—" }}</td></tr>
+    <tr><th>Remarks</th><td>{{ enquiry.remarks|default:"—" }}</td></tr>
+    <tr><th>Created</th><td>{{ enquiry.created_at|date:"d M Y H:i" }}</td></tr>
+</table>
+
+<h3>
+    Appointments
+    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}" style="font-size:0.85em;">+ Add</a>
+</h3>
+{% if appointments %}
+<table border="1" cellpadding="6">
+    <thead>
+        <tr><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+        {% for apt in appointments %}
+        <tr>
+            <td>{{ apt.appointment_date|date:"d M Y H:i" }}</td>
+            <td>{{ apt.get_purpose_display|default:"—" }}</td>
+            <td>{{ apt.get_status_display }}</td>
+            <td>
+                <a href="{% url 'sales:appointment_update' apt.pk %}">Edit</a>
+                {% if apt.status == 'scheduled' %}
+                | <form method="post" action="{% url 'sales:appointment_cancel' apt.pk %}" style="display:inline;">
+                    {% csrf_token %}<button type="submit">Cancel</button>
+                  </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No appointments yet.</p>
+{% endif %}
+
+<h3>
+    Feedback
+    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" style="font-size:0.85em;">+ Add</a>
+</h3>
+{% if feedback_list %}
+<table border="1" cellpadding="6">
+    <thead>
+        <tr><th>Notes</th><th>Next Follow-up</th><th>By</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+        {% for fb in feedback_list %}
+        <tr>
+            <td>{{ fb.feedback_notes|default:"—" }}</td>
+            <td>{{ fb.next_followup_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ fb.created_by|default:"—" }}</td>
+            <td>{{ fb.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No feedback yet.</p>
+{% endif %}
+
+<h3>Sales Order</h3>
+{% if order %}
+<p>
+    <a href="{% url 'sales:order_detail' order.pk %}">ORD-{{ order.pk }}</a> —
+    {{ order.get_sales_status_display }} — Rs. {{ order.total_amount }}
+</p>
+{% else %}
+<p>No order yet.
+    <a href="{% url 'sales:order_create' %}?enquiry={{ enquiry.pk }}&customer={{ enquiry.customer_id }}">
+        + Create Order
+    </a>
+</p>
+{% endif %}
+
+{% endblock %}
