@@ -154,7 +154,7 @@ def jobcard_list(request):
 def jobcard_detail(request, pk):
     # context: job_card — JobCard; bay_assignments — related queryset;
     #          labor_charges — related queryset; total_labor — Decimal;
-    #          spares_issues — empty list (TODO: wire spares app)
+    #          spares_issues — SparesIssue queryset for this job card
     job_card = get_object_or_404(
         JobCard.objects.select_related(
             'customer_vehicle__customer',
@@ -173,7 +173,7 @@ def jobcard_detail(request, pk):
         'bay_assignments': bay_assignments,
         'labor_charges':   labor_charges,
         'total_labor':     total_labor,
-        'spares_issues':   [],   # TODO: job_card.spares_issues.all() once spares app is wired
+        'spares_issues':   job_card.spares_issues.select_related('spare_part', 'issued_by').all(),
     })
 
 

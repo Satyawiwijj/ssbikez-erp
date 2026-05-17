@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}Purchase Orders — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Purchase Orders</h2>
+
+<div>
+    <a href="?">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<p><a href="{% url 'spares:po_create' %}">+ New Purchase Order</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>PO No.</th>
+            <th>Supplier</th>
+            <th>Order Date</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for po in purchase_orders %}
+        <tr>
+            <td>PO-{{ po.pk }}</td>
+            <td>{{ po.supplier }}</td>
+            <td>{{ po.order_date }}</td>
+            <td>{{ po.total_amount }}</td>
+            <td>{{ po.get_status_display }}</td>
+            <td>
+                <a href="{% url 'spares:po_detail' po.pk %}">View</a>
+                | <a href="{% url 'spares:po_update' po.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No purchase orders found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

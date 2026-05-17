@@ -104,10 +104,33 @@
 <hr>
 
 <h3>Spares Issued</h3>
-{# TODO: wire spares app — spares_issues queryset will be populated once spares app is built #}
-{% if spares_issues %}
-<p>Spares list goes here.</p>
-{% else %}
-<p>No spares issued yet.</p>
-{% endif %}
+<p><a href="{% url 'spares:issue_create' %}?jobcard={{ job_card.pk }}">+ Issue Spare Part</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Part</th>
+            <th>Issued</th>
+            <th>Returned</th>
+            <th>Net</th>
+            <th>Issued By</th>
+            <th>Issued At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for issue in spares_issues %}
+        <tr>
+            <td>{{ issue.spare_part.part_name }}</td>
+            <td>{{ issue.quantity_issued }}</td>
+            <td>{{ issue.quantity_returned }}</td>
+            <td>{{ issue.net_quantity }}</td>
+            <td>{{ issue.issued_by|default:"—" }}</td>
+            <td>{{ issue.issued_at|date:"d M Y H:i" }}</td>
+            <td><a href="{% url 'spares:issue_update' issue.pk %}">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No spares issued yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

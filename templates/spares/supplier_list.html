@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}Suppliers — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Suppliers</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search name, phone, email">
+    <button type="submit">Search</button>
+    {% if q %}<a href="?">Clear</a>{% endif %}
+</form>
+
+<p><a href="{% url 'spares:supplier_create' %}">+ Add Supplier</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for supplier in suppliers %}
+        <tr>
+            <td><a href="{% url 'spares:supplier_detail' supplier.pk %}">{{ supplier.supplier_name }}</a></td>
+            <td>{{ supplier.phone|default:"—" }}</td>
+            <td>{{ supplier.email|default:"—" }}</td>
+            <td>
+                <a href="{% url 'spares:supplier_detail' supplier.pk %}">View</a>
+                | <a href="{% url 'spares:supplier_update' supplier.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No suppliers found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

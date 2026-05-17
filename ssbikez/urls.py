@@ -11,5 +11,6 @@ urlpatterns = [
     path('billing/', include('billing.urls', namespace='billing')),
     path('rto/', include('rto.urls', namespace='rto')),
     path('service/', include('service.urls', namespace='service')),
+    path('spares/', include('spares.urls', namespace='spares')),
     path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
 ]

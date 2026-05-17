@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Counter Sales — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Counter Sales</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search invoice no. or customer">
+    <button type="submit">Search</button>
+    {% if q %}<a href="?">Clear</a>{% endif %}
+</form>
+
+<p><a href="{% url 'spares:counter_sale_create' %}">+ New Counter Sale</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Invoice No.</th>
+            <th>Customer</th>
+            <th>Total Amount</th>
+            <th>Sale Date</th>
+            <th>Created By</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for sale in counter_sales %}
+        <tr>
+            <td>{{ sale.invoice_number }}</td>
+            <td>{{ sale.customer|default:"Walk-in" }}</td>
+            <td>{{ sale.total_amount }}</td>
+            <td>{{ sale.sale_date }}</td>
+            <td>{{ sale.created_by|default:"—" }}</td>
+            <td>
+                <a href="{% url 'spares:counter_sale_detail' sale.pk %}">View</a>
+                | <a href="{% url 'spares:counter_sale_update' sale.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No counter sales found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

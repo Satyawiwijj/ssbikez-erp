@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block title %}PO-{{ po.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Purchase Order — PO-{{ po.pk }}</h2>
+<a href="{% url 'spares:po_list' %}">← Back to list</a>
+
+<h3>PO Info</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Supplier</th><td>{{ po.supplier }}</td></tr>
+    <tr><th>Order Date</th><td>{{ po.order_date }}</td></tr>
+    <tr><th>Status</th><td>{{ po.get_status_display }}</td></tr>
+    <tr><th>Stored Total</th><td>{{ po.total_amount }}</td></tr>
+</table>
+
+<p><a href="{% url 'spares:po_update' po.pk %}">Edit PO</a></p>
+
+<h4>Update Status</h4>
+<form method="post" action="{% url 'spares:po_status_update' po.pk %}">
+    {% csrf_token %}
+    <select name="status">
+        {% for val, label in po.Status.choices %}
+        <option value="{{ val }}" {% if val == po.status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+    </select>
+    <button type="submit">Update Status</button>
+</form>
+
+<hr>
+
+<h3>Line Items</h3>
+<p><a href="{% url 'spares:po_item_create' %}?po={{ po.pk }}">+ Add Item</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Part</th>
+            <th>Part No.</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Line Total</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.spare_part.part_name }}</td>
+            <td>{{ item.spare_part.part_number|default:"—" }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.line_total }}</td>
+            <td>
+                <a href="{% url 'spares:po_item_update' item.pk %}">Edit</a>
+                | <form method="post" action="{% url 'spares:po_item_delete' item.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                  </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No items yet.</td></tr>
+        {% endfor %}
+        {% if items %}
+        <tr>
+            <th colspan="4">Grand Total</th>
+            <td><strong>{{ total }}</strong></td>
+            <td></td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

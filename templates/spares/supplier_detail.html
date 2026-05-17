@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ supplier.supplier_name }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>{{ supplier.supplier_name }}</h2>
+<a href="{% url 'spares:supplier_list' %}">← Back to suppliers</a>
+
+<h3>Supplier Info</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Name</th><td>{{ supplier.supplier_name }}</td></tr>
+    <tr><th>Phone</th><td>{{ supplier.phone|default:"—" }}</td></tr>
+    <tr><th>Email</th><td>{{ supplier.email|default:"—" }}</td></tr>
+    <tr><th>Address</th><td>{{ supplier.address|default:"—" }}</td></tr>
+</table>
+<p><a href="{% url 'spares:supplier_update' supplier.pk %}">Edit Supplier</a></p>
+
+<hr>
+
+<h3>Purchase Orders</h3>
+<p><a href="{% url 'spares:po_create' %}">+ New Purchase Order</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>PO No.</th>
+            <th>Order Date</th>
+            <th>Total Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for po in purchase_orders %}
+        <tr>
+            <td>PO-{{ po.pk }}</td>
+            <td>{{ po.order_date }}</td>
+            <td>{{ po.total_amount }}</td>
+            <td>{{ po.get_status_display }}</td>
+            <td><a href="{% url 'spares:po_detail' po.pk %}">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No purchase orders yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

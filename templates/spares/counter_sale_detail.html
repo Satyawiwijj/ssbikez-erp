@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ sale.invoice_number }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Counter Sale — {{ sale.invoice_number }}</h2>
+<a href="{% url 'spares:counter_sale_list' %}">← Back to list</a>
+
+<h3>Sale Info</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Invoice No.</th><td>{{ sale.invoice_number }}</td></tr>
+    <tr><th>Customer</th><td>{{ sale.customer|default:"Walk-in" }}</td></tr>
+    <tr><th>Branch</th><td>{{ sale.branch|default:"—" }}</td></tr>
+    <tr><th>Sale Date</th><td>{{ sale.sale_date }}</td></tr>
+    <tr><th>Created By</th><td>{{ sale.created_by|default:"—" }}</td></tr>
+    <tr><th>Total Amount</th><td>{{ sale.total_amount }}</td></tr>
+</table>
+<p><a href="{% url 'spares:counter_sale_update' sale.pk %}">Edit Sale</a></p>
+
+<hr>
+
+<h3>Items</h3>
+<p><a href="{% url 'spares:counter_sale_item_create' %}?cs={{ sale.pk }}">+ Add Item</a></p>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Part</th>
+            <th>Qty</th>
+            <th>Unit Price</th>
+            <th>Total Price</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.spare_part.part_name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price }}</td>
+            <td>{{ item.total_price }}</td>
+            <td>
+                <form method="post" action="{% url 'spares:counter_sale_item_delete' item.pk %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No items yet.</td></tr>
+        {% endfor %}
+        {% if items %}
+        <tr>
+            <th colspan="3">Total</th>
+            <td><strong>{{ total }}</strong></td>
+            <td></td>
+        </tr>
+        {% endif %}
+    </tbody>
+</table>
+{% endblock %}

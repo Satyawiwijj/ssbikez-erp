@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Spares Categories — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Spares Categories</h2>
+<p><a href="{% url 'spares:category_create' %}">+ Add Category</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Category Name</th>
+            <th>Created</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cat in categories %}
+        <tr>
+            <td>{{ cat.category_name }}</td>
+            <td>{{ cat.created_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'spares:category_update' cat.pk %}">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3">No categories yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ part.part_name }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>{{ part.part_name }}</h2>
+<a href="{% url 'spares:part_list' %}">← Back to parts</a>
+
+<h3>Part Info</h3>
+<table border="1" cellpadding="4">
+    <tr><th>Part Name</th><td>{{ part.part_name }}</td></tr>
+    <tr><th>Part Number</th><td>{{ part.part_number|default:"—" }}</td></tr>
+    <tr><th>Category</th><td>{{ part.category }}</td></tr>
+    <tr><th>MRP</th><td>{{ part.mrp|default:"—" }}</td></tr>
+    <tr>
+        <th>Stock Qty</th>
+        <td>
+            {{ part.stock_quantity }}
+            {% if part.stock_quantity < 5 %}
+            <span style="color:red; font-weight:bold;">[LOW STOCK]</span>
+            {% endif %}
+        </td>
+    </tr>
+    <tr><th>Rack Location</th><td>{{ part.rack_location|default:"—" }}</td></tr>
+    <tr><th>Bin Location</th><td>{{ part.bin_location|default:"—" }}</td></tr>
+</table>
+<p><a href="{% url 'spares:part_update' part.pk %}">Edit Part</a></p>
+
+<hr>
+
+<h3>Recent Purchase Order Items</h3>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr><th>PO</th><th>Supplier</th><th>Qty</th><th>Price</th><th>Line Total</th></tr>
+    </thead>
+    <tbody>
+        {% for item in po_items %}
+        <tr>
+            <td><a href="{% url 'spares:po_detail' item.purchase_order.pk %}">PO-{{ item.purchase_order.pk }}</a></td>
+            <td>{{ item.purchase_order.supplier }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.price }}</td>
+            <td>{{ item.line_total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No purchase order history.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h3>Recent Counter Sale Items</h3>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr><th>Invoice</th><th>Qty</th><th>Unit Price</th><th>Total</th></tr>
+    </thead>
+    <tbody>
+        {% for item in sale_items %}
+        <tr>
+            <td><a href="{% url 'spares:counter_sale_detail' item.counter_sale.pk %}">{{ item.counter_sale.invoice_number }}</a></td>
+            <td>{{ item.quantity }}</td>
+            <td>{{ item.unit_price }}</td>
+            <td>{{ item.total_price }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4">No counter sale history.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<hr>
+
+<h3>Recent Spares Issues</h3>
+<table border="1" cellpadding="4">
+    <thead>
+        <tr><th>Job Card</th><th>Issued</th><th>Returned</th><th>Net</th><th>Issued By</th><th>Date</th></tr>
+    </thead>
+    <tbody>
+        {% for issue in issues %}
+        <tr>
+            <td><a href="{% url 'service:jobcard_detail' issue.job_card.pk %}">JC-{{ issue.job_card.pk }}</a></td>
+            <td>{{ issue.quantity_issued }}</td>
+            <td>{{ issue.quantity_returned }}</td>
+            <td>{{ issue.net_quantity }}</td>
+            <td>{{ issue.issued_by|default:"—" }}</td>
+            <td>{{ issue.issued_at|date:"d M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No issue history.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

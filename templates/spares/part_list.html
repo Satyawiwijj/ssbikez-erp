@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Spare Parts — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Spare Parts</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search part name or number">
+    <select name="category">
+        <option value="">All Categories</option>
+        {% for cat in categories %}
+        <option value="{{ cat.pk }}" {% if category_filter == cat.pk|stringformat:"s" %}selected{% endif %}>
+            {{ cat.category_name }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+    {% if q or category_filter %}<a href="{% url 'spares:part_list' %}">Clear</a>{% endif %}
+</form>
+
+<p><a href="{% url 'spares:part_create' %}">+ Add Spare Part</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Part Name</th>
+            <th>Part Number</th>
+            <th>Category</th>
+            <th>MRP</th>
+            <th>Stock Qty</th>
+            <th>Rack</th>
+            <th>Bin</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for part in parts %}
+        <tr>
+            <td><a href="{% url 'spares:part_detail' part.pk %}">{{ part.part_name }}</a></td>
+            <td>{{ part.part_number|default:"—" }}</td>
+            <td>{{ part.category }}</td>
+            <td>{{ part.mrp|default:"—" }}</td>
+            <td>
+                {{ part.stock_quantity }}
+                {% if part.stock_quantity < 5 %}
+                <span style="color:red; font-weight:bold;">[LOW]</span>
+                {% endif %}
+            </td>
+            <td>{{ part.rack_location|default:"—" }}</td>
+            <td>{{ part.bin_location|default:"—" }}</td>
+            <td>
+                <a href="{% url 'spares:part_detail' part.pk %}">View</a>
+                | <a href="{% url 'spares:part_update' part.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No parts found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
