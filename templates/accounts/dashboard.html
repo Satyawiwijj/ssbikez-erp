@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Welcome, {{ user.get_full_name|default:user.username }}</h2>
+<table border="1" cellpadding="6">
+    <tr><th>Email</th><td>{{ user.email|default:"—" }}</td></tr>
+    <tr><th>Role</th><td>{{ user.role|default:"—" }}</td></tr>
+    <tr><th>Branch</th><td>{{ user.branch|default:"—" }}</td></tr>
+    <tr><th>Status</th><td>{{ user.get_status_display }}</td></tr>
+</table>
+{% endblock %}

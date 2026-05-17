@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SSBikez ERP{% endblock %}</title>
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav>
+    <strong>SSBikez ERP</strong> |
+    {{ user.get_full_name }} ({{ user.role }}) |
+    <a href="{% url 'accounts:dashboard' %}">Dashboard</a> |
+    <a href="{% url 'accounts:user_list' %}">Users</a> |
+    <a href="{% url 'accounts:branch_list' %}">Branches</a> |
+    <a href="{% url 'accounts:role_list' %}">Roles</a> |
+    <a href="{% url 'accounts:logout' %}">Logout</a>
+</nav>
+<hr>
+{% endif %}
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+</body>
+</html>

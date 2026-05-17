@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block title %}Branches — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Branches</h2>
+<a href="{% url 'accounts:branch_create' %}">+ Create Branch</a>
+<br><br>
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Branch Name</th>
+            <th>Phone</th>
+            <th>GSTIN</th>
+            <th>Active</th>
+            <th>Created</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for branch in branches %}
+        <tr>
+            <td>{{ branch.branch_name }}</td>
+            <td>{{ branch.phone|default:"—" }}</td>
+            <td>{{ branch.gstin|default:"—" }}</td>
+            <td>{{ branch.is_active|yesno:"Yes,No" }}</td>
+            <td>{{ branch.created_at|date:"d M Y" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No branches found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
