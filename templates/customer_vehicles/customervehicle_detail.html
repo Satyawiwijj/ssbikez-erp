@@ -26,64 +26,93 @@
     <tr><th>Insurance Expiry</th><td>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td></tr>
 </table>
 
-<!-- SERVICE HISTORY — Team 2: replace placeholder with real job_cards queryset -->
 <h3>Service History</h3>
-{% if job_cards %}
+<p><a href="{% url 'service:jobcard_create' %}?cv={{ cv.pk }}">+ New Job Card</a></p>
 <table border="1" cellpadding="6">
-    <thead><tr><th>Job Card</th><th>Date</th><th>Status</th></tr></thead>
+    <thead><tr><th>Job Card</th><th>Date</th><th>Advisor</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
         {% for jc in job_cards %}
-        <tr><td>{{ jc }}</td><td></td><td></td></tr>
+        <tr>
+            <td>JC-{{ jc.pk }}</td>
+            <td>{{ jc.created_at|date:"d M Y" }}</td>
+            <td>{{ jc.service_advisor|default:"—" }}</td>
+            <td>{{ jc.get_service_status_display }}</td>
+            <td><a href="{% url 'service:jobcard_detail' jc.pk %}">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No service history yet.</td></tr>
         {% endfor %}
     </tbody>
 </table>
-{% else %}
-<p>No service history yet.</p>
-{% endif %}
 
-<!-- AMC PACKAGES — Team 2: replace placeholder with real amc_packages queryset -->
 <h3>AMC Packages</h3>
-{% if amc_packages %}
+<p><a href="{% url 'vas:amc_create' %}?cv={{ cv.pk }}">+ Add AMC Package</a></p>
 <table border="1" cellpadding="6">
-    <thead><tr><th>Package</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <thead><tr><th>Package</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
         {% for amc in amc_packages %}
-        <tr><td>{{ amc }}</td><td></td><td></td><td></td></tr>
+        <tr>
+            <td>{{ amc.package_name }}</td>
+            <td>{{ amc.start_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ amc.end_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ amc.amount|default:"—" }}</td>
+            <td>{{ amc.get_status_display }}</td>
+            <td>
+                <a href="{% url 'vas:amc_detail' amc.pk %}">View</a>
+                | <a href="{% url 'vas:amc_update' amc.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No AMC packages.</td></tr>
         {% endfor %}
     </tbody>
 </table>
-{% else %}
-<p>No AMC packages.</p>
-{% endif %}
 
-<!-- RSA PACKAGES — Team 2: replace placeholder with real rsa_packages queryset -->
 <h3>RSA Packages</h3>
-{% if rsa_packages %}
+<p><a href="{% url 'vas:rsa_create' %}?cv={{ cv.pk }}">+ Add RSA Package</a></p>
 <table border="1" cellpadding="6">
-    <thead><tr><th>Provider</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <thead><tr><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
         {% for rsa in rsa_packages %}
-        <tr><td>{{ rsa }}</td><td></td><td></td><td></td></tr>
+        <tr>
+            <td>{{ rsa.provider_name|default:"—" }}</td>
+            <td>{{ rsa.start_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ rsa.end_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ rsa.amount|default:"—" }}</td>
+            <td>{{ rsa.get_status_display }}</td>
+            <td>
+                <a href="{% url 'vas:rsa_detail' rsa.pk %}">View</a>
+                | <a href="{% url 'vas:rsa_update' rsa.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No RSA packages.</td></tr>
         {% endfor %}
     </tbody>
 </table>
-{% else %}
-<p>No RSA packages.</p>
-{% endif %}
 
-<!-- PROTECTION PLUS — Team 2: replace placeholder with real protection_plus queryset -->
 <h3>Protection Plus</h3>
-{% if protection_plus %}
+<p><a href="{% url 'vas:pp_create' %}?cv={{ cv.pk }}">+ Add Protection Plus Package</a></p>
 <table border="1" cellpadding="6">
-    <thead><tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <thead><tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
     <tbody>
         {% for pp in protection_plus %}
-        <tr><td>{{ pp }}</td><td></td><td></td><td></td><td></td></tr>
+        <tr>
+            <td>{{ pp.package_name|default:"—" }}</td>
+            <td>{{ pp.provider_name|default:"—" }}</td>
+            <td>{{ pp.start_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ pp.end_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ pp.amount|default:"—" }}</td>
+            <td>{{ pp.get_status_display }}</td>
+            <td>
+                <a href="{% url 'vas:pp_detail' pp.pk %}">View</a>
+                | <a href="{% url 'vas:pp_update' pp.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No Protection Plus packages.</td></tr>
         {% endfor %}
     </tbody>
 </table>
-{% else %}
-<p>No Protection Plus packages.</p>
-{% endif %}
 
 {% endblock %}

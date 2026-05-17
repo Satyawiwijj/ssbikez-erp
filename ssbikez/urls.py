@@ -12,5 +12,6 @@ urlpatterns = [
     path('rto/', include('rto.urls', namespace='rto')),
     path('service/', include('service.urls', namespace='service')),
     path('spares/', include('spares.urls', namespace='spares')),
+    path('vas/', include('vas.urls', namespace='vas')),
     path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
 ]

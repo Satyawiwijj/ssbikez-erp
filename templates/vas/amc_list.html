@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}AMC Packages — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>AMC Packages</h2>
+
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer or reg. no.">
+    {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+    <button type="submit">Search</button>
+    {% if q %}<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}">Clear</a>{% endif %}
+</form>
+
+<div>
+    <a href="?{% if q %}q={{ q }}{% endif %}">All</a>
+    {% for val, label in status_choices %}
+    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
+    {% endfor %}
+</div>
+
+<p><a href="{% url 'vas:amc_create' %}">+ New AMC Package</a></p>
+
+<table border="1" cellpadding="4">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Reg. No.</th>
+            <th>Package Name</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pkg in packages %}
+        <tr>
+            <td>{{ pkg.customer_vehicle.customer.full_name }}</td>
+            <td>{{ pkg.customer_vehicle.registration_no|default:"—" }}</td>
+            <td>{{ pkg.package_name }}</td>
+            <td>{{ pkg.start_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ pkg.end_date|date:"d M Y"|default:"—" }}</td>
+            <td>{{ pkg.amount|default:"—" }}</td>
+            <td>{{ pkg.get_status_display }}</td>
+            <td>
+                <a href="{% url 'vas:amc_detail' pkg.pk %}">View</a>
+                | <a href="{% url 'vas:amc_update' pkg.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8">No AMC packages found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
