@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ invoice.invoice_number }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Invoice: {{ invoice.invoice_number }}</h2>
+<a href="{% url 'billing:invoice_update' invoice.pk %}">Edit</a> |
+<a href="{% url 'billing:invoice_list' %}">Back to list</a>
+
+<h3>Invoice Details</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Invoice No</th><td>{{ invoice.invoice_number }}</td></tr>
+    <tr><th>Sales Order</th>
+        <td><a href="{% url 'sales:order_detail' invoice.sales_order.pk %}">
+            ORD-{{ invoice.sales_order.pk }}
+        </a></td>
+    </tr>
+    <tr><th>Customer</th><td>{{ invoice.sales_order.customer.full_name }}</td></tr>
+    <tr><th>Invoice Date</th><td>{{ invoice.invoice_date|date:"d M Y" }}</td></tr>
+    <tr><th>Subtotal</th><td>Rs. {{ invoice.subtotal }}</td></tr>
+    <tr><th>GST Amount</th><td>Rs. {{ invoice.gst_amount }}</td></tr>
+    <tr><th>Discount</th><td>Rs. {{ invoice.discount_amount }}</td></tr>
+    <tr><th>Final Amount</th><td><strong>Rs. {{ invoice.final_amount }}</strong></td></tr>
+</table>
+
+<h3>
+    Payments
+    <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}" style="font-size:0.85em;">+ Add Payment</a>
+</h3>
+{% if payments %}
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>PAY #</th>
+            <th>Method</th>
+            <th>Reference</th>
+            <th>Amount</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pay in payments %}
+        <tr>
+            <td>PAY-{{ pay.pk }}</td>
+            <td>{{ pay.get_payment_method_display|default:"—" }}</td>
+            <td>{{ pay.transaction_reference|default:"—" }}</td>
+            <td>Rs. {{ pay.amount }}</td>
+            <td>{{ pay.get_payment_status_display }}</td>
+            <td>{{ pay.payment_date|date:"d M Y H:i"|default:"—" }}</td>
+            <td><a href="{% url 'billing:payment_update' pay.pk %}">Edit</a></td>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td colspan="3"><strong>Total Paid</strong></td>
+            <td><strong>Rs. {{ total_paid }}</strong></td>
+            <td colspan="3"></td>
+        </tr>
+        <tr>
+            <td colspan="3"><strong>Balance Remaining</strong></td>
+            <td><strong>Rs. {{ balance }}</strong></td>
+            <td colspan="3"></td>
+        </tr>
+    </tfoot>
+</table>
+{% else %}
+<p>No payments recorded yet.
+    <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}">+ Add Payment</a>
+</p>
+{% endif %}
+
+{% endblock %}

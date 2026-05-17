@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block title %}LOAN-{{ loan.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>LOAN-{{ loan.pk }}</h2>
+<a href="{% url 'billing:loan_update' loan.pk %}">Edit</a> |
+<a href="{% url 'sales:order_detail' loan.sales_order.pk %}">Back to Order ORD-{{ loan.sales_order.pk }}</a>
+
+<h3>Loan Details</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Sales Order</th>
+        <td><a href="{% url 'sales:order_detail' loan.sales_order.pk %}">ORD-{{ loan.sales_order.pk }}</a></td>
+    </tr>
+    <tr><th>Customer</th><td>{{ loan.sales_order.customer.full_name }}</td></tr>
+    <tr><th>Bank</th><td>{{ loan.bank_name }}</td></tr>
+    <tr><th>Loan Amount</th><td>Rs. {{ loan.loan_amount }}</td></tr>
+    <tr><th>Interest Rate</th><td>
+        {% if loan.interest_rate %}{{ loan.interest_rate }}% p.a.{% else %}—{% endif %}
+    </td></tr>
+    <tr><th>Tenure</th><td>
+        {% if loan.tenure_months %}{{ loan.tenure_months }} months{% else %}—{% endif %}
+    </td></tr>
+    <tr><th>EMI</th><td>
+        {% if loan.emi_amount %}Rs. {{ loan.emi_amount }}{% else %}—{% endif %}
+    </td></tr>
+    <tr><th>Status</th><td>{{ loan.get_loan_status_display }}</td></tr>
+    <tr><th>Created</th><td>{{ loan.created_at|date:"d M Y" }}</td></tr>
+</table>
+
+{% if total_repayment %}
+<h3>Repayment Estimate (Simple Interest)</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Principal</th><td>Rs. {{ loan.loan_amount }}</td></tr>
+    <tr><th>Interest (estimated)</th><td>Rs. {{ total_repayment|floatformat:2 }}</td></tr>
+    <tr><th>Total Repayment</th><td><strong>Rs. {{ total_repayment|floatformat:2 }}</strong></td></tr>
+</table>
+<small>Estimate based on simple interest. Actual repayment may differ.</small>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Invoices — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Invoices</h2>
+
+<form method="get" style="margin-bottom: 12px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by invoice number or customer name">
+    <button type="submit">Search</button>
+    {% if q %}<a href="{% url 'billing:invoice_list' %}">Clear</a>{% endif %}
+</form>
+
+<a href="{% url 'billing:invoice_create' %}">+ Create Invoice</a>
+<br><br>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Invoice No</th>
+            <th>Customer</th>
+            <th>Final Amount</th>
+            <th>Date</th>
+            <th>Payment Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for inv in invoices %}
+        {% with total_paid=inv.payments.filter_completed %}
+        <tr>
+            <td><a href="{% url 'billing:invoice_detail' inv.pk %}">{{ inv.invoice_number }}</a></td>
+            <td>{{ inv.sales_order.customer.full_name }}</td>
+            <td>Rs. {{ inv.final_amount }}</td>
+            <td>{{ inv.invoice_date|date:"d M Y" }}</td>
+            <td>
+                {# Status is computed in the detail view; list shows a simple indicator #}
+                {% with paid=inv.payments.all %}
+                    {% if not paid %}Unpaid
+                    {% else %}Payments Recorded{% endif %}
+                {% endwith %}
+            </td>
+            <td>
+                <a href="{% url 'billing:invoice_detail' inv.pk %}">View</a> |
+                <a href="{% url 'billing:invoice_update' inv.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr><td colspan="6">No invoices found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
