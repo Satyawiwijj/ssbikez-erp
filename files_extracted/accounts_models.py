@@ -50,7 +50,7 @@ class User(AbstractUser):
     branch = models.ForeignKey(
         Branch,
         on_delete=models.SET_NULL,
-        null=True, blank=True,
+        null=True, blank=True,   # nullable — single-branch works without it
         related_name='users'
     )
     phone  = models.CharField(max_length=15, blank=True, null=True)

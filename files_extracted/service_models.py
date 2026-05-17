@@ -85,44 +85,44 @@ class JobCard(models.Model):
         READY            = 'ready',            'Ready'
         INVOICED         = 'invoiced',         'Invoiced'
 
-    customer_vehicle    = models.ForeignKey(
+    customer_vehicle      = models.ForeignKey(
         'customer_vehicles.CustomerVehicle',
         on_delete=models.PROTECT,
         related_name='job_cards'
     )
-    service_appointment = models.ForeignKey(
+    service_appointment   = models.ForeignKey(
         ServiceAppointment,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='job_cards'
     )
-    service_advisor     = models.ForeignKey(
+    service_advisor       = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='job_cards_as_advisor'
     )
-    floor_supervisor    = models.ForeignKey(
+    floor_supervisor      = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='job_cards_as_supervisor'
     )
-    branch              = models.ForeignKey(
+    branch                = models.ForeignKey(
         'accounts.Branch',
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='job_cards'
     )
-    odometer_reading    = models.IntegerField(null=True, blank=True)
-    problem_description = models.TextField(blank=True, null=True)
-    service_status      = models.CharField(
+    odometer_reading      = models.IntegerField(null=True, blank=True)
+    problem_description   = models.TextField(blank=True, null=True)
+    service_status        = models.CharField(
         max_length=30,
         choices=ServiceStatus.choices,
         default=ServiceStatus.PENDING
     )
-    created_at          = models.DateTimeField(auto_now_add=True)
-    updated_at          = models.DateTimeField(auto_now=True)
+    created_at            = models.DateTimeField(auto_now_add=True)
+    updated_at            = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']

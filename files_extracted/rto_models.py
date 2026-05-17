@@ -36,7 +36,7 @@ class NumberPlateOrder(models.Model):
         ORDERED = 'ordered', 'Ordered'
         ISSUED  = 'issued',  'Issued'
 
-    rto          = models.OneToOneField(
+    rto         = models.OneToOneField(
         RTORegistration,
         on_delete=models.PROTECT,
         related_name='number_plate_order'
