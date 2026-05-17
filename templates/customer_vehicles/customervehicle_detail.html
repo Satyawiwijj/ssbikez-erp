@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ cv }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Customer Vehicle</h2>
+<a href="{% url 'customer_vehicles:customervehicle_update' cv.pk %}">Edit</a> |
+<a href="{% url 'customer_vehicles:customervehicle_list' %}">Back to list</a>
+
+<h3>Customer</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Name</th><td>{{ cv.customer.full_name }}</td></tr>
+    <tr><th>Phone</th><td>{{ cv.customer.phone }}</td></tr>
+    <tr><th>Email</th><td>{{ cv.customer.email|default:"—" }}</td></tr>
+</table>
+
+<h3>Vehicle</h3>
+<table border="1" cellpadding="6">
+    <tr><th>Bike Model</th><td>{{ cv.vehicle.bike_model }}</td></tr>
+    <tr><th>Chassis No</th><td>{{ cv.vehicle.chassis_no|default:"—" }}</td></tr>
+    <tr><th>Engine No</th><td>{{ cv.vehicle.engine_no|default:"—" }}</td></tr>
+    <tr><th>Color</th><td>{{ cv.vehicle.color|default:"—" }}</td></tr>
+    <tr><th>Branch</th><td>{{ cv.vehicle.branch|default:"—" }}</td></tr>
+    <tr><th>Registration No</th><td>{{ cv.registration_no|default:"Unregistered" }}</td></tr>
+    <tr><th>Purchase Date</th><td>{{ cv.purchase_date|date:"d M Y"|default:"—" }}</td></tr>
+    <tr><th>Insurance Expiry</th><td>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td></tr>
+</table>
+
+<!-- SERVICE HISTORY — Team 2: replace placeholder with real job_cards queryset -->
+<h3>Service History</h3>
+{% if job_cards %}
+<table border="1" cellpadding="6">
+    <thead><tr><th>Job Card</th><th>Date</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for jc in job_cards %}
+        <tr><td>{{ jc }}</td><td></td><td></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No service history yet.</p>
+{% endif %}
+
+<!-- AMC PACKAGES — Team 2: replace placeholder with real amc_packages queryset -->
+<h3>AMC Packages</h3>
+{% if amc_packages %}
+<table border="1" cellpadding="6">
+    <thead><tr><th>Package</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for amc in amc_packages %}
+        <tr><td>{{ amc }}</td><td></td><td></td><td></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No AMC packages.</p>
+{% endif %}
+
+<!-- RSA PACKAGES — Team 2: replace placeholder with real rsa_packages queryset -->
+<h3>RSA Packages</h3>
+{% if rsa_packages %}
+<table border="1" cellpadding="6">
+    <thead><tr><th>Provider</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for rsa in rsa_packages %}
+        <tr><td>{{ rsa }}</td><td></td><td></td><td></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No RSA packages.</p>
+{% endif %}
+
+<!-- PROTECTION PLUS — Team 2: replace placeholder with real protection_plus queryset -->
+<h3>Protection Plus</h3>
+{% if protection_plus %}
+<table border="1" cellpadding="6">
+    <thead><tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Status</th></tr></thead>
+    <tbody>
+        {% for pp in protection_plus %}
+        <tr><td>{{ pp }}</td><td></td><td></td><td></td><td></td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No Protection Plus packages.</p>
+{% endif %}
+
+{% endblock %}

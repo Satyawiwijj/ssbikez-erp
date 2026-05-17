@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Customer Vehicles — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Customer Vehicles</h2>
+
+<form method="get" style="margin-bottom: 12px;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search by name, phone or reg no">
+    <button type="submit">Search</button>
+    {% if q %}<a href="{% url 'customer_vehicles:customervehicle_list' %}">Clear</a>{% endif %}
+</form>
+
+<a href="{% url 'customer_vehicles:customervehicle_create' %}">+ Add Customer Vehicle</a>
+<br><br>
+
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Customer</th>
+            <th>Bike Model</th>
+            <th>Registration No</th>
+            <th>Insurance Expiry</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for cv in customer_vehicles %}
+        <tr>
+            <td>{{ cv.customer.full_name }}</td>
+            <td>{{ cv.vehicle.bike_model }}</td>
+            <td>{{ cv.registration_no|default:"Unregistered" }}</td>
+            <td>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td>
+            <td>
+                <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}">View</a> |
+                <a href="{% url 'customer_vehicles:customervehicle_update' cv.pk %}">Edit</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5">No customer vehicles found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
