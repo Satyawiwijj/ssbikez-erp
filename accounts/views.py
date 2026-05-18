@@ -77,6 +77,17 @@ def branch_create(request):
 
 
 @login_required
+def branch_update(request, pk):
+    # context: form — BranchForm, title — str
+    branch = get_object_or_404(Branch, pk=pk)
+    form   = BranchForm(request.POST or None, instance=branch)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('accounts:branch_list')
+    return render(request, 'accounts/branch_form.html', {'form': form, 'title': 'Edit Branch'})
+
+
+@login_required
 def role_list(request):
     # context: roles — queryset of all Role objects
     roles = Role.objects.all()
