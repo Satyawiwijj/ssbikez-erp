@@ -191,6 +191,27 @@ class BayAssignment(models.Model):
         return f"BAY-{self.pk} | JC-{self.job_card_id} in {self.bay}"
 
 
+class ServiceInvoice(models.Model):
+    job_card        = models.OneToOneField(
+        JobCard,
+        on_delete=models.PROTECT,
+        related_name='service_invoice'
+    )
+    subtotal        = models.DecimalField(max_digits=10, decimal_places=2)
+    gst_amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    final_amount    = models.DecimalField(max_digits=10, decimal_places=2)
+    invoice_date    = models.DateField()
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-invoice_date']
+        verbose_name_plural = 'Service Invoices'
+
+    def __str__(self):
+        return f"SINV-{self.pk} | JC-{self.job_card_id} — Rs.{self.final_amount}"
+
+
 class LaborCharge(models.Model):
     job_card     = models.ForeignKey(
         JobCard,

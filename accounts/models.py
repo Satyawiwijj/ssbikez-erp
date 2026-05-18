@@ -69,6 +69,32 @@ class User(AbstractUser):
         return f"{self.get_full_name()} ({self.email})"
 
 
+class FuelExpense(models.Model):
+    vehicle        = models.ForeignKey(
+        'customers.VehicleStock',
+        on_delete=models.PROTECT,
+        related_name='fuel_expenses'
+    )
+    amount         = models.DecimalField(max_digits=10, decimal_places=2)
+    fuel_date      = models.DateField()
+    voucher_number = models.CharField(max_length=100, blank=True, null=True)
+    remarks        = models.TextField(blank=True, null=True)
+    created_by     = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='fuel_expenses_created'
+    )
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fuel_date']
+        verbose_name_plural = 'Fuel Expenses'
+
+    def __str__(self):
+        return f"FUEL-{self.pk} | {self.vehicle} — Rs.{self.amount} on {self.fuel_date}"
+
+
 class AuditLog(models.Model):
     class Action(models.TextChoices):
         CREATE = 'create', 'Create'

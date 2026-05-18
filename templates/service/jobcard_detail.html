@@ -112,8 +112,9 @@
             <th>Issued</th>
             <th>Returned</th>
             <th>Net</th>
+            <th>Unit Price</th>
+            <th>Total Price</th>
             <th>Issued By</th>
-            <th>Issued At</th>
             <th>Actions</th>
         </tr>
     </thead>
@@ -124,13 +125,35 @@
             <td>{{ issue.quantity_issued }}</td>
             <td>{{ issue.quantity_returned }}</td>
             <td>{{ issue.net_quantity }}</td>
+            <td>{{ issue.unit_price|default:"—" }}</td>
+            <td>{{ issue.total_price|default:"—" }}</td>
             <td>{{ issue.issued_by|default:"—" }}</td>
-            <td>{{ issue.issued_at|date:"d M Y H:i" }}</td>
             <td><a href="{% url 'spares:issue_update' issue.pk %}">Edit</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="7">No spares issued yet.</td></tr>
+        <tr><td colspan="8">No spares issued yet.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+
+<hr>
+
+<h3>Service Invoice</h3>
+{% with invoice=job_card.service_invoice %}
+{% if invoice %}
+<table border="1" cellpadding="4">
+    <tr><th>Invoice Date</th><td>{{ invoice.invoice_date|date:"d M Y" }}</td></tr>
+    <tr><th>Subtotal</th><td>Rs.{{ invoice.subtotal }}</td></tr>
+    <tr><th>GST</th><td>Rs.{{ invoice.gst_amount }}</td></tr>
+    <tr><th>Discount</th><td>Rs.{{ invoice.discount_amount }}</td></tr>
+    <tr><th>Final Amount</th><td><strong>Rs.{{ invoice.final_amount }}</strong></td></tr>
+</table>
+<p>
+    <a href="{% url 'service:service_invoice_detail' invoice.pk %}">View Invoice</a> |
+    <a href="{% url 'service:service_invoice_update' invoice.pk %}">Edit</a>
+</p>
+{% else %}
+<p>Not created. <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}">+ Create Service Invoice</a></p>
+{% endif %}
+{% endwith %}
 {% endblock %}

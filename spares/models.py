@@ -181,6 +181,8 @@ class SparesIssue(models.Model):
     )
     quantity_issued   = models.IntegerField()
     quantity_returned = models.IntegerField(default=0)
+    unit_price        = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    total_price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     issued_by         = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -195,6 +197,11 @@ class SparesIssue(models.Model):
 
     def __str__(self):
         return f"{self.spare_part} x{self.quantity_issued} → JC-{self.job_card_id}"
+
+    def save(self, *args, **kwargs):
+        if self.unit_price is not None:
+            self.total_price = self.quantity_issued * self.unit_price
+        super().save(*args, **kwargs)
 
     @property
     def net_quantity(self):

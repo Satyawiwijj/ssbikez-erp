@@ -81,4 +81,47 @@
 <p>Not added. <em>Add from RTO app.</em></p>
 {% endif %}
 
+<!-- VEHICLE DELIVERY -->
+<h3>Vehicle Delivery</h3>
+{% if delivery %}
+<table border="1" cellpadding="6">
+    <tr><th>Delivery Date</th><td>{{ delivery.delivery_date|date:"d M Y" }}</td></tr>
+    <tr><th>Delivered By</th><td>{{ delivery.delivered_by|default:"—" }}</td></tr>
+    <tr><th>Remarks</th><td>{{ delivery.remarks|default:"—" }}</td></tr>
+</table>
+<a href="{% url 'sales:delivery_update' delivery.pk %}">Edit Delivery</a>
+{% else %}
+<p>Not recorded. <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}">+ Record Delivery</a></p>
+{% endif %}
+
+<!-- INSURANCE POLICIES -->
+<h3>Insurance Policies</h3>
+<a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}">+ Add Policy</a>
+<table border="1" cellpadding="6" style="margin-top:0.5rem;">
+    <thead>
+        <tr>
+            <th>Policy Number</th>
+            <th>Provider</th>
+            <th>Premium</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for policy in policies %}
+        <tr>
+            <td><a href="{% url 'billing:insurance_policy_detail' policy.pk %}">{{ policy.policy_number }}</a></td>
+            <td>{{ policy.provider_name }}</td>
+            <td>Rs.{{ policy.premium_amount }}</td>
+            <td>{{ policy.start_date|date:"d M Y" }}</td>
+            <td>{{ policy.end_date|date:"d M Y" }}</td>
+            <td><a href="{% url 'billing:insurance_policy_update' policy.pk %}">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No policies added yet.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}

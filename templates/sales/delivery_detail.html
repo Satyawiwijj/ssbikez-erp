@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}Delivery — ORD-{{ delivery.sales_order.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Vehicle Delivery — ORD-{{ delivery.sales_order.pk }}</h2>
+<a href="{% url 'sales:order_detail' delivery.sales_order.pk %}">← Back to Order</a>
+
+<table border="1" cellpadding="4" style="margin-top:1rem;">
+    <tr><th>Sales Order</th><td><a href="{% url 'sales:order_detail' delivery.sales_order.pk %}">ORD-{{ delivery.sales_order.pk }}</a></td></tr>
+    <tr><th>Customer</th><td>{{ delivery.sales_order.customer.full_name }}</td></tr>
+    <tr><th>Vehicle</th><td>{{ delivery.sales_order.vehicle.bike_model }}</td></tr>
+    <tr><th>Delivery Date</th><td>{{ delivery.delivery_date|date:"d M Y" }}</td></tr>
+    <tr><th>Delivered By</th><td>{{ delivery.delivered_by|default:"—" }}</td></tr>
+    <tr><th>Remarks</th><td>{{ delivery.remarks|default:"—" }}</td></tr>
+    <tr><th>Created</th><td>{{ delivery.created_at|date:"d M Y" }}</td></tr>
+</table>
+
+<p><a href="{% url 'sales:delivery_update' delivery.pk %}">Edit</a></p>
+{% endblock %}

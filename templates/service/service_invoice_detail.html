@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}SINV-{{ invoice.pk }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Service Invoice — SINV-{{ invoice.pk }}</h2>
+<a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">← Back to Job Card</a>
+
+<table border="1" cellpadding="4" style="margin-top:1rem;">
+    <tr><th>Job Card</th><td><a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">JC-{{ invoice.job_card.pk }}</a></td></tr>
+    <tr><th>Customer</th><td>{{ invoice.job_card.customer_vehicle.customer.full_name }}</td></tr>
+    <tr><th>Vehicle</th><td>{{ invoice.job_card.customer_vehicle.vehicle.bike_model }}</td></tr>
+    <tr><th>Invoice Date</th><td>{{ invoice.invoice_date|date:"d M Y" }}</td></tr>
+    <tr><th>Subtotal</th><td>Rs.{{ invoice.subtotal }}</td></tr>
+    <tr><th>GST Amount</th><td>Rs.{{ invoice.gst_amount }}</td></tr>
+    <tr><th>Discount</th><td>Rs.{{ invoice.discount_amount }}</td></tr>
+    <tr><th>Final Amount</th><td><strong>Rs.{{ invoice.final_amount }}</strong></td></tr>
+    <tr><th>Created</th><td>{{ invoice.created_at|date:"d M Y" }}</td></tr>
+</table>
+
+<p><a href="{% url 'service:service_invoice_update' invoice.pk %}">Edit</a></p>
+{% endblock %}

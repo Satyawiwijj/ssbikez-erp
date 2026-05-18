@@ -1,9 +1,10 @@
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import BranchForm, LoginForm, RoleForm, UserCreationForm, UserUpdateForm
-from .models import Branch, Role, User
+from .forms import BranchForm, FuelExpenseForm, LoginForm, RoleForm, UserCreationForm, UserUpdateForm
+from .models import Branch, FuelExpense, Role, User
 
 
 def login_view(request):
@@ -92,3 +93,43 @@ def role_list(request):
     # context: roles — queryset of all Role objects
     roles = Role.objects.all()
     return render(request, 'accounts/role_list.html', {'roles': roles})
+
+
+# ---------------------------------------------------------------------------
+# FuelExpense
+# ---------------------------------------------------------------------------
+
+@login_required
+def fuel_expense_list(request):
+    # context: expenses — filtered queryset; q — search string
+    q  = request.GET.get('q', '').strip()
+    qs = FuelExpense.objects.select_related('vehicle__bike_model', 'created_by').all()
+    if q:
+        qs = qs.filter(
+            Q(voucher_number__icontains=q) |
+            Q(vehicle__chassis_no__icontains=q)
+        )
+    return render(request, 'accounts/fuel_expense_list.html', {'expenses': qs, 'q': q})
+
+
+@login_required
+def fuel_expense_create(request):
+    # context: form — FuelExpenseForm; title — str
+    form = FuelExpenseForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        expense = form.save()
+        return redirect('accounts:fuel_expense_list')
+    return render(request, 'accounts/fuel_expense_form.html',
+                  {'form': form, 'title': 'Add Fuel Expense'})
+
+
+@login_required
+def fuel_expense_update(request, pk):
+    # context: form — FuelExpenseForm; title — str
+    expense = get_object_or_404(FuelExpense, pk=pk)
+    form    = FuelExpenseForm(request.POST or None, instance=expense)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('accounts:fuel_expense_list')
+    return render(request, 'accounts/fuel_expense_form.html',
+                  {'form': form, 'title': 'Edit Fuel Expense'})

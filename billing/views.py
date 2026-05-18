@@ -4,8 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import FinanceLoanForm, InvoiceForm, PaymentForm
-from .models import FinanceLoan, Invoice, Payment
+from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentForm
+from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
 
 # ---------------------------------------------------------------------------
@@ -113,6 +113,59 @@ def payment_list(request, invoice_pk):
 # ---------------------------------------------------------------------------
 # FinanceLoan
 # ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# InsurancePolicy
+# ---------------------------------------------------------------------------
+
+@login_required
+def insurance_policy_list(request):
+    # context: policies — filtered queryset; q — search string
+    q  = request.GET.get('q', '').strip()
+    qs = InsurancePolicy.objects.select_related('sales_order__customer').all()
+    if q:
+        qs = qs.filter(
+            Q(policy_number__icontains=q) |
+            Q(provider_name__icontains=q) |
+            Q(sales_order__customer__full_name__icontains=q)
+        )
+    return render(request, 'billing/insurance_policy_list.html', {'policies': qs, 'q': q})
+
+
+@login_required
+def insurance_policy_detail(request, pk):
+    # context: policy — InsurancePolicy
+    policy = get_object_or_404(
+        InsurancePolicy.objects.select_related('sales_order__customer'), pk=pk
+    )
+    return render(request, 'billing/insurance_policy_detail.html', {'policy': policy})
+
+
+@login_required
+def insurance_policy_create(request):
+    # context: form — InsurancePolicyForm; title — str
+    initial = {}
+    if request.GET.get('order'):
+        initial['sales_order'] = request.GET['order']
+    form = InsurancePolicyForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        policy = form.save()
+        return redirect('billing:insurance_policy_detail', pk=policy.pk)
+    return render(request, 'billing/insurance_policy_form.html',
+                  {'form': form, 'title': 'Add Insurance Policy'})
+
+
+@login_required
+def insurance_policy_update(request, pk):
+    # context: form — InsurancePolicyForm; title — str
+    policy = get_object_or_404(InsurancePolicy, pk=pk)
+    form   = InsurancePolicyForm(request.POST or None, instance=policy)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('billing:insurance_policy_detail', pk=policy.pk)
+    return render(request, 'billing/insurance_policy_form.html',
+                  {'form': form, 'title': 'Edit Insurance Policy'})
+
 
 @login_required
 def loan_create(request):

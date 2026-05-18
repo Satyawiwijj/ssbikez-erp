@@ -18,4 +18,8 @@ urlpatterns = [
     path('branches/<int:pk>/edit/',      views.branch_update, name='branch_update'),
 
     path('roles/',              views.role_list,    name='role_list'),
+
+    path('fuel-expenses/',              views.fuel_expense_list,   name='fuel_expense_list'),
+    path('fuel-expenses/create/',       views.fuel_expense_create, name='fuel_expense_create'),
+    path('fuel-expenses/<int:pk>/edit/', views.fuel_expense_update, name='fuel_expense_update'),
 ]

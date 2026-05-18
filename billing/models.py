@@ -64,6 +64,27 @@ class Payment(models.Model):
         return f"PAY-{self.pk} | {self.invoice.invoice_number} — {self.payment_method} Rs.{self.amount}"
 
 
+class InsurancePolicy(models.Model):
+    sales_order    = models.ForeignKey(
+        'sales.VehicleSalesOrder',
+        on_delete=models.PROTECT,
+        related_name='insurance_policies'
+    )
+    provider_name  = models.CharField(max_length=255)
+    policy_number  = models.CharField(max_length=100, unique=True)
+    premium_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    start_date     = models.DateField()
+    end_date       = models.DateField()
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Insurance Policies'
+
+    def __str__(self):
+        return f"{self.policy_number} | {self.provider_name} — Rs.{self.premium_amount}"
+
+
 class FinanceLoan(models.Model):
     class LoanStatus(models.TextChoices):
         ACTIVE   = 'active',   'Active'

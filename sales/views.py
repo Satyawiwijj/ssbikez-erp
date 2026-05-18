@@ -3,10 +3,10 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import (ExchangeVehicleForm, SalesAppointmentForm,
-                    SalesFeedbackForm, SalesEnquiryForm, VehicleSalesOrderForm)
+from .forms import (ExchangeVehicleForm, SalesAppointmentForm, SalesFeedbackForm,
+                    SalesEnquiryForm, VehicleDeliveryForm, VehicleSalesOrderForm)
 from .models import (ExchangeVehicle, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleSalesOrder)
+                     SalesEnquiry, VehicleDelivery, VehicleSalesOrder)
 
 
 # ---------------------------------------------------------------------------
@@ -210,12 +210,16 @@ def order_detail(request, pk):
     loan     = getattr(order, 'loan',             None)
     exchange = getattr(order, 'exchange_vehicle', None)
     rto      = getattr(order, 'rto_registration', None)
+    delivery = getattr(order, 'delivery',         None)
+    policies = order.insurance_policies.all()
     return render(request, 'sales/order_detail.html', {
-        'order':   order,
-        'invoice': invoice,
-        'loan':    loan,
+        'order':    order,
+        'invoice':  invoice,
+        'loan':     loan,
         'exchange': exchange,
-        'rto':     rto,
+        'rto':      rto,
+        'delivery': delivery,
+        'policies': policies,
     })
 
 
@@ -244,6 +248,50 @@ def order_update(request, pk):
         form.save()
         return redirect('sales:order_detail', pk=order.pk)
     return render(request, 'sales/order_form.html', {'form': form, 'title': 'Edit Sales Order'})
+
+
+# ---------------------------------------------------------------------------
+# ExchangeVehicle
+# ---------------------------------------------------------------------------
+
+# ---------------------------------------------------------------------------
+# VehicleDelivery
+# ---------------------------------------------------------------------------
+
+@login_required
+def delivery_create(request):
+    # context: form — VehicleDeliveryForm; title — str
+    # Pre-fills sales_order from GET ?order=<pk>
+    initial = {}
+    if request.GET.get('order'):
+        initial['sales_order'] = request.GET['order']
+    form = VehicleDeliveryForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        delivery = form.save()
+        return redirect('sales:order_detail', pk=delivery.sales_order_id)
+    return render(request, 'sales/delivery_form.html',
+                  {'form': form, 'title': 'Record Vehicle Delivery'})
+
+
+@login_required
+def delivery_update(request, pk):
+    # context: form — VehicleDeliveryForm; title — str
+    delivery = get_object_or_404(VehicleDelivery, pk=pk)
+    form     = VehicleDeliveryForm(request.POST or None, instance=delivery)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('sales:order_detail', pk=delivery.sales_order_id)
+    return render(request, 'sales/delivery_form.html',
+                  {'form': form, 'title': 'Edit Vehicle Delivery'})
+
+
+@login_required
+def delivery_detail(request, pk):
+    # context: delivery — VehicleDelivery
+    delivery = get_object_or_404(
+        VehicleDelivery.objects.select_related('sales_order__customer', 'delivered_by'), pk=pk
+    )
+    return render(request, 'sales/delivery_detail.html', {'delivery': delivery})
 
 
 # ---------------------------------------------------------------------------

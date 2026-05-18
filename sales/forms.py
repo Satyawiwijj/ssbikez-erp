@@ -3,7 +3,7 @@ from django import forms
 from customers.models import VehicleStock
 
 from .models import (ExchangeVehicle, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleSalesOrder)
+                     SalesEnquiry, VehicleDelivery, VehicleSalesOrder)
 
 
 class SalesEnquiryForm(forms.ModelForm):
@@ -53,6 +53,16 @@ class VehicleSalesOrderForm(forms.ModelForm):
         self.fields['vehicle'].queryset = VehicleStock.objects.filter(
             stock_status=VehicleStock.StockStatus.AVAILABLE
         ).select_related('bike_model')
+
+
+class VehicleDeliveryForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleDelivery
+        fields = ('sales_order', 'delivery_date', 'delivered_by', 'remarks')
+        widgets = {
+            'delivery_date': forms.DateInput(attrs={'type': 'date'}),
+            'remarks':       forms.Textarea(attrs={'rows': 3}),
+        }
 
 
 class ExchangeVehicleForm(forms.ModelForm):

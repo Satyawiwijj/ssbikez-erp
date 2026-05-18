@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ policy.policy_number }} — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Insurance Policy — {{ policy.policy_number }}</h2>
+<a href="{% url 'billing:insurance_policy_list' %}">← Back to list</a>
+
+<table border="1" cellpadding="4" style="margin-top:1rem;">
+    <tr><th>Policy Number</th><td>{{ policy.policy_number }}</td></tr>
+    <tr><th>Provider</th><td>{{ policy.provider_name }}</td></tr>
+    <tr><th>Sales Order</th><td><a href="{% url 'sales:order_detail' policy.sales_order.pk %}">ORD-{{ policy.sales_order.pk }} — {{ policy.sales_order.customer.full_name }}</a></td></tr>
+    <tr><th>Premium Amount</th><td>Rs.{{ policy.premium_amount }}</td></tr>
+    <tr><th>Start Date</th><td>{{ policy.start_date|date:"d M Y" }}</td></tr>
+    <tr><th>End Date</th><td>{{ policy.end_date|date:"d M Y" }}</td></tr>
+    <tr><th>Created</th><td>{{ policy.created_at|date:"d M Y" }}</td></tr>
+</table>
+
+<p><a href="{% url 'billing:insurance_policy_update' policy.pk %}">Edit Policy</a></p>
+{% endblock %}

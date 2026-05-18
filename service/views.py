@@ -6,9 +6,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm,
-                    ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm)
+                    ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
+                    ServiceInvoiceForm)
 from .models import (BayAssignment, JobCard, LaborCharge, ServiceAppointment,
-                     ServiceBay, ServiceEnquiry)
+                     ServiceBay, ServiceEnquiry, ServiceInvoice)
 
 
 # ---------------------------------------------------------------------------
@@ -320,3 +321,46 @@ def labor_charge_delete(request, pk):
     jc_pk  = charge.job_card_id
     charge.delete()
     return redirect('service:jobcard_detail', pk=jc_pk)
+
+
+# ---------------------------------------------------------------------------
+# ServiceInvoice
+# ---------------------------------------------------------------------------
+
+@login_required
+def service_invoice_create(request):
+    # context: form — ServiceInvoiceForm; title — str
+    # Pre-fills job_card from GET ?jc=<pk>
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = ServiceInvoiceForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        invoice = form.save()
+        return redirect('service:service_invoice_detail', pk=invoice.pk)
+    return render(request, 'service/service_invoice_form.html',
+                  {'form': form, 'title': 'Create Service Invoice'})
+
+
+@login_required
+def service_invoice_update(request, pk):
+    # context: form — ServiceInvoiceForm; title — str
+    invoice = get_object_or_404(ServiceInvoice, pk=pk)
+    form    = ServiceInvoiceForm(request.POST or None, instance=invoice)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('service:service_invoice_detail', pk=invoice.pk)
+    return render(request, 'service/service_invoice_form.html',
+                  {'form': form, 'title': 'Edit Service Invoice'})
+
+
+@login_required
+def service_invoice_detail(request, pk):
+    # context: invoice — ServiceInvoice
+    invoice = get_object_or_404(
+        ServiceInvoice.objects.select_related(
+            'job_card__customer_vehicle__customer'
+        ),
+        pk=pk
+    )
+    return render(request, 'service/service_invoice_detail.html', {'invoice': invoice})

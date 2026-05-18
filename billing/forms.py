@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import FinanceLoan, Invoice, Payment
+from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
 
 class InvoiceForm(forms.ModelForm):
@@ -27,6 +27,17 @@ class PaymentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['payment_date'].input_formats = ['%Y-%m-%dT%H:%M']
+
+
+class InsurancePolicyForm(forms.ModelForm):
+    class Meta:
+        model  = InsurancePolicy
+        fields = ('sales_order', 'provider_name', 'policy_number',
+                  'premium_amount', 'start_date', 'end_date')
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date':   forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 class FinanceLoanForm(forms.ModelForm):

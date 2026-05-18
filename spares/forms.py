@@ -60,4 +60,4 @@ class SparesIssueForm(forms.ModelForm):
     class Meta:
         model  = SparesIssue
         fields = ('job_card', 'spare_part', 'quantity_issued',
-                  'quantity_returned', 'issued_by')
+                  'quantity_returned', 'unit_price', 'issued_by')

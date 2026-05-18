@@ -1,7 +1,7 @@
 from django import forms
 
 from .models import (BayAssignment, JobCard, LaborCharge, ServiceAppointment,
-                     ServiceBay, ServiceEnquiry)
+                     ServiceBay, ServiceEnquiry, ServiceInvoice)
 
 _DT_WIDGET = forms.DateTimeInput(attrs={'type': 'datetime-local'})
 _DT_FORMATS = ['%Y-%m-%dT%H:%M']
@@ -54,6 +54,16 @@ class BayAssignmentForm(forms.ModelForm):
         model  = BayAssignment
         fields = ('job_card', 'bay', 'mechanic', 'start_time',
                   'end_time', 'assignment_status')
+
+
+class ServiceInvoiceForm(forms.ModelForm):
+    class Meta:
+        model  = ServiceInvoice
+        fields = ('job_card', 'subtotal', 'gst_amount', 'discount_amount',
+                  'final_amount', 'invoice_date')
+        widgets = {
+            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 
 class LaborChargeForm(forms.ModelForm):

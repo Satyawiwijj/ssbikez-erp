@@ -28,6 +28,11 @@ urlpatterns = [
     path('orders/<int:pk>/',                  views.order_detail,          name='order_detail'),
     path('orders/<int:pk>/edit/',             views.order_update,          name='order_update'),
 
+    # VehicleDelivery
+    path('delivery/create/',                  views.delivery_create,       name='delivery_create'),
+    path('delivery/<int:pk>/',                views.delivery_detail,       name='delivery_detail'),
+    path('delivery/<int:pk>/edit/',           views.delivery_update,       name='delivery_update'),
+
     # ExchangeVehicle
     path('exchange/create/',                  views.exchange_create,       name='exchange_create'),
     path('exchange/<int:pk>/edit/',           views.exchange_update,       name='exchange_update'),

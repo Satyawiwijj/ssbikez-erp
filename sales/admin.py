@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from .models import (ExchangeVehicle, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleSalesOrder)
+                     SalesEnquiry, VehicleDelivery, VehicleSalesOrder)
 
 
 @admin.register(SalesEnquiry)
@@ -32,6 +32,14 @@ class VehicleSalesOrderAdmin(admin.ModelAdmin):
                      'total_amount', 'sales_status', 'created_at')
     search_fields = ('customer__full_name', 'customer__phone')
     list_filter   = ('sales_status', 'branch')
+    readonly_fields = ('created_at',)
+
+
+@admin.register(VehicleDelivery)
+class VehicleDeliveryAdmin(admin.ModelAdmin):
+    list_display  = ('sales_order', 'delivery_date', 'delivered_by')
+    list_filter   = ('delivery_date',)
+    search_fields = ('sales_order__customer__full_name',)
     readonly_fields = ('created_at',)
 
 

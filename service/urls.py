@@ -36,4 +36,9 @@ urlpatterns = [
     path('labor-charges/create/',               views.labor_charge_create,    name='labor_charge_create'),
     path('labor-charges/<int:pk>/edit/',        views.labor_charge_update,    name='labor_charge_update'),
     path('labor-charges/<int:pk>/delete/',      views.labor_charge_delete,    name='labor_charge_delete'),
+
+    # ServiceInvoice
+    path('invoices/create/',                    views.service_invoice_create, name='service_invoice_create'),
+    path('invoices/<int:pk>/',                  views.service_invoice_detail, name='service_invoice_detail'),
+    path('invoices/<int:pk>/edit/',             views.service_invoice_update, name='service_invoice_update'),
 ]

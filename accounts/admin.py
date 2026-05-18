@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import AuditLog, Branch, Role, User
+from .models import AuditLog, Branch, FuelExpense, Role, User
 
 
 @admin.register(Branch)
@@ -30,6 +30,14 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Profile', {'fields': ('role', 'branch', 'phone', 'status')}),
     )
+
+
+@admin.register(FuelExpense)
+class FuelExpenseAdmin(admin.ModelAdmin):
+    list_display  = ('vehicle', 'amount', 'fuel_date', 'voucher_number', 'created_by')
+    list_filter   = ('fuel_date',)
+    search_fields = ('vehicle__chassis_no', 'voucher_number')
+    readonly_fields = ('created_at',)
 
 
 @admin.register(AuditLog)

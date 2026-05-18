@@ -176,6 +176,30 @@ class VehicleSalesOrder(models.Model):
         return f"ORD-{self.pk} | {self.customer} — {self.vehicle}"
 
 
+class VehicleDelivery(models.Model):
+    sales_order   = models.OneToOneField(
+        VehicleSalesOrder,
+        on_delete=models.PROTECT,
+        related_name='delivery'
+    )
+    delivery_date = models.DateField()
+    delivered_by  = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vehicle_deliveries'
+    )
+    remarks       = models.TextField(blank=True, null=True)
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-delivery_date']
+        verbose_name_plural = 'Vehicle Deliveries'
+
+    def __str__(self):
+        return f"DELIVERY-{self.pk} | ORD-{self.sales_order_id} on {self.delivery_date}"
+
+
 class ExchangeVehicle(models.Model):
     sales_order       = models.OneToOneField(
         VehicleSalesOrder,

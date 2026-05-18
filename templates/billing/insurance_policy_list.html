@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Insurance Policies — SSBikez ERP{% endblock %}
+
+{% block content %}
+<h2>Insurance Policies</h2>
+<a href="{% url 'billing:insurance_policy_create' %}">+ Add Policy</a>
+<br><br>
+<form method="get" style="margin-bottom:1rem;">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search policy no / provider / customer">
+    <button type="submit">Search</button>
+    {% if q %}<a href="{% url 'billing:insurance_policy_list' %}">Clear</a>{% endif %}
+</form>
+<table border="1" cellpadding="6">
+    <thead>
+        <tr>
+            <th>Policy Number</th>
+            <th>Provider</th>
+            <th>Customer</th>
+            <th>Premium</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for policy in policies %}
+        <tr>
+            <td><a href="{% url 'billing:insurance_policy_detail' policy.pk %}">{{ policy.policy_number }}</a></td>
+            <td>{{ policy.provider_name }}</td>
+            <td>{{ policy.sales_order.customer.full_name }}</td>
+            <td>Rs.{{ policy.premium_amount }}</td>
+            <td>{{ policy.start_date|date:"d M Y" }}</td>
+            <td>{{ policy.end_date|date:"d M Y" }}</td>
+            <td><a href="{% url 'billing:insurance_policy_update' policy.pk %}">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7">No policies found.</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
