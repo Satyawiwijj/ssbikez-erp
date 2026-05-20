@@ -41,41 +41,45 @@
   </div>
 </div>
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; flex-wrap:wrap;">
-  <div class="card">
+<div class="grid-2col" style="margin-bottom:20px;">
+  <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">Quick Actions — Sales</span>
+      <span class="card-title">&#x1F4CB; Quick Actions — Sales</span>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <a href="{% url 'sales:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F4CB; New Enquiry</a>
-      <a href="{% url 'sales:order_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F4E6; New Sales Order</a>
-      <a href="{% url 'customers:customer_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F465; Add Customer</a>
-      <a href="{% url 'sales:delivery_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F697; Record Delivery</a>
+      <a href="{% url 'sales:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Enquiry</a>
+      <a href="{% url 'sales:order_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Sales Order</a>
+      <a href="{% url 'customers:customer_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Add Customer</a>
+      <a href="{% url 'sales:delivery_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Record Delivery</a>
     </div>
   </div>
-  <div class="card">
+  <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">Quick Actions — Service</span>
+      <span class="card-title">&#x1F527; Quick Actions — Service</span>
     </div>
     <div style="display:flex; flex-direction:column; gap:10px;">
-      <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F527; New Service Enquiry</a>
-      <a href="{% url 'service:jobcard_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F4C5; New Job Card</a>
-      <a href="{% url 'spares:issue_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F529; Issue Spare Part</a>
-      <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F3EA; Counter Sale</a>
+      <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Service Enquiry</a>
+      <a href="{% url 'service:jobcard_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Job Card</a>
+      <a href="{% url 'spares:issue_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Issue Spare Part</a>
+      <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Counter Sale</a>
     </div>
   </div>
 </div>
 
-<div class="card" style="margin-top:20px;">
+<div class="card">
   <div class="card-header">
     <span class="card-title">My Profile</span>
     <a href="{% url 'accounts:user_list' %}" class="btn btn-ghost btn-sm">Manage Users</a>
   </div>
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Email</dt><dd>{{ user.email|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Role</dt><dd>{{ user.role|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Branch</dt><dd>{{ user.branch|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd>{{ user.get_status_display }}</dd></div>
-  </dl>
+  <div class="grid-2col" style="gap:0;">
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Email</dt><dd>{{ user.email|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Role</dt><dd>{{ user.role|default:"—" }}</dd></div>
+    </dl>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Branch</dt><dd>{{ user.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>{{ user.get_status_display }}</dd></div>
+    </dl>
+  </div>
 </div>
 {% endblock %}
