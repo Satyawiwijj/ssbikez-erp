@@ -228,3 +228,33 @@ class LaborCharge(models.Model):
 
     def __str__(self):
         return f"{self.service_name} — Rs.{self.labor_cost} (JC-{self.job_card_id})"
+
+
+class OutworkEntry(models.Model):
+    class Status(models.TextChoices):
+        ISSUED   = 'issued',   'Issued'
+        RETURNED = 'returned', 'Returned'
+
+    job_card         = models.ForeignKey(
+        JobCard,
+        on_delete=models.CASCADE,
+        related_name='outwork_entries'
+    )
+    vendor_name      = models.CharField(max_length=255)
+    work_description = models.TextField()
+    issued_at        = models.DateTimeField(auto_now_add=True)
+    returned_at      = models.DateTimeField(null=True, blank=True)
+    cost             = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    status           = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.ISSUED
+    )
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-issued_at']
+        verbose_name_plural = 'Outwork Entries'
+
+    def __str__(self):
+        return f"Outwork-{self.pk} | JC-{self.job_card_id} — {self.vendor_name}"

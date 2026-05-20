@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% block title %}Spares Report — SSBikez ERP{% endblock %}
+{% block page_title %}Spares Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Spares Report</h1>
+    <p class="page-subtitle">Inventory, issues and purchase order analytics</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'accounts:sales_report' %}" class="btn btn-ghost btn-sm">Sales</a>
+    <a href="{% url 'accounts:service_report' %}" class="btn btn-ghost btn-sm">Service</a>
+  </div>
+</div>
+
+<!-- KPI STATS -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue">&#x1F529;</div>
+    <div>
+      <div class="stat-value">{{ total_parts }}</div>
+      <div class="stat-label">Total Parts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green">&#x20B9;</div>
+    <div>
+      <div class="stat-value">&#x20B9;{{ total_stock_value|floatformat:0 }}</div>
+      <div class="stat-label">Stock Value (MRP)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange">&#x26A0;&#xFE0F;</div>
+    <div>
+      <div class="stat-value">{{ low_stock_count }}</div>
+      <div class="stat-label">Low Stock Parts (&lt;5)</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple">&#x1F3EA;</div>
+    <div>
+      <div class="stat-value">{{ cs_count }}</div>
+      <div class="stat-label">Counter Sales This Month</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2col">
+  <!-- TOP ISSUED PARTS -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4E4; Top Issued Parts</span>
+    </div>
+    {% if top_issued %}
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      {% for p in top_issued %}
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+          <span style="font-weight:500; color:#374151; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:70%;">{{ p.spare_part__part_name }}</span>
+          <span style="color:#6B7280; flex-shrink:0; margin-left:8px;">{{ p.total_qty }} pcs</span>
+        </div>
+        <div style="background:#F3F4F6; border-radius:4px; height:8px; overflow:hidden;">
+          <div style="background:#2563EB; height:100%; border-radius:4px;"
+               data-issued-qty="{{ p.total_qty }}" data-issued-max="{{ max_issued }}"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      document.querySelectorAll('[data-issued-qty]').forEach(el => {
+        const max = parseInt(el.dataset.issuedMax) || 1;
+        el.style.width = Math.round(parseInt(el.dataset.issuedQty) / max * 100) + '%';
+      });
+    </script>
+    {% else %}
+    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No issues recorded yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- PO SUMMARY -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F6D2; Purchase Orders by Status</span>
+    </div>
+    {% if po_summary %}
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr><th>Status</th><th>Count</th><th>Total Value</th></tr>
+        </thead>
+        <tbody>
+          {% for po in po_summary %}
+          <tr>
+            <td>
+              {% if po.status == 'received' %}
+              <span class="badge badge-green">{{ po.status|title }}</span>
+              {% elif po.status == 'sent' %}
+              <span class="badge badge-blue">{{ po.status|title }}</span>
+              {% elif po.status == 'cancelled' %}
+              <span class="badge badge-red">{{ po.status|title }}</span>
+              {% else %}
+              <span class="badge badge-gray">{{ po.status|title }}</span>
+              {% endif %}
+            </td>
+            <td style="font-weight:500;">{{ po.count }}</td>
+            <td>&#x20B9;{{ po.total|default:"0"|floatformat:0 }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No purchase orders yet.</p>
+    {% endif %}
+
+    <div style="margin-top:16px; padding-top:16px; border-top:1px solid #F3F4F6;">
+      <div class="card-title" style="margin-bottom:12px;">Counter Sales This Month</div>
+      <div style="display:flex; gap:24px;">
+        <div>
+          <div style="font-size:22px; font-weight:700; color:#111827;">{{ cs_count }}</div>
+          <div style="font-size:12px; color:#6B7280;">Transactions</div>
+        </div>
+        <div>
+          <div style="font-size:22px; font-weight:700; color:#2563EB;">&#x20B9;{{ cs_total|floatformat:0 }}</div>
+          <div style="font-size:12px; color:#6B7280;">Total Revenue</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOW STOCK PARTS -->
+{% if low_stock %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">&#x26A0;&#xFE0F; Low Stock Parts (qty &lt; 5)</span>
+    <span class="badge badge-red">{{ low_stock_count }} parts</span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Part Name</th><th>Part No.</th><th>Category</th><th>Stock</th><th>MRP</th></tr>
+      </thead>
+      <tbody>
+        {% for part in low_stock %}
+        <tr>
+          <td style="font-weight:500;">{{ part.part_name }}</td>
+          <td style="font-family:monospace; font-size:13px;">{{ part.part_number|default:"—" }}</td>
+          <td>{{ part.category }}</td>
+          <td>
+            {% if part.stock_quantity == 0 %}
+            <span class="badge badge-red">OUT OF STOCK</span>
+            {% else %}
+            <span class="badge badge-yellow">{{ part.stock_quantity }}</span>
+            {% endif %}
+          </td>
+          <td>{% if part.mrp %}&#x20B9;{{ part.mrp }}{% else %}&mdash;{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

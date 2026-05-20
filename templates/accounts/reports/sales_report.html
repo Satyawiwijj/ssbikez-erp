@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}Sales Report — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Report{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sales Report</h1>
+    <p class="page-subtitle">Enquiries, orders and conversion analytics</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'accounts:spares_report' %}" class="btn btn-ghost btn-sm">Spares</a>
+    <a href="{% url 'accounts:service_report' %}" class="btn btn-ghost btn-sm">Service</a>
+  </div>
+</div>
+
+<!-- KPI STATS -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
+    <div>
+      <div class="stat-value">{{ enquiries_this_month }}</div>
+      <div class="stat-label">Enquiries This Month</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange">&#x1F4C5;</div>
+    <div>
+      <div class="stat-value">{{ enquiries_last_month }}</div>
+      <div class="stat-label">Enquiries Last Month</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green">&#x1F4B0;</div>
+    <div>
+      <div class="stat-value">{{ conversion_rate }}%</div>
+      <div class="stat-label">Conversion Rate</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple">&#x1F4E6;</div>
+    <div>
+      <div class="stat-value">{{ open_orders }}</div>
+      <div class="stat-label">Open Orders</div>
+    </div>
+  </div>
+</div>
+
+<div class="grid-2col">
+  <!-- 6-MONTH TREND -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4C8; Monthly Enquiries (6 months)</span>
+    </div>
+    {% if monthly_trend %}
+    <div style="display:flex; align-items:flex-end; gap:12px; height:180px; padding:8px 0 24px;">
+      {% for m in monthly_trend %}
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
+        <div style="font-size:11px; font-weight:600; color:#374151;">{{ m.count }}</div>
+        <div style="width:100%; background:#2563EB; border-radius:4px 4px 0 0; min-height:4px;"
+             style="height:{% if max_trend > 0 %}{{ m.count|floatformat:0 }}{% else %}0{% endif %}px;"
+             title="{{ m.count }} enquiries"
+             data-count="{{ m.count }}" data-max="{{ max_trend }}">
+        </div>
+        <div style="font-size:10px; color:#9CA3AF; white-space:nowrap;">{{ m.month|date:"M Y" }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      document.querySelectorAll('[data-count][data-max]').forEach(el => {
+        const pct = parseInt(el.dataset.count) / parseInt(el.dataset.max);
+        el.style.height = Math.max(4, Math.round(pct * 120)) + 'px';
+      });
+    </script>
+    {% else %}
+    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No data yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- SOURCE BREAKDOWN -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4CD; Enquiry Sources</span>
+      <span style="font-size:12px; color:#6B7280;">Total: {{ total_enquiries }}</span>
+    </div>
+    {% if source_breakdown %}
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      {% for src in source_breakdown %}
+      <div>
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+          <span style="font-weight:500; color:#374151;">{{ src.enquiry_source|default:"Unknown"|title }}</span>
+          <span style="color:#6B7280;">{{ src.count }}</span>
+        </div>
+        <div style="background:#F3F4F6; border-radius:4px; height:8px; overflow:hidden;">
+          <div style="background:#2563EB; height:100%; border-radius:4px; width:{% if total_enquiries %}{{ src.count }}00{% else %}0{% endif %}%;"
+               data-src-count="{{ src.count }}" data-src-total="{{ total_enquiries }}"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <script>
+      document.querySelectorAll('[data-src-count]').forEach(el => {
+        const total = parseInt(el.dataset.srcTotal) || 1;
+        el.style.width = Math.round(parseInt(el.dataset.srcCount) / total * 100) + '%';
+      });
+    </script>
+    {% else %}
+    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No data yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TOP BIKE MODELS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">&#x1F3CD;&#xFE0F; Top Enquired Models</span>
+  </div>
+  {% if top_models %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>#</th><th>Brand</th><th>Model</th><th>Enquiries</th><th>Share</th></tr>
+      </thead>
+      <tbody>
+        {% for m in top_models %}
+        <tr>
+          <td style="color:#9CA3AF; font-size:13px;">{{ forloop.counter }}</td>
+          <td style="font-weight:500;">{{ m.bike_model__brand }}</td>
+          <td>{{ m.bike_model__model_name }}</td>
+          <td><span class="badge badge-blue">{{ m.count }}</span></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; background:#F3F4F6; border-radius:4px; height:8px; overflow:hidden;">
+                <div style="background:#2563EB; height:100%; border-radius:4px;"
+                     data-model-count="{{ m.count }}" data-model-max="{{ top_models.0.count }}"></div>
+              </div>
+              <span style="font-size:12px; color:#6B7280; min-width:32px; text-align:right;">
+                {% if total_enquiries %}{% widthratio m.count total_enquiries 100 %}%{% endif %}
+              </span>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <script>
+    document.querySelectorAll('[data-model-count]').forEach(el => {
+      const max = parseInt(el.dataset.modelMax) || 1;
+      el.style.width = Math.round(parseInt(el.dataset.modelCount) / max * 100) + '%';
+    });
+  </script>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:32px 0;">No model data yet.</p>
+  {% endif %}
+</div>
+{% endblock %}

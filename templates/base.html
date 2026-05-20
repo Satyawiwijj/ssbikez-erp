@@ -678,6 +678,17 @@
         <span class="nav-icon">&#x1F6E1;&#xFE0F;</span> Protection Plus
       </a>
 
+      <div class="nav-section-label">Reports</div>
+      <a href="{% url 'accounts:sales_report' %}" class="nav-link" data-href="/accounts/reports/sales/">
+        <span class="nav-icon">&#x1F4C8;</span> Sales Report
+      </a>
+      <a href="{% url 'accounts:spares_report' %}" class="nav-link" data-href="/accounts/reports/spares/">
+        <span class="nav-icon">&#x1F4CA;</span> Spares Report
+      </a>
+      <a href="{% url 'accounts:service_report' %}" class="nav-link" data-href="/accounts/reports/service/">
+        <span class="nav-icon">&#x1F527;</span> Service Report
+      </a>
+
       <div class="nav-section-label">Admin</div>
       <a href="{% url 'accounts:user_list' %}" class="nav-link" data-href="/accounts/users/">
         <span class="nav-icon">&#x1F464;</span> Users
@@ -717,6 +728,7 @@
           </div>
           <span style="color:#9CA3AF; font-size:12px; margin-left:4px;">&#9660;</span>
           <div class="user-dropdown" id="userDropdown">
+            <a href="{% url 'accounts:password_change' %}">&#x1F512; Change Password</a>
             <a href="{% url 'accounts:logout' %}" class="danger">&#x1F6AA; Logout</a>
           </div>
         </div>

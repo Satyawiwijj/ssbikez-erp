@@ -41,4 +41,9 @@ urlpatterns = [
     path('invoices/create/',                    views.service_invoice_create, name='service_invoice_create'),
     path('invoices/<int:pk>/',                  views.service_invoice_detail, name='service_invoice_detail'),
     path('invoices/<int:pk>/edit/',             views.service_invoice_update, name='service_invoice_update'),
+
+    # OutworkEntry
+    path('outwork/create/',                     views.outwork_create,  name='outwork_create'),
+    path('outwork/<int:pk>/edit/',              views.outwork_update,  name='outwork_update'),
+    path('outwork/<int:pk>/return/',            views.outwork_return,  name='outwork_return'),
 ]

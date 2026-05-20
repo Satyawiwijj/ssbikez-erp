@@ -5,11 +5,13 @@ from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm,
+from django.utils import timezone
+
+from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm, OutworkEntryForm,
                     ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
                     ServiceInvoiceForm)
-from .models import (BayAssignment, JobCard, LaborCharge, ServiceAppointment,
-                     ServiceBay, ServiceEnquiry, ServiceInvoice)
+from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
+                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice)
 
 
 # ---------------------------------------------------------------------------
@@ -166,15 +168,17 @@ def jobcard_detail(request, pk):
         ),
         pk=pk,
     )
-    bay_assignments = job_card.bay_assignments.select_related('bay', 'mechanic').all()
-    labor_charges   = job_card.labor_charges.all()
-    total_labor     = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
+    bay_assignments  = job_card.bay_assignments.select_related('bay', 'mechanic').all()
+    labor_charges    = job_card.labor_charges.all()
+    total_labor      = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
+    outwork_entries  = job_card.outwork_entries.all()
     return render(request, 'service/jobcard_detail.html', {
         'job_card':        job_card,
         'bay_assignments': bay_assignments,
         'labor_charges':   labor_charges,
         'total_labor':     total_labor,
         'spares_issues':   job_card.spares_issues.select_related('spare_part', 'issued_by').all(),
+        'outwork_entries': outwork_entries,
     })
 
 
@@ -364,3 +368,45 @@ def service_invoice_detail(request, pk):
         pk=pk
     )
     return render(request, 'service/service_invoice_detail.html', {'invoice': invoice})
+
+
+# ---------------------------------------------------------------------------
+# OutworkEntry
+# ---------------------------------------------------------------------------
+
+@login_required
+def outwork_create(request):
+    # context: form — OutworkEntryForm; title — str
+    # Pre-fills job_card from GET ?jc=<pk>
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = OutworkEntryForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        entry = form.save()
+        return redirect('service:jobcard_detail', pk=entry.job_card_id)
+    return render(request, 'service/outwork_form.html',
+                  {'form': form, 'title': 'Send for Outwork'})
+
+
+@login_required
+def outwork_update(request, pk):
+    # context: form — OutworkEntryForm; title — str
+    entry = get_object_or_404(OutworkEntry, pk=pk)
+    form  = OutworkEntryForm(request.POST or None, instance=entry)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('service:jobcard_detail', pk=entry.job_card_id)
+    return render(request, 'service/outwork_form.html',
+                  {'form': form, 'title': 'Edit Outwork Entry'})
+
+
+@login_required
+@require_POST
+def outwork_return(request, pk):
+    # POST only — marks outwork entry as returned
+    entry             = get_object_or_404(OutworkEntry, pk=pk)
+    entry.status      = OutworkEntry.Status.RETURNED
+    entry.returned_at = timezone.now()
+    entry.save(update_fields=['status', 'returned_at'])
+    return redirect('service:jobcard_detail', pk=entry.job_card_id)

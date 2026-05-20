@@ -167,6 +167,52 @@
   </div>
 </div>
 
+<!-- OUTWORK ENTRIES -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Outwork Entries</span>
+    <a href="{% url 'service:outwork_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Send for Outwork</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Vendor</th><th>Work Description</th><th>Cost</th><th>Issued At</th><th>Returned At</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for ow in outwork_entries %}
+        <tr>
+          <td style="font-weight:500;">{{ ow.vendor_name }}</td>
+          <td style="color:#374151;">{{ ow.work_description }}</td>
+          <td>{% if ow.cost %}&#x20B9;{{ ow.cost }}{% else %}&mdash;{% endif %}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ow.issued_at|date:"d M Y H:i" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ow.returned_at|date:"d M Y H:i"|default:"&mdash;" }}</td>
+          <td>
+            {% if ow.status == 'issued' %}
+            <span class="badge badge-yellow">Issued</span>
+            {% else %}
+            <span class="badge badge-green">Returned</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:outwork_update' ow.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              {% if ow.status == 'issued' %}
+              <form method="post" action="{% url 'service:outwork_return' ow.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Mark Returned</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No outwork entries yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
 <!-- SERVICE INVOICE -->
 <div class="card">
   <div class="card-header">

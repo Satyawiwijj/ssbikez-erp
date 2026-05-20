@@ -1,7 +1,7 @@
 from django.contrib import admin
 
-from .models import (BayAssignment, JobCard, LaborCharge, ServiceAppointment,
-                     ServiceBay, ServiceEnquiry, ServiceInvoice)
+from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
+                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice)
 
 
 @admin.register(ServiceEnquiry)
@@ -58,3 +58,11 @@ class ServiceInvoiceAdmin(admin.ModelAdmin):
 class LaborChargeAdmin(admin.ModelAdmin):
     list_display    = ('job_card', 'service_name', 'labor_cost')
     readonly_fields = ('created_at',)
+
+
+@admin.register(OutworkEntry)
+class OutworkEntryAdmin(admin.ModelAdmin):
+    list_display    = ('job_card', 'vendor_name', 'status', 'issued_at', 'returned_at', 'cost')
+    list_filter     = ('status',)
+    search_fields   = ('vendor_name', 'job_card__id')
+    readonly_fields = ('issued_at', 'created_at')
