@@ -1,46 +1,56 @@
 {% extends 'base.html' %}
-
 {% block title %}Vehicle Stock — SSBikez ERP{% endblock %}
+{% block page_title %}Vehicle Stock{% endblock %}
 
 {% block content %}
-<h2>Vehicle Stock</h2>
-<a href="{% url 'customers:vehicle_stock_create' %}">+ Add Stock Unit</a>
-<br><br>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Vehicle Stock</h1>
+    <p class="page-subtitle">All stock units in inventory</p>
+  </div>
+  <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary">+ Add Stock Unit</a>
+</div>
 
-<table border="1" cellpadding="6">
-    <thead>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Bike Model</th>
-            <th>Chassis No</th>
-            <th>Engine No</th>
-            <th>Color</th>
-            <th>Status</th>
-            <th>Branch</th>
-            <th>Actions</th>
+          <th>Bike Model</th>
+          <th>Chassis No</th>
+          <th>Engine No</th>
+          <th>Color</th>
+          <th>Status</th>
+          <th>Branch</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for unit in stock_list %}
         <tr>
-            <td>{{ unit.bike_model }}</td>
-            <td>{{ unit.chassis_no|default:"—" }}</td>
-            <td>{{ unit.engine_no|default:"—" }}</td>
-            <td>{{ unit.color|default:"—" }}</td>
-            <td>
-                {% if unit.stock_status == 'available' %}[AVAILABLE]
-                {% elif unit.stock_status == 'reserved' %}[RESERVED]
-                {% else %}[SOLD]
-                {% endif %}
-            </td>
-            <td>{{ unit.branch|default:"—" }}</td>
-            <td>
-                <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}">View</a> |
-                <a href="{% url 'customers:vehicle_stock_update' unit.pk %}">Edit</a>
-            </td>
+          <td style="font-weight:500;">{{ unit.bike_model }}</td>
+          <td style="font-family:monospace; font-size:13px;">{{ unit.chassis_no|default:"—" }}</td>
+          <td style="font-family:monospace; font-size:13px;">{{ unit.engine_no|default:"—" }}</td>
+          <td>{{ unit.color|default:"—" }}</td>
+          <td>
+            {% if unit.stock_status == 'available' %}<span class="badge badge-green">Available</span>
+            {% elif unit.stock_status == 'reserved' %}<span class="badge badge-purple">Reserved</span>
+            {% else %}<span class="badge badge-gray">Sold</span>
+            {% endif %}
+          </td>
+          <td style="color:#6B7280;">{{ unit.branch|default:"—" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'customers:vehicle_stock_update' unit.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7">No stock units found.</td></tr>
+        <tr><td colspan="7" class="empty-state">No stock units found.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

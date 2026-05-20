@@ -1,73 +1,94 @@
 {% extends 'base.html' %}
-
 {% block title %}PO-{{ po.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Purchase Order Detail{% endblock %}
 
 {% block content %}
-<h2>Purchase Order — PO-{{ po.pk }}</h2>
-<a href="{% url 'spares:po_list' %}">← Back to list</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Purchase Order — PO-{{ po.pk }}</h1>
+    <p class="page-subtitle">{{ po.supplier }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'spares:po_update' po.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'spares:po_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>PO Info</h3>
-<table border="1" cellpadding="4">
-    <tr><th>Supplier</th><td>{{ po.supplier }}</td></tr>
-    <tr><th>Order Date</th><td>{{ po.order_date }}</td></tr>
-    <tr><th>Status</th><td>{{ po.get_status_display }}</td></tr>
-    <tr><th>Stored Total</th><td>{{ po.total_amount }}</td></tr>
-</table>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">PO Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Supplier</dt><dd style="font-weight:500;">{{ po.supplier }}</dd></div>
+      <div class="detail-row"><dt>Order Date</dt><dd>{{ po.order_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ po.get_status_display }}</span></dd></div>
+      <div class="detail-row"><dt>Stored Total</dt><dd style="font-weight:500;">{% if po.total_amount %}&#x20B9; {{ po.total_amount }}{% else %}—{% endif %}</dd></div>
+    </dl>
+  </div>
 
-<p><a href="{% url 'spares:po_update' po.pk %}">Edit PO</a></p>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Update Status</span></div>
+    <form method="post" action="{% url 'spares:po_status_update' po.pk %}">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <select name="status">
+          {% for val, label in po.Status.choices %}
+          <option value="{{ val }}" {% if val == po.status %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Status</button>
+    </form>
+  </div>
+</div>
 
-<h4>Update Status</h4>
-<form method="post" action="{% url 'spares:po_status_update' po.pk %}">
-    {% csrf_token %}
-    <select name="status">
-        {% for val, label in po.Status.choices %}
-        <option value="{{ val }}" {% if val == po.status %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-    </select>
-    <button type="submit">Update Status</button>
-</form>
-
-<hr>
-
-<h3>Line Items</h3>
-<p><a href="{% url 'spares:po_item_create' %}?po={{ po.pk }}">+ Add Item</a></p>
-<table border="1" cellpadding="4">
-    <thead>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Line Items</span>
+    <a href="{% url 'spares:po_item_create' %}?po={{ po.pk }}" class="btn btn-primary btn-sm">+ Add Item</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Part</th>
-            <th>Part No.</th>
-            <th>Qty</th>
-            <th>Price</th>
-            <th>Line Total</th>
-            <th>Actions</th>
+          <th>Part</th>
+          <th>Part No.</th>
+          <th>Qty</th>
+          <th>Price</th>
+          <th>Line Total</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for item in items %}
         <tr>
-            <td>{{ item.spare_part.part_name }}</td>
-            <td>{{ item.spare_part.part_number|default:"—" }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.price }}</td>
-            <td>{{ item.line_total }}</td>
-            <td>
-                <a href="{% url 'spares:po_item_update' item.pk %}">Edit</a>
-                | <form method="post" action="{% url 'spares:po_item_delete' item.pk %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit">Delete</button>
-                  </form>
-            </td>
+          <td style="font-weight:500;">{{ item.spare_part.part_name }}</td>
+          <td style="font-family:monospace; font-size:13px; color:#6B7280;">{{ item.spare_part.part_number|default:"—" }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>&#x20B9; {{ item.price }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ item.line_total }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'spares:po_item_update' item.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <form method="post" action="{% url 'spares:po_item_delete' item.pk %}" style="display:inline;" onsubmit="return confirm('Delete this item?')">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost btn-sm" style="color:#EF4444;">Delete</button>
+              </form>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">No items yet.</td></tr>
+        <tr><td colspan="6" class="empty-state">No items yet.</td></tr>
         {% endfor %}
         {% if items %}
-        <tr>
-            <th colspan="4">Grand Total</th>
-            <td><strong>{{ total }}</strong></td>
-            <td></td>
+        <tr style="background:#F9FAFB;">
+          <td colspan="4" style="font-weight:600; text-align:right; padding-right:16px;">Grand Total</td>
+          <td style="font-weight:700; color:#111827;">&#x20B9; {{ total }}</td>
+          <td></td>
         </tr>
         {% endif %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

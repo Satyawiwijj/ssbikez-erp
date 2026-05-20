@@ -1,21 +1,38 @@
 {% extends 'base.html' %}
-
 {% block title %}Stock — {{ stock }} — SSBikez ERP{% endblock %}
+{% block page_title %}Vehicle Stock Detail{% endblock %}
 
 {% block content %}
-<h2>Vehicle Stock Detail</h2>
-<a href="{% url 'customers:vehicle_stock_update' stock.pk %}">Edit</a> |
-<a href="{% url 'customers:vehicle_stock_list' %}">Back to list</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ stock.bike_model }}</h1>
+    <p class="page-subtitle">Stock Unit</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'customers:vehicle_stock_update' stock.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'customers:vehicle_stock_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>{{ stock.bike_model }}</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Chassis No</th><td>{{ stock.chassis_no|default:"—" }}</td></tr>
-    <tr><th>Engine No</th><td>{{ stock.engine_no|default:"—" }}</td></tr>
-    <tr><th>Color</th><td>{{ stock.color|default:"—" }}</td></tr>
-    <tr><th>Status</th><td>{{ stock.get_stock_status_display }}</td></tr>
-    <tr><th>Branch</th><td>{{ stock.branch|default:"—" }}</td></tr>
-    <tr><th>Warehouse Location</th><td>{{ stock.warehouse_location|default:"—" }}</td></tr>
-    <tr><th>Purchase Date</th><td>{{ stock.purchase_date|date:"d M Y"|default:"—" }}</td></tr>
-    <tr><th>Added On</th><td>{{ stock.created_at|date:"d M Y" }}</td></tr>
-</table>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Stock Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Bike Model</dt><dd>{{ stock.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Chassis No</dt><dd style="font-family:monospace;">{{ stock.chassis_no|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Engine No</dt><dd style="font-family:monospace;">{{ stock.engine_no|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Color</dt><dd>{{ stock.color|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>
+        {% if stock.stock_status == 'available' %}<span class="badge badge-green">Available</span>
+        {% elif stock.stock_status == 'reserved' %}<span class="badge badge-purple">Reserved</span>
+        {% else %}<span class="badge badge-gray">Sold</span>
+        {% endif %}
+      </dd></div>
+      <div class="detail-row"><dt>Branch</dt><dd>{{ stock.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Warehouse Location</dt><dd>{{ stock.warehouse_location|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Purchase Date</dt><dd>{{ stock.purchase_date|date:"d M Y"|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Added On</dt><dd>{{ stock.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+</div>
 {% endblock %}

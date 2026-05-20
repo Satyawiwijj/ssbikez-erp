@@ -1,56 +1,77 @@
 {% extends 'base.html' %}
-
 {% block title %}RTO Registrations — SSBikez ERP{% endblock %}
+{% block page_title %}RTO Registrations{% endblock %}
 
 {% block content %}
-<h2>RTO Registrations</h2>
-
-<form method="get" style="margin-bottom:1rem;">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search customer, form20, reg. no.">
-    <button type="submit">Search</button>
-    {% if q %}<a href="?">Clear</a>{% endif %}
-</form>
-
-<div>
-    <a href="?status={% if status_filter != '' %}{% endif %}">All</a>
-    {% for val, label in status_choices %}
-    | <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}">{{ label }}</a>
-    {% endfor %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">RTO Registrations</h1>
+    <p class="page-subtitle">Vehicle registration tracking</p>
+  </div>
+  <a href="{% url 'rto:registration_create' %}" class="btn btn-primary">+ New Registration</a>
 </div>
 
-<p>
-    <a href="{% url 'rto:registration_create' %}">+ New RTO Registration</a>
-</p>
+<div class="filter-tabs">
+  <a href="{% url 'rto:registration_list' %}{% if q %}?q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
+  {% for val, label in status_choices %}
+  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
 
-<table border="1" cellpadding="4">
-    <thead>
+<form class="search-bar" method="get">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <input type="text" name="q" value="{{ q }}" placeholder="Search customer, Form 20 no., reg. no.">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'rto:registration_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Customer</th>
-            <th>Vehicle</th>
-            <th>Form 20 No.</th>
-            <th>Reg. Number</th>
-            <th>RTO Charges</th>
-            <th>Status</th>
-            <th>Actions</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Form 20 No.</th>
+          <th>Reg. Number</th>
+          <th>RTO Charges</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for reg in registrations %}
         <tr>
-            <td>{{ reg.sales_order.customer.full_name }}</td>
-            <td>{{ reg.sales_order.vehicle.bike_model }}</td>
-            <td>{{ reg.form20_number|default:"—" }}</td>
-            <td>{{ reg.registration_number|default:"—" }}</td>
-            <td>{{ reg.rto_charges }}</td>
-            <td>{{ reg.get_registration_status_display }}</td>
-            <td>
-                <a href="{% url 'rto:registration_detail' reg.pk %}">View</a>
-                | <a href="{% url 'rto:registration_update' reg.pk %}">Edit</a>
-            </td>
+          <td style="font-weight:500;">{{ reg.sales_order.customer.full_name }}</td>
+          <td>{{ reg.sales_order.vehicle.bike_model }}</td>
+          <td style="font-family:monospace; font-size:13px;">{{ reg.form20_number|default:"—" }}</td>
+          <td>
+            {% if reg.registration_number %}
+            <span class="badge badge-green">{{ reg.registration_number }}</span>
+            {% else %}—{% endif %}
+          </td>
+          <td>&#x20B9; {{ reg.rto_charges }}</td>
+          <td>
+            {% with s=reg.registration_status %}
+            {% if s == 'submitted' %}<span class="badge badge-blue">{{ reg.get_registration_status_display }}</span>
+            {% elif s == 'registered' %}<span class="badge badge-green">{{ reg.get_registration_status_display }}</span>
+            {% elif s == 'pending' %}<span class="badge badge-yellow">{{ reg.get_registration_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ reg.get_registration_status_display }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'rto:registration_detail' reg.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'rto:registration_update' reg.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7">No registrations found.</td></tr>
+        <tr><td colspan="7" class="empty-state">No registrations found.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

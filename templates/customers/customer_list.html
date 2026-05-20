@@ -1,44 +1,57 @@
 {% extends 'base.html' %}
-
 {% block title %}Customers — SSBikez ERP{% endblock %}
+{% block page_title %}Customers{% endblock %}
 
 {% block content %}
-<h2>Customers</h2>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Customers</h1>
+    <p class="page-subtitle">All registered customers</p>
+  </div>
+  <a href="{% url 'customers:customer_create' %}" class="btn btn-primary">+ Add Customer</a>
+</div>
 
-<form method="get" style="margin-bottom: 12px;">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search by name or phone">
-    <button type="submit">Search</button>
-    {% if q %}<a href="{% url 'customers:customer_list' %}">Clear</a>{% endif %}
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or phone...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'customers:customer_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
 </form>
 
-<a href="{% url 'customers:customer_create' %}">+ Add Customer</a>
-<br><br>
-
-<table border="1" cellpadding="6">
-    <thead>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Email</th>
-            <th>Joined</th>
-            <th>Actions</th>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Joined</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for customer in customers %}
         <tr>
-            <td><a href="{% url 'customers:customer_detail' customer.pk %}">{{ customer.full_name }}</a></td>
-            <td>{{ customer.phone }}</td>
-            <td>{{ customer.email|default:"—" }}</td>
-            <td>{{ customer.created_at|date:"d M Y" }}</td>
-            <td>
-                <a href="{% url 'customers:customer_detail' customer.pk %}">View</a> |
-                <a href="{% url 'customers:customer_update' customer.pk %}">Edit</a>
-            </td>
+          <td>
+            <a href="{% url 'customers:customer_detail' customer.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">
+              {{ customer.full_name }}
+            </a>
+          </td>
+          <td>{{ customer.phone }}</td>
+          <td style="color:#6B7280;">{{ customer.email|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ customer.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'customers:customer_detail' customer.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'customers:customer_update' customer.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5">No customers found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+        <tr><td colspan="5" class="empty-state">No customers found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

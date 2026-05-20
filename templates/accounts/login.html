@@ -1,14 +1,149 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — SSBikez ERP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F3F4F6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-wrapper { width: 100%; max-width: 400px; }
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .login-logo .brand {
+      font-size: 28px;
+      font-weight: 700;
+      color: #2563EB;
+      letter-spacing: -0.5px;
+    }
+    .login-logo .tagline {
+      font-size: 13px;
+      color: #6B7280;
+      margin-top: 4px;
+    }
+    .login-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+      padding: 36px 32px;
+    }
+    .login-card h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #111827;
+      margin-bottom: 6px;
+    }
+    .login-card p {
+      font-size: 13.5px;
+      color: #6B7280;
+      margin-bottom: 28px;
+    }
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 6px;
+    }
+    input[type="text"],
+    input[type="email"],
+    input[type="password"] {
+      width: 100%;
+      border: 1px solid #D1D5DB;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      color: #111827;
+    }
+    input:focus {
+      border-color: #2563EB;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+    }
+    .errorlist {
+      list-style: none;
+      color: #DC2626;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    .non-field-errors {
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #991B1B;
+      font-size: 13px;
+      margin-bottom: 20px;
+    }
+    .btn-login {
+      width: 100%;
+      background: #2563EB;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 16px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+      font-family: inherit;
+      margin-top: 8px;
+    }
+    .btn-login:hover { background: #1D4ED8; }
+    .login-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #9CA3AF;
+    }
+  </style>
+</head>
+<body>
+<div class="login-wrapper">
+  <div class="login-logo">
+    <div class="brand">SSBikez ERP</div>
+    <div class="tagline">Motorcycle Dealership Management</div>
+  </div>
 
-{% block title %}Login — SSBikez ERP{% endblock %}
+  <div class="login-card">
+    <h1>Welcome back</h1>
+    <p>Sign in to continue to SSBikez ERP</p>
 
-{% block content %}
-<div style="max-width: 400px; margin: 80px auto;">
-    <h2>SSBikez ERP — Login</h2>
+    {% if form.non_field_errors %}
+    <div class="non-field-errors">
+      {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+    </div>
+    {% endif %}
+
     <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Login</button>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <ul class="errorlist">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn-login">Sign In</button>
     </form>
+  </div>
+
+  <div class="login-footer">SSBikez ERP &copy; 2025</div>
 </div>
-{% endblock %}
+</body>
+</html>

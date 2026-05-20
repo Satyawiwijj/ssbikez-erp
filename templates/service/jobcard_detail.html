@@ -1,159 +1,198 @@
 {% extends 'base.html' %}
-
 {% block title %}JC-{{ job_card.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Job Card{% endblock %}
 
 {% block content %}
-<h2>Job Card — JC-{{ job_card.pk }}</h2>
-<a href="{% url 'service:jobcard_list' %}">← Back to list</a>
-
-<h3>Vehicle &amp; Customer</h3>
-<table border="1" cellpadding="4">
-    <tr><th>Customer</th><td>{{ job_card.customer_vehicle.customer.full_name }}</td></tr>
-    <tr><th>Phone</th><td>{{ job_card.customer_vehicle.customer.phone }}</td></tr>
-    <tr><th>Vehicle</th><td>{{ job_card.customer_vehicle.vehicle.bike_model }}</td></tr>
-    <tr><th>Reg. No.</th><td>{{ job_card.customer_vehicle.registration_no }}</td></tr>
-    <tr><th>Odometer</th><td>{{ job_card.odometer_reading|default:"—" }} km</td></tr>
-    <tr><th>Problem</th><td>{{ job_card.problem_description|default:"—" }}</td></tr>
-    <tr><th>Advisor</th><td>{{ job_card.service_advisor|default:"—" }}</td></tr>
-    <tr><th>Supervisor</th><td>{{ job_card.floor_supervisor|default:"—" }}</td></tr>
-    <tr><th>Branch</th><td>{{ job_card.branch|default:"—" }}</td></tr>
-    <tr><th>Created</th><td>{{ job_card.created_at }}</td></tr>
-</table>
-
-<h3>Current Status: {{ job_card.get_service_status_display }}</h3>
-<form method="post" action="{% url 'service:jobcard_status_update' job_card.pk %}">
-    {% csrf_token %}
-    <select name="service_status">
+<div class="page-header">
+  <div>
+    <h1 class="page-title">JC-{{ job_card.pk }}</h1>
+    <p class="page-subtitle">{{ job_card.customer_vehicle.customer.full_name }} — {{ job_card.customer_vehicle.vehicle.bike_model }}</p>
+  </div>
+  <div class="page-header-actions">
+    <!-- Quick status update -->
+    <form method="post" action="{% url 'service:jobcard_status_update' job_card.pk %}" style="display:flex; gap:6px; align-items:center;">
+      {% csrf_token %}
+      <select name="service_status" style="width:auto; padding:7px 10px; font-size:13px;">
         {% for val, label in job_card.ServiceStatus.choices %}
         <option value="{{ val }}" {% if val == job_card.service_status %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
-    </select>
-    <button type="submit">Update Status</button>
-</form>
-<p><a href="{% url 'service:jobcard_update' job_card.pk %}">Edit Job Card</a></p>
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">Update</button>
+    </form>
+    <a href="{% url 'service:jobcard_update' job_card.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'service:jobcard_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<hr>
+<!-- STATUS WORKFLOW BAR -->
+<div class="status-bar">
+  {% with stages="pending,water_wash,in_bay,in_progress,outwork,final_inspection,ready,invoiced" %}
+  {% with labels="Pending,Water Wash,In Bay,In Progress,Outwork,Final Inspection,Ready,Invoiced" %}
+  {% with current=job_card.service_status %}
+  {% for val, label in job_card.ServiceStatus.choices %}
+  {% if not forloop.first %}
+  <span class="status-step-arrow">&#8250;</span>
+  {% endif %}
+  <div class="status-step {% if val == current %}current{% elif forloop.counter0 < job_card.ServiceStatus.choices|length %}{% endif %}">
+    <span class="status-step-dot"></span>
+    {{ label }}
+  </div>
+  {% endfor %}
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+</div>
 
-<h3>Bay Assignments</h3>
-<p><a href="{% url 'service:bay_assignment_create' %}?jc={{ job_card.pk }}">+ Assign Bay</a></p>
-<table border="1" cellpadding="4">
-    <thead>
-        <tr>
-            <th>Bay</th>
-            <th>Mechanic</th>
-            <th>Start Time</th>
-            <th>End Time</th>
-            <th>Status</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Vehicle &amp; Customer</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Customer</dt><dd>{{ job_card.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ job_card.customer_vehicle.customer.phone }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ job_card.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd><span class="badge badge-gray">{{ job_card.customer_vehicle.registration_no }}</span></dd></div>
+      <div class="detail-row"><dt>Odometer</dt><dd>{{ job_card.odometer_reading|default:"—" }} km</dd></div>
+      <div class="detail-row"><dt>Problem</dt><dd>{{ job_card.problem_description|default:"—" }}</dd></div>
+    </dl>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Staff &amp; Branch</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Advisor</dt><dd>{{ job_card.service_advisor|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Supervisor</dt><dd>{{ job_card.floor_supervisor|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Branch</dt><dd>{{ job_card.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ job_card.created_at }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- BAY ASSIGNMENTS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Bay Assignments</span>
+    <a href="{% url 'service:bay_assignment_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Assign Bay</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Bay</th><th>Mechanic</th><th>Start Time</th><th>End Time</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
         {% for ba in bay_assignments %}
         <tr>
-            <td>{{ ba.bay.bay_name }}</td>
-            <td>{{ ba.mechanic|default:"—" }}</td>
-            <td>{{ ba.start_time|default:"—" }}</td>
-            <td>{{ ba.end_time|default:"—" }}</td>
-            <td>{{ ba.get_assignment_status_display }}</td>
-            <td><a href="{% url 'service:bay_assignment_update' ba.pk %}">Edit</a></td>
+          <td style="font-weight:500;">{{ ba.bay.bay_name }}</td>
+          <td>{{ ba.mechanic|default:"—" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ba.start_time|default:"—" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ba.end_time|default:"—" }}</td>
+          <td><span class="badge badge-blue">{{ ba.get_assignment_status_display }}</span></td>
+          <td><a href="{% url 'service:bay_assignment_update' ba.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">No bay assignments yet.</td></tr>
+        <tr><td colspan="6" class="empty-state">No bay assignments yet.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-<hr>
-
-<h3>Labor Charges</h3>
-<p><a href="{% url 'service:labor_charge_create' %}?jc={{ job_card.pk }}">+ Add Labor Charge</a></p>
-<table border="1" cellpadding="4">
-    <thead>
-        <tr>
-            <th>Service</th>
-            <th>Cost</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<!-- LABOR CHARGES -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Labor Charges</span>
+    <a href="{% url 'service:labor_charge_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Add Charge</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Service</th><th>Cost</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
         {% for lc in labor_charges %}
         <tr>
-            <td>{{ lc.service_name }}</td>
-            <td>{{ lc.labor_cost }}</td>
-            <td>
-                <a href="{% url 'service:labor_charge_update' lc.pk %}">Edit</a>
-                | <form method="post" action="{% url 'service:labor_charge_delete' lc.pk %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit">Delete</button>
-                  </form>
-            </td>
+          <td>{{ lc.service_name }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ lc.labor_cost }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:labor_charge_update' lc.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <form method="post" action="{% url 'service:labor_charge_delete' lc.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="3">No labor charges yet.</td></tr>
+        <tr><td colspan="3" class="empty-state">No labor charges yet.</td></tr>
         {% endfor %}
         {% if labor_charges %}
-        <tr>
-            <th>Total</th>
-            <td><strong>{{ total_labor }}</strong></td>
-            <td></td>
+        <tr style="background:#F0F7FF;">
+          <td style="font-weight:700;">Total Labor</td>
+          <td style="font-weight:700; color:#2563EB;">&#x20B9; {{ total_labor }}</td>
+          <td></td>
         </tr>
         {% endif %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-<hr>
-
-<h3>Spares Issued</h3>
-<p><a href="{% url 'spares:issue_create' %}?jobcard={{ job_card.pk }}">+ Issue Spare Part</a></p>
-<table border="1" cellpadding="4">
-    <thead>
-        <tr>
-            <th>Part</th>
-            <th>Issued</th>
-            <th>Returned</th>
-            <th>Net</th>
-            <th>Unit Price</th>
-            <th>Total Price</th>
-            <th>Issued By</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
+<!-- SPARES ISSUED -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Spares Issued</span>
+    <a href="{% url 'spares:issue_create' %}?jobcard={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Issue Part</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Part</th><th>Issued</th><th>Returned</th><th>Net</th><th>Unit Price</th><th>Total</th><th>Issued By</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
         {% for issue in spares_issues %}
         <tr>
-            <td>{{ issue.spare_part.part_name }}</td>
-            <td>{{ issue.quantity_issued }}</td>
-            <td>{{ issue.quantity_returned }}</td>
-            <td>{{ issue.net_quantity }}</td>
-            <td>{{ issue.unit_price|default:"—" }}</td>
-            <td>{{ issue.total_price|default:"—" }}</td>
-            <td>{{ issue.issued_by|default:"—" }}</td>
-            <td><a href="{% url 'spares:issue_update' issue.pk %}">Edit</a></td>
+          <td style="font-weight:500;">{{ issue.spare_part.part_name }}</td>
+          <td>{{ issue.quantity_issued }}</td>
+          <td>{{ issue.quantity_returned }}</td>
+          <td style="font-weight:500;">{{ issue.net_quantity }}</td>
+          <td>{{ issue.unit_price|default:"—" }}</td>
+          <td style="font-weight:500;">{{ issue.total_price|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ issue.issued_by|default:"—" }}</td>
+          <td><a href="{% url 'spares:issue_update' issue.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
         </tr>
         {% empty %}
-        <tr><td colspan="8">No spares issued yet.</td></tr>
+        <tr><td colspan="8" class="empty-state">No spares issued yet.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 
-<hr>
-
-<h3>Service Invoice</h3>
-{% with invoice=job_card.service_invoice %}
-{% if invoice %}
-<table border="1" cellpadding="4">
-    <tr><th>Invoice Date</th><td>{{ invoice.invoice_date|date:"d M Y" }}</td></tr>
-    <tr><th>Subtotal</th><td>Rs.{{ invoice.subtotal }}</td></tr>
-    <tr><th>GST</th><td>Rs.{{ invoice.gst_amount }}</td></tr>
-    <tr><th>Discount</th><td>Rs.{{ invoice.discount_amount }}</td></tr>
-    <tr><th>Final Amount</th><td><strong>Rs.{{ invoice.final_amount }}</strong></td></tr>
-</table>
-<p>
-    <a href="{% url 'service:service_invoice_detail' invoice.pk %}">View Invoice</a> |
-    <a href="{% url 'service:service_invoice_update' invoice.pk %}">Edit</a>
-</p>
-{% else %}
-<p>Not created. <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}">+ Create Service Invoice</a></p>
-{% endif %}
-{% endwith %}
+<!-- SERVICE INVOICE -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Service Invoice</span>
+    {% with invoice=job_card.service_invoice %}
+    {% if not invoice %}
+    <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% with invoice=job_card.service_invoice %}
+  {% if invoice %}
+  <dl class="detail-list">
+    <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+    <div class="detail-row"><dt>Subtotal</dt><dd>&#x20B9;{{ invoice.subtotal }}</dd></div>
+    <div class="detail-row"><dt>GST</dt><dd>&#x20B9;{{ invoice.gst_amount }}</dd></div>
+    <div class="detail-row"><dt>Discount</dt><dd>&#x20B9;{{ invoice.discount_amount }}</dd></div>
+    <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:16px; color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</dd></div>
+  </dl>
+  <div style="margin-top:12px; display:flex; gap:8px;">
+    <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
+    <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;">No service invoice created yet.</p>
+  {% endif %}
+  {% endwith %}
+</div>
 {% endblock %}

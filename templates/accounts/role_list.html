@@ -1,27 +1,39 @@
 {% extends 'base.html' %}
-
 {% block title %}Roles — SSBikez ERP{% endblock %}
+{% block page_title %}Roles{% endblock %}
 
 {% block content %}
-<h2>Roles</h2>
-<table border="1" cellpadding="6">
-    <thead>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Roles</h1>
+    <p class="page-subtitle">User roles and permissions</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Role Name</th>
-            <th>Description</th>
-            <th>Created</th>
+          <th>Role Name</th>
+          <th>Description</th>
+          <th>Created</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for role in roles %}
         <tr>
-            <td>{{ role.role_name }}</td>
-            <td>{{ role.description|default:"—" }}</td>
-            <td>{{ role.created_at|date:"d M Y" }}</td>
+          <td style="font-weight:500;">
+            <span class="badge badge-purple">{{ role.role_name }}</span>
+          </td>
+          <td style="color:#6B7280;">{{ role.description|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ role.created_at|date:"d M Y" }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="3">No roles found.</td></tr>
+        <tr><td colspan="3" class="empty-state">No roles found.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

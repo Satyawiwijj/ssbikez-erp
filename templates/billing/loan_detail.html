@@ -1,41 +1,56 @@
 {% extends 'base.html' %}
-
 {% block title %}LOAN-{{ loan.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Finance Loan{% endblock %}
 
 {% block content %}
-<h2>LOAN-{{ loan.pk }}</h2>
-<a href="{% url 'billing:loan_update' loan.pk %}">Edit</a> |
-<a href="{% url 'sales:order_detail' loan.sales_order.pk %}">Back to Order ORD-{{ loan.sales_order.pk }}</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">LOAN-{{ loan.pk }}</h1>
+    <span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ loan.get_loan_status_display }}</span>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'billing:loan_update' loan.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'sales:order_detail' loan.sales_order.pk %}" class="btn btn-ghost">&#8592; Back to Order</a>
+  </div>
+</div>
 
-<h3>Loan Details</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Sales Order</th>
-        <td><a href="{% url 'sales:order_detail' loan.sales_order.pk %}">ORD-{{ loan.sales_order.pk }}</a></td>
-    </tr>
-    <tr><th>Customer</th><td>{{ loan.sales_order.customer.full_name }}</td></tr>
-    <tr><th>Bank</th><td>{{ loan.bank_name }}</td></tr>
-    <tr><th>Loan Amount</th><td>Rs. {{ loan.loan_amount }}</td></tr>
-    <tr><th>Interest Rate</th><td>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Loan Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Sales Order</dt><dd>
+        <a href="{% url 'sales:order_detail' loan.sales_order.pk %}">ORD-{{ loan.sales_order.pk }}</a>
+      </dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd>{{ loan.sales_order.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Bank</dt><dd style="font-weight:500;">{{ loan.bank_name }}</dd></div>
+      <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:600; color:#2563EB;">&#x20B9; {{ loan.loan_amount }}</dd></div>
+      <div class="detail-row"><dt>Interest Rate</dt><dd>
         {% if loan.interest_rate %}{{ loan.interest_rate }}% p.a.{% else %}—{% endif %}
-    </td></tr>
-    <tr><th>Tenure</th><td>
+      </dd></div>
+      <div class="detail-row"><dt>Tenure</dt><dd>
         {% if loan.tenure_months %}{{ loan.tenure_months }} months{% else %}—{% endif %}
-    </td></tr>
-    <tr><th>EMI</th><td>
-        {% if loan.emi_amount %}Rs. {{ loan.emi_amount }}{% else %}—{% endif %}
-    </td></tr>
-    <tr><th>Status</th><td>{{ loan.get_loan_status_display }}</td></tr>
-    <tr><th>Created</th><td>{{ loan.created_at|date:"d M Y" }}</td></tr>
-</table>
+      </dd></div>
+      <div class="detail-row"><dt>EMI</dt><dd>
+        {% if loan.emi_amount %}&#x20B9; {{ loan.emi_amount }}{% else %}—{% endif %}
+      </dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ loan.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
 
-{% if total_repayment %}
-<h3>Repayment Estimate (Simple Interest)</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Principal</th><td>Rs. {{ loan.loan_amount }}</td></tr>
-    <tr><th>Interest (estimated)</th><td>Rs. {{ total_repayment|floatformat:2 }}</td></tr>
-    <tr><th>Total Repayment</th><td><strong>Rs. {{ total_repayment|floatformat:2 }}</strong></td></tr>
-</table>
-<small>Estimate based on simple interest. Actual repayment may differ.</small>
-{% endif %}
-
+  {% if total_repayment %}
+  <div class="card">
+    <div class="card-header"><span class="card-title">Repayment Estimate</span></div>
+    <p style="font-size:12px; color:#9CA3AF; margin-bottom:16px;">Based on simple interest. Actual may differ.</p>
+    <div class="amount-row">
+      <span class="label">Principal</span>
+      <span class="value">&#x20B9; {{ loan.loan_amount }}</span>
+    </div>
+    <div class="amount-row total">
+      <span class="label">Total Repayment</span>
+      <span class="value" style="color:#2563EB;">&#x20B9; {{ total_repayment|floatformat:2 }}</span>
+    </div>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

@@ -1,34 +1,43 @@
 {% extends 'base.html' %}
-
 {% block title %}RSA-{{ package.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}RSA Package Detail{% endblock %}
 
 {% block content %}
-<h2>RSA Package — RSA-{{ package.pk }}</h2>
-<a href="{% url 'vas:rsa_list' %}">← Back to list</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">RSA Package — RSA-{{ package.pk }}</h1>
+    <p class="page-subtitle">{{ package.customer_vehicle.customer.full_name }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'vas:rsa_update' package.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'vas:rsa_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>Package Info</h3>
-<table border="1" cellpadding="4">
-    <tr><th>Provider</th><td>{{ package.provider_name|default:"—" }}</td></tr>
-    <tr><th>Start Date</th><td>{{ package.start_date|date:"d M Y"|default:"—" }}</td></tr>
-    <tr><th>End Date</th><td>{{ package.end_date|date:"d M Y"|default:"—" }}</td></tr>
-    <tr><th>Amount</th><td>{{ package.amount|default:"—" }}</td></tr>
-    <tr><th>Status</th><td>{{ package.get_status_display }}</td></tr>
-    <tr><th>Created</th><td>{{ package.created_at }}</td></tr>
-</table>
-<p><a href="{% url 'vas:rsa_update' package.pk %}">Edit Package</a></p>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Package Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Provider</dt><dd style="font-weight:500;">{{ package.provider_name|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Start Date</dt><dd>{{ package.start_date|date:"d M Y"|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>End Date</dt><dd>{{ package.end_date|date:"d M Y"|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Amount</dt><dd style="font-weight:600;">{% if package.amount %}&#x20B9; {{ package.amount }}{% else %}—{% endif %}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ package.get_status_display }}</span></dd></div>
+      <div class="detail-row"><dt>Created</dt><dd style="color:#6B7280; font-size:13px;">{{ package.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
 
-<hr>
-
-<h3>Customer Vehicle</h3>
-<table border="1" cellpadding="4">
-    <tr><th>Customer</th><td>{{ package.customer_vehicle.customer.full_name }}</td></tr>
-    <tr><th>Phone</th><td>{{ package.customer_vehicle.customer.phone }}</td></tr>
-    <tr><th>Vehicle</th><td>{{ package.customer_vehicle.vehicle.bike_model }}</td></tr>
-    <tr><th>Reg. No.</th><td>{{ package.customer_vehicle.registration_no|default:"—" }}</td></tr>
-</table>
-<p>
-    <a href="{% url 'customer_vehicles:customervehicle_detail' package.customer_vehicle.pk %}">
-        View Customer Vehicle
-    </a>
-</p>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Customer Vehicle</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ package.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ package.customer_vehicle.customer.phone }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ package.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd style="font-family:monospace;">{{ package.customer_vehicle.registration_no|default:"—" }}</dd></div>
+    </dl>
+    <div style="margin-top:16px;">
+      <a href="{% url 'customer_vehicles:customervehicle_detail' package.customer_vehicle.pk %}" class="btn btn-secondary btn-sm">View Customer Vehicle</a>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,108 +1,148 @@
 {% extends 'base.html' %}
-
 {% block title %}ENQ-{{ enquiry.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Enquiry{% endblock %}
 
 {% block content %}
-<h2>ENQ-{{ enquiry.pk }}</h2>
-<a href="{% url 'sales:enquiry_update' enquiry.pk %}">Edit</a> |
-<a href="{% url 'sales:enquiry_list' %}">Back to list</a>
-
-<!-- Quick status change -->
-<form method="post" action="{% url 'sales:enquiry_status_update' enquiry.pk %}" style="display:inline; margin-left:16px;">
-    {% csrf_token %}
-    <select name="status">
+<div class="page-header">
+  <div>
+    <h1 class="page-title">ENQ-{{ enquiry.pk }}</h1>
+    {% with s=enquiry.status %}
+    {% if s == 'open' %}<span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% elif s == 'follow_up' %}<span class="badge badge-yellow" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% elif s == 'converted' %}<span class="badge badge-green" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% elif s == 'lost' %}<span class="badge badge-red" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% else %}<span class="badge badge-gray" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% endif %}
+    {% endwith %}
+  </div>
+  <div class="page-header-actions">
+    <!-- Quick status update -->
+    <form method="post" action="{% url 'sales:enquiry_status_update' enquiry.pk %}" style="display:flex; gap:6px; align-items:center;">
+      {% csrf_token %}
+      <select name="status" style="width:auto; padding:7px 10px; font-size:13px;">
         {% for val, label in enquiry.Status.choices %}
         <option value="{{ val }}" {% if enquiry.status == val %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
-    </select>
-    <button type="submit">Update Status</button>
-</form>
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">Update</button>
+    </form>
+    <a href="{% url 'sales:enquiry_update' enquiry.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>Customer</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Name</th><td>{{ enquiry.customer.full_name }}</td></tr>
-    <tr><th>Phone</th><td>{{ enquiry.customer.phone }}</td></tr>
-    <tr><th>Email</th><td>{{ enquiry.customer.email|default:"—" }}</td></tr>
-</table>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Customer</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Name</dt><dd>{{ enquiry.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ enquiry.customer.phone }}</dd></div>
+      <div class="detail-row"><dt>Email</dt><dd>{{ enquiry.customer.email|default:"—" }}</dd></div>
+    </dl>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Enquiry Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Bike Model</dt><dd>{{ enquiry.bike_model|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Source</dt><dd>{{ enquiry.get_enquiry_source_display|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Sales Executive</dt><dd>{{ enquiry.sales_executive|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Branch</dt><dd>{{ enquiry.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Remarks</dt><dd>{{ enquiry.remarks|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ enquiry.created_at|date:"d M Y H:i" }}</dd></div>
+    </dl>
+  </div>
+</div>
 
-<h3>Enquiry Info</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Bike Model</th><td>{{ enquiry.bike_model|default:"—" }}</td></tr>
-    <tr><th>Source</th><td>{{ enquiry.get_enquiry_source_display|default:"—" }}</td></tr>
-    <tr><th>Status</th><td>{{ enquiry.get_status_display }}</td></tr>
-    <tr><th>Sales Executive</th><td>{{ enquiry.sales_executive|default:"—" }}</td></tr>
-    <tr><th>Branch</th><td>{{ enquiry.branch|default:"—" }}</td></tr>
-    <tr><th>Remarks</th><td>{{ enquiry.remarks|default:"—" }}</td></tr>
-    <tr><th>Created</th><td>{{ enquiry.created_at|date:"d M Y H:i" }}</td></tr>
-</table>
+<!-- SALES ORDER -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Sales Order</span>
+    {% if not order %}
+    <a href="{% url 'sales:order_create' %}?enquiry={{ enquiry.pk }}&customer={{ enquiry.customer_id }}" class="btn btn-primary btn-sm">+ Create Order</a>
+    {% endif %}
+  </div>
+  {% if order %}
+  <div style="display:flex; align-items:center; gap:16px;">
+    <a href="{% url 'sales:order_detail' order.pk %}" style="font-weight:600; color:#2563EB; text-decoration:none; font-size:16px;">ORD-{{ order.pk }}</a>
+    <span class="badge badge-blue">{{ order.get_sales_status_display }}</span>
+    <span style="color:#374151; font-weight:500;">&#x20B9; {{ order.total_amount }}</span>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;">No order created yet.</p>
+  {% endif %}
+</div>
 
-<h3>
-    Appointments
-    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}" style="font-size:0.85em;">+ Add</a>
-</h3>
-{% if appointments %}
-<table border="1" cellpadding="6">
-    <thead>
+<!-- APPOINTMENTS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Appointments</span>
+    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Add</a>
+  </div>
+  {% if appointments %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for apt in appointments %}
         <tr>
-            <td>{{ apt.appointment_date|date:"d M Y H:i" }}</td>
-            <td>{{ apt.get_purpose_display|default:"—" }}</td>
-            <td>{{ apt.get_status_display }}</td>
-            <td>
-                <a href="{% url 'sales:appointment_update' apt.pk %}">Edit</a>
-                {% if apt.status == 'scheduled' %}
-                | <form method="post" action="{% url 'sales:appointment_cancel' apt.pk %}" style="display:inline;">
-                    {% csrf_token %}<button type="submit">Cancel</button>
-                  </form>
-                {% endif %}
-            </td>
+          <td style="font-weight:500;">{{ apt.appointment_date|date:"d M Y H:i" }}</td>
+          <td>{{ apt.get_purpose_display|default:"—" }}</td>
+          <td>
+            {% if apt.status == 'scheduled' %}<span class="badge badge-blue">{{ apt.get_status_display }}</span>
+            {% elif apt.status == 'completed' %}<span class="badge badge-green">{{ apt.get_status_display }}</span>
+            {% elif apt.status == 'cancelled' %}<span class="badge badge-red">{{ apt.get_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ apt.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              {% if apt.status == 'scheduled' %}
+              <form method="post" action="{% url 'sales:appointment_cancel' apt.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Cancel</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No appointments yet.</p>
-{% endif %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;">No appointments yet.</p>
+  {% endif %}
+</div>
 
-<h3>
-    Feedback
-    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" style="font-size:0.85em;">+ Add</a>
-</h3>
-{% if feedback_list %}
-<table border="1" cellpadding="6">
-    <thead>
+<!-- FEEDBACK -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Feedback / Follow-up</span>
+    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Add</a>
+  </div>
+  {% if feedback_list %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr><th>Notes</th><th>Next Follow-up</th><th>By</th><th>Date</th></tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for fb in feedback_list %}
         <tr>
-            <td>{{ fb.feedback_notes|default:"—" }}</td>
-            <td>{{ fb.next_followup_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ fb.created_by|default:"—" }}</td>
-            <td>{{ fb.created_at|date:"d M Y" }}</td>
+          <td>{{ fb.feedback_notes|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ fb.next_followup_date|date:"d M Y"|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ fb.created_by|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ fb.created_at|date:"d M Y" }}</td>
         </tr>
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>No feedback yet.</p>
-{% endif %}
-
-<h3>Sales Order</h3>
-{% if order %}
-<p>
-    <a href="{% url 'sales:order_detail' order.pk %}">ORD-{{ order.pk }}</a> —
-    {{ order.get_sales_status_display }} — Rs. {{ order.total_amount }}
-</p>
-{% else %}
-<p>No order yet.
-    <a href="{% url 'sales:order_create' %}?enquiry={{ enquiry.pk }}&customer={{ enquiry.customer_id }}">
-        + Create Order
-    </a>
-</p>
-{% endif %}
-
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;">No feedback recorded yet.</p>
+  {% endif %}
+</div>
 {% endblock %}

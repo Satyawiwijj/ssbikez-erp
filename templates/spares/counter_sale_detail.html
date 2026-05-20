@@ -1,60 +1,75 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ sale.invoice_number }} — SSBikez ERP{% endblock %}
+{% block page_title %}Counter Sale Detail{% endblock %}
 
 {% block content %}
-<h2>Counter Sale — {{ sale.invoice_number }}</h2>
-<a href="{% url 'spares:counter_sale_list' %}">← Back to list</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Counter Sale — {{ sale.invoice_number }}</h1>
+    <p class="page-subtitle">{{ sale.sale_date|date:"d M Y" }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'spares:counter_sale_update' sale.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>Sale Info</h3>
-<table border="1" cellpadding="4">
-    <tr><th>Invoice No.</th><td>{{ sale.invoice_number }}</td></tr>
-    <tr><th>Customer</th><td>{{ sale.customer|default:"Walk-in" }}</td></tr>
-    <tr><th>Branch</th><td>{{ sale.branch|default:"—" }}</td></tr>
-    <tr><th>Sale Date</th><td>{{ sale.sale_date }}</td></tr>
-    <tr><th>Created By</th><td>{{ sale.created_by|default:"—" }}</td></tr>
-    <tr><th>Total Amount</th><td>{{ sale.total_amount }}</td></tr>
-</table>
-<p><a href="{% url 'spares:counter_sale_update' sale.pk %}">Edit Sale</a></p>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Sale Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Invoice No.</dt><dd style="font-weight:500; font-family:monospace;">{{ sale.invoice_number }}</dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd>{{ sale.customer|default:"Walk-in" }}</dd></div>
+      <div class="detail-row"><dt>Branch</dt><dd>{{ sale.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Sale Date</dt><dd>{{ sale.sale_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Created By</dt><dd>{{ sale.created_by|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Total Amount</dt><dd style="font-weight:600; color:#2563EB;">{% if sale.total_amount %}&#x20B9; {{ sale.total_amount }}{% else %}—{% endif %}</dd></div>
+    </dl>
+  </div>
+</div>
 
-<hr>
-
-<h3>Items</h3>
-<p><a href="{% url 'spares:counter_sale_item_create' %}?cs={{ sale.pk }}">+ Add Item</a></p>
-<table border="1" cellpadding="4">
-    <thead>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Items</span>
+    <a href="{% url 'spares:counter_sale_item_create' %}?cs={{ sale.pk }}" class="btn btn-primary btn-sm">+ Add Item</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Part</th>
-            <th>Qty</th>
-            <th>Unit Price</th>
-            <th>Total Price</th>
-            <th>Actions</th>
+          <th>Part</th>
+          <th>Qty</th>
+          <th>Unit Price</th>
+          <th>Total Price</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for item in items %}
         <tr>
-            <td>{{ item.spare_part.part_name }}</td>
-            <td>{{ item.quantity }}</td>
-            <td>{{ item.unit_price }}</td>
-            <td>{{ item.total_price }}</td>
-            <td>
-                <form method="post" action="{% url 'spares:counter_sale_item_delete' item.pk %}" style="display:inline;">
-                    {% csrf_token %}
-                    <button type="submit">Delete</button>
-                </form>
-            </td>
+          <td style="font-weight:500;">{{ item.spare_part.part_name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>&#x20B9; {{ item.unit_price }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ item.total_price }}</td>
+          <td>
+            <form method="post" action="{% url 'spares:counter_sale_item_delete' item.pk %}" style="display:inline;" onsubmit="return confirm('Delete this item?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-ghost btn-sm" style="color:#EF4444;">Delete</button>
+            </form>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="5">No items yet.</td></tr>
+        <tr><td colspan="5" class="empty-state">No items yet.</td></tr>
         {% endfor %}
         {% if items %}
-        <tr>
-            <th colspan="3">Total</th>
-            <td><strong>{{ total }}</strong></td>
-            <td></td>
+        <tr style="background:#F9FAFB;">
+          <td colspan="3" style="font-weight:600; text-align:right; padding-right:16px;">Total</td>
+          <td style="font-weight:700; color:#111827;">&#x20B9; {{ total }}</td>
+          <td></td>
         </tr>
         {% endif %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

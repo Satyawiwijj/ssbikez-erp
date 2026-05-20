@@ -1,45 +1,57 @@
 {% extends 'base.html' %}
-
 {% block title %}Counter Sales — SSBikez ERP{% endblock %}
+{% block page_title %}Counter Sales{% endblock %}
 
 {% block content %}
-<h2>Counter Sales</h2>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Counter Sales</h1>
+    <p class="page-subtitle">Walk-in and parts counter sales</p>
+  </div>
+  <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-primary">+ New Counter Sale</a>
+</div>
 
-<form method="get" style="margin-bottom:1rem;">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search invoice no. or customer">
-    <button type="submit">Search</button>
-    {% if q %}<a href="?">Clear</a>{% endif %}
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search invoice no. or customer...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'spares:counter_sale_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
 </form>
 
-<p><a href="{% url 'spares:counter_sale_create' %}">+ New Counter Sale</a></p>
-
-<table border="1" cellpadding="4">
-    <thead>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
         <tr>
-            <th>Invoice No.</th>
-            <th>Customer</th>
-            <th>Total Amount</th>
-            <th>Sale Date</th>
-            <th>Created By</th>
-            <th>Actions</th>
+          <th>Invoice No.</th>
+          <th>Customer</th>
+          <th>Total Amount</th>
+          <th>Sale Date</th>
+          <th>Created By</th>
+          <th>Actions</th>
         </tr>
-    </thead>
-    <tbody>
+      </thead>
+      <tbody>
         {% for sale in counter_sales %}
         <tr>
-            <td>{{ sale.invoice_number }}</td>
-            <td>{{ sale.customer|default:"Walk-in" }}</td>
-            <td>{{ sale.total_amount }}</td>
-            <td>{{ sale.sale_date }}</td>
-            <td>{{ sale.created_by|default:"—" }}</td>
-            <td>
-                <a href="{% url 'spares:counter_sale_detail' sale.pk %}">View</a>
-                | <a href="{% url 'spares:counter_sale_update' sale.pk %}">Edit</a>
-            </td>
+          <td>
+            <a href="{% url 'spares:counter_sale_detail' sale.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">{{ sale.invoice_number }}</a>
+          </td>
+          <td>{{ sale.customer|default:"Walk-in" }}</td>
+          <td style="font-weight:500;">{% if sale.total_amount %}&#x20B9; {{ sale.total_amount }}{% else %}—{% endif %}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ sale.sale_date|date:"d M Y" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ sale.created_by|default:"—" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'spares:counter_sale_detail' sale.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'spares:counter_sale_update' sale.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
         </tr>
         {% empty %}
-        <tr><td colspan="6">No counter sales found.</td></tr>
+        <tr><td colspan="6" class="empty-state">No counter sales found.</td></tr>
         {% endfor %}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

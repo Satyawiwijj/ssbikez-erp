@@ -1,118 +1,195 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ cv }} — SSBikez ERP{% endblock %}
+{% block page_title %}Customer Vehicle{% endblock %}
 
 {% block content %}
-<h2>Customer Vehicle</h2>
-<a href="{% url 'customer_vehicles:customervehicle_update' cv.pk %}">Edit</a> |
-<a href="{% url 'customer_vehicles:customervehicle_list' %}">Back to list</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ cv.customer.full_name }} — {{ cv.vehicle.bike_model }}</h1>
+    {% if cv.registration_no %}
+    <span class="badge badge-green" style="margin-top:6px; display:inline-flex;">{{ cv.registration_no }}</span>
+    {% else %}
+    <span class="badge badge-gray" style="margin-top:6px; display:inline-flex;">Unregistered</span>
+    {% endif %}
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'customer_vehicles:customervehicle_update' cv.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
 
-<h3>Customer</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Name</th><td>{{ cv.customer.full_name }}</td></tr>
-    <tr><th>Phone</th><td>{{ cv.customer.phone }}</td></tr>
-    <tr><th>Email</th><td>{{ cv.customer.email|default:"—" }}</td></tr>
-</table>
+<!-- TAB NAVIGATION -->
+<div class="tab-container">
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="tab-overview">Overview</button>
+    <button class="tab-btn" data-tab="tab-service">Service History ({{ job_cards|length }})</button>
+    <button class="tab-btn" data-tab="tab-vas">VAS Packages</button>
+  </div>
 
-<h3>Vehicle</h3>
-<table border="1" cellpadding="6">
-    <tr><th>Bike Model</th><td>{{ cv.vehicle.bike_model }}</td></tr>
-    <tr><th>Chassis No</th><td>{{ cv.vehicle.chassis_no|default:"—" }}</td></tr>
-    <tr><th>Engine No</th><td>{{ cv.vehicle.engine_no|default:"—" }}</td></tr>
-    <tr><th>Color</th><td>{{ cv.vehicle.color|default:"—" }}</td></tr>
-    <tr><th>Branch</th><td>{{ cv.vehicle.branch|default:"—" }}</td></tr>
-    <tr><th>Registration No</th><td>{{ cv.registration_no|default:"Unregistered" }}</td></tr>
-    <tr><th>Purchase Date</th><td>{{ cv.purchase_date|date:"d M Y"|default:"—" }}</td></tr>
-    <tr><th>Insurance Expiry</th><td>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td></tr>
-</table>
+  <!-- TAB 1: OVERVIEW -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="detail-grid">
+      <div class="card">
+        <div class="card-header"><span class="card-title">Customer Info</span></div>
+        <dl class="detail-list">
+          <div class="detail-row"><dt>Name</dt><dd>{{ cv.customer.full_name }}</dd></div>
+          <div class="detail-row"><dt>Phone</dt><dd>{{ cv.customer.phone }}</dd></div>
+          <div class="detail-row"><dt>Email</dt><dd>{{ cv.customer.email|default:"—" }}</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Vehicle Info</span></div>
+        <dl class="detail-list">
+          <div class="detail-row"><dt>Bike Model</dt><dd>{{ cv.vehicle.bike_model }}</dd></div>
+          <div class="detail-row"><dt>Chassis No</dt><dd style="font-family:monospace;">{{ cv.vehicle.chassis_no|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Engine No</dt><dd style="font-family:monospace;">{{ cv.vehicle.engine_no|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Color</dt><dd>{{ cv.vehicle.color|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Branch</dt><dd>{{ cv.vehicle.branch|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Registration No</dt><dd>
+            {% if cv.registration_no %}<span class="badge badge-green">{{ cv.registration_no }}</span>
+            {% else %}<span class="badge badge-gray">Unregistered</span>{% endif %}
+          </dd></div>
+          <div class="detail-row"><dt>Purchase Date</dt><dd>{{ cv.purchase_date|date:"d M Y"|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Insurance Expiry</dt><dd>{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
 
-<h3>Service History</h3>
-<p><a href="{% url 'service:jobcard_create' %}?cv={{ cv.pk }}">+ New Job Card</a></p>
-<table border="1" cellpadding="6">
-    <thead><tr><th>Job Card</th><th>Date</th><th>Advisor</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-        {% for jc in job_cards %}
-        <tr>
-            <td>JC-{{ jc.pk }}</td>
-            <td>{{ jc.created_at|date:"d M Y" }}</td>
-            <td>{{ jc.service_advisor|default:"—" }}</td>
-            <td>{{ jc.get_service_status_display }}</td>
-            <td><a href="{% url 'service:jobcard_detail' jc.pk %}">View</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5">No service history yet.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+  <!-- TAB 2: SERVICE HISTORY -->
+  <div class="tab-content" id="tab-service">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Service History</span>
+        <a href="{% url 'service:jobcard_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ New Job Card</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Job Card</th><th>Date</th><th>Advisor</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for jc in job_cards %}
+            <tr>
+              <td style="font-weight:500; font-family:monospace;">JC-{{ jc.pk }}</td>
+              <td style="color:#6B7280; font-size:13px;">{{ jc.created_at|date:"d M Y" }}</td>
+              <td>{{ jc.service_advisor|default:"—" }}</td>
+              <td><span class="badge badge-blue">{{ jc.get_service_status_display }}</span></td>
+              <td><a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-state">No service history yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-<h3>AMC Packages</h3>
-<p><a href="{% url 'vas:amc_create' %}?cv={{ cv.pk }}">+ Add AMC Package</a></p>
-<table border="1" cellpadding="6">
-    <thead><tr><th>Package</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-        {% for amc in amc_packages %}
-        <tr>
-            <td>{{ amc.package_name }}</td>
-            <td>{{ amc.start_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ amc.end_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ amc.amount|default:"—" }}</td>
-            <td>{{ amc.get_status_display }}</td>
-            <td>
-                <a href="{% url 'vas:amc_detail' amc.pk %}">View</a>
-                | <a href="{% url 'vas:amc_update' amc.pk %}">Edit</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">No AMC packages.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+  <!-- TAB 3: VAS -->
+  <div class="tab-content" id="tab-vas">
+    <!-- AMC -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">AMC Packages</span>
+        <a href="{% url 'vas:amc_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add AMC</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Package</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for amc in amc_packages %}
+            <tr>
+              <td style="font-weight:500;">{{ amc.package_name }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ amc.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ amc.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ amc.amount|default:"—" }}</td>
+              <td><span class="badge badge-green">{{ amc.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:amc_detail' amc.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:amc_update' amc.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">No AMC packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<h3>RSA Packages</h3>
-<p><a href="{% url 'vas:rsa_create' %}?cv={{ cv.pk }}">+ Add RSA Package</a></p>
-<table border="1" cellpadding="6">
-    <thead><tr><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-        {% for rsa in rsa_packages %}
-        <tr>
-            <td>{{ rsa.provider_name|default:"—" }}</td>
-            <td>{{ rsa.start_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ rsa.end_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ rsa.amount|default:"—" }}</td>
-            <td>{{ rsa.get_status_display }}</td>
-            <td>
-                <a href="{% url 'vas:rsa_detail' rsa.pk %}">View</a>
-                | <a href="{% url 'vas:rsa_update' rsa.pk %}">Edit</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6">No RSA packages.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- RSA -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">RSA Packages</span>
+        <a href="{% url 'vas:rsa_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add RSA</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for rsa in rsa_packages %}
+            <tr>
+              <td style="font-weight:500;">{{ rsa.provider_name|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ rsa.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ rsa.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ rsa.amount|default:"—" }}</td>
+              <td><span class="badge badge-blue">{{ rsa.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:rsa_detail' rsa.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:rsa_update' rsa.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">No RSA packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<h3>Protection Plus</h3>
-<p><a href="{% url 'vas:pp_create' %}?cv={{ cv.pk }}">+ Add Protection Plus Package</a></p>
-<table border="1" cellpadding="6">
-    <thead><tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr></thead>
-    <tbody>
-        {% for pp in protection_plus %}
-        <tr>
-            <td>{{ pp.package_name|default:"—" }}</td>
-            <td>{{ pp.provider_name|default:"—" }}</td>
-            <td>{{ pp.start_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ pp.end_date|date:"d M Y"|default:"—" }}</td>
-            <td>{{ pp.amount|default:"—" }}</td>
-            <td>{{ pp.get_status_display }}</td>
-            <td>
-                <a href="{% url 'vas:pp_detail' pp.pk %}">View</a>
-                | <a href="{% url 'vas:pp_update' pp.pk %}">Edit</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7">No Protection Plus packages.</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-
+    <!-- Protection Plus -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Protection Plus</span>
+        <a href="{% url 'vas:pp_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add Package</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for pp in protection_plus %}
+            <tr>
+              <td style="font-weight:500;">{{ pp.package_name|default:"—" }}</td>
+              <td>{{ pp.provider_name|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ pp.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ pp.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{{ pp.amount|default:"—" }}</td>
+              <td><span class="badge badge-purple">{{ pp.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:pp_detail' pp.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:pp_update' pp.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="empty-state">No Protection Plus packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}

@@ -1,22 +1,51 @@
 {% extends 'base.html' %}
-
 {% block title %}SINV-{{ invoice.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Service Invoice{% endblock %}
 
 {% block content %}
-<h2>Service Invoice — SINV-{{ invoice.pk }}</h2>
-<a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">← Back to Job Card</a>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">SINV-{{ invoice.pk }}</h1>
+    <p class="page-subtitle">{{ invoice.job_card.customer_vehicle.customer.full_name }} — JC-{{ invoice.job_card.pk }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}" class="btn btn-ghost">&#8592; Back to Job Card</a>
+  </div>
+</div>
 
-<table border="1" cellpadding="4" style="margin-top:1rem;">
-    <tr><th>Job Card</th><td><a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">JC-{{ invoice.job_card.pk }}</a></td></tr>
-    <tr><th>Customer</th><td>{{ invoice.job_card.customer_vehicle.customer.full_name }}</td></tr>
-    <tr><th>Vehicle</th><td>{{ invoice.job_card.customer_vehicle.vehicle.bike_model }}</td></tr>
-    <tr><th>Invoice Date</th><td>{{ invoice.invoice_date|date:"d M Y" }}</td></tr>
-    <tr><th>Subtotal</th><td>Rs.{{ invoice.subtotal }}</td></tr>
-    <tr><th>GST Amount</th><td>Rs.{{ invoice.gst_amount }}</td></tr>
-    <tr><th>Discount</th><td>Rs.{{ invoice.discount_amount }}</td></tr>
-    <tr><th>Final Amount</th><td><strong>Rs.{{ invoice.final_amount }}</strong></td></tr>
-    <tr><th>Created</th><td>{{ invoice.created_at|date:"d M Y" }}</td></tr>
-</table>
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Invoice Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Job Card</dt><dd>
+        <a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">JC-{{ invoice.job_card.pk }}</a>
+      </dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd>{{ invoice.job_card.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ invoice.job_card.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ invoice.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
 
-<p><a href="{% url 'service:service_invoice_update' invoice.pk %}">Edit</a></p>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Amount Breakdown</span></div>
+    <div class="amount-row">
+      <span class="label">Subtotal</span>
+      <span class="value">&#x20B9;{{ invoice.subtotal }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">GST Amount</span>
+      <span class="value">&#x20B9;{{ invoice.gst_amount }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">Discount</span>
+      <span class="value">— &#x20B9;{{ invoice.discount_amount }}</span>
+    </div>
+    <div class="amount-row total">
+      <span class="label">Final Amount</span>
+      <span class="value" style="color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</span>
+    </div>
+  </div>
+</div>
 {% endblock %}
