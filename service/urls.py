@@ -46,4 +46,7 @@ urlpatterns = [
     path('outwork/create/',                     views.outwork_create,  name='outwork_create'),
     path('outwork/<int:pk>/edit/',              views.outwork_update,  name='outwork_update'),
     path('outwork/<int:pk>/return/',            views.outwork_return,  name='outwork_return'),
+
+    # Print
+    path('jobcards/<int:pk>/print/',            views.jobcard_print,   name='jobcard_print'),
 ]

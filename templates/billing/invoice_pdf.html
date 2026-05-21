@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice {{ invoice.invoice_number }}</title>
+<style>
+  @page { size: A4; margin: 20mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #111; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #2563EB; }
+  .company-name { font-size: 22pt; font-weight: 700; color: #2563EB; }
+  .company-sub { font-size: 9pt; color: #6B7280; margin-top: 2px; }
+  .invoice-title { text-align: right; }
+  .invoice-title h2 { font-size: 18pt; color: #111; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .invoice-meta { font-size: 10pt; color: #6B7280; margin-top: 4px; }
+  .invoice-meta strong { color: #111; }
+
+  .info-grid { display: flex; gap: 20px; margin-bottom: 20px; }
+  .info-box { flex: 1; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; }
+  .info-box h3 { font-size: 9pt; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .info-row { font-size: 10pt; margin-bottom: 3px; }
+  .info-row span { color: #6B7280; }
+
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  thead th { background: #2563EB; color: #fff; padding: 8px 10px; text-align: left; font-size: 10pt; font-weight: 600; }
+  tbody td { padding: 8px 10px; font-size: 10pt; border-bottom: 1px solid #F3F4F6; }
+  tbody tr:nth-child(even) td { background: #F9FAFB; }
+  .text-right { text-align: right; }
+
+  .totals-table { margin-left: auto; width: 280px; }
+  .totals-table td { padding: 5px 10px; font-size: 10pt; border-bottom: 1px solid #F3F4F6; }
+  .totals-table .total-row td { font-weight: 700; font-size: 12pt; color: #2563EB; border-top: 2px solid #2563EB; border-bottom: 2px solid #2563EB; }
+
+  .amount-words { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; font-size: 10pt; color: #1E40AF; }
+  .amount-words strong { display: block; font-size: 9pt; color: #6B7280; margin-bottom: 2px; }
+
+  .footer { margin-top: 30px; display: flex; justify-content: space-between; }
+  .sig-box { width: 44%; }
+  .sig-line { border-top: 1px solid #111; margin-top: 40px; padding-top: 6px; font-size: 10pt; color: #6B7280; text-align: center; }
+  .terms { margin-top: 20px; padding-top: 12px; border-top: 1px solid #E5E7EB; font-size: 9pt; color: #9CA3AF; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="company-name">SSBikez</div>
+    <div class="company-sub">Authorised Motorcycle Dealership</div>
+    <div class="company-sub">{{ invoice.sales_order.vehicle.branch|default:"" }}</div>
+  </div>
+  <div class="invoice-title">
+    <h2>Tax Invoice</h2>
+    <div class="invoice-meta">Invoice No: <strong>{{ invoice.invoice_number }}</strong></div>
+    <div class="invoice-meta">Date: <strong>{{ invoice.invoice_date|date:"d M Y" }}</strong></div>
+  </div>
+</div>
+
+<!-- BILL TO / VEHICLE INFO -->
+<div class="info-grid">
+  <div class="info-box">
+    <h3>Bill To</h3>
+    <div class="info-row"><strong>{{ invoice.sales_order.customer.full_name }}</strong></div>
+    <div class="info-row"><span>Phone:</span> {{ invoice.sales_order.customer.phone|default:"—" }}</div>
+    <div class="info-row"><span>Email:</span> {{ invoice.sales_order.customer.email|default:"—" }}</div>
+    <div class="info-row"><span>Address:</span> {{ invoice.sales_order.customer.address|default:"—" }}</div>
+  </div>
+  <div class="info-box">
+    <h3>Vehicle Details</h3>
+    <div class="info-row"><strong>{{ invoice.sales_order.vehicle.bike_model }}</strong></div>
+    <div class="info-row"><span>Chassis No:</span> {{ invoice.sales_order.vehicle.chassis_no|default:"—" }}</div>
+    <div class="info-row"><span>Engine No:</span> {{ invoice.sales_order.vehicle.engine_no|default:"—" }}</div>
+    <div class="info-row"><span>Colour:</span> {{ invoice.sales_order.vehicle.colour|default:"—" }}</div>
+  </div>
+  <div class="info-box">
+    <h3>Order Reference</h3>
+    <div class="info-row"><span>Order No:</span> <strong>ORD-{{ invoice.sales_order.pk }}</strong></div>
+    <div class="info-row"><span>Order Date:</span> {{ invoice.sales_order.created_at|date:"d M Y" }}</div>
+    <div class="info-row"><span>Sales Exec:</span> {{ invoice.sales_order.sales_executive|default:"—" }}</div>
+    <div class="info-row"><span>Branch:</span> {{ invoice.sales_order.branch|default:"—" }}</div>
+  </div>
+</div>
+
+<!-- CHARGES TABLE -->
+<table>
+  <thead>
+    <tr>
+      <th style="width:60%;">Description</th>
+      <th class="text-right">Amount (&#x20B9;)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>
+        <strong>{{ invoice.sales_order.vehicle.bike_model }}</strong><br>
+        <small style="color:#6B7280;">Vehicle Purchase</small>
+      </td>
+      <td class="text-right">{{ invoice.subtotal }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- TOTALS -->
+<table class="totals-table">
+  <tbody>
+    <tr>
+      <td>Subtotal</td>
+      <td class="text-right">&#x20B9; {{ invoice.subtotal }}</td>
+    </tr>
+    <tr>
+      <td>CGST (9%)</td>
+      <td class="text-right">&#x20B9; {{ gst_half }}</td>
+    </tr>
+    <tr>
+      <td>SGST (9%)</td>
+      <td class="text-right">&#x20B9; {{ gst_half }}</td>
+    </tr>
+    {% if invoice.discount_amount %}
+    <tr>
+      <td>Discount</td>
+      <td class="text-right" style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</td>
+    </tr>
+    {% endif %}
+    <tr class="total-row">
+      <td>Total Amount</td>
+      <td class="text-right">&#x20B9; {{ invoice.final_amount }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- AMOUNT IN WORDS -->
+<div class="amount-words">
+  <strong>Amount in Words</strong>
+  {{ amount_words }}
+</div>
+
+<!-- FOOTER / SIGNATURES -->
+<div class="footer">
+  <div class="sig-box">
+    <div class="sig-line">Customer Signature</div>
+  </div>
+  <div class="sig-box">
+    <div class="sig-line">Authorised Signatory — SSBikez</div>
+  </div>
+</div>
+
+<div class="terms">
+  <strong>Terms &amp; Conditions:</strong>
+  Goods once sold will not be taken back. This is a computer-generated invoice.
+  All disputes are subject to local jurisdiction.
+</div>
+
+</body>
+</html>

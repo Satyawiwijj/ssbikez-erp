@@ -4,6 +4,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.audit import log_action
+
 from .forms import NumberPlateOrderForm, RTORegistrationForm
 from .models import NumberPlateOrder, RTORegistration
 
@@ -51,6 +53,7 @@ def registration_create(request):
     form = RTORegistrationForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         rto = form.save()
+        log_action(request, 'RTO Registration', 'create', rto.pk)
         messages.success(request, 'RTO registration created successfully.')
         return redirect('rto:registration_detail', pk=rto.pk)
     return render(request, 'rto/registration_form.html',
@@ -63,6 +66,7 @@ def registration_update(request, pk):
     form = RTORegistrationForm(request.POST or None, instance=rto)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'RTO Registration', 'update', pk)
         messages.success(request, 'RTO registration updated successfully.')
         return redirect('rto:registration_detail', pk=rto.pk)
     return render(request, 'rto/registration_form.html',
@@ -77,6 +81,7 @@ def registration_status_update(request, pk):
     if new_status in dict(RTORegistration.RegistrationStatus.choices):
         rto.registration_status = new_status
         rto.save(update_fields=['registration_status'])
+        log_action(request, 'RTO Registration', 'update', pk)
         messages.success(request, f'RTO status updated to {rto.get_registration_status_display()}.')
     return redirect('rto:registration_detail', pk=rto.pk)
 
@@ -89,6 +94,7 @@ def plate_create(request):
     form = NumberPlateOrderForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         plate = form.save()
+        log_action(request, 'Number Plate Order', 'create', plate.pk)
         messages.success(request, 'Number plate order created successfully.')
         return redirect('rto:registration_detail', pk=plate.rto_id)
     return render(request, 'rto/plate_form.html',
@@ -101,6 +107,7 @@ def plate_update(request, pk):
     form  = NumberPlateOrderForm(request.POST or None, instance=plate)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Number Plate Order', 'update', pk)
         messages.success(request, 'Number plate order updated successfully.')
         return redirect('rto:registration_detail', pk=plate.rto_id)
     return render(request, 'rto/plate_form.html',

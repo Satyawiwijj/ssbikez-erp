@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Service Invoice {{ invoice.invoice_number }}</title>
+<style>
+  @page { size: A4; margin: 20mm 15mm; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Helvetica, Arial, sans-serif; font-size: 11pt; color: #111; }
+
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 2px solid #2563EB; }
+  .company-name { font-size: 22pt; font-weight: 700; color: #2563EB; }
+  .company-sub { font-size: 9pt; color: #6B7280; margin-top: 2px; }
+  .invoice-title { text-align: right; }
+  .invoice-title h2 { font-size: 18pt; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+  .invoice-meta { font-size: 10pt; color: #6B7280; margin-top: 4px; }
+  .invoice-meta strong { color: #111; }
+
+  .info-grid { display: flex; gap: 20px; margin-bottom: 20px; }
+  .info-box { flex: 1; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px; padding: 12px; }
+  .info-box h3 { font-size: 9pt; font-weight: 700; color: #6B7280; text-transform: uppercase; margin-bottom: 8px; }
+  .info-row { font-size: 10pt; margin-bottom: 3px; }
+  .info-row span { color: #6B7280; }
+
+  .section-title { font-size: 11pt; font-weight: 700; margin: 16px 0 8px; padding: 6px 10px; background: #F3F4F6; border-left: 3px solid #2563EB; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  thead th { background: #374151; color: #fff; padding: 7px 10px; text-align: left; font-size: 10pt; font-weight: 600; }
+  tbody td { padding: 7px 10px; font-size: 10pt; border-bottom: 1px solid #F3F4F6; }
+  tbody tr:nth-child(even) td { background: #F9FAFB; }
+  .text-right { text-align: right; }
+
+  .totals-table { margin-left: auto; width: 300px; }
+  .totals-table td { padding: 5px 10px; font-size: 10pt; border-bottom: 1px solid #F3F4F6; }
+  .totals-table .total-row td { font-weight: 700; font-size: 12pt; color: #2563EB; border-top: 2px solid #2563EB; border-bottom: 2px solid #2563EB; }
+
+  .amount-words { background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 10px 14px; margin-bottom: 20px; font-size: 10pt; color: #1E40AF; }
+  .amount-words strong { display: block; font-size: 9pt; color: #6B7280; margin-bottom: 2px; }
+
+  .footer { margin-top: 30px; display: flex; justify-content: space-between; }
+  .sig-box { width: 44%; }
+  .sig-line { border-top: 1px solid #111; margin-top: 40px; padding-top: 6px; font-size: 10pt; color: #6B7280; text-align: center; }
+  .terms { margin-top: 20px; padding-top: 12px; border-top: 1px solid #E5E7EB; font-size: 9pt; color: #9CA3AF; }
+  .empty-note { color: #9CA3AF; font-size: 10pt; padding: 8px 10px; font-style: italic; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <div class="company-name">SSBikez</div>
+    <div class="company-sub">Authorised Motorcycle Dealership</div>
+    <div class="company-sub">{{ job_card.branch|default:"" }}</div>
+  </div>
+  <div class="invoice-title">
+    <h2>Service Invoice</h2>
+    <div class="invoice-meta">Invoice No: <strong>{{ invoice.invoice_number|default:"—" }}</strong></div>
+    <div class="invoice-meta">Job Card: <strong>JC-{{ job_card.pk }}</strong></div>
+    <div class="invoice-meta">Date: <strong>{{ invoice.invoice_date|date:"d M Y" }}</strong></div>
+  </div>
+</div>
+
+<!-- CUSTOMER + VEHICLE -->
+<div class="info-grid">
+  <div class="info-box">
+    <h3>Customer</h3>
+    <div class="info-row"><strong>{{ job_card.customer_vehicle.customer.full_name }}</strong></div>
+    <div class="info-row"><span>Phone:</span> {{ job_card.customer_vehicle.customer.phone|default:"—" }}</div>
+  </div>
+  <div class="info-box">
+    <h3>Vehicle</h3>
+    <div class="info-row"><strong>{{ job_card.customer_vehicle.vehicle.bike_model }}</strong></div>
+    <div class="info-row"><span>Reg. No:</span> {{ job_card.customer_vehicle.registration_no|default:"—" }}</div>
+    <div class="info-row"><span>Odometer:</span> {{ job_card.odometer_reading|default:"—" }} km</div>
+  </div>
+  <div class="info-box">
+    <h3>Service Details</h3>
+    <div class="info-row"><span>Advisor:</span> {{ job_card.service_advisor|default:"—" }}</div>
+    <div class="info-row"><span>Branch:</span> {{ job_card.branch|default:"—" }}</div>
+    <div class="info-row"><span>Status:</span> {{ invoice.get_status_display }}</div>
+  </div>
+</div>
+
+<!-- LABOR CHARGES -->
+<div class="section-title">Labor Charges</div>
+<table>
+  <thead><tr><th>Service</th><th class="text-right">Amount (&#x20B9;)</th></tr></thead>
+  <tbody>
+    {% for lc in labor_charges %}
+    <tr><td>{{ lc.service_name }}</td><td class="text-right">{{ lc.labor_cost }}</td></tr>
+    {% empty %}
+    <tr><td colspan="2" class="empty-note">No labor charges</td></tr>
+    {% endfor %}
+    {% if labor_charges %}
+    <tr>
+      <td style="font-weight:600;">Labor Total</td>
+      <td class="text-right" style="font-weight:600;">{{ invoice.labor_total }}</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<!-- SPARES -->
+<div class="section-title">Parts Used</div>
+<table>
+  <thead><tr><th>Part</th><th>Qty</th><th class="text-right">Unit Price</th><th class="text-right">Total</th></tr></thead>
+  <tbody>
+    {% for si in spares_issues %}
+    <tr>
+      <td>{{ si.spare_part.part_name }}</td>
+      <td>{{ si.quantity_issued }}</td>
+      <td class="text-right">{{ si.unit_price|default:si.spare_part.mrp|default:"—" }}</td>
+      <td class="text-right">{{ si.total_price|default:"—" }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4" class="empty-note">No parts used</td></tr>
+    {% endfor %}
+    {% if spares_issues %}
+    <tr>
+      <td colspan="3" style="font-weight:600; text-align:right;">Parts Total</td>
+      <td class="text-right" style="font-weight:600;">{{ invoice.spares_total }}</td>
+    </tr>
+    {% endif %}
+  </tbody>
+</table>
+
+<!-- OUTWORK -->
+{% if outwork_entries %}
+<div class="section-title">Outwork</div>
+<table>
+  <thead><tr><th>Vendor</th><th>Work</th><th class="text-right">Cost (&#x20B9;)</th></tr></thead>
+  <tbody>
+    {% for ow in outwork_entries %}
+    <tr>
+      <td>{{ ow.vendor_name }}</td>
+      <td>{{ ow.work_description }}</td>
+      <td class="text-right">{{ ow.cost|default:"—" }}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td colspan="2" style="font-weight:600; text-align:right;">Outwork Total</td>
+      <td class="text-right" style="font-weight:600;">{{ invoice.outwork_total }}</td>
+    </tr>
+  </tbody>
+</table>
+{% endif %}
+
+<!-- TOTALS -->
+<table class="totals-table">
+  <tbody>
+    <tr><td>Labor</td><td class="text-right">&#x20B9; {{ invoice.labor_total }}</td></tr>
+    <tr><td>Parts</td><td class="text-right">&#x20B9; {{ invoice.spares_total }}</td></tr>
+    {% if invoice.outwork_total %}
+    <tr><td>Outwork</td><td class="text-right">&#x20B9; {{ invoice.outwork_total }}</td></tr>
+    {% endif %}
+    <tr><td>Subtotal</td><td class="text-right">&#x20B9; {{ invoice.subtotal }}</td></tr>
+    <tr><td>CGST (9%)</td><td class="text-right">&#x20B9; {{ gst_half }}</td></tr>
+    <tr><td>SGST (9%)</td><td class="text-right">&#x20B9; {{ gst_half }}</td></tr>
+    {% if invoice.discount_amount %}
+    <tr><td>Discount</td><td class="text-right" style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</td></tr>
+    {% endif %}
+    <tr class="total-row"><td>Total Amount</td><td class="text-right">&#x20B9; {{ invoice.final_amount }}</td></tr>
+  </tbody>
+</table>
+
+<div class="amount-words">
+  <strong>Amount in Words</strong>
+  {{ amount_words }}
+</div>
+
+<div class="footer">
+  <div class="sig-box"><div class="sig-line">Customer Signature</div></div>
+  <div class="sig-box"><div class="sig-line">Authorised Signatory — SSBikez</div></div>
+</div>
+
+<div class="terms">
+  <strong>Terms &amp; Conditions:</strong>
+  Warranty on parts: 3 months / 3,000 km (whichever is earlier). Labour warranty: 1 month.
+  This is a computer-generated invoice.
+</div>
+
+</body>
+</html>

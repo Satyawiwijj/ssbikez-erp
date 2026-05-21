@@ -4,6 +4,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.audit import log_action
+
 from .forms import BikeModelForm, CustomerForm, VehicleStockForm
 from .models import BikeModel, Customer, VehicleStock
 
@@ -33,6 +35,7 @@ def customer_create(request):
     form = CustomerForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         customer = form.save()
+        log_action(request, 'Customer', 'create', customer.pk)
         messages.success(request, 'Customer added successfully.')
         return redirect('customers:customer_detail', pk=customer.pk)
     return render(request, 'customers/customer_form.html',
@@ -45,6 +48,7 @@ def customer_update(request, pk):
     form = CustomerForm(request.POST or None, instance=customer)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Customer', 'update', pk)
         messages.success(request, 'Customer updated successfully.')
         return redirect('customers:customer_detail', pk=customer.pk)
     return render(request, 'customers/customer_form.html',
@@ -107,6 +111,7 @@ def vehicle_stock_create(request):
     form = VehicleStockForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         stock = form.save()
+        log_action(request, 'Vehicle Stock', 'create', stock.pk)
         messages.success(request, 'Vehicle stock entry added successfully.')
         return redirect('customers:vehicle_stock_detail', pk=stock.pk)
     return render(request, 'customers/vehicle_stock_form.html',
@@ -119,6 +124,7 @@ def vehicle_stock_update(request, pk):
     form = VehicleStockForm(request.POST or None, instance=stock)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Vehicle Stock', 'update', pk)
         messages.success(request, 'Vehicle stock updated successfully.')
         return redirect('customers:vehicle_stock_detail', pk=stock.pk)
     return render(request, 'customers/vehicle_stock_form.html',

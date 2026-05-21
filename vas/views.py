@@ -3,6 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.audit import log_action
+
 from .forms import AMCPackageForm, ProtectionPlusPackageForm, RSAPackageForm
 from .models import AMCPackage, ProtectionPlusPackage, RSAPackage
 
@@ -54,6 +56,7 @@ def amc_create(request):
     form = AMCPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        log_action(request, 'AMC Package', 'create', pkg.pk)
         messages.success(request, 'AMC package created successfully.')
         return redirect('vas:amc_detail', pk=pkg.pk)
     return render(request, 'vas/amc_form.html',
@@ -66,6 +69,7 @@ def amc_update(request, pk):
     form    = AMCPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'AMC Package', 'update', pk)
         messages.success(request, 'AMC package updated successfully.')
         return redirect('vas:amc_detail', pk=package.pk)
     return render(request, 'vas/amc_form.html',
@@ -119,6 +123,7 @@ def rsa_create(request):
     form = RSAPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        log_action(request, 'RSA Package', 'create', pkg.pk)
         messages.success(request, 'RSA package created successfully.')
         return redirect('vas:rsa_detail', pk=pkg.pk)
     return render(request, 'vas/rsa_form.html',
@@ -131,6 +136,7 @@ def rsa_update(request, pk):
     form    = RSAPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'RSA Package', 'update', pk)
         messages.success(request, 'RSA package updated successfully.')
         return redirect('vas:rsa_detail', pk=package.pk)
     return render(request, 'vas/rsa_form.html',
@@ -184,6 +190,7 @@ def pp_create(request):
     form = ProtectionPlusPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        log_action(request, 'Protection Plus', 'create', pkg.pk)
         messages.success(request, 'Protection Plus package created successfully.')
         return redirect('vas:pp_detail', pk=pkg.pk)
     return render(request, 'vas/pp_form.html',
@@ -196,6 +203,7 @@ def pp_update(request, pk):
     form    = ProtectionPlusPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Protection Plus', 'update', pk)
         messages.success(request, 'Protection Plus package updated successfully.')
         return redirect('vas:pp_detail', pk=package.pk)
     return render(request, 'vas/pp_form.html',

@@ -715,6 +715,12 @@
     <header class="topbar">
       <button class="topbar-hamburger" id="hamburger" aria-label="Toggle menu">&#9776;</button>
       <div class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</div>
+      <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:360px; margin:0 16px;">
+        <div style="position:relative;">
+          <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9CA3AF; font-size:14px;">&#x1F50D;</span>
+          <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search customers, vehicles, job cards…" style="padding-left:32px; width:100%; border-radius:8px; border:1px solid #E5E7EB; font-size:13px; height:36px; background:#F9FAFB;">
+        </div>
+      </form>
       <div class="topbar-right">
         <div class="topbar-user" id="userMenuBtn">
           <div class="user-avatar">
@@ -728,6 +734,7 @@
           </div>
           <span style="color:#9CA3AF; font-size:12px; margin-left:4px;">&#9660;</span>
           <div class="user-dropdown" id="userDropdown">
+            <a href="{% url 'accounts:profile' %}">&#x1F464; My Profile</a>
             <a href="{% url 'accounts:password_change' %}">&#x1F512; Change Password</a>
             <a href="{% url 'accounts:logout' %}" class="danger">&#x1F6AA; Logout</a>
           </div>

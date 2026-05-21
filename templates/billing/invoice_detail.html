@@ -9,6 +9,7 @@
     <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }}</p>
   </div>
   <div class="page-header-actions">
+    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank">&#x1F4E5; Download PDF</a>
     <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
     <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>

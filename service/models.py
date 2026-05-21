@@ -1,5 +1,8 @@
+from decimal import Decimal
+
 from django.conf import settings
 from django.db import models
+from django.db.models import Sum
 
 
 class ServiceEnquiry(models.Model):
@@ -193,24 +196,67 @@ class BayAssignment(models.Model):
 
 
 class ServiceInvoice(models.Model):
+    class Status(models.TextChoices):
+        DRAFT  = 'draft',  'Draft'
+        ISSUED = 'issued', 'Issued'
+        PAID   = 'paid',   'Paid'
+
     job_card        = models.OneToOneField(
         JobCard,
         on_delete=models.PROTECT,
         related_name='service_invoice'
     )
-    subtotal        = models.DecimalField(max_digits=10, decimal_places=2)
+    invoice_number  = models.CharField(max_length=100, unique=True, blank=True, null=True)
+    labor_total     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    spares_total    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    outwork_total   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    subtotal        = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     gst_amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    final_amount    = models.DecimalField(max_digits=10, decimal_places=2)
-    invoice_date    = models.DateField()
+    final_amount    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status          = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.DRAFT,
+    )
+    invoice_date    = models.DateField(auto_now_add=True)
     created_at      = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-invoice_date']
+        ordering = ['-created_at']
         verbose_name_plural = 'Service Invoices'
 
     def __str__(self):
         return f"SINV-{self.pk} | JC-{self.job_card_id} — Rs.{self.final_amount}"
+
+    def calculate_totals(self):
+        """Recalculate all totals from related labor, spares, and outwork."""
+        self.labor_total = (
+            self.job_card.labor_charges.aggregate(total=Sum('labor_cost'))['total']
+            or Decimal('0.00')
+        )
+
+        spares_total = Decimal('0.00')
+        for si in self.job_card.spares_issues.select_related('spare_part').all():
+            if si.unit_price is not None:
+                spares_total += si.quantity_issued * si.unit_price
+            elif si.spare_part.mrp is not None:
+                spares_total += si.quantity_issued * si.spare_part.mrp
+        self.spares_total = spares_total
+
+        self.outwork_total = (
+            self.job_card.outwork_entries.aggregate(total=Sum('cost'))['total']
+            or Decimal('0.00')
+        )
+
+        subtotal       = self.labor_total + self.spares_total + self.outwork_total
+        self.subtotal  = subtotal
+        self.gst_amount = (subtotal * Decimal('0.18')).quantize(Decimal('0.01'))
+        self.final_amount = subtotal + self.gst_amount - (self.discount_amount or Decimal('0.00'))
+        self.save(update_fields=[
+            'labor_total', 'spares_total', 'outwork_total',
+            'subtotal', 'gst_amount', 'final_amount',
+        ])
 
 
 class LaborCharge(models.Model):

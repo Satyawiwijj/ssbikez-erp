@@ -7,6 +7,8 @@ from django.db.models import (DecimalField, ExpressionWrapper, F, Q, Sum)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.audit import log_action
+
 from .forms import (CounterSaleForm, CounterSaleItemForm, PurchaseOrderForm,
                     PurchaseOrderItemForm, SparePartForm, SparesCategoryForm,
                     SparesIssueForm, SupplierForm)
@@ -93,6 +95,7 @@ def part_create(request):
     form = SparePartForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         part = form.save()
+        log_action(request, 'Spare Part', 'create', part.pk)
         messages.success(request, 'Spare part added successfully.')
         return redirect('spares:part_detail', pk=part.pk)
     return render(request, 'spares/part_form.html',
@@ -105,6 +108,7 @@ def part_update(request, pk):
     form = SparePartForm(request.POST or None, instance=part)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Spare Part', 'update', pk)
         messages.success(request, 'Spare part updated successfully.')
         return redirect('spares:part_detail', pk=part.pk)
     return render(request, 'spares/part_form.html',
@@ -143,6 +147,7 @@ def supplier_create(request):
     form = SupplierForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         supplier = form.save()
+        log_action(request, 'Supplier', 'create', supplier.pk)
         messages.success(request, 'Supplier added successfully.')
         return redirect('spares:supplier_detail', pk=supplier.pk)
     return render(request, 'spares/supplier_form.html',
@@ -155,6 +160,7 @@ def supplier_update(request, pk):
     form     = SupplierForm(request.POST or None, instance=supplier)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Supplier', 'update', pk)
         messages.success(request, 'Supplier updated successfully.')
         return redirect('spares:supplier_detail', pk=supplier.pk)
     return render(request, 'spares/supplier_form.html',
@@ -198,6 +204,7 @@ def po_create(request):
     form = PurchaseOrderForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         po = form.save()
+        log_action(request, 'Purchase Order', 'create', po.pk)
         messages.success(request, 'Purchase order created successfully.')
         return redirect('spares:po_detail', pk=po.pk)
     return render(request, 'spares/po_form.html',
@@ -210,6 +217,7 @@ def po_update(request, pk):
     form = PurchaseOrderForm(request.POST or None, instance=po)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Purchase Order', 'update', pk)
         messages.success(request, 'Purchase order updated successfully.')
         return redirect('spares:po_detail', pk=po.pk)
     return render(request, 'spares/po_form.html',
@@ -224,6 +232,7 @@ def po_status_update(request, pk):
     if new_status in dict(PurchaseOrder.Status.choices):
         po.status = new_status
         po.save(update_fields=['status'])
+        log_action(request, 'Purchase Order', 'update', pk)
         messages.success(request, f'PO status updated to {po.get_status_display()}.')
     return redirect('spares:po_detail', pk=po.pk)
 
@@ -310,6 +319,7 @@ def counter_sale_create(request):
     form = CounterSaleForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         sale = form.save()
+        log_action(request, 'Counter Sale', 'create', sale.pk)
         messages.success(request, 'Counter sale created successfully.')
         return redirect('spares:counter_sale_detail', pk=sale.pk)
     return render(request, 'spares/counter_sale_form.html',
@@ -322,6 +332,7 @@ def counter_sale_update(request, pk):
     form = CounterSaleForm(request.POST or None, instance=sale)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Counter Sale', 'update', pk)
         messages.success(request, 'Counter sale updated successfully.')
         return redirect('spares:counter_sale_detail', pk=sale.pk)
     return render(request, 'spares/counter_sale_form.html',
@@ -382,6 +393,7 @@ def issue_create(request):
     form = SparesIssueForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         issue = form.save()
+        log_action(request, 'Spares Issue', 'create', issue.pk)
         messages.success(request, 'Spare part issued successfully.')
         return redirect('service:jobcard_detail', pk=issue.job_card_id)
     return render(request, 'spares/spares_issue_form.html',
@@ -394,6 +406,7 @@ def issue_update(request, pk):
     form  = SparesIssueForm(request.POST or None, instance=issue)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Spares Issue', 'update', pk)
         messages.success(request, 'Spares issue updated successfully.')
         return redirect('service:jobcard_detail', pk=issue.job_card_id)
     return render(request, 'spares/spares_issue_form.html',

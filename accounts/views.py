@@ -10,9 +10,15 @@ from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import BranchForm, FuelExpenseForm, LoginForm, RoleForm, UserCreationForm, UserUpdateForm
-from .models import Branch, FuelExpense, Role, User
+from .audit import log_action
+from .forms import (BranchForm, FuelExpenseForm, LoginForm,
+                    ProfileUpdateForm, RoleForm, UserCreationForm, UserUpdateForm)
+from .models import AuditLog, Branch, FuelExpense, Role, User
 
+
+# ---------------------------------------------------------------------------
+# Auth
+# ---------------------------------------------------------------------------
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -30,10 +36,59 @@ def logout_view(request):
     return redirect('accounts:login')
 
 
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
 @login_required
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html', {'user': request.user})
+    from billing.models import Payment
+    from sales.models import SalesAppointment, SalesEnquiry, VehicleSalesOrder
+    from service.models import JobCard
+    from spares.models import SparePart
 
+    today            = timezone.now().date()
+    this_month_start = today.replace(day=1)
+
+    enquiries_today = SalesEnquiry.objects.filter(created_at__date=today).count()
+
+    open_orders = VehicleSalesOrder.objects.filter(sales_status='booked').count()
+
+    active_job_cards = JobCard.objects.exclude(
+        service_status__in=['invoiced', 'ready']
+    ).count()
+
+    low_stock_count = SparePart.objects.filter(stock_quantity__lt=5).count()
+
+    recent_activity = AuditLog.objects.select_related('user').all()[:10]
+
+    pending_appointments = SalesAppointment.objects.filter(
+        appointment_date__date=today,
+        status='scheduled',
+    ).count()
+
+    monthly_revenue = (
+        Payment.objects.filter(
+            payment_status='completed',
+            payment_date__date__gte=this_month_start,
+        ).aggregate(total=Sum('amount'))['total'] or 0
+    )
+
+    return render(request, 'accounts/dashboard.html', {
+        'user':                 request.user,
+        'enquiries_today':      enquiries_today,
+        'open_orders':          open_orders,
+        'active_job_cards':     active_job_cards,
+        'low_stock_count':      low_stock_count,
+        'recent_activity':      recent_activity,
+        'pending_appointments': pending_appointments,
+        'monthly_revenue':      monthly_revenue,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Users
+# ---------------------------------------------------------------------------
 
 @login_required
 def user_list(request):
@@ -45,7 +100,8 @@ def user_list(request):
 def user_create(request):
     form = UserCreationForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        user = form.save()
+        log_action(request, 'User', 'create', user.pk)
         messages.success(request, 'User created successfully.')
         return redirect('accounts:user_list')
     return render(request, 'accounts/user_form.html', {'form': form, 'title': 'Create User'})
@@ -57,10 +113,35 @@ def user_update(request, pk):
     form = UserUpdateForm(request.POST or None, instance=user)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'User', 'update', pk)
         messages.success(request, 'User updated successfully.')
         return redirect('accounts:user_list')
     return render(request, 'accounts/user_form.html', {'form': form, 'title': 'Update User'})
 
+
+# ---------------------------------------------------------------------------
+# Profile
+# ---------------------------------------------------------------------------
+
+@login_required
+def profile_view(request):
+    return render(request, 'accounts/profile.html', {'profile_user': request.user})
+
+
+@login_required
+def profile_update(request):
+    form = ProfileUpdateForm(request.POST or None, instance=request.user)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        log_action(request, 'User', 'update', request.user.pk)
+        messages.success(request, 'Profile updated successfully.')
+        return redirect('accounts:profile')
+    return render(request, 'accounts/profile_form.html', {'form': form, 'title': 'Edit Profile'})
+
+
+# ---------------------------------------------------------------------------
+# Branches
+# ---------------------------------------------------------------------------
 
 @login_required
 def branch_list(request):
@@ -72,7 +153,8 @@ def branch_list(request):
 def branch_create(request):
     form = BranchForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        branch = form.save()
+        log_action(request, 'Branch', 'create', branch.pk)
         messages.success(request, 'Branch created successfully.')
         return redirect('accounts:branch_list')
     return render(request, 'accounts/branch_form.html', {'form': form, 'title': 'Create Branch'})
@@ -84,10 +166,15 @@ def branch_update(request, pk):
     form   = BranchForm(request.POST or None, instance=branch)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Branch', 'update', pk)
         messages.success(request, 'Branch updated successfully.')
         return redirect('accounts:branch_list')
     return render(request, 'accounts/branch_form.html', {'form': form, 'title': 'Edit Branch'})
 
+
+# ---------------------------------------------------------------------------
+# Roles
+# ---------------------------------------------------------------------------
 
 @login_required
 def role_list(request):
@@ -115,7 +202,8 @@ def fuel_expense_list(request):
 def fuel_expense_create(request):
     form = FuelExpenseForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        form.save()
+        exp = form.save()
+        log_action(request, 'Fuel Expense', 'create', exp.pk)
         messages.success(request, 'Fuel expense recorded successfully.')
         return redirect('accounts:fuel_expense_list')
     return render(request, 'accounts/fuel_expense_form.html',
@@ -128,6 +216,7 @@ def fuel_expense_update(request, pk):
     form    = FuelExpenseForm(request.POST or None, instance=expense)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Fuel Expense', 'update', pk)
         messages.success(request, 'Fuel expense updated successfully.')
         return redirect('accounts:fuel_expense_list')
     return render(request, 'accounts/fuel_expense_form.html',
@@ -144,9 +233,77 @@ def password_change(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         update_session_auth_hash(request, form.user)
+        log_action(request, 'User', 'update', request.user.pk)
         messages.success(request, 'Your password was updated successfully.')
         return redirect('accounts:dashboard')
     return render(request, 'accounts/password_change.html', {'form': form})
+
+
+# ---------------------------------------------------------------------------
+# Global Search
+# ---------------------------------------------------------------------------
+
+@login_required
+def global_search(request):
+    from billing.models import Invoice
+    from customers.models import Customer, VehicleStock
+    from sales.models import SalesEnquiry, VehicleSalesOrder
+    from service.models import JobCard
+    from spares.models import SparePart
+
+    q       = request.GET.get('q', '').strip()
+    results = {}
+
+    if q:
+        results['customers'] = list(
+            Customer.objects.filter(
+                Q(full_name__icontains=q) | Q(phone__icontains=q)
+            )[:5]
+        )
+
+        results['vehicle_stock'] = list(
+            VehicleStock.objects.select_related('bike_model').filter(
+                Q(chassis_no__icontains=q) | Q(engine_no__icontains=q)
+            )[:5]
+        )
+
+        results['enquiries'] = list(
+            SalesEnquiry.objects.select_related('customer').filter(
+                Q(customer__full_name__icontains=q) |
+                Q(customer__phone__icontains=q)
+            )[:5]
+        )
+
+        results['orders'] = list(
+            VehicleSalesOrder.objects.select_related('customer').filter(
+                Q(customer__full_name__icontains=q) |
+                Q(customer__phone__icontains=q)
+            )[:5]
+        )
+
+        results['job_cards'] = list(
+            JobCard.objects.select_related(
+                'customer_vehicle__customer',
+                'customer_vehicle__vehicle__bike_model',
+            ).filter(
+                Q(customer_vehicle__registration_no__icontains=q) |
+                Q(customer_vehicle__customer__full_name__icontains=q)
+            )[:5]
+        )
+
+        results['spare_parts'] = list(
+            SparePart.objects.filter(
+                Q(part_name__icontains=q) | Q(part_number__icontains=q)
+            )[:5]
+        )
+
+    total = sum(len(v) for v in results.values())
+
+    return render(request, 'accounts/search_results.html', {
+        'q':       q,
+        'results': results,
+        'total':   total,
+    })
 
 
 # ---------------------------------------------------------------------------

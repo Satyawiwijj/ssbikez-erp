@@ -6,41 +6,63 @@
 <div class="page-header">
   <div>
     <h1 class="page-title">Good day, {{ user.get_full_name|default:user.username }}</h1>
-    <p class="page-subtitle">Here's an overview of SSBikez ERP — {{ user.branch|default:"All Branches" }}</p>
+    <p class="page-subtitle">Here's a live overview — {{ user.branch|default:"All Branches" }}</p>
   </div>
 </div>
 
+<!-- STAT CARDS -->
 <div class="stat-grid">
   <div class="stat-card">
     <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
     <div>
-      <div class="stat-value">—</div>
-      <div class="stat-label">Sales Enquiries</div>
+      <div class="stat-value">{{ enquiries_today }}</div>
+      <div class="stat-label">Enquiries Today</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-green">&#x1F4E6;</div>
     <div>
-      <div class="stat-value">—</div>
+      <div class="stat-value">{{ open_orders }}</div>
       <div class="stat-label">Open Orders</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-orange">&#x1F527;</div>
     <div>
-      <div class="stat-value">—</div>
+      <div class="stat-value">{{ active_job_cards }}</div>
       <div class="stat-label">Active Job Cards</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-purple">&#x1F3E2;</div>
+    <div class="stat-icon stat-icon-red">&#x26A0;&#xFE0F;</div>
     <div>
-      <div class="stat-value">—</div>
-      <div class="stat-label">Branches</div>
+      <div class="stat-value">{{ low_stock_count }}</div>
+      <div class="stat-label">Low Stock Parts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple">&#x1F4C5;</div>
+    <div>
+      <div class="stat-value">{{ pending_appointments }}</div>
+      <div class="stat-label">Today's Appointments</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green">&#x20B9;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">
+        {% if monthly_revenue >= 100000 %}
+          {{ monthly_revenue|floatformat:0 }}
+        {% else %}
+          {{ monthly_revenue }}
+        {% endif %}
+      </div>
+      <div class="stat-label">Revenue This Month</div>
     </div>
   </div>
 </div>
 
+<!-- QUICK ACTIONS + RECENT ACTIVITY -->
 <div class="grid-2col" style="margin-bottom:20px;">
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
@@ -66,10 +88,61 @@
   </div>
 </div>
 
+<!-- RECENT ACTIVITY -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">&#x1F4DC; Recent Activity</span>
+  </div>
+  {% if recent_activity %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Module</th>
+          <th>Record</th>
+          <th>User</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_activity %}
+        <tr>
+          <td>
+            {% if log.action_name == 'create' %}
+            <span class="badge badge-green">Create</span>
+            {% elif log.action_name == 'update' %}
+            <span class="badge badge-blue">Update</span>
+            {% elif log.action_name == 'delete' %}
+            <span class="badge badge-red">Delete</span>
+            {% else %}
+            <span class="badge badge-gray">{{ log.action_name|capfirst }}</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:500;">{{ log.module_name }}</td>
+          <td style="font-family:monospace; color:#6B7280;">
+            {% if log.record_id %}#{{ log.record_id }}{% else %}—{% endif %}
+          </td>
+          <td>{{ log.user|default:"System" }}</td>
+          <td style="font-size:12px; color:#9CA3AF;">{{ log.created_at|date:"d M H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px; padding:12px 0;">No activity recorded yet.</p>
+  {% endif %}
+</div>
+
+<!-- PROFILE CARD -->
 <div class="card">
   <div class="card-header">
     <span class="card-title">My Profile</span>
-    <a href="{% url 'accounts:user_list' %}" class="btn btn-ghost btn-sm">Manage Users</a>
+    <div style="display:flex; gap:8px;">
+      <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm">View Profile</a>
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-ghost btn-sm">Manage Users</a>
+    </div>
   </div>
   <div class="grid-2col" style="gap:0;">
     <dl class="detail-list">

@@ -8,6 +8,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from accounts.audit import log_action
+
 from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm, OutworkEntryForm,
                     ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
                     ServiceInvoiceForm)
@@ -61,6 +63,7 @@ def enquiry_create(request):
     form = ServiceEnquiryForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         enquiry = form.save()
+        log_action(request, 'Service Enquiry', 'create', enquiry.pk)
         messages.success(request, 'Service enquiry created successfully.')
         return redirect('service:enquiry_detail', pk=enquiry.pk)
     return render(request, 'service/enquiry_form.html',
@@ -73,6 +76,7 @@ def enquiry_update(request, pk):
     form    = ServiceEnquiryForm(request.POST or None, instance=enquiry)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Service Enquiry', 'update', pk)
         messages.success(request, 'Service enquiry updated successfully.')
         return redirect('service:enquiry_detail', pk=enquiry.pk)
     return render(request, 'service/enquiry_form.html',
@@ -91,6 +95,7 @@ def appointment_create(request):
     form = ServiceAppointmentForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         appt = form.save()
+        log_action(request, 'Service Appointment', 'create', appt.pk)
         messages.success(request, 'Service appointment scheduled successfully.')
         return redirect('service:enquiry_detail', pk=appt.service_enquiry_id)
     return render(request, 'service/appointment_form.html',
@@ -103,6 +108,7 @@ def appointment_update(request, pk):
     form = ServiceAppointmentForm(request.POST or None, instance=appt)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Service Appointment', 'update', pk)
         messages.success(request, 'Service appointment updated successfully.')
         return redirect('service:enquiry_detail', pk=appt.service_enquiry_id)
     return render(request, 'service/appointment_form.html',
@@ -115,6 +121,7 @@ def appointment_cancel(request, pk):
     appt        = get_object_or_404(ServiceAppointment, pk=pk)
     appt.status = ServiceAppointment.Status.CANCELLED
     appt.save(update_fields=['status'])
+    log_action(request, 'Service Appointment', 'update', pk)
     messages.success(request, 'Service appointment cancelled.')
     return redirect('service:enquiry_detail', pk=appt.service_enquiry_id)
 
@@ -185,6 +192,7 @@ def jobcard_create(request):
     form = JobCardForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         jc = form.save()
+        log_action(request, 'Job Card', 'create', jc.pk)
         messages.success(request, 'Job card created successfully.')
         return redirect('service:jobcard_detail', pk=jc.pk)
     return render(request, 'service/jobcard_form.html',
@@ -197,6 +205,7 @@ def jobcard_update(request, pk):
     form     = JobCardForm(request.POST or None, instance=job_card)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Job Card', 'update', pk)
         messages.success(request, 'Job card updated successfully.')
         return redirect('service:jobcard_detail', pk=job_card.pk)
     return render(request, 'service/jobcard_form.html',
@@ -211,8 +220,35 @@ def jobcard_status_update(request, pk):
     if new_status in dict(JobCard.ServiceStatus.choices):
         job_card.service_status = new_status
         job_card.save(update_fields=['service_status'])
+        log_action(request, 'Job Card', 'update', pk)
         messages.success(request, f'Status updated to {job_card.get_service_status_display()}.')
     return redirect('service:jobcard_detail', pk=job_card.pk)
+
+
+@login_required
+def jobcard_print(request, pk):
+    """Print-friendly job card view — no sidebar/topbar."""
+    job_card = get_object_or_404(
+        JobCard.objects.select_related(
+            'customer_vehicle__customer',
+            'customer_vehicle__vehicle__bike_model',
+            'service_advisor',
+            'floor_supervisor',
+            'branch',
+        ),
+        pk=pk,
+    )
+    labor_charges   = job_card.labor_charges.all()
+    total_labor     = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
+    spares_issues   = job_card.spares_issues.select_related('spare_part').all()
+    outwork_entries = job_card.outwork_entries.all()
+    return render(request, 'service/jobcard_print.html', {
+        'job_card':       job_card,
+        'labor_charges':  labor_charges,
+        'total_labor':    total_labor,
+        'spares_issues':  spares_issues,
+        'outwork_entries': outwork_entries,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +296,7 @@ def bay_assignment_create(request):
     form = BayAssignmentForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         assignment = form.save()
+        log_action(request, 'Bay Assignment', 'create', assignment.pk)
         messages.success(request, 'Bay assigned successfully.')
         return redirect('service:jobcard_detail', pk=assignment.job_card_id)
     return render(request, 'service/bay_assignment_form.html',
@@ -272,6 +309,7 @@ def bay_assignment_update(request, pk):
     form       = BayAssignmentForm(request.POST or None, instance=assignment)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Bay Assignment', 'update', pk)
         messages.success(request, 'Bay assignment updated successfully.')
         return redirect('service:jobcard_detail', pk=assignment.job_card_id)
     return render(request, 'service/bay_assignment_form.html',
@@ -290,6 +328,7 @@ def labor_charge_create(request):
     form = LaborChargeForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         charge = form.save()
+        log_action(request, 'Labor Charge', 'create', charge.pk)
         messages.success(request, 'Labor charge added successfully.')
         return redirect('service:jobcard_detail', pk=charge.job_card_id)
     return render(request, 'service/labor_charge_form.html',
@@ -302,6 +341,7 @@ def labor_charge_update(request, pk):
     form   = LaborChargeForm(request.POST or None, instance=charge)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Labor Charge', 'update', pk)
         messages.success(request, 'Labor charge updated successfully.')
         return redirect('service:jobcard_detail', pk=charge.job_card_id)
     return render(request, 'service/labor_charge_form.html',
@@ -314,6 +354,7 @@ def labor_charge_delete(request, pk):
     charge = get_object_or_404(LaborCharge, pk=pk)
     jc_pk  = charge.job_card_id
     charge.delete()
+    log_action(request, 'Labor Charge', 'delete', pk)
     messages.success(request, 'Labor charge deleted.')
     return redirect('service:jobcard_detail', pk=jc_pk)
 
@@ -329,11 +370,23 @@ def service_invoice_create(request):
         initial['job_card'] = request.GET['jc']
     form = ServiceInvoiceForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
-        invoice = form.save()
-        messages.success(request, 'Service invoice created successfully.')
+        invoice = form.save(commit=False)
+        # Auto-generate invoice number
+        invoice.invoice_number = f'SINV-{invoice.job_card_id}-{timezone.now().strftime("%Y%m%d")}'
+        invoice.save()
+        # Calculate totals from labour, spares, outwork
+        invoice.calculate_totals()
+        # Advance job card to invoiced
+        JobCard.objects.filter(pk=invoice.job_card_id).update(service_status='invoiced')
+        log_action(request, 'Service Invoice', 'create', invoice.pk)
+        messages.success(request, 'Service invoice created and totals calculated.')
         return redirect('service:service_invoice_detail', pk=invoice.pk)
+    job_card = None
+    if request.GET.get('jc'):
+        from .models import JobCard as JC
+        job_card = JC.objects.filter(pk=request.GET['jc']).first()
     return render(request, 'service/service_invoice_form.html',
-                  {'form': form, 'title': 'Create Service Invoice'})
+                  {'form': form, 'title': 'Create Service Invoice', 'job_card': job_card})
 
 
 @login_required
@@ -342,21 +395,35 @@ def service_invoice_update(request, pk):
     form    = ServiceInvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        invoice.calculate_totals()  # Recalculate in case discount changed
+        log_action(request, 'Service Invoice', 'update', pk)
         messages.success(request, 'Service invoice updated successfully.')
         return redirect('service:service_invoice_detail', pk=invoice.pk)
     return render(request, 'service/service_invoice_form.html',
-                  {'form': form, 'title': 'Edit Service Invoice'})
+                  {'form': form, 'invoice': invoice, 'title': 'Edit Service Invoice'})
 
 
 @login_required
 def service_invoice_detail(request, pk):
     invoice = get_object_or_404(
         ServiceInvoice.objects.select_related(
-            'job_card__customer_vehicle__customer'
+            'job_card__customer_vehicle__customer',
+            'job_card__customer_vehicle__vehicle__bike_model',
+            'job_card__branch',
         ),
         pk=pk
     )
-    return render(request, 'service/service_invoice_detail.html', {'invoice': invoice})
+    labor_charges   = invoice.job_card.labor_charges.all()
+    spares_issues   = invoice.job_card.spares_issues.select_related('spare_part').all()
+    outwork_entries = invoice.job_card.outwork_entries.all()
+    gst_half = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    return render(request, 'service/service_invoice_detail.html', {
+        'invoice':         invoice,
+        'labor_charges':   labor_charges,
+        'spares_issues':   spares_issues,
+        'outwork_entries': outwork_entries,
+        'gst_half':        gst_half,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -371,6 +438,7 @@ def outwork_create(request):
     form = OutworkEntryForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         entry = form.save()
+        log_action(request, 'Outwork', 'create', entry.pk)
         messages.success(request, 'Vehicle sent for outwork successfully.')
         return redirect('service:jobcard_detail', pk=entry.job_card_id)
     return render(request, 'service/outwork_form.html',
@@ -383,6 +451,7 @@ def outwork_update(request, pk):
     form  = OutworkEntryForm(request.POST or None, instance=entry)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Outwork', 'update', pk)
         messages.success(request, 'Outwork entry updated successfully.')
         return redirect('service:jobcard_detail', pk=entry.job_card_id)
     return render(request, 'service/outwork_form.html',
@@ -396,5 +465,6 @@ def outwork_return(request, pk):
     entry.status      = OutworkEntry.Status.RETURNED
     entry.returned_at = timezone.now()
     entry.save(update_fields=['status', 'returned_at'])
+    log_action(request, 'Outwork', 'update', pk)
     messages.success(request, 'Outwork marked as returned.')
     return redirect('service:jobcard_detail', pk=entry.job_card_id)

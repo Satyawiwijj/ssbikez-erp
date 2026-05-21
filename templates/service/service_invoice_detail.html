@@ -1,51 +1,187 @@
 {% extends 'base.html' %}
-{% block title %}SINV-{{ invoice.pk }} — SSBikez ERP{% endblock %}
+{% block title %}{{ invoice.invoice_number|default:"SINV" }} — SSBikez ERP{% endblock %}
 {% block page_title %}Service Invoice{% endblock %}
 
 {% block content %}
 <div class="page-header">
   <div>
-    <h1 class="page-title">SINV-{{ invoice.pk }}</h1>
+    <h1 class="page-title">{{ invoice.invoice_number|default:"Service Invoice" }}</h1>
     <p class="page-subtitle">{{ invoice.job_card.customer_vehicle.customer.full_name }} — JC-{{ invoice.job_card.pk }}</p>
   </div>
   <div class="page-header-actions">
+    <a href="{% url 'billing:service_invoice_pdf' invoice.job_card.pk %}" class="btn btn-primary" target="_blank">&#x1F4E5; Download PDF</a>
     <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
     <a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}" class="btn btn-ghost">&#8592; Back to Job Card</a>
   </div>
+</div>
+
+<!-- STATUS BADGE ROW -->
+<div style="margin-bottom:16px; display:flex; align-items:center; gap:12px;">
+  {% if invoice.status == 'draft' %}
+  <span class="badge badge-yellow" style="font-size:13px; padding:4px 14px;">&#9998; Draft</span>
+  {% elif invoice.status == 'issued' %}
+  <span class="badge badge-blue" style="font-size:13px; padding:4px 14px;">&#x1F4E4; Issued</span>
+  {% elif invoice.status == 'paid' %}
+  <span class="badge badge-green" style="font-size:13px; padding:4px 14px;">&#x2705; Paid</span>
+  {% endif %}
+  <span style="font-size:13px; color:#6B7280;">Invoice Date: {{ invoice.invoice_date|date:"d M Y" }}</span>
 </div>
 
 <div class="detail-grid">
   <div class="card">
     <div class="card-header"><span class="card-title">Invoice Details</span></div>
     <dl class="detail-list">
+      <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number|default:"—" }}</dd></div>
       <div class="detail-row"><dt>Job Card</dt><dd>
         <a href="{% url 'service:jobcard_detail' invoice.job_card.pk %}">JC-{{ invoice.job_card.pk }}</a>
       </dd></div>
-      <div class="detail-row"><dt>Customer</dt><dd>{{ invoice.job_card.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ invoice.job_card.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ invoice.job_card.customer_vehicle.customer.phone|default:"—" }}</dd></div>
       <div class="detail-row"><dt>Vehicle</dt><dd>{{ invoice.job_card.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd><span class="badge badge-gray">{{ invoice.job_card.customer_vehicle.registration_no|default:"—" }}</span></dd></div>
       <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ invoice.created_at|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>
+        {% if invoice.status == 'draft' %}<span class="badge badge-yellow">Draft</span>
+        {% elif invoice.status == 'issued' %}<span class="badge badge-blue">Issued</span>
+        {% elif invoice.status == 'paid' %}<span class="badge badge-green">Paid</span>
+        {% endif %}
+      </dd></div>
     </dl>
   </div>
 
   <div class="card">
     <div class="card-header"><span class="card-title">Amount Breakdown</span></div>
     <div class="amount-row">
-      <span class="label">Subtotal</span>
-      <span class="value">&#x20B9;{{ invoice.subtotal }}</span>
+      <span class="label">Labor</span>
+      <span class="value">&#x20B9; {{ invoice.labor_total }}</span>
     </div>
     <div class="amount-row">
-      <span class="label">GST Amount</span>
-      <span class="value">&#x20B9;{{ invoice.gst_amount }}</span>
+      <span class="label">Parts</span>
+      <span class="value">&#x20B9; {{ invoice.spares_total }}</span>
     </div>
+    {% if invoice.outwork_total %}
+    <div class="amount-row">
+      <span class="label">Outwork</span>
+      <span class="value">&#x20B9; {{ invoice.outwork_total }}</span>
+    </div>
+    {% endif %}
+    <div class="amount-row">
+      <span class="label">Subtotal</span>
+      <span class="value">&#x20B9; {{ invoice.subtotal }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">CGST (9%)</span>
+      <span class="value">&#x20B9; {{ gst_half }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">SGST (9%)</span>
+      <span class="value">&#x20B9; {{ gst_half }}</span>
+    </div>
+    {% if invoice.discount_amount %}
     <div class="amount-row">
       <span class="label">Discount</span>
-      <span class="value">— &#x20B9;{{ invoice.discount_amount }}</span>
+      <span class="value" style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</span>
     </div>
+    {% endif %}
     <div class="amount-row total">
-      <span class="label">Final Amount</span>
-      <span class="value" style="color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</span>
+      <span class="label">Total Amount</span>
+      <span class="value" style="color:#2563EB; font-size:18px;">&#x20B9; {{ invoice.final_amount }}</span>
     </div>
   </div>
 </div>
+
+<!-- LABOR CHARGES -->
+<div class="card">
+  <div class="card-header"><span class="card-title">Labor Charges</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Service / Work</th><th style="text-align:right;">Amount (&#x20B9;)</th></tr>
+      </thead>
+      <tbody>
+        {% for lc in labor_charges %}
+        <tr>
+          <td>{{ lc.service_name }}</td>
+          <td style="text-align:right; font-weight:500;">{{ lc.labor_cost }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="2" class="empty-state">No labor charges recorded</td></tr>
+        {% endfor %}
+        {% if labor_charges %}
+        <tr style="background:#F0F7FF;">
+          <td style="font-weight:700;">Total Labor</td>
+          <td style="text-align:right; font-weight:700; color:#2563EB;">&#x20B9; {{ invoice.labor_total }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- PARTS USED -->
+<div class="card">
+  <div class="card-header"><span class="card-title">Parts Used</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Part</th><th>Part No.</th><th style="text-align:right;">Qty</th><th style="text-align:right;">Unit Price</th><th style="text-align:right;">Total</th></tr>
+      </thead>
+      <tbody>
+        {% for si in spares_issues %}
+        <tr>
+          <td style="font-weight:500;">{{ si.spare_part.part_name }}</td>
+          <td style="font-family:monospace; color:#6B7280;">{{ si.spare_part.part_number|default:"—" }}</td>
+          <td style="text-align:right;">{{ si.quantity_issued }}</td>
+          <td style="text-align:right;">{{ si.unit_price|default:si.spare_part.mrp|default:"—" }}</td>
+          <td style="text-align:right; font-weight:500;">{{ si.total_price|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">No parts used</td></tr>
+        {% endfor %}
+        {% if spares_issues %}
+        <tr style="background:#F0F7FF;">
+          <td colspan="4" style="font-weight:700; text-align:right;">Total Parts</td>
+          <td style="text-align:right; font-weight:700; color:#2563EB;">&#x20B9; {{ invoice.spares_total }}</td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- OUTWORK -->
+{% if outwork_entries %}
+<div class="card">
+  <div class="card-header"><span class="card-title">Outwork / Subcontracting</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Vendor</th><th>Work Description</th><th>Issued</th><th>Status</th><th style="text-align:right;">Cost (&#x20B9;)</th></tr>
+      </thead>
+      <tbody>
+        {% for ow in outwork_entries %}
+        <tr>
+          <td style="font-weight:500;">{{ ow.vendor_name }}</td>
+          <td>{{ ow.work_description }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ow.issued_at|date:"d M Y" }}</td>
+          <td>
+            {% if ow.status == 'issued' %}
+            <span class="badge badge-yellow">Issued</span>
+            {% else %}
+            <span class="badge badge-green">Returned</span>
+            {% endif %}
+          </td>
+          <td style="text-align:right; font-weight:500;">{{ ow.cost|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+        <tr style="background:#F0F7FF;">
+          <td colspan="4" style="font-weight:700; text-align:right;">Total Outwork</td>
+          <td style="text-align:right; font-weight:700; color:#2563EB;">&#x20B9; {{ invoice.outwork_total }}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

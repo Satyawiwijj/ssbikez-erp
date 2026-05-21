@@ -75,13 +75,18 @@ class BayAssignmentForm(forms.ModelForm):
 
 
 class ServiceInvoiceForm(forms.ModelForm):
+    """
+    Minimal form — totals are auto-calculated via calculate_totals().
+    Only discount_amount and status are editable by the user.
+    """
     class Meta:
         model  = ServiceInvoice
-        fields = ('job_card', 'subtotal', 'gst_amount', 'discount_amount',
-                  'final_amount', 'invoice_date')
-        widgets = {
-            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
-        }
+        fields = ('job_card', 'discount_amount', 'status')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # job_card field is pre-filled via initial and hidden in create flow
+        self.fields['discount_amount'].required = False
 
 
 class LaborChargeForm(forms.ModelForm):

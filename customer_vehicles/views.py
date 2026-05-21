@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.audit import log_action
 from service.models import JobCard
 from vas.models import AMCPackage, ProtectionPlusPackage, RSAPackage
 
@@ -46,6 +47,7 @@ def customervehicle_create(request):
     form = CustomerVehicleForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         cv = form.save()
+        log_action(request, 'Customer Vehicle', 'create', cv.pk)
         messages.success(request, 'Customer vehicle added successfully.')
         return redirect('customer_vehicles:customervehicle_detail', pk=cv.pk)
     return render(request, 'customer_vehicles/customervehicle_form.html',
@@ -58,6 +60,7 @@ def customervehicle_update(request, pk):
     form = CustomerVehicleForm(request.POST or None, instance=cv)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Customer Vehicle', 'update', pk)
         messages.success(request, 'Customer vehicle updated successfully.')
         return redirect('customer_vehicles:customervehicle_detail', pk=cv.pk)
     return render(request, 'customer_vehicles/customervehicle_form.html',

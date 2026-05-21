@@ -5,6 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
+from accounts.audit import log_action
+
 from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentForm
 from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
@@ -47,6 +49,7 @@ def invoice_create(request):
     form = InvoiceForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         invoice = form.save()
+        log_action(request, 'Invoice', 'create', invoice.pk)
         messages.success(request, 'Invoice created successfully.')
         return redirect('billing:invoice_detail', pk=invoice.pk)
     return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Create Invoice'})
@@ -58,6 +61,7 @@ def invoice_update(request, pk):
     form    = InvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Invoice', 'update', pk)
         messages.success(request, 'Invoice updated successfully.')
         return redirect('billing:invoice_detail', pk=invoice.pk)
     return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Edit Invoice'})
@@ -71,6 +75,7 @@ def payment_create(request):
     form = PaymentForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         payment = form.save()
+        log_action(request, 'Payment', 'create', payment.pk)
         messages.success(request, 'Payment recorded successfully.')
         return redirect('billing:invoice_detail', pk=payment.invoice_id)
     return render(request, 'billing/payment_form.html', {'form': form, 'title': 'Add Payment'})
@@ -82,6 +87,7 @@ def payment_update(request, pk):
     form    = PaymentForm(request.POST or None, instance=payment)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Payment', 'update', pk)
         messages.success(request, 'Payment updated successfully.')
         return redirect('billing:invoice_detail', pk=payment.invoice_id)
     return render(request, 'billing/payment_form.html', {'form': form, 'title': 'Edit Payment'})
@@ -126,6 +132,7 @@ def insurance_policy_create(request):
     form = InsurancePolicyForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         policy = form.save()
+        log_action(request, 'Insurance Policy', 'create', policy.pk)
         messages.success(request, 'Insurance policy added successfully.')
         return redirect('billing:insurance_policy_detail', pk=policy.pk)
     return render(request, 'billing/insurance_policy_form.html',
@@ -138,6 +145,7 @@ def insurance_policy_update(request, pk):
     form   = InsurancePolicyForm(request.POST or None, instance=policy)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Insurance Policy', 'update', pk)
         messages.success(request, 'Insurance policy updated successfully.')
         return redirect('billing:insurance_policy_detail', pk=policy.pk)
     return render(request, 'billing/insurance_policy_form.html',
@@ -152,6 +160,7 @@ def loan_create(request):
     form = FinanceLoanForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         loan = form.save()
+        log_action(request, 'Finance Loan', 'create', loan.pk)
         messages.success(request, 'Finance loan added successfully.')
         return redirect('billing:loan_detail', pk=loan.pk)
     return render(request, 'billing/loan_form.html', {'form': form, 'title': 'Add Finance Loan'})
@@ -163,6 +172,7 @@ def loan_update(request, pk):
     form = FinanceLoanForm(request.POST or None, instance=loan)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Finance Loan', 'update', pk)
         messages.success(request, 'Finance loan updated successfully.')
         return redirect('billing:loan_detail', pk=loan.pk)
     return render(request, 'billing/loan_form.html', {'form': form, 'title': 'Edit Finance Loan'})

@@ -5,6 +5,8 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
+from accounts.audit import log_action
+
 from .forms import (ExchangeVehicleForm, SalesAppointmentForm, SalesFeedbackForm,
                     SalesEnquiryForm, VehicleDeliveryForm, VehicleSalesOrderForm)
 from .models import (ExchangeVehicle, SalesAppointment, SalesFeedback,
@@ -61,6 +63,7 @@ def enquiry_create(request):
     form = SalesEnquiryForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         enquiry = form.save()
+        log_action(request, 'Sales Enquiry', 'create', enquiry.pk)
         messages.success(request, 'Enquiry created successfully.')
         return redirect('sales:enquiry_detail', pk=enquiry.pk)
     return render(request, 'sales/enquiry_form.html', {'form': form, 'title': 'New Enquiry'})
@@ -72,6 +75,7 @@ def enquiry_update(request, pk):
     form    = SalesEnquiryForm(request.POST or None, instance=enquiry)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Sales Enquiry', 'update', pk)
         messages.success(request, 'Enquiry updated successfully.')
         return redirect('sales:enquiry_detail', pk=enquiry.pk)
     return render(request, 'sales/enquiry_form.html', {'form': form, 'title': 'Edit Enquiry'})
@@ -85,6 +89,7 @@ def enquiry_status_update(request, pk):
     if new_status in dict(SalesEnquiry.Status.choices):
         enquiry.status = new_status
         enquiry.save(update_fields=['status'])
+        log_action(request, 'Sales Enquiry', 'update', pk)
         messages.success(request, f'Enquiry status updated to {enquiry.get_status_display()}.')
     return redirect('sales:enquiry_detail', pk=enquiry.pk)
 
@@ -112,6 +117,7 @@ def appointment_create(request):
     form = SalesAppointmentForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         apt = form.save()
+        log_action(request, 'Sales Appointment', 'create', apt.pk)
         messages.success(request, 'Appointment scheduled successfully.')
         return redirect('sales:enquiry_detail', pk=apt.enquiry_id)
     return render(request, 'sales/appointment_form.html',
@@ -124,6 +130,7 @@ def appointment_update(request, pk):
     form = SalesAppointmentForm(request.POST or None, instance=apt)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Sales Appointment', 'update', pk)
         messages.success(request, 'Appointment updated successfully.')
         return redirect('sales:enquiry_detail', pk=apt.enquiry_id)
     return render(request, 'sales/appointment_form.html',
@@ -136,6 +143,7 @@ def appointment_cancel(request, pk):
     apt        = get_object_or_404(SalesAppointment, pk=pk)
     apt.status = SalesAppointment.Status.CANCELLED
     apt.save(update_fields=['status'])
+    log_action(request, 'Sales Appointment', 'update', pk)
     messages.success(request, 'Appointment cancelled.')
     return redirect('sales:enquiry_detail', pk=apt.enquiry_id)
 
@@ -153,6 +161,7 @@ def feedback_create(request):
     form = SalesFeedbackForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         fb = form.save()
+        log_action(request, 'Sales Feedback', 'create', fb.pk)
         messages.success(request, 'Feedback recorded successfully.')
         return redirect('sales:enquiry_detail', pk=fb.enquiry_id)
     return render(request, 'sales/feedback_form.html',
@@ -232,6 +241,7 @@ def order_create(request):
     form = VehicleSalesOrderForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         order = form.save()
+        log_action(request, 'Sales Order', 'create', order.pk)
         messages.success(request, 'Sales order created successfully.')
         return redirect('sales:order_detail', pk=order.pk)
     return render(request, 'sales/order_form.html', {'form': form, 'title': 'Create Sales Order'})
@@ -243,6 +253,7 @@ def order_update(request, pk):
     form  = VehicleSalesOrderForm(request.POST or None, instance=order)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Sales Order', 'update', pk)
         messages.success(request, 'Sales order updated successfully.')
         return redirect('sales:order_detail', pk=order.pk)
     return render(request, 'sales/order_form.html', {'form': form, 'title': 'Edit Sales Order'})
@@ -260,6 +271,7 @@ def delivery_create(request):
     form = VehicleDeliveryForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         delivery = form.save()
+        log_action(request, 'Vehicle Delivery', 'create', delivery.pk)
         messages.success(request, 'Delivery recorded successfully.')
         return redirect('sales:order_detail', pk=delivery.sales_order_id)
     return render(request, 'sales/delivery_form.html',
@@ -272,6 +284,7 @@ def delivery_update(request, pk):
     form     = VehicleDeliveryForm(request.POST or None, instance=delivery)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Vehicle Delivery', 'update', pk)
         messages.success(request, 'Delivery updated successfully.')
         return redirect('sales:order_detail', pk=delivery.sales_order_id)
     return render(request, 'sales/delivery_form.html',
@@ -298,6 +311,7 @@ def exchange_create(request):
     form = ExchangeVehicleForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         exchange = form.save()
+        log_action(request, 'Exchange Vehicle', 'create', exchange.pk)
         messages.success(request, 'Exchange vehicle recorded successfully.')
         return redirect('sales:order_detail', pk=exchange.sales_order_id)
     return render(request, 'sales/exchange_form.html',
@@ -310,6 +324,7 @@ def exchange_update(request, pk):
     form     = ExchangeVehicleForm(request.POST or None, instance=exchange)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        log_action(request, 'Exchange Vehicle', 'update', pk)
         messages.success(request, 'Exchange vehicle updated successfully.')
         return redirect('sales:order_detail', pk=exchange.sales_order_id)
     return render(request, 'sales/exchange_form.html',

@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import pdf_views, views
 
 app_name = 'billing'
 
@@ -10,6 +10,7 @@ urlpatterns = [
     path('invoices/create/',            views.invoice_create, name='invoice_create'),
     path('invoices/<int:pk>/',          views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:pk>/edit/',     views.invoice_update, name='invoice_update'),
+    path('invoices/<int:pk>/pdf/',      pdf_views.invoice_pdf, name='invoice_pdf'),
 
     # Payment
     path('payments/create/',            views.payment_create, name='payment_create'),
@@ -26,4 +27,7 @@ urlpatterns = [
     path('loans/create/',               views.loan_create,    name='loan_create'),
     path('loans/<int:pk>/',             views.loan_detail,    name='loan_detail'),
     path('loans/<int:pk>/edit/',        views.loan_update,    name='loan_update'),
+
+    # Service Invoice PDF
+    path('service-invoice/<int:job_card_id>/pdf/', pdf_views.service_invoice_pdf, name='service_invoice_pdf'),
 ]

@@ -47,6 +47,22 @@ class UserUpdateForm(forms.ModelForm):
         self.fields['branch'].queryset = Branch.objects.filter(is_active=True)
 
 
+class ProfileUpdateForm(forms.ModelForm):
+    """
+    Allows the current user to update their own basic info.
+    Role and branch are intentionally excluded (admin-only).
+    """
+    class Meta:
+        model  = User
+        fields = ('first_name', 'last_name', 'email', 'phone')
+        widgets = {
+            'first_name': forms.TextInput(attrs={'placeholder': 'First name'}),
+            'last_name':  forms.TextInput(attrs={'placeholder': 'Last name'}),
+            'email':      forms.EmailInput(attrs={'placeholder': 'Email address'}),
+            'phone':      forms.TextInput(attrs={'placeholder': 'Phone number'}),
+        }
+
+
 class FuelExpenseForm(forms.ModelForm):
     class Meta:
         model  = FuelExpense
