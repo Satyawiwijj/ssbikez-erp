@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from django.db.models import DecimalField, ExpressionWrapper, F, Sum
 
 
 class SparesCategory(models.Model):
@@ -23,7 +24,7 @@ class SparePart(models.Model):
     part_name      = models.CharField(max_length=255)
     part_number    = models.CharField(max_length=100, unique=True, blank=True, null=True)
     mrp            = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    stock_quantity = models.IntegerField(default=0)
+    stock_quantity = models.IntegerField(default=0, db_index=True)
     rack_location  = models.CharField(max_length=100, blank=True, null=True)
     bin_location   = models.CharField(max_length=100, blank=True, null=True)
     created_at     = models.DateTimeField(auto_now_add=True)
@@ -79,6 +80,22 @@ class PurchaseOrder(models.Model):
     def __str__(self):
         return f"PO-{self.pk} | {self.supplier} — Rs.{self.total_amount}"
 
+    def save(self, *args, **kwargs):
+        # When status changes to 'received', add all item quantities to spare part stock
+        if self.pk:
+            old_status = (
+                PurchaseOrder.objects
+                .filter(pk=self.pk)
+                .values_list('status', flat=True)
+                .first()
+            )
+            if old_status and old_status != self.Status.RECEIVED and self.status == self.Status.RECEIVED:
+                for item in self.items.select_related('spare_part').all():
+                    SparePart.objects.filter(pk=item.spare_part_id).update(
+                        stock_quantity=F('stock_quantity') + item.quantity
+                    )
+        super().save(*args, **kwargs)
+
 
 class PurchaseOrderItem(models.Model):
     purchase_order = models.ForeignKey(
@@ -104,6 +121,19 @@ class PurchaseOrderItem(models.Model):
     @property
     def line_total(self):
         return self.quantity * self.price
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Recalculate and update the parent PO's total_amount
+        total = (
+            self.purchase_order.items
+            .aggregate(
+                total=Sum(
+                    ExpressionWrapper(F('quantity') * F('price'), output_field=DecimalField())
+                )
+            )['total'] or 0
+        )
+        PurchaseOrder.objects.filter(pk=self.purchase_order_id).update(total_amount=total)
 
 
 class CounterSale(models.Model):
@@ -199,8 +229,27 @@ class SparesIssue(models.Model):
         return f"{self.spare_part} x{self.quantity_issued} → JC-{self.job_card_id}"
 
     def save(self, *args, **kwargs):
+        # Auto-calculate total price
         if self.unit_price is not None:
             self.total_price = self.quantity_issued * self.unit_price
+
+        if self.pk:
+            # Update: if quantity_returned changed, restore/deduct the difference
+            try:
+                old = SparesIssue.objects.get(pk=self.pk)
+                returned_diff = self.quantity_returned - old.quantity_returned
+                if returned_diff != 0:
+                    SparePart.objects.filter(pk=self.spare_part_id).update(
+                        stock_quantity=F('stock_quantity') + returned_diff
+                    )
+            except SparesIssue.DoesNotExist:
+                pass
+        else:
+            # Create: deduct issued quantity from stock (allow negative, validate in form)
+            SparePart.objects.filter(pk=self.spare_part_id).update(
+                stock_quantity=F('stock_quantity') - self.quantity_issued
+            )
+
         super().save(*args, **kwargs)
 
     @property

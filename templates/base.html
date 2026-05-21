@@ -801,6 +801,20 @@
       if (target) target.classList.add('active');
     });
   });
+
+  // Disable submit buttons on form submit to prevent double-submission
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function () {
+      const submitBtns = this.querySelectorAll('button[type="submit"], input[type="submit"]');
+      submitBtns.forEach(btn => {
+        btn.disabled = true;
+        if (btn.tagName === 'BUTTON') {
+          btn.dataset.originalText = btn.textContent;
+          btn.textContent = 'Saving…';
+        }
+      });
+    });
+  });
 </script>
 
 </body>

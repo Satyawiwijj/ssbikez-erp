@@ -49,6 +49,19 @@ class CounterSaleItemForm(forms.ModelForm):
         model  = CounterSaleItem
         fields = ('counter_sale', 'spare_part', 'quantity', 'unit_price')
 
+    def clean(self):
+        cleaned_data = super().clean()
+        spare_part   = cleaned_data.get('spare_part')
+        quantity     = cleaned_data.get('quantity') or 0
+        if spare_part and quantity > 0:
+            available = spare_part.stock_quantity
+            if quantity > available:
+                self.add_error(
+                    'quantity',
+                    f'Insufficient stock. Available: {available} units.'
+                )
+        return cleaned_data
+
 
 class SparesIssueForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
@@ -61,3 +74,16 @@ class SparesIssueForm(forms.ModelForm):
         model  = SparesIssue
         fields = ('job_card', 'spare_part', 'quantity_issued',
                   'quantity_returned', 'unit_price', 'issued_by')
+
+    def clean(self):
+        cleaned_data    = super().clean()
+        spare_part      = cleaned_data.get('spare_part')
+        quantity_issued = cleaned_data.get('quantity_issued') or 0
+        if spare_part and quantity_issued > 0 and not self.instance.pk:
+            available = spare_part.stock_quantity
+            if quantity_issued > available:
+                self.add_error(
+                    'quantity_issued',
+                    f'Insufficient stock. Available: {available} units.'
+                )
+        return cleaned_data

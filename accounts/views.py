@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.core.paginator import Paginator
 from django.db.models import Count, F, Q, Sum
 from django.db.models.functions import TruncMonth
 from django.shortcuts import get_object_or_404, redirect, render
@@ -14,16 +15,13 @@ from .models import Branch, FuelExpense, Role, User
 
 
 def login_view(request):
-    # context: form — LoginForm
     if request.user.is_authenticated:
         return redirect('accounts:dashboard')
-
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
         return redirect(request.GET.get('next', 'accounts:dashboard'))
-
     return render(request, 'accounts/login.html', {'form': form})
 
 
@@ -34,69 +32,65 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
-    # context: user — request.user (has .role and .branch)
     return render(request, 'accounts/dashboard.html', {'user': request.user})
 
 
 @login_required
 def user_list(request):
-    # context: users — queryset of all User objects with role and branch
     users = User.objects.select_related('role', 'branch').all()
     return render(request, 'accounts/user_list.html', {'users': users})
 
 
 @login_required
 def user_create(request):
-    # context: form — UserCreationForm, title — str
     form = UserCreationForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'User created successfully.')
         return redirect('accounts:user_list')
     return render(request, 'accounts/user_form.html', {'form': form, 'title': 'Create User'})
 
 
 @login_required
 def user_update(request, pk):
-    # context: form — UserUpdateForm, title — str
     user = get_object_or_404(User, pk=pk)
     form = UserUpdateForm(request.POST or None, instance=user)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'User updated successfully.')
         return redirect('accounts:user_list')
     return render(request, 'accounts/user_form.html', {'form': form, 'title': 'Update User'})
 
 
 @login_required
 def branch_list(request):
-    # context: branches — queryset of all Branch objects
     branches = Branch.objects.all()
     return render(request, 'accounts/branch_list.html', {'branches': branches})
 
 
 @login_required
 def branch_create(request):
-    # context: form — BranchForm, title — str
     form = BranchForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Branch created successfully.')
         return redirect('accounts:branch_list')
     return render(request, 'accounts/branch_form.html', {'form': form, 'title': 'Create Branch'})
 
 
 @login_required
 def branch_update(request, pk):
-    # context: form — BranchForm, title — str
     branch = get_object_or_404(Branch, pk=pk)
     form   = BranchForm(request.POST or None, instance=branch)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Branch updated successfully.')
         return redirect('accounts:branch_list')
     return render(request, 'accounts/branch_form.html', {'form': form, 'title': 'Edit Branch'})
 
 
 @login_required
 def role_list(request):
-    # context: roles — queryset of all Role objects
     roles = Role.objects.all()
     return render(request, 'accounts/role_list.html', {'roles': roles})
 
@@ -107,7 +101,6 @@ def role_list(request):
 
 @login_required
 def fuel_expense_list(request):
-    # context: expenses — filtered queryset; q — search string
     q  = request.GET.get('q', '').strip()
     qs = FuelExpense.objects.select_related('vehicle__bike_model', 'created_by').all()
     if q:
@@ -120,10 +113,10 @@ def fuel_expense_list(request):
 
 @login_required
 def fuel_expense_create(request):
-    # context: form — FuelExpenseForm; title — str
     form = FuelExpenseForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        expense = form.save()
+        form.save()
+        messages.success(request, 'Fuel expense recorded successfully.')
         return redirect('accounts:fuel_expense_list')
     return render(request, 'accounts/fuel_expense_form.html',
                   {'form': form, 'title': 'Add Fuel Expense'})
@@ -131,11 +124,11 @@ def fuel_expense_create(request):
 
 @login_required
 def fuel_expense_update(request, pk):
-    # context: form — FuelExpenseForm; title — str
     expense = get_object_or_404(FuelExpense, pk=pk)
     form    = FuelExpenseForm(request.POST or None, instance=expense)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Fuel expense updated successfully.')
         return redirect('accounts:fuel_expense_list')
     return render(request, 'accounts/fuel_expense_form.html',
                   {'form': form, 'title': 'Edit Fuel Expense'})
@@ -147,7 +140,6 @@ def fuel_expense_update(request, pk):
 
 @login_required
 def password_change(request):
-    # context: form — PasswordChangeForm
     form = PasswordChangeForm(request.user, request.POST or None)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -231,8 +223,8 @@ def spares_report(request):
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
 
-    parts_qs         = SparePart.objects.all()
-    total_parts      = parts_qs.count()
+    parts_qs          = SparePart.objects.all()
+    total_parts       = parts_qs.count()
     total_stock_value = (
         parts_qs.filter(mrp__isnull=False)
         .aggregate(val=Sum(F('mrp') * F('stock_quantity')))['val'] or 0

@@ -119,7 +119,8 @@ class JobCard(models.Model):
     service_status      = models.CharField(
         max_length=30,
         choices=ServiceStatus.choices,
-        default=ServiceStatus.PENDING
+        default=ServiceStatus.PENDING,
+        db_index=True,
     )
     created_at          = models.DateTimeField(auto_now_add=True)
     updated_at          = models.DateTimeField(auto_now=True)

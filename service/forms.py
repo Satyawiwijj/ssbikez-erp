@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
                      ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice)
@@ -22,6 +23,15 @@ class ServiceAppointmentForm(forms.ModelForm):
     class Meta:
         model  = ServiceAppointment
         fields = ('service_enquiry', 'appointment_date', 'service_type', 'status')
+
+    def clean_appointment_date(self):
+        date = self.cleaned_data.get('appointment_date')
+        if date:
+            instance_date = getattr(self.instance, 'appointment_date', None)
+            if not self.instance.pk or instance_date != date:
+                if date < timezone.now():
+                    raise forms.ValidationError('Appointment date cannot be in the past.')
+        return date
 
 
 class JobCardForm(forms.ModelForm):
@@ -54,6 +64,14 @@ class BayAssignmentForm(forms.ModelForm):
         model  = BayAssignment
         fields = ('job_card', 'bay', 'mechanic', 'start_time',
                   'end_time', 'assignment_status')
+
+    def clean(self):
+        cleaned_data = super().clean()
+        start = cleaned_data.get('start_time')
+        end   = cleaned_data.get('end_time')
+        if start and end and end <= start:
+            raise forms.ValidationError('End time must be after start time.')
+        return cleaned_data
 
 
 class ServiceInvoiceForm(forms.ModelForm):

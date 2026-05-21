@@ -1,3 +1,4 @@
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
@@ -12,8 +13,6 @@ from .models import AMCPackage, ProtectionPlusPackage, RSAPackage
 
 @login_required
 def amc_list(request):
-    # context: packages — filtered queryset; q — search string;
-    #          status_filter — active tab; status_choices — list
     q             = request.GET.get('q', '').strip()
     status_filter = request.GET.get('status', '')
     qs = AMCPackage.objects.select_related(
@@ -37,7 +36,6 @@ def amc_list(request):
 
 @login_required
 def amc_detail(request, pk):
-    # context: package — AMCPackage
     package = get_object_or_404(
         AMCPackage.objects.select_related(
             'customer_vehicle__customer',
@@ -50,14 +48,13 @@ def amc_detail(request, pk):
 
 @login_required
 def amc_create(request):
-    # context: form — AMCPackageForm; title — str
-    # Pre-fills customer_vehicle from GET ?cv=<pk>
     initial = {}
     if request.GET.get('cv'):
         initial['customer_vehicle'] = request.GET['cv']
     form = AMCPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        messages.success(request, 'AMC package created successfully.')
         return redirect('vas:amc_detail', pk=pkg.pk)
     return render(request, 'vas/amc_form.html',
                   {'form': form, 'title': 'New AMC Package'})
@@ -65,11 +62,11 @@ def amc_create(request):
 
 @login_required
 def amc_update(request, pk):
-    # context: form — AMCPackageForm; title — str
     package = get_object_or_404(AMCPackage, pk=pk)
     form    = AMCPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'AMC package updated successfully.')
         return redirect('vas:amc_detail', pk=package.pk)
     return render(request, 'vas/amc_form.html',
                   {'form': form, 'title': 'Edit AMC Package'})
@@ -81,8 +78,6 @@ def amc_update(request, pk):
 
 @login_required
 def rsa_list(request):
-    # context: packages — filtered queryset; q — search string;
-    #          status_filter — active tab; status_choices — list
     q             = request.GET.get('q', '').strip()
     status_filter = request.GET.get('status', '')
     qs = RSAPackage.objects.select_related(
@@ -106,7 +101,6 @@ def rsa_list(request):
 
 @login_required
 def rsa_detail(request, pk):
-    # context: package — RSAPackage
     package = get_object_or_404(
         RSAPackage.objects.select_related(
             'customer_vehicle__customer',
@@ -119,14 +113,13 @@ def rsa_detail(request, pk):
 
 @login_required
 def rsa_create(request):
-    # context: form — RSAPackageForm; title — str
-    # Pre-fills customer_vehicle from GET ?cv=<pk>
     initial = {}
     if request.GET.get('cv'):
         initial['customer_vehicle'] = request.GET['cv']
     form = RSAPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        messages.success(request, 'RSA package created successfully.')
         return redirect('vas:rsa_detail', pk=pkg.pk)
     return render(request, 'vas/rsa_form.html',
                   {'form': form, 'title': 'New RSA Package'})
@@ -134,11 +127,11 @@ def rsa_create(request):
 
 @login_required
 def rsa_update(request, pk):
-    # context: form — RSAPackageForm; title — str
     package = get_object_or_404(RSAPackage, pk=pk)
     form    = RSAPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'RSA package updated successfully.')
         return redirect('vas:rsa_detail', pk=package.pk)
     return render(request, 'vas/rsa_form.html',
                   {'form': form, 'title': 'Edit RSA Package'})
@@ -150,8 +143,6 @@ def rsa_update(request, pk):
 
 @login_required
 def pp_list(request):
-    # context: packages — filtered queryset; q — search string;
-    #          status_filter — active tab; status_choices — list
     q             = request.GET.get('q', '').strip()
     status_filter = request.GET.get('status', '')
     qs = ProtectionPlusPackage.objects.select_related(
@@ -175,7 +166,6 @@ def pp_list(request):
 
 @login_required
 def pp_detail(request, pk):
-    # context: package — ProtectionPlusPackage
     package = get_object_or_404(
         ProtectionPlusPackage.objects.select_related(
             'customer_vehicle__customer',
@@ -188,14 +178,13 @@ def pp_detail(request, pk):
 
 @login_required
 def pp_create(request):
-    # context: form — ProtectionPlusPackageForm; title — str
-    # Pre-fills customer_vehicle from GET ?cv=<pk>
     initial = {}
     if request.GET.get('cv'):
         initial['customer_vehicle'] = request.GET['cv']
     form = ProtectionPlusPackageForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         pkg = form.save()
+        messages.success(request, 'Protection Plus package created successfully.')
         return redirect('vas:pp_detail', pk=pkg.pk)
     return render(request, 'vas/pp_form.html',
                   {'form': form, 'title': 'New Protection Plus Package'})
@@ -203,11 +192,11 @@ def pp_create(request):
 
 @login_required
 def pp_update(request, pk):
-    # context: form — ProtectionPlusPackageForm; title — str
     package = get_object_or_404(ProtectionPlusPackage, pk=pk)
     form    = ProtectionPlusPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Protection Plus package updated successfully.')
         return redirect('vas:pp_detail', pk=package.pk)
     return render(request, 'vas/pp_form.html',
                   {'form': form, 'title': 'Edit Protection Plus Package'})

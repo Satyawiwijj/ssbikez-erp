@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 
 from customers.models import VehicleStock
 
@@ -30,6 +31,16 @@ class SalesAppointmentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['appointment_date'].input_formats = ['%Y-%m-%dT%H:%M']
 
+    def clean_appointment_date(self):
+        date = self.cleaned_data.get('appointment_date')
+        if date:
+            # Validate future date only when creating or when the date has changed
+            instance_date = getattr(self.instance, 'appointment_date', None)
+            if not self.instance.pk or instance_date != date:
+                if date < timezone.now():
+                    raise forms.ValidationError('Appointment date cannot be in the past.')
+        return date
+
 
 class SalesFeedbackForm(forms.ModelForm):
     class Meta:
@@ -53,6 +64,16 @@ class VehicleSalesOrderForm(forms.ModelForm):
         self.fields['vehicle'].queryset = VehicleStock.objects.filter(
             stock_status=VehicleStock.StockStatus.AVAILABLE
         ).select_related('bike_model')
+
+    def clean(self):
+        cleaned_data    = super().clean()
+        booking_amount  = cleaned_data.get('booking_amount')
+        total_amount    = cleaned_data.get('total_amount')
+        if booking_amount is not None and total_amount is not None:
+            if booking_amount > total_amount:
+                self.add_error('booking_amount',
+                               'Booking amount cannot exceed the total order amount.')
+        return cleaned_data
 
 
 class VehicleDeliveryForm(forms.ModelForm):

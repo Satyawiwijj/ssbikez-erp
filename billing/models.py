@@ -51,7 +51,8 @@ class Payment(models.Model):
     payment_status        = models.CharField(
         max_length=20,
         choices=PaymentStatus.choices,
-        default=PaymentStatus.PENDING
+        default=PaymentStatus.PENDING,
+        db_index=True,
     )
     payment_date          = models.DateTimeField(blank=True, null=True)
     created_at            = models.DateTimeField(auto_now_add=True)

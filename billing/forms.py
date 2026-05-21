@@ -45,3 +45,20 @@ class FinanceLoanForm(forms.ModelForm):
         model  = FinanceLoan
         fields = ('sales_order', 'bank_name', 'loan_amount',
                   'interest_rate', 'tenure_months', 'emi_amount', 'loan_status')
+
+    def clean(self):
+        from decimal import Decimal
+        cleaned_data   = super().clean()
+        loan_amount    = cleaned_data.get('loan_amount')
+        tenure_months  = cleaned_data.get('tenure_months')
+        emi_amount     = cleaned_data.get('emi_amount')
+        if loan_amount and tenure_months and emi_amount and tenure_months > 0:
+            expected_emi = loan_amount / Decimal(str(tenure_months))
+            # Warn if EMI deviates by more than 30% from simple division (non-blocking)
+            if emi_amount < expected_emi * Decimal('0.70'):
+                self.add_error(
+                    'emi_amount',
+                    f'EMI seems low. Expected roughly ₹{expected_emi:.0f}/month '
+                    f'for a ₹{loan_amount} loan over {tenure_months} months.'
+                )
+        return cleaned_data

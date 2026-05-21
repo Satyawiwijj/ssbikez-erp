@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
@@ -8,13 +9,8 @@ from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentFor
 from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
 
-# ---------------------------------------------------------------------------
-# Invoice
-# ---------------------------------------------------------------------------
-
 @login_required
 def invoice_list(request):
-    # context: invoices — filtered queryset; q — search string
     q  = request.GET.get('q', '').strip()
     qs = Invoice.objects.select_related('sales_order__customer').all()
     if q:
@@ -27,9 +23,7 @@ def invoice_list(request):
 
 @login_required
 def invoice_detail(request, pk):
-    # context: invoice — Invoice; payments — completed Payment queryset;
-    #          total_paid — Decimal; balance — Decimal
-    invoice  = get_object_or_404(
+    invoice    = get_object_or_404(
         Invoice.objects.select_related('sales_order__customer'), pk=pk
     )
     payments   = invoice.payments.all()
@@ -47,61 +41,54 @@ def invoice_detail(request, pk):
 
 @login_required
 def invoice_create(request):
-    # context: form — InvoiceForm; title — str
-    # Pre-fills sales_order from GET ?order=<pk>
     initial = {}
     if request.GET.get('order'):
         initial['sales_order'] = request.GET['order']
     form = InvoiceForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         invoice = form.save()
+        messages.success(request, 'Invoice created successfully.')
         return redirect('billing:invoice_detail', pk=invoice.pk)
     return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Create Invoice'})
 
 
 @login_required
 def invoice_update(request, pk):
-    # context: form — InvoiceForm; title — str
     invoice = get_object_or_404(Invoice, pk=pk)
     form    = InvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Invoice updated successfully.')
         return redirect('billing:invoice_detail', pk=invoice.pk)
     return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Edit Invoice'})
 
 
-# ---------------------------------------------------------------------------
-# Payment
-# ---------------------------------------------------------------------------
-
 @login_required
 def payment_create(request):
-    # context: form — PaymentForm; title — str
-    # Pre-fills invoice from GET ?invoice=<pk>
     initial = {}
     if request.GET.get('invoice'):
         initial['invoice'] = request.GET['invoice']
     form = PaymentForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         payment = form.save()
+        messages.success(request, 'Payment recorded successfully.')
         return redirect('billing:invoice_detail', pk=payment.invoice_id)
     return render(request, 'billing/payment_form.html', {'form': form, 'title': 'Add Payment'})
 
 
 @login_required
 def payment_update(request, pk):
-    # context: form — PaymentForm; title — str
     payment = get_object_or_404(Payment, pk=pk)
     form    = PaymentForm(request.POST or None, instance=payment)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Payment updated successfully.')
         return redirect('billing:invoice_detail', pk=payment.invoice_id)
     return render(request, 'billing/payment_form.html', {'form': form, 'title': 'Edit Payment'})
 
 
 @login_required
 def payment_list(request, invoice_pk):
-    # context: invoice — Invoice; payments — related Payment queryset
     invoice  = get_object_or_404(Invoice, pk=invoice_pk)
     payments = invoice.payments.all()
     return render(request, 'billing/invoice_detail.html', {
@@ -110,17 +97,8 @@ def payment_list(request, invoice_pk):
     })
 
 
-# ---------------------------------------------------------------------------
-# FinanceLoan
-# ---------------------------------------------------------------------------
-
-# ---------------------------------------------------------------------------
-# InsurancePolicy
-# ---------------------------------------------------------------------------
-
 @login_required
 def insurance_policy_list(request):
-    # context: policies — filtered queryset; q — search string
     q  = request.GET.get('q', '').strip()
     qs = InsurancePolicy.objects.select_related('sales_order__customer').all()
     if q:
@@ -134,7 +112,6 @@ def insurance_policy_list(request):
 
 @login_required
 def insurance_policy_detail(request, pk):
-    # context: policy — InsurancePolicy
     policy = get_object_or_404(
         InsurancePolicy.objects.select_related('sales_order__customer'), pk=pk
     )
@@ -143,13 +120,13 @@ def insurance_policy_detail(request, pk):
 
 @login_required
 def insurance_policy_create(request):
-    # context: form — InsurancePolicyForm; title — str
     initial = {}
     if request.GET.get('order'):
         initial['sales_order'] = request.GET['order']
     form = InsurancePolicyForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         policy = form.save()
+        messages.success(request, 'Insurance policy added successfully.')
         return redirect('billing:insurance_policy_detail', pk=policy.pk)
     return render(request, 'billing/insurance_policy_form.html',
                   {'form': form, 'title': 'Add Insurance Policy'})
@@ -157,11 +134,11 @@ def insurance_policy_create(request):
 
 @login_required
 def insurance_policy_update(request, pk):
-    # context: form — InsurancePolicyForm; title — str
     policy = get_object_or_404(InsurancePolicy, pk=pk)
     form   = InsurancePolicyForm(request.POST or None, instance=policy)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Insurance policy updated successfully.')
         return redirect('billing:insurance_policy_detail', pk=policy.pk)
     return render(request, 'billing/insurance_policy_form.html',
                   {'form': form, 'title': 'Edit Insurance Policy'})
@@ -169,33 +146,30 @@ def insurance_policy_update(request, pk):
 
 @login_required
 def loan_create(request):
-    # context: form — FinanceLoanForm; title — str
-    # Pre-fills sales_order from GET ?order=<pk>
     initial = {}
     if request.GET.get('order'):
         initial['sales_order'] = request.GET['order']
     form = FinanceLoanForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         loan = form.save()
+        messages.success(request, 'Finance loan added successfully.')
         return redirect('billing:loan_detail', pk=loan.pk)
     return render(request, 'billing/loan_form.html', {'form': form, 'title': 'Add Finance Loan'})
 
 
 @login_required
 def loan_update(request, pk):
-    # context: form — FinanceLoanForm; title — str
     loan = get_object_or_404(FinanceLoan, pk=pk)
     form = FinanceLoanForm(request.POST or None, instance=loan)
     if request.method == 'POST' and form.is_valid():
         form.save()
+        messages.success(request, 'Finance loan updated successfully.')
         return redirect('billing:loan_detail', pk=loan.pk)
     return render(request, 'billing/loan_form.html', {'form': form, 'title': 'Edit Finance Loan'})
 
 
 @login_required
 def loan_detail(request, pk):
-    # context: loan — FinanceLoan; total_repayment — Decimal or None
-    # total_repayment = loan_amount + simple interest estimate when rate & tenure available
     loan = get_object_or_404(FinanceLoan.objects.select_related('sales_order__customer'), pk=pk)
     total_repayment = None
     if loan.interest_rate is not None and loan.tenure_months:

@@ -82,3 +82,29 @@ class VehicleStock(models.Model):
 
     def __str__(self):
         return f"{self.bike_model} — {self.chassis_no or 'No Chassis'}"
+
+    def save(self, *args, **kwargs):
+        is_new = not self.pk
+        old_status = None
+        if not is_new:
+            old_status = (
+                VehicleStock.objects
+                .filter(pk=self.pk)
+                .values_list('stock_status', flat=True)
+                .first()
+            )
+        super().save(*args, **kwargs)
+        # Auto-create CustomerVehicle when status becomes 'sold'
+        if not is_new and old_status != self.StockStatus.SOLD and self.stock_status == self.StockStatus.SOLD:
+            try:
+                from django.apps import apps
+                SalesOrder   = apps.get_model('sales',            'VehicleSalesOrder')
+                CustomerVehicle = apps.get_model('customer_vehicles', 'CustomerVehicle')
+                order = SalesOrder.objects.filter(vehicle=self).select_related('customer').first()
+                if order:
+                    CustomerVehicle.objects.get_or_create(
+                        customer=order.customer,
+                        vehicle=self,
+                    )
+            except Exception:
+                pass  # Never crash a save() due to auto-create failure
