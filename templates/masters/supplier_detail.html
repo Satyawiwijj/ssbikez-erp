@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ supplier.supplier_name }} — Masters{% endblock %}
+{% block page_title %}{{ supplier.supplier_name }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'masters:supplier_update' supplier.pk %}" class="btn btn-primary btn-sm">
+  <i class="fas fa-edit me-1"></i>Edit
+</a>
+<a href="{% url 'masters:supplier_list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="fas fa-arrow-left me-1"></i>Back
+</a>
+{% endblock %}
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Supplier Details</span></div>
+      <div class="card-body">
+        <dl>
+          <div class="detail-row"><dt>Supplier Name</dt><dd>{{ supplier.supplier_name }}</dd></div>
+          <div class="detail-row"><dt>Contact Person</dt><dd>{{ supplier.contact_person|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Phone</dt><dd>{{ supplier.phone|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Email</dt><dd>{{ supplier.email|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>GSTIN</dt><dd>{{ supplier.gstin|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>GST Category</dt><dd>{{ supplier.gst_category|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Status</dt><dd>
+            {% if supplier.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+          </dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Address</span></div>
+      <div class="card-body">
+        <dl>
+          <div class="detail-row"><dt>Address Line 1</dt><dd>{{ supplier.address_line1|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Address Line 2</dt><dd>{{ supplier.address_line2|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>City</dt><dd>{{ supplier.city|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>State</dt><dd>{{ supplier.state|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Pincode</dt><dd>{{ supplier.pincode|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Place of Supply</dt><dd>{{ supplier.place_of_supply|default:"—" }}</dd></div>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Suppliers — Masters{% endblock %}
+{% block page_title %}Suppliers{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'masters:supplier_create' %}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus me-1"></i>New Supplier
+</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="card-title">All Suppliers</span>
+    <span class="badge bg-secondary">{{ suppliers|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if suppliers %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr>
+          <th>Supplier</th>
+          <th>Contact</th>
+          <th>Phone</th>
+          <th>City</th>
+          <th>Status</th>
+          <th class="text-end">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in suppliers %}
+        <tr>
+          <td><a href="{% url 'masters:supplier_detail' s.pk %}" class="fw-semibold text-decoration-none">{{ s.supplier_name }}</a></td>
+          <td>{{ s.contact_person|default:"—" }}</td>
+          <td>{{ s.phone|default:"—" }}</td>
+          <td>{{ s.city|default:"—" }}</td>
+          <td>
+            {% if s.is_active %}
+              <span class="badge bg-success">Active</span>
+            {% else %}
+              <span class="badge bg-secondary">Inactive</span>
+            {% endif %}
+          </td>
+          <td class="text-end">
+            <a href="{% url 'masters:supplier_update' s.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-edit"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-truck-loading text-muted"></i>
+      <p class="mt-2">No suppliers yet. <a href="{% url 'masters:supplier_create' %}">Add one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

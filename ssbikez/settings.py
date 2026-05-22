@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'service',
     'spares',
     'vas',
+    'masters',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'
