@@ -1,75 +1,52 @@
 {% extends 'base.html' %}
-{% block title %}{{ sale.invoice_number }} — SSBikez ERP{% endblock %}
-{% block page_title %}Counter Sale Detail{% endblock %}
-
+{% block title %}{{ sale.sale_no }}{% endblock %}
+{% block page_title %}{{ sale.sale_no }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'spares:counter_sale_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Counter Sale — {{ sale.invoice_number }}</h1>
-    <p class="page-subtitle">{{ sale.sale_date|date:"d M Y" }}</p>
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Item</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            {% for i in items %}
+            <tr>
+              <td>{{ i.item.item_name }}</td>
+              <td>{{ i.quantity }}</td>
+              <td>&#8377;{{ i.rate }}</td>
+              <td>{{ i.gst_percent }}%</td>
+              <td>&#8377;{{ i.amount }}</td>
+              <td>&#8377;{{ i.total }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="text-center text-muted">No items.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
-  <div class="page-header-actions">
-    <a href="{% url 'spares:counter_sale_update' sale.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
-</div>
-
-<div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Sale Info</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Invoice No.</dt><dd style="font-weight:500; font-family:monospace;">{{ sale.invoice_number }}</dd></div>
-      <div class="detail-row"><dt>Customer</dt><dd>{{ sale.customer|default:"Walk-in" }}</dd></div>
-      <div class="detail-row"><dt>Branch</dt><dd>{{ sale.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Sale Date</dt><dd>{{ sale.sale_date|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Created By</dt><dd>{{ sale.created_by|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Total Amount</dt><dd style="font-weight:600; color:#2563EB;">{% if sale.total_amount %}&#x20B9; {{ sale.total_amount }}{% else %}—{% endif %}</dd></div>
-    </dl>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">Items</span>
-    <a href="{% url 'spares:counter_sale_item_create' %}?cs={{ sale.pk }}" class="btn btn-primary btn-sm">+ Add Item</a>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Part</th>
-          <th>Qty</th>
-          <th>Unit Price</th>
-          <th>Total Price</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in items %}
-        <tr>
-          <td style="font-weight:500;">{{ item.spare_part.part_name }}</td>
-          <td>{{ item.quantity }}</td>
-          <td>&#x20B9; {{ item.unit_price }}</td>
-          <td style="font-weight:500;">&#x20B9; {{ item.total_price }}</td>
-          <td>
-            <form method="post" action="{% url 'spares:counter_sale_item_delete' item.pk %}" style="display:inline;" onsubmit="return confirm('Delete this item?')">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-ghost btn-sm" style="color:#EF4444;">Delete</button>
-            </form>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="empty-state">No items yet.</td></tr>
-        {% endfor %}
-        {% if items %}
-        <tr style="background:#F9FAFB;">
-          <td colspan="3" style="font-weight:600; text-align:right; padding-right:16px;">Total</td>
-          <td style="font-weight:700; color:#111827;">&#x20B9; {{ total }}</td>
-          <td></td>
-        </tr>
-        {% endif %}
-      </tbody>
-    </table>
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-6">Customer</dt><dd class="col-6">{{ sale.customer }}</dd>
+          <dt class="col-6">Mobile</dt><dd class="col-6">{{ sale.mobile }}</dd>
+          <dt class="col-6">Date</dt><dd class="col-6">{{ sale.date }}</dd>
+          <dt class="col-6">Godown</dt><dd class="col-6">{{ sale.godown.name }}</dd>
+          <dt class="col-6">Status</dt><dd class="col-6">{{ sale.get_status_display }}</dd>
+          <dt class="col-6">Pay Type</dt><dd class="col-6">{{ sale.get_pay_type_display|default:"&mdash;" }}</dd>
+          <dt class="col-6">Discount</dt><dd class="col-6">&#8377;{{ sale.discount_amount }}</dd>
+          <dt class="col-6 fw-bold">Total Amount</dt><dd class="col-6 fw-bold">&#8377;{{ sale.total_amount }}</dd>
+        </dl>
+      </div>
+    </div>
   </div>
 </div>
 {% endblock %}

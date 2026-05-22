@@ -46,9 +46,10 @@ def dashboard(request):
     from sales.models import SalesAppointment, SalesEnquiry, VehicleSalesOrder
     from service.models import JobCard
     try:
-        from spares.models import SparePart
+        from spares.models import SparesItem, StockLedger
     except ImportError:
-        SparePart = None
+        SparesItem = None
+        StockLedger = None
 
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
@@ -85,8 +86,8 @@ def dashboard(request):
     )
 
     low_stock_count = safe_count(
-        SparePart.objects.filter(stock_quantity__lt=5)
-    ) if SparePart else 0
+        StockLedger.objects.filter(quantity__lte=0)
+    ) if StockLedger else 0
 
     recent_activity = safe_qs(
         AuditLog.objects.select_related('user').order_by('-created_at')
@@ -312,9 +313,9 @@ def global_search(request):
     from sales.models import SalesEnquiry, VehicleSalesOrder
     from service.models import JobCard
     try:
-        from spares.models import SparePart
+        from spares.models import SparesItem
     except ImportError:
-        SparePart = None
+        SparesItem = None
 
     q       = request.GET.get('q', '').strip()
     results = {}
@@ -356,10 +357,10 @@ def global_search(request):
             )[:5]
         )
 
-        if SparePart:
+        if SparesItem:
             results['spare_parts'] = list(
-                SparePart.objects.filter(
-                    Q(part_name__icontains=q) | Q(part_number__icontains=q)
+                SparesItem.objects.filter(
+                    Q(item_name__icontains=q) | Q(part_number__icontains=q) | Q(item_code__icontains=q)
                 )[:5]
             )
         else:
@@ -443,35 +444,24 @@ def sales_report(request):
 
 @login_required
 def spares_report(request):
-    try:
-        from spares.models import CounterSale, PurchaseOrder, SparePart, SparesIssue
-    except ImportError:
-        from spares.models import CounterSale, PurchaseOrder, SparePart
-        SparesIssue = None
+    from spares.models import CounterSale, PurchaseOrder, SparesItem, StockLedger
 
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
 
-    parts_qs          = SparePart.objects.all()
+    parts_qs          = SparesItem.objects.filter(is_active=True)
     total_parts       = parts_qs.count()
     total_stock_value = (
         parts_qs.filter(mrp__isnull=False)
-        .aggregate(val=Sum(F('mrp') * F('stock_quantity')))['val'] or 0
+        .aggregate(val=Sum(F('mrp') * F('opening_stock')))['val'] or 0
     )
 
-    low_stock_count = parts_qs.filter(stock_quantity__lt=5).count()
-    low_stock       = list(parts_qs.filter(stock_quantity__lt=5).order_by('stock_quantity')[:10])
+    low_stock_entries = StockLedger.objects.filter(quantity__lte=0)
+    low_stock_count   = low_stock_entries.count()
+    low_stock         = list(low_stock_entries.select_related('item').order_by('quantity')[:10])
 
-    if SparesIssue:
-        top_issued = list(
-            SparesIssue.objects
-            .values('spare_part__part_name')
-            .annotate(total_qty=Sum('quantity_issued'))
-            .order_by('-total_qty')[:10]
-        )
-    else:
-        top_issued = []
-    max_issued = max((p['total_qty'] for p in top_issued), default=1) or 1
+    top_issued = []
+    max_issued = 1
 
     po_summary = list(
         PurchaseOrder.objects
@@ -480,7 +470,7 @@ def spares_report(request):
         .order_by('status')
     )
 
-    cs_qs    = CounterSale.objects.filter(sale_date__gte=this_month_start)
+    cs_qs    = CounterSale.objects.filter(date__gte=this_month_start)
     cs_count = cs_qs.count()
     cs_total = cs_qs.aggregate(t=Sum('total_amount'))['t'] or 0
 

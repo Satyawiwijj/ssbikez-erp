@@ -152,7 +152,7 @@ def service_invoice_pdf(request, job_card_id):
         return HttpResponse('No service invoice found for this job card.', status=404)
 
     labor_charges   = job_card.labor_charges.all()
-    spares_issues   = job_card.spares_issues.select_related('spare_part').all()
+    spares_issues   = []
     outwork_entries = job_card.outwork_entries.all()
     gst_half        = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
 

@@ -1,25 +1,34 @@
-from decimal import Decimal
-
-from django.contrib import messages
+import json
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.core.paginator import Paginator
-from django.db.models import (DecimalField, ExpressionWrapper, F, Q, Sum)
-from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_POST
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db import transaction
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
 
-from accounts.audit import log_action
+from masters.models import Warehouse, Rack, Bin, Supplier
+from .models import (
+    SparesItem, ItemRackBin, StockLedger,
+    SupplierQuote, SupplierQuoteItem,
+    PurchaseOrder, PurchaseOrderItem,
+    PurchaseInvoice, PurchaseInvoiceItem,
+    CounterSale, CounterSaleItem,
+    CounterSaleReturn, CounterSaleReturnItem,
+    SparesIssueAlteration, SparesIssueAlterationItem,
+)
+from .forms import (
+    SparesItemForm,
+    SupplierQuoteForm, SupplierQuoteItemFormSet,
+    PurchaseOrderForm, PurchaseOrderItemFormSet,
+    PurchaseInvoiceForm, PurchaseInvoiceItemFormSet,
+    CounterSaleForm, CounterSaleItemFormSet,
+    CounterSaleReturnForm, CounterSaleReturnItemFormSet,
+    SparesIssueAlterationForm, SparesIssueAlterationItemFormSet,
+)
 
-from .forms import (CounterSaleForm, CounterSaleItemForm, PurchaseOrderForm,
-                    PurchaseOrderItemForm, SparePartForm, SparesCategoryForm,
-                    SparesIssueForm, SupplierForm)
-from .models import (CounterSale, CounterSaleItem, PurchaseOrder,
-                     PurchaseOrderItem, SparePart, SparesCategory,
-                     SparesIssue, Supplier)
 
-
-# ---------------------------------------------------------------------------
-# Dashboard
-# ---------------------------------------------------------------------------
+# -- Dashboard ----------------------------------------------------------------
 
 @login_required
 def dashboard(request):
@@ -29,412 +38,399 @@ def dashboard(request):
         except Exception:
             return 0
 
-    total_parts     = safe_count(SparePart.objects.all())
-    low_stock_parts = safe_count(SparePart.objects.filter(stock_quantity__lt=5))
-    total_suppliers = safe_count(Supplier.objects.all())
-    recent_sales    = CounterSale.objects.select_related('customer').order_by('-sale_date')[:10]
-    recent_pos      = PurchaseOrder.objects.select_related('supplier').order_by('-order_date')[:5]
+    total_items = safe_count(SparesItem.objects.filter(is_active=True))
+
+    try:
+        low_stock = SparesItem.objects.filter(
+            maintain_stock=True, is_active=True, reorder_level__gt=0
+        ).count()
+    except Exception:
+        low_stock = 0
+
+    today = timezone.localdate()
+    counter_sales_today = safe_count(CounterSale.objects.filter(date=today))
+    pending_pos = safe_count(PurchaseOrder.objects.filter(status__in=['draft', 'submitted']))
+    recent_sales = CounterSale.objects.select_related('godown').order_by('-created_at')[:8]
 
     return render(request, 'spares/dashboard.html', {
-        'total_parts':     total_parts,
-        'low_stock_parts': low_stock_parts,
-        'total_suppliers': total_suppliers,
-        'recent_sales':    recent_sales,
-        'recent_pos':      recent_pos,
+        'total_items': total_items,
+        'low_stock': low_stock,
+        'counter_sales_today': counter_sales_today,
+        'pending_pos': pending_pos,
+        'recent_sales': recent_sales,
     })
 
 
-# ---------------------------------------------------------------------------
-# SparesCategory
-# ---------------------------------------------------------------------------
+# -- Items --------------------------------------------------------------------
 
 @login_required
-def category_list(request):
-    categories = SparesCategory.objects.all()
-    return render(request, 'spares/category_list.html', {'categories': categories})
-
-
-@login_required
-def category_create(request):
-    form = SparesCategoryForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Category added successfully.')
-        return redirect('spares:category_list')
-    return render(request, 'spares/category_form.html',
-                  {'form': form, 'title': 'Add Category'})
-
-
-@login_required
-def category_update(request, pk):
-    category = get_object_or_404(SparesCategory, pk=pk)
-    form     = SparesCategoryForm(request.POST or None, instance=category)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Category updated successfully.')
-        return redirect('spares:category_list')
-    return render(request, 'spares/category_form.html',
-                  {'form': form, 'title': 'Edit Category'})
-
-
-# ---------------------------------------------------------------------------
-# SparePart
-# ---------------------------------------------------------------------------
-
-@login_required
-def part_list(request):
-    q               = request.GET.get('q', '').strip()
-    category_filter = request.GET.get('category', '')
-    qs = SparePart.objects.select_related('category').all()
+def item_list(request):
+    q = request.GET.get('q', '')
+    items = SparesItem.objects.select_related('category')
     if q:
-        qs = qs.filter(
-            Q(part_name__icontains=q) | Q(part_number__icontains=q)
+        items = items.filter(
+            Q(item_name__icontains=q) | Q(item_code__icontains=q) |
+            Q(part_number__icontains=q) | Q(hsn_sac__icontains=q)
         )
-    if category_filter:
-        qs = qs.filter(category_id=category_filter)
-    paginator = Paginator(qs, 25)
-    page_obj  = paginator.get_page(request.GET.get('page'))
-    return render(request, 'spares/part_list.html', {
-        'parts':           page_obj,
-        'page_obj':        page_obj,
-        'q':               q,
-        'category_filter': category_filter,
-        'categories':      SparesCategory.objects.all(),
-    })
+    return render(request, 'spares/item_list.html', {'items': items, 'q': q})
 
 
 @login_required
-def part_detail(request, pk):
-    part       = get_object_or_404(SparePart.objects.select_related('category'), pk=pk)
-    po_items   = part.purchase_order_items.select_related('purchase_order__supplier').order_by('-created_at')[:10]
-    sale_items = part.counter_sale_items.select_related('counter_sale').order_by('-counter_sale__sale_date')[:10]
-    issues     = part.issues.select_related('job_card__customer_vehicle__customer', 'issued_by').order_by('-issued_at')[:10]
-    return render(request, 'spares/part_detail.html', {
-        'part':       part,
-        'po_items':   po_items,
-        'sale_items': sale_items,
-        'issues':     issues,
-    })
+def item_detail(request, pk):
+    item = get_object_or_404(SparesItem, pk=pk)
+    stock = item.stock.select_related('warehouse', 'rack', 'bin').all()
+    return render(request, 'spares/item_detail.html', {'item': item, 'stock': stock})
 
 
 @login_required
-def part_create(request):
-    form = SparePartForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        part = form.save()
-        log_action(request, 'Spare Part', 'create', part.pk)
-        messages.success(request, 'Spare part added successfully.')
-        return redirect('spares:part_detail', pk=part.pk)
-    return render(request, 'spares/part_form.html',
-                  {'form': form, 'title': 'Add Spare Part'})
+def item_create(request):
+    form = SparesItemForm(request.POST or None)
+    if form.is_valid():
+        obj = form.save(commit=False)
+        obj.created_by = request.user
+        obj.save()
+        messages.success(request, f'Item {obj.item_code} created.')
+        return redirect('spares:item_detail', pk=obj.pk)
+    return render(request, 'spares/item_form.html', {'form': form, 'title': 'New Item'})
 
 
 @login_required
-def part_update(request, pk):
-    part = get_object_or_404(SparePart, pk=pk)
-    form = SparePartForm(request.POST or None, instance=part)
-    if request.method == 'POST' and form.is_valid():
+def item_update(request, pk):
+    obj = get_object_or_404(SparesItem, pk=pk)
+    form = SparesItemForm(request.POST or None, instance=obj)
+    if form.is_valid():
         form.save()
-        log_action(request, 'Spare Part', 'update', pk)
-        messages.success(request, 'Spare part updated successfully.')
-        return redirect('spares:part_detail', pk=part.pk)
-    return render(request, 'spares/part_form.html',
-                  {'form': form, 'title': 'Edit Spare Part'})
+        messages.success(request, 'Item updated.')
+        return redirect('spares:item_detail', pk=pk)
+    return render(request, 'spares/item_form.html', {'form': form, 'title': 'Edit Item', 'object': obj})
 
 
-# ---------------------------------------------------------------------------
-# Supplier
-# ---------------------------------------------------------------------------
+# -- Stock Report -------------------------------------------------------------
 
 @login_required
-def supplier_list(request):
-    q  = request.GET.get('q', '').strip()
-    qs = Supplier.objects.all()
-    if q:
-        qs = qs.filter(
-            Q(supplier_name__icontains=q) |
-            Q(phone__icontains=q) |
-            Q(email__icontains=q)
-        )
-    return render(request, 'spares/supplier_list.html', {'suppliers': qs, 'q': q})
+def stock_report(request):
+    ledger = StockLedger.objects.select_related(
+        'item', 'warehouse', 'rack', 'bin'
+    ).filter(quantity__gt=0).order_by('warehouse__name', 'item__item_name')
+    warehouses = Warehouse.objects.filter(is_active=True)
+    selected_wh = request.GET.get('warehouse', '')
+    if selected_wh:
+        ledger = ledger.filter(warehouse_id=selected_wh)
+    return render(request, 'spares/stock_report.html', {
+        'ledger': ledger,
+        'warehouses': warehouses,
+        'selected_wh': selected_wh,
+    })
+
+
+# -- Supplier Quotes ----------------------------------------------------------
+
+@login_required
+def quote_list(request):
+    quotes = SupplierQuote.objects.select_related('supplier').order_by('-date')
+    return render(request, 'spares/quote_list.html', {'quotes': quotes})
 
 
 @login_required
-def supplier_detail(request, pk):
-    supplier        = get_object_or_404(Supplier, pk=pk)
-    purchase_orders = supplier.purchase_orders.all()
-    return render(request, 'spares/supplier_detail.html', {
-        'supplier':        supplier,
-        'purchase_orders': purchase_orders,
+def quote_detail(request, pk):
+    quote = get_object_or_404(SupplierQuote, pk=pk)
+    items = quote.items.select_related('item')
+    return render(request, 'spares/quote_detail.html', {'quote': quote, 'items': items})
+
+
+@login_required
+def quote_create(request):
+    form = SupplierQuoteForm(request.POST or None)
+    formset = SupplierQuoteItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in items)
+            obj.total_amount = sum(i.amount for i in items)
+            obj.grand_total = obj.total_amount - obj.additional_discount_amount
+            obj.save()
+        messages.success(request, f'Quote {obj.quote_no} created.')
+        return redirect('spares:quote_detail', pk=obj.pk)
+    return render(request, 'spares/quote_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Supplier Quote'
     })
 
 
 @login_required
-def supplier_create(request):
-    form = SupplierForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        supplier = form.save()
-        log_action(request, 'Supplier', 'create', supplier.pk)
-        messages.success(request, 'Supplier added successfully.')
-        return redirect('spares:supplier_detail', pk=supplier.pk)
-    return render(request, 'spares/supplier_form.html',
-                  {'form': form, 'title': 'Add Supplier'})
-
-
-@login_required
-def supplier_update(request, pk):
-    supplier = get_object_or_404(Supplier, pk=pk)
-    form     = SupplierForm(request.POST or None, instance=supplier)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Supplier', 'update', pk)
-        messages.success(request, 'Supplier updated successfully.')
-        return redirect('spares:supplier_detail', pk=supplier.pk)
-    return render(request, 'spares/supplier_form.html',
-                  {'form': form, 'title': 'Edit Supplier'})
-
-
-# ---------------------------------------------------------------------------
-# PurchaseOrder
-# ---------------------------------------------------------------------------
-
-@login_required
-def po_list(request):
-    status_filter = request.GET.get('status', '')
-    qs = PurchaseOrder.objects.select_related('supplier').all()
-    if status_filter:
-        qs = qs.filter(status=status_filter)
-    return render(request, 'spares/po_list.html', {
-        'purchase_orders': qs,
-        'status_filter':   status_filter,
-        'status_choices':  PurchaseOrder.Status.choices,
+def quote_update(request, pk):
+    obj = get_object_or_404(SupplierQuote, pk=pk)
+    form = SupplierQuoteForm(request.POST or None, instance=obj)
+    formset = SupplierQuoteItemFormSet(request.POST or None, instance=obj, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            form.save()
+            formset.save()
+            items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in items)
+            obj.total_amount = sum(i.amount for i in items)
+            obj.grand_total = obj.total_amount - obj.additional_discount_amount
+            obj.save()
+        messages.success(request, 'Quote updated.')
+        return redirect('spares:quote_detail', pk=pk)
+    return render(request, 'spares/quote_form.html', {
+        'form': form, 'formset': formset, 'title': 'Edit Quote', 'object': obj
     })
 
 
+# -- Purchase Orders ----------------------------------------------------------
+
 @login_required
-def po_detail(request, pk):
-    po    = get_object_or_404(PurchaseOrder.objects.select_related('supplier'), pk=pk)
-    items = po.items.select_related('spare_part').all()
-    total = items.aggregate(
-        total=Sum(ExpressionWrapper(F('quantity') * F('price'),
-                  output_field=DecimalField()))
-    )['total'] or Decimal('0.00')
-    return render(request, 'spares/po_detail.html', {
-        'po':    po,
-        'items': items,
-        'total': total,
-    })
+def order_list(request):
+    orders = PurchaseOrder.objects.select_related('supplier').order_by('-date')
+    return render(request, 'spares/order_list.html', {'orders': orders})
 
 
 @login_required
-def po_create(request):
+def order_detail(request, pk):
+    order = get_object_or_404(PurchaseOrder, pk=pk)
+    items = order.items.select_related('item', 'warehouse')
+    return render(request, 'spares/order_detail.html', {'order': order, 'items': items})
+
+
+@login_required
+def order_create(request):
     form = PurchaseOrderForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        po = form.save()
-        log_action(request, 'Purchase Order', 'create', po.pk)
-        messages.success(request, 'Purchase order created successfully.')
-        return redirect('spares:po_detail', pk=po.pk)
-    return render(request, 'spares/po_form.html',
-                  {'form': form, 'title': 'New Purchase Order'})
+    formset = PurchaseOrderItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in items)
+            obj.total_amount = sum(i.amount for i in items)
+            obj.grand_total = obj.total_amount
+            obj.save()
+        messages.success(request, f'PO {obj.po_no} created.')
+        return redirect('spares:order_detail', pk=obj.pk)
+    return render(request, 'spares/order_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Purchase Order'
+    })
 
 
 @login_required
-def po_update(request, pk):
-    po   = get_object_or_404(PurchaseOrder, pk=pk)
-    form = PurchaseOrderForm(request.POST or None, instance=po)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Purchase Order', 'update', pk)
-        messages.success(request, 'Purchase order updated successfully.')
-        return redirect('spares:po_detail', pk=po.pk)
-    return render(request, 'spares/po_form.html',
-                  {'form': form, 'title': 'Edit Purchase Order'})
+def order_update(request, pk):
+    obj = get_object_or_404(PurchaseOrder, pk=pk)
+    form = PurchaseOrderForm(request.POST or None, instance=obj)
+    formset = PurchaseOrderItemFormSet(request.POST or None, instance=obj, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            form.save()
+            formset.save()
+            items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in items)
+            obj.total_amount = sum(i.amount for i in items)
+            obj.grand_total = obj.total_amount
+            obj.save()
+        messages.success(request, 'PO updated.')
+        return redirect('spares:order_detail', pk=pk)
+    return render(request, 'spares/order_form.html', {
+        'form': form, 'formset': formset, 'title': 'Edit PO', 'object': obj
+    })
+
+
+# -- Purchase Invoices --------------------------------------------------------
+
+@login_required
+def invoice_list(request):
+    invoices = PurchaseInvoice.objects.select_related('supplier').order_by('-date')
+    return render(request, 'spares/invoice_list.html', {'invoices': invoices})
 
 
 @login_required
-@require_POST
-def po_status_update(request, pk):
-    po         = get_object_or_404(PurchaseOrder, pk=pk)
-    new_status = request.POST.get('status')
-    if new_status in dict(PurchaseOrder.Status.choices):
-        po.status = new_status
-        po.save(update_fields=['status'])
-        log_action(request, 'Purchase Order', 'update', pk)
-        messages.success(request, f'PO status updated to {po.get_status_display()}.')
-    return redirect('spares:po_detail', pk=po.pk)
-
-
-# ---------------------------------------------------------------------------
-# PurchaseOrderItem
-# ---------------------------------------------------------------------------
-
-@login_required
-def po_item_create(request):
-    initial = {}
-    if request.GET.get('po'):
-        initial['purchase_order'] = request.GET['po']
-    form = PurchaseOrderItemForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        item = form.save()
-        messages.success(request, 'Item added to purchase order.')
-        return redirect('spares:po_detail', pk=item.purchase_order_id)
-    return render(request, 'spares/po_item_form.html',
-                  {'form': form, 'title': 'Add Item'})
+def invoice_detail(request, pk):
+    invoice = get_object_or_404(PurchaseInvoice, pk=pk)
+    items = invoice.items.select_related('item', 'warehouse', 'rack', 'bin')
+    return render(request, 'spares/invoice_detail.html', {'invoice': invoice, 'items': items})
 
 
 @login_required
-def po_item_update(request, pk):
-    item = get_object_or_404(PurchaseOrderItem, pk=pk)
-    form = PurchaseOrderItemForm(request.POST or None, instance=item)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        messages.success(request, 'Purchase order item updated successfully.')
-        return redirect('spares:po_detail', pk=item.purchase_order_id)
-    return render(request, 'spares/po_item_form.html',
-                  {'form': form, 'title': 'Edit Item'})
+def invoice_create(request):
+    form = PurchaseInvoiceForm(request.POST or None)
+    formset = PurchaseInvoiceItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            all_items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in all_items)
+            obj.total_amount = sum(i.amount for i in all_items)
+            obj.total_sgst = sum(i.sgst_amount for i in all_items)
+            obj.total_cgst = sum(i.cgst_amount for i in all_items)
+            obj.total_taxes = obj.total_sgst + obj.total_cgst
+            obj.grand_total = obj.total_amount + obj.total_taxes
+            obj.save()
+            if obj.status == 'submitted':
+                for inv_item in all_items:
+                    ledger, _ = StockLedger.objects.get_or_create(
+                        item=inv_item.item,
+                        warehouse=inv_item.warehouse,
+                        rack=inv_item.rack,
+                        bin=inv_item.bin,
+                        defaults={'quantity': 0}
+                    )
+                    ledger.quantity += inv_item.quantity
+                    ledger.save()
+        messages.success(request, f'Invoice {obj.invoice_no} created.')
+        return redirect('spares:invoice_detail', pk=obj.pk)
+    return render(request, 'spares/invoice_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Purchase Invoice'
+    })
 
 
-@login_required
-@require_POST
-def po_item_delete(request, pk):
-    item  = get_object_or_404(PurchaseOrderItem, pk=pk)
-    po_pk = item.purchase_order_id
-    item.delete()
-    messages.success(request, 'Item removed from purchase order.')
-    return redirect('spares:po_detail', pk=po_pk)
-
-
-# ---------------------------------------------------------------------------
-# CounterSale
-# ---------------------------------------------------------------------------
+# -- Counter Sales ------------------------------------------------------------
 
 @login_required
 def counter_sale_list(request):
-    q  = request.GET.get('q', '').strip()
-    qs = CounterSale.objects.select_related('customer', 'branch', 'created_by').all()
-    if q:
-        qs = qs.filter(
-            Q(invoice_number__icontains=q) |
-            Q(customer__full_name__icontains=q)
-        )
-    paginator = Paginator(qs, 25)
-    page_obj  = paginator.get_page(request.GET.get('page'))
-    return render(request, 'spares/counter_sale_list.html', {
-        'counter_sales': page_obj,
-        'page_obj':      page_obj,
-        'q':             q,
-    })
+    sales = CounterSale.objects.select_related('godown').order_by('-date')
+    return render(request, 'spares/counter_sale_list.html', {'sales': sales})
 
 
 @login_required
 def counter_sale_detail(request, pk):
-    sale  = get_object_or_404(
-        CounterSale.objects.select_related('customer', 'branch', 'created_by'),
-        pk=pk,
-    )
-    items = sale.items.select_related('spare_part').all()
-    total = items.aggregate(total=Sum('total_price'))['total'] or Decimal('0.00')
-    return render(request, 'spares/counter_sale_detail.html', {
-        'sale':  sale,
-        'items': items,
-        'total': total,
-    })
+    sale = get_object_or_404(CounterSale, pk=pk)
+    items = sale.items.select_related('item', 'rack', 'bin')
+    return render(request, 'spares/counter_sale_detail.html', {'sale': sale, 'items': items})
 
 
 @login_required
 def counter_sale_create(request):
     form = CounterSaleForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        sale = form.save()
-        log_action(request, 'Counter Sale', 'create', sale.pk)
-        messages.success(request, 'Counter sale created successfully.')
-        return redirect('spares:counter_sale_detail', pk=sale.pk)
-    return render(request, 'spares/counter_sale_form.html',
-                  {'form': form, 'title': 'New Counter Sale'})
+    formset = CounterSaleItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            all_items = obj.items.all()
+            obj.total_qty = sum(i.quantity for i in all_items)
+            obj.total_amount = sum(i.total for i in all_items) - obj.discount_amount
+            obj.save()
+        messages.success(request, f'Counter sale {obj.sale_no} created.')
+        return redirect('spares:counter_sale_detail', pk=obj.pk)
+    return render(request, 'spares/counter_sale_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Counter Sale'
+    })
+
+
+# -- Counter Returns ----------------------------------------------------------
+
+@login_required
+def counter_return_list(request):
+    returns = CounterSaleReturn.objects.select_related('original_sale').order_by('-return_date')
+    return render(request, 'spares/counter_return_list.html', {'returns': returns})
 
 
 @login_required
-def counter_sale_update(request, pk):
-    sale = get_object_or_404(CounterSale, pk=pk)
-    form = CounterSaleForm(request.POST or None, instance=sale)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Counter Sale', 'update', pk)
-        messages.success(request, 'Counter sale updated successfully.')
-        return redirect('spares:counter_sale_detail', pk=sale.pk)
-    return render(request, 'spares/counter_sale_form.html',
-                  {'form': form, 'title': 'Edit Counter Sale'})
-
-
-# ---------------------------------------------------------------------------
-# CounterSaleItem
-# ---------------------------------------------------------------------------
-
-@login_required
-def counter_sale_item_create(request):
-    initial = {}
-    if request.GET.get('cs'):
-        initial['counter_sale'] = request.GET['cs']
-    form = CounterSaleItemForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        item = form.save()
-        messages.success(request, 'Item added to counter sale.')
-        return redirect('spares:counter_sale_detail', pk=item.counter_sale_id)
-    return render(request, 'spares/counter_sale_item_form.html',
-                  {'form': form, 'title': 'Add Sale Item'})
+def counter_return_detail(request, pk):
+    ret = get_object_or_404(CounterSaleReturn, pk=pk)
+    items = ret.items.select_related('item')
+    return render(request, 'spares/counter_return_detail.html', {'ret': ret, 'items': items})
 
 
 @login_required
-@require_POST
-def counter_sale_item_delete(request, pk):
-    item    = get_object_or_404(CounterSaleItem, pk=pk)
-    sale_pk = item.counter_sale_id
-    item.delete()
-    messages.success(request, 'Item removed from counter sale.')
-    return redirect('spares:counter_sale_detail', pk=sale_pk)
+def counter_return_create(request):
+    form = CounterSaleReturnForm(request.POST or None)
+    formset = CounterSaleReturnItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            all_items = obj.items.all()
+            obj.total_amount = sum(i.amount for i in all_items)
+            obj.save()
+        messages.success(request, f'Return {obj.return_no} created.')
+        return redirect('spares:counter_return_detail', pk=obj.pk)
+    return render(request, 'spares/counter_return_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Counter Return'
+    })
 
 
-# ---------------------------------------------------------------------------
-# SparesIssue
-# ---------------------------------------------------------------------------
+# -- Issue Alterations --------------------------------------------------------
 
 @login_required
-def issue_list(request):
-    jobcard_filter = request.GET.get('jobcard', '')
-    qs = SparesIssue.objects.select_related(
-        'spare_part', 'job_card__customer_vehicle__customer', 'issued_by'
-    ).all()
-    if jobcard_filter:
-        qs = qs.filter(job_card_id=jobcard_filter)
-    return render(request, 'spares/spares_issue_list.html', {
-        'issues':         qs,
-        'jobcard_filter': jobcard_filter,
+def issue_alteration_list(request):
+    alterations = SparesIssueAlteration.objects.select_related('godown').order_by('-date')
+    return render(request, 'spares/issue_alteration_list.html', {'alterations': alterations})
+
+
+@login_required
+def issue_alteration_detail(request, pk):
+    alteration = get_object_or_404(SparesIssueAlteration, pk=pk)
+    items = alteration.items.select_related('item', 'rack', 'bin')
+    return render(request, 'spares/issue_alteration_detail.html', {
+        'alteration': alteration, 'items': items
     })
 
 
 @login_required
-def issue_create(request):
-    initial = {}
-    if request.GET.get('jobcard'):
-        initial['job_card'] = request.GET['jobcard']
-    form = SparesIssueForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        issue = form.save()
-        log_action(request, 'Spares Issue', 'create', issue.pk)
-        messages.success(request, 'Spare part issued successfully.')
-        return redirect('service:jobcard_detail', pk=issue.job_card_id)
-    return render(request, 'spares/spares_issue_form.html',
-                  {'form': form, 'title': 'Issue Spare Part'})
+def issue_alteration_create(request):
+    form = SparesIssueAlterationForm(request.POST or None)
+    formset = SparesIssueAlterationItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            all_items = obj.items.all()
+            obj.spares_total = sum(i.total for i in all_items)
+            obj.total = obj.spares_total + obj.labour_total + obj.outwork_total
+            obj.updated_total = obj.total - obj.discount
+            obj.save()
+        messages.success(request, f'Issue alteration SIA-{obj.pk:05d} created.')
+        return redirect('spares:issue_alteration_detail', pk=obj.pk)
+    return render(request, 'spares/issue_alteration_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Issue Alteration'
+    })
+
+
+# -- AJAX ---------------------------------------------------------------------
+
+@login_required
+def ajax_item_details(request):
+    item_id = request.GET.get('item_id')
+    if not item_id:
+        return JsonResponse({'error': 'No item_id'}, status=400)
+    try:
+        item = SparesItem.objects.get(pk=item_id)
+        return JsonResponse({
+            'rate': float(item.standard_selling_rate),
+            'mrp': float(item.mrp),
+            'sgst': float(item.sgst),
+            'cgst': float(item.cgst),
+            'uom': item.uom,
+            'hsn': item.hsn_sac,
+        })
+    except SparesItem.DoesNotExist:
+        return JsonResponse({'error': 'Item not found'}, status=404)
 
 
 @login_required
-def issue_update(request, pk):
-    issue = get_object_or_404(SparesIssue, pk=pk)
-    form  = SparesIssueForm(request.POST or None, instance=issue)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Spares Issue', 'update', pk)
-        messages.success(request, 'Spares issue updated successfully.')
-        return redirect('service:jobcard_detail', pk=issue.job_card_id)
-    return render(request, 'spares/spares_issue_form.html',
-                  {'form': form, 'title': 'Update Spares Issue'})
+def ajax_rack_bins(request):
+    rack_id = request.GET.get('rack_id')
+    if not rack_id:
+        return JsonResponse({'bins': []})
+    bins = list(Bin.objects.filter(rack_id=rack_id).values('id', 'name'))
+    return JsonResponse({'bins': bins})

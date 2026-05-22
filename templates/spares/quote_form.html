@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:quote_list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="fa fa-arrow-left me-1"></i>Back
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="main-form">
+  {% csrf_token %}
+  {{ formset.management_form }}
+
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Quote Header</h6></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-6"><label class="form-label">Supplier *</label>{{ form.supplier }}</div>
+            <div class="col-sm-6"><label class="form-label">Date *</label>{{ form.date }}</div>
+            <div class="col-sm-6"><label class="form-label">Valid Till</label>{{ form.valid_till }}</div>
+            <div class="col-sm-6"><label class="form-label">Quotation No</label>{{ form.quotation_number }}</div>
+            <div class="col-sm-6"><label class="form-label">Status</label>{{ form.status }}</div>
+            <div class="col-sm-6"><label class="form-label">Additional Discount %</label>{{ form.additional_discount_percent }}</div>
+            <div class="col-sm-6"><label class="form-label">Discount Amount</label>{{ form.additional_discount_amount }}</div>
+            <div class="col-sm-6 d-flex align-items-end">
+              <div class="form-check">{{ form.is_reverse_charge }}<label class="form-check-label ms-2">Reverse Charge</label></div>
+            </div>
+            <div class="col-12"><label class="form-label">Terms &amp; Conditions</label>{{ form.terms_and_conditions }}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
+          <h6 class="mb-0 fw-semibold">Items</h6>
+          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row">
+            <i class="fa fa-plus me-1"></i>Add Item
+          </button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-sm mb-0" id="formset-table">
+              <thead class="table-light">
+                <tr>
+                  <th style="width:35%">Item</th>
+                  <th>Qty</th>
+                  <th>UOM</th>
+                  <th>Rate</th>
+                  <th>Req Date</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="formset-body">
+                {% for f in formset %}
+                <tr class="formset-row">
+                  <td>{{ f.item }}{{ f.id }}</td>
+                  <td>{{ f.quantity }}</td>
+                  <td>{{ f.uom }}</td>
+                  <td>{{ f.rate }}</td>
+                  <td>{{ f.required_date }}</td>
+                  <td>
+                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-row">
+                      <i class="fa fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm">
+        <div class="card-body d-grid">
+          <button type="submit" class="btn btn-primary">
+            <i class="fa fa-save me-1"></i>Save Quote
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+  const tbody = document.getElementById('formset-body');
+  const firstRow = tbody.querySelector('.formset-row');
+
+  document.getElementById('add-row').addEventListener('click', function() {
+    const formCount = parseInt(totalForms.value);
+    const newRow = firstRow.cloneNode(true);
+    newRow.innerHTML = newRow.innerHTML.replace(/items-\d+/g, 'items-' + formCount);
+    newRow.querySelectorAll('input,select,textarea').forEach(function(el) { el.value = ''; });
+    tbody.appendChild(newRow);
+    totalForms.value = formCount + 1;
+    bindRemove(newRow);
+  });
+
+  function bindRemove(row) {
+    var btn = row.querySelector('.remove-row');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        var del = row.querySelector('[id$="-DELETE"]');
+        if (del) { del.checked = true; row.style.display = 'none'; }
+        else { row.remove(); }
+      });
+    }
+  }
+
+  tbody.querySelectorAll('.formset-row').forEach(function(row) { bindRemove(row); });
+})();
+</script>
+{% endblock %}

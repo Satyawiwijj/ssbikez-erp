@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Purchase Invoices{% endblock %}
+{% block page_title %}Purchase Invoices{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'spares:invoice_create' %}" class="btn btn-primary btn-sm"><i class="fa fa-plus me-1"></i>New Invoice</a>
+{% endblock %}
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-light">
+        <tr><th>Invoice No</th><th>Supplier</th><th>Date</th><th>Status</th><th>Payment</th><th>Grand Total</th></tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td><a href="{% url 'spares:invoice_detail' inv.pk %}">{{ inv.invoice_no }}</a></td>
+          <td>{{ inv.supplier }}</td>
+          <td>{{ inv.date }}</td>
+          <td>
+            {% if inv.status == 'submitted' %}<span class="badge bg-primary">Submitted</span>
+            {% elif inv.status == 'paid' %}<span class="badge bg-success">Paid</span>
+            {% elif inv.status == 'cancelled' %}<span class="badge bg-danger">Cancelled</span>
+            {% else %}<span class="badge bg-secondary">Draft</span>{% endif %}
+          </td>
+          <td>{{ inv.payment_status }}</td>
+          <td>&#8377;{{ inv.grand_total }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-4">No invoices found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

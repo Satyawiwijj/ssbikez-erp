@@ -1,257 +1,406 @@
-from django.conf import settings
 from django.db import models
-from django.db.models import DecimalField, ExpressionWrapper, F, Sum
+from django.conf import settings
+from masters.models import SparesCategory, Supplier, Warehouse, Rack, Bin
 
 
-class SparesCategory(models.Model):
-    category_name = models.CharField(max_length=100, unique=True)
-    created_at    = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['category_name']
-        verbose_name_plural = 'Spares Categories'
-
-    def __str__(self):
-        return self.category_name
-
-
-class SparePart(models.Model):
-    category       = models.ForeignKey(
-        SparesCategory,
-        on_delete=models.PROTECT,
-        related_name='spare_parts'
+class SparesItem(models.Model):
+    item_code = models.CharField(max_length=50, unique=True, editable=False)
+    item_name = models.CharField(max_length=200)
+    category = models.ForeignKey(SparesCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    item_sub_group = models.CharField(max_length=100, blank=True)
+    hsn_sac = models.CharField(max_length=20, blank=True)
+    uom = models.CharField(max_length=20, default='Nos')
+    part_number = models.CharField(max_length=100, blank=True)
+    brand = models.CharField(max_length=100, blank=True)
+    description = models.TextField(blank=True)
+    maintain_stock = models.BooleanField(default=True)
+    allow_negative_stock = models.BooleanField(default=False)
+    opening_stock = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    valuation_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    standard_selling_rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    mrp = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    sgst = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    cgst = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    is_ineligible_for_itc = models.BooleanField(default=False)
+    reorder_level = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    reorder_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    warranty_period_days = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
-    part_name      = models.CharField(max_length=255)
-    part_number    = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    mrp            = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    stock_quantity = models.IntegerField(default=0, db_index=True)
-    rack_location  = models.CharField(max_length=100, blank=True, null=True)
-    bin_location   = models.CharField(max_length=100, blank=True, null=True)
-    created_at     = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ['part_name']
-        verbose_name_plural = 'Spare Parts'
+    def save(self, *args, **kwargs):
+        if not self.item_code:
+            last = SparesItem.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.item_code = f"SP-{num:05d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.part_name} ({self.part_number or 'No Part No.'})"
-
-
-class Supplier(models.Model):
-    supplier_name = models.CharField(max_length=255)
-    phone         = models.CharField(max_length=15, blank=True, null=True)
-    email         = models.EmailField(blank=True, null=True)
-    address       = models.TextField(blank=True, null=True)
-    created_at    = models.DateTimeField(auto_now_add=True)
+        return f"{self.item_code} - {self.item_name}"
 
     class Meta:
-        ordering = ['supplier_name']
-        verbose_name_plural = 'Suppliers'
+        ordering = ['item_name']
+
+
+class ItemRackBin(models.Model):
+    item = models.ForeignKey(SparesItem, on_delete=models.CASCADE, related_name='rack_bins')
+    rack = models.ForeignKey(Rack, on_delete=models.CASCADE)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return self.supplier_name
+        return f"{self.item.item_code} | {self.rack} | {self.bin}"
+
+
+class StockLedger(models.Model):
+    item = models.ForeignKey(SparesItem, on_delete=models.CASCADE, related_name='stock')
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.CASCADE)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['item', 'warehouse', 'rack', 'bin']
+
+    def __str__(self):
+        return f"{self.item.item_code} | {self.warehouse.name} | Qty: {self.quantity}"
+
+
+class SupplierQuote(models.Model):
+    STATUS = [
+        ('draft', 'Draft'), ('submitted', 'Submitted'),
+        ('ordered', 'Ordered'), ('cancelled', 'Cancelled'),
+    ]
+    quote_no = models.CharField(max_length=50, unique=True, editable=False)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    date = models.DateField()
+    valid_till = models.DateField(null=True, blank=True)
+    quotation_number = models.CharField(max_length=100, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    is_reverse_charge = models.BooleanField(default=False)
+    total_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    additional_discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    additional_discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    terms_and_conditions = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.quote_no:
+            last = SupplierQuote.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.quote_no = f"SQ-{num:05d}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.quote_no
+
+    class Meta:
+        ordering = ['-date']
+
+
+class SupplierQuoteItem(models.Model):
+    quote = models.ForeignKey(SupplierQuote, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    required_date = models.DateField(null=True, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    uom = models.CharField(max_length=20, default='Nos')
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.quote.quote_no} | {self.item.item_code}"
 
 
 class PurchaseOrder(models.Model):
-    class Status(models.TextChoices):
-        DRAFT     = 'draft',     'Draft'
-        SENT      = 'sent',      'Sent'
-        RECEIVED  = 'received',  'Received'
-        CANCELLED = 'cancelled', 'Cancelled'
-
-    supplier     = models.ForeignKey(
-        Supplier,
-        on_delete=models.PROTECT,
-        related_name='purchase_orders'
+    STATUS = [
+        ('draft', 'Draft'), ('submitted', 'Submitted'),
+        ('received', 'Received'), ('cancelled', 'Cancelled'),
+    ]
+    po_no = models.CharField(max_length=50, unique=True, editable=False)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    supplier_name = models.CharField(max_length=200, blank=True)
+    supplier_quote = models.ForeignKey(
+        SupplierQuote, on_delete=models.SET_NULL, null=True, blank=True
     )
-    order_date   = models.DateField(auto_now_add=True)
-    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    status       = models.CharField(
-        max_length=20,
-        choices=Status.choices,
-        default=Status.DRAFT
+    date = models.DateField()
+    required_by = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    is_reverse_charge = models.BooleanField(default=False)
+    supplier_gstin = models.CharField(max_length=20, blank=True)
+    gst_category = models.CharField(max_length=50, blank=True)
+    place_of_supply = models.CharField(max_length=100, blank=True)
+    total_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_taxes = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    terms_and_conditions = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
-    created_at   = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-order_date']
-        verbose_name_plural = 'Purchase Orders'
-
-    def __str__(self):
-        return f"PO-{self.pk} | {self.supplier} — Rs.{self.total_amount}"
 
     def save(self, *args, **kwargs):
-        # When status changes to 'received', add all item quantities to spare part stock
-        if self.pk:
-            old_status = (
-                PurchaseOrder.objects
-                .filter(pk=self.pk)
-                .values_list('status', flat=True)
-                .first()
-            )
-            if old_status and old_status != self.Status.RECEIVED and self.status == self.Status.RECEIVED:
-                for item in self.items.select_related('spare_part').all():
-                    SparePart.objects.filter(pk=item.spare_part_id).update(
-                        stock_quantity=F('stock_quantity') + item.quantity
-                    )
+        if not self.po_no:
+            last = PurchaseOrder.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.po_no = f"PO-{num:05d}"
+        if self.supplier and not self.supplier_name:
+            self.supplier_name = self.supplier.supplier_name
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.po_no
+
+    class Meta:
+        ordering = ['-date']
 
 
 class PurchaseOrderItem(models.Model):
-    purchase_order = models.ForeignKey(
-        PurchaseOrder,
-        on_delete=models.CASCADE,
-        related_name='items'
-    )
-    spare_part     = models.ForeignKey(
-        SparePart,
-        on_delete=models.PROTECT,
-        related_name='purchase_order_items'
-    )
-    quantity       = models.IntegerField()
-    price          = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at     = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        verbose_name_plural = 'Purchase Order Items'
-
-    def __str__(self):
-        return f"{self.spare_part} x{self.quantity} (PO-{self.purchase_order_id})"
-
-    @property
-    def line_total(self):
-        return self.quantity * self.price
+    order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    required_by = models.DateField(null=True, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    uom = models.CharField(max_length=20, default='Nos')
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    received_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0)
 
     def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
         super().save(*args, **kwargs)
-        # Recalculate and update the parent PO's total_amount
-        total = (
-            self.purchase_order.items
-            .aggregate(
-                total=Sum(
-                    ExpressionWrapper(F('quantity') * F('price'), output_field=DecimalField())
-                )
-            )['total'] or 0
-        )
-        PurchaseOrder.objects.filter(pk=self.purchase_order_id).update(total_amount=total)
+
+    def __str__(self):
+        return f"{self.order.po_no} | {self.item.item_code}"
+
+
+class PurchaseInvoice(models.Model):
+    STATUS = [
+        ('draft', 'Draft'), ('submitted', 'Submitted'),
+        ('paid', 'Paid'), ('cancelled', 'Cancelled'),
+    ]
+    invoice_no = models.CharField(max_length=50, unique=True, editable=False)
+    supplier = models.ForeignKey(Supplier, on_delete=models.PROTECT)
+    purchase_order = models.ForeignKey(
+        PurchaseOrder, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    date = models.DateField()
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    is_reverse_charge = models.BooleanField(default=False)
+    supplier_gstin = models.CharField(max_length=20, blank=True)
+    gst_category = models.CharField(max_length=50, blank=True)
+    place_of_supply = models.CharField(max_length=100, blank=True)
+    total_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_sgst = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_cgst = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_taxes = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    payment_status = models.CharField(max_length=20, default='Unpaid')
+    remarks = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.invoice_no:
+            last = PurchaseInvoice.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.invoice_no = f"PI-{num:05d}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.invoice_no
+
+    class Meta:
+        ordering = ['-date']
+
+
+class PurchaseInvoiceItem(models.Model):
+    invoice = models.ForeignKey(PurchaseInvoice, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    uom = models.CharField(max_length=20, default='Nos')
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    sgst = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    cgst = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        self.sgst_amount = self.amount * self.sgst / 100
+        self.cgst_amount = self.amount * self.cgst / 100
+        self.total = self.amount + self.sgst_amount + self.cgst_amount
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.invoice.invoice_no} | {self.item.item_code}"
 
 
 class CounterSale(models.Model):
-    customer       = models.ForeignKey(
-        'customers.Customer',
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='counter_sales'
+    PAY_TYPES = [('cash', 'Cash'), ('card', 'Card'), ('upi', 'UPI'), ('credit', 'Credit')]
+    STATUS = [('draft', 'Draft'), ('submitted', 'Submitted'), ('cancelled', 'Cancelled')]
+    sale_no = models.CharField(max_length=50, unique=True, editable=False)
+    customer = models.CharField(max_length=200)
+    mobile = models.CharField(max_length=20)
+    gst_category = models.CharField(max_length=50, blank=True)
+    godown = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    date = models.DateField()
+    is_warranty = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    total_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    payment_status = models.CharField(max_length=20, default='Unpaid')
+    pay_type = models.CharField(max_length=20, choices=PAY_TYPES, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
     )
-    branch         = models.ForeignKey(
-        'accounts.Branch',
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='counter_sales'
-    )
-    invoice_number = models.CharField(max_length=100, unique=True)
-    total_amount   = models.DecimalField(max_digits=10, decimal_places=2)
-    sale_date      = models.DateField(auto_now_add=True)
-    created_by     = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='counter_sales_created'
-    )
-    created_at     = models.DateTimeField(auto_now_add=True)
 
-    class Meta:
-        ordering = ['-sale_date']
-        verbose_name_plural = 'Counter Sales'
+    def save(self, *args, **kwargs):
+        if not self.sale_no:
+            last = CounterSale.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.sale_no = f"CS-{num:05d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.invoice_number} — Rs.{self.total_amount}"
+        return self.sale_no
+
+    class Meta:
+        ordering = ['-date']
 
 
 class CounterSaleItem(models.Model):
-    counter_sale = models.ForeignKey(
-        CounterSale,
-        on_delete=models.CASCADE,
-        related_name='items'
-    )
-    spare_part   = models.ForeignKey(
-        SparePart,
-        on_delete=models.PROTECT,
-        related_name='counter_sale_items'
-    )
-    quantity     = models.IntegerField()
-    unit_price   = models.DecimalField(max_digits=10, decimal_places=2)
-    total_price  = models.DecimalField(max_digits=10, decimal_places=2)
-
-    class Meta:
-        verbose_name_plural = 'Counter Sale Items'
-
-    def __str__(self):
-        return f"{self.spare_part} x{self.quantity} ({self.counter_sale.invoice_number})"
+    sale = models.ForeignKey(CounterSale, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    gst_percent = models.DecimalField(max_digits=5, decimal_places=2, default=18)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
-        self.total_price = self.quantity * self.unit_price
+        self.amount = self.quantity * self.rate
+        self.total = self.amount + (self.amount * self.gst_percent / 100)
         super().save(*args, **kwargs)
-
-
-class SparesIssue(models.Model):
-    """
-    Tracks spare parts issued from stock to a job card.
-    Enables stock deduction and per-job-card cost calculation.
-    """
-    job_card          = models.ForeignKey(
-        'service.JobCard',
-        on_delete=models.CASCADE,
-        related_name='spares_issues'
-    )
-    spare_part        = models.ForeignKey(
-        SparePart,
-        on_delete=models.PROTECT,
-        related_name='issues'
-    )
-    quantity_issued   = models.IntegerField()
-    quantity_returned = models.IntegerField(default=0)
-    unit_price        = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    total_price       = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    issued_by         = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True, blank=True,
-        related_name='spares_issued'
-    )
-    issued_at         = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        ordering = ['-issued_at']
-        verbose_name_plural = 'Spares Issues'
 
     def __str__(self):
-        return f"{self.spare_part} x{self.quantity_issued} → JC-{self.job_card_id}"
+        return f"{self.sale.sale_no} | {self.item.item_code}"
+
+
+class CounterSaleReturn(models.Model):
+    return_no = models.CharField(max_length=50, unique=True, editable=False)
+    original_sale = models.ForeignKey(CounterSale, on_delete=models.PROTECT)
+    return_date = models.DateField()
+    reason = models.TextField(blank=True, null=True)
+    stock_return_done = models.BooleanField(default=False)
+    amount_refund_done = models.BooleanField(default=False)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
 
     def save(self, *args, **kwargs):
-        # Auto-calculate total price
-        if self.unit_price is not None:
-            self.total_price = self.quantity_issued * self.unit_price
-
-        if self.pk:
-            # Update: if quantity_returned changed, restore/deduct the difference
-            try:
-                old = SparesIssue.objects.get(pk=self.pk)
-                returned_diff = self.quantity_returned - old.quantity_returned
-                if returned_diff != 0:
-                    SparePart.objects.filter(pk=self.spare_part_id).update(
-                        stock_quantity=F('stock_quantity') + returned_diff
-                    )
-            except SparesIssue.DoesNotExist:
-                pass
-        else:
-            # Create: deduct issued quantity from stock (allow negative, validate in form)
-            SparePart.objects.filter(pk=self.spare_part_id).update(
-                stock_quantity=F('stock_quantity') - self.quantity_issued
-            )
-
+        if not self.return_no:
+            last = CounterSaleReturn.objects.order_by('-id').first()
+            num = (last.id + 1) if last else 1
+            self.return_no = f"CSR-{num:05d}"
         super().save(*args, **kwargs)
 
-    @property
-    def net_quantity(self):
-        return self.quantity_issued - self.quantity_returned
+    def __str__(self):
+        return self.return_no
+
+    class Meta:
+        ordering = ['-return_date']
+
+
+class CounterSaleReturnItem(models.Model):
+    sale_return = models.ForeignKey(CounterSaleReturn, on_delete=models.CASCADE, related_name='items')
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.sale_return.return_no} | {self.item.item_code}"
+
+
+class SparesIssueAlteration(models.Model):
+    JOB_TYPES = [('service', 'Service'), ('repair', 'Repair'), ('warranty', 'Warranty')]
+    job_card = models.CharField(max_length=50)
+    godown = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
+    job_type = models.CharField(max_length=20, choices=JOB_TYPES, default='service')
+    date = models.DateField()
+    spares_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    labour_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    outwork_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    discount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    updated_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
+    )
+
+    def __str__(self):
+        return f"SIA-{self.pk:05d} | {self.job_card}"
+
+    class Meta:
+        ordering = ['-date']
+
+
+class SparesIssueAlterationItem(models.Model):
+    alteration = models.ForeignKey(
+        SparesIssueAlteration, on_delete=models.CASCADE, related_name='items'
+    )
+    item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
+    quantity = models.DecimalField(max_digits=10, decimal_places=3)
+    rack = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True, blank=True)
+    bin = models.ForeignKey(Bin, on_delete=models.SET_NULL, null=True, blank=True)
+    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    def save(self, *args, **kwargs):
+        amount = self.quantity * self.rate
+        self.total = amount - (amount * self.discount_percent / 100)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"SIA-{self.alteration_id} | {self.item.item_code}"

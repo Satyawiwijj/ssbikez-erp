@@ -1,65 +1,99 @@
 from django.contrib import admin
-
-from .models import (CounterSale, CounterSaleItem, PurchaseOrder,
-                     PurchaseOrderItem, SparePart, SparesCategory,
-                     SparesIssue, Supplier)
-
-
-@admin.register(SparesCategory)
-class SparesCategoryAdmin(admin.ModelAdmin):
-    list_display    = ('category_name', 'created_at')
-    search_fields   = ('category_name',)
-    readonly_fields = ('created_at',)
+from .models import (
+    SparesItem, ItemRackBin, StockLedger,
+    SupplierQuote, SupplierQuoteItem,
+    PurchaseOrder, PurchaseOrderItem,
+    PurchaseInvoice, PurchaseInvoiceItem,
+    CounterSale, CounterSaleItem,
+    CounterSaleReturn, CounterSaleReturnItem,
+    SparesIssueAlteration, SparesIssueAlterationItem,
+)
 
 
-@admin.register(SparePart)
-class SparePartAdmin(admin.ModelAdmin):
-    list_display    = ('part_name', 'part_number', 'category', 'mrp',
-                       'stock_quantity', 'rack_location', 'bin_location')
-    search_fields   = ('part_name', 'part_number')
-    list_filter     = ('category',)
-    readonly_fields = ('created_at',)
+class SupplierQuoteItemInline(admin.TabularInline):
+    model = SupplierQuoteItem
+    extra = 1
 
 
-@admin.register(Supplier)
-class SupplierAdmin(admin.ModelAdmin):
-    list_display    = ('supplier_name', 'phone', 'email')
-    search_fields   = ('supplier_name', 'phone', 'email')
-    readonly_fields = ('created_at',)
+class PurchaseOrderItemInline(admin.TabularInline):
+    model = PurchaseOrderItem
+    extra = 1
+
+
+class PurchaseInvoiceItemInline(admin.TabularInline):
+    model = PurchaseInvoiceItem
+    extra = 1
+
+
+class CounterSaleItemInline(admin.TabularInline):
+    model = CounterSaleItem
+    extra = 1
+
+
+class CounterSaleReturnItemInline(admin.TabularInline):
+    model = CounterSaleReturnItem
+    extra = 1
+
+
+class SparesIssueAlterationItemInline(admin.TabularInline):
+    model = SparesIssueAlterationItem
+    extra = 1
+
+
+@admin.register(SparesItem)
+class SparesItemAdmin(admin.ModelAdmin):
+    list_display = ['item_code', 'item_name', 'category', 'uom', 'mrp', 'is_active']
+    list_filter = ['category', 'is_active', 'brand']
+    search_fields = ['item_code', 'item_name', 'part_number', 'hsn_sac']
+
+
+@admin.register(ItemRackBin)
+class ItemRackBinAdmin(admin.ModelAdmin):
+    list_display = ['item', 'rack', 'bin', 'is_active']
+
+
+@admin.register(StockLedger)
+class StockLedgerAdmin(admin.ModelAdmin):
+    list_display = ['item', 'warehouse', 'rack', 'bin', 'quantity', 'updated_at']
+    list_filter = ['warehouse']
+
+
+@admin.register(SupplierQuote)
+class SupplierQuoteAdmin(admin.ModelAdmin):
+    list_display = ['quote_no', 'supplier', 'date', 'status', 'grand_total']
+    list_filter = ['status']
+    inlines = [SupplierQuoteItemInline]
 
 
 @admin.register(PurchaseOrder)
 class PurchaseOrderAdmin(admin.ModelAdmin):
-    list_display    = ('supplier', 'order_date', 'total_amount', 'status')
-    list_filter     = ('status',)
-    readonly_fields = ('order_date', 'created_at')
+    list_display = ['po_no', 'supplier', 'date', 'status', 'grand_total']
+    list_filter = ['status']
+    inlines = [PurchaseOrderItemInline]
 
 
-@admin.register(PurchaseOrderItem)
-class PurchaseOrderItemAdmin(admin.ModelAdmin):
-    list_display    = ('purchase_order', 'spare_part', 'quantity', 'price')
-    readonly_fields = ('created_at',)
+@admin.register(PurchaseInvoice)
+class PurchaseInvoiceAdmin(admin.ModelAdmin):
+    list_display = ['invoice_no', 'supplier', 'date', 'status', 'grand_total', 'payment_status']
+    list_filter = ['status', 'payment_status']
+    inlines = [PurchaseInvoiceItemInline]
 
 
 @admin.register(CounterSale)
 class CounterSaleAdmin(admin.ModelAdmin):
-    list_display    = ('invoice_number', 'customer', 'total_amount',
-                       'sale_date', 'created_by')
-    search_fields   = ('invoice_number', 'customer__full_name', 'customer__phone')
-    list_filter     = ('sale_date',)
-    readonly_fields = ('sale_date', 'created_at')
+    list_display = ['sale_no', 'customer', 'mobile', 'date', 'status', 'total_amount']
+    list_filter = ['status', 'payment_status']
+    inlines = [CounterSaleItemInline]
 
 
-@admin.register(CounterSaleItem)
-class CounterSaleItemAdmin(admin.ModelAdmin):
-    list_display = ('counter_sale', 'spare_part', 'quantity',
-                    'unit_price', 'total_price')
+@admin.register(CounterSaleReturn)
+class CounterSaleReturnAdmin(admin.ModelAdmin):
+    list_display = ['return_no', 'original_sale', 'return_date', 'total_amount']
+    inlines = [CounterSaleReturnItemInline]
 
 
-@admin.register(SparesIssue)
-class SparesIssueAdmin(admin.ModelAdmin):
-    list_display    = ('job_card', 'spare_part', 'quantity_issued',
-                       'quantity_returned', 'issued_by', 'issued_at')
-    search_fields   = ('job_card__id', 'spare_part__part_name')
-    list_filter     = ('issued_at',)
-    readonly_fields = ('issued_at',)
+@admin.register(SparesIssueAlteration)
+class SparesIssueAlterationAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'job_card', 'date', 'job_type', 'total']
+    list_filter = ['job_type']
+    inlines = [SparesIssueAlterationItemInline]

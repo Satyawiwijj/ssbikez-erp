@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}{{ invoice.invoice_no }}{% endblock %}
+{% block page_title %}{{ invoice.invoice_no }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'spares:invoice_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Item</th><th>WH</th><th>Qty</th><th>Rate</th><th>SGST</th><th>CGST</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            {% for i in items %}
+            <tr>
+              <td>{{ i.item.item_name }}</td>
+              <td>{{ i.warehouse.name }}</td>
+              <td>{{ i.quantity }}</td>
+              <td>&#8377;{{ i.rate }}</td>
+              <td>&#8377;{{ i.sgst_amount }}</td>
+              <td>&#8377;{{ i.cgst_amount }}</td>
+              <td>&#8377;{{ i.total }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="text-center text-muted">No items.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-6">Supplier</dt><dd class="col-6">{{ invoice.supplier }}</dd>
+          <dt class="col-6">Date</dt><dd class="col-6">{{ invoice.date }}</dd>
+          <dt class="col-6">Status</dt><dd class="col-6">{{ invoice.get_status_display }}</dd>
+          <dt class="col-6">Total Amount</dt><dd class="col-6">&#8377;{{ invoice.total_amount }}</dd>
+          <dt class="col-6">SGST</dt><dd class="col-6">&#8377;{{ invoice.total_sgst }}</dd>
+          <dt class="col-6">CGST</dt><dd class="col-6">&#8377;{{ invoice.total_cgst }}</dd>
+          <dt class="col-6 fw-bold">Grand Total</dt><dd class="col-6 fw-bold">&#8377;{{ invoice.grand_total }}</dd>
+          <dt class="col-6">Payment</dt><dd class="col-6">{{ invoice.payment_status }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
