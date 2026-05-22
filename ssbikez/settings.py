@@ -180,3 +180,34 @@ EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 LOGIN_URL           = '/accounts/login/'
 LOGIN_REDIRECT_URL  = '/accounts/home/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
+
+
+# ---------------------------------------------------------------------------
+# Logging — stream errors to stdout so Render captures them even when DEBUG=False
+# ---------------------------------------------------------------------------
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}
