@@ -8,7 +8,7 @@
     <h1 class="page-title">Spares Categories</h1>
     <p class="page-subtitle">Part classification categories</p>
   </div>
-  <a href="{% url 'spares:category_create' %}" class="btn btn-primary">+ Add Category</a>
+  <a href="{% url 'masters:category_create' %}" class="btn btn-primary">+ Add Category</a>
 </div>
 
 <div class="card">
@@ -24,9 +24,9 @@
       <tbody>
         {% for cat in categories %}
         <tr>
-          <td style="font-weight:500;">{{ cat.category_name }}</td>
+          <td style="font-weight:500;">{{ cat.name }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ cat.created_at|date:"d M Y" }}</td>
-          <td><a href="{% url 'spares:category_update' cat.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
+          <td><a href="{% url 'masters:category_update' cat.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
         </tr>
         {% empty %}
         <tr><td colspan="3" class="empty-state">No categories yet.</td></tr>
