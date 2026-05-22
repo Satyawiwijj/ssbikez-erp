@@ -31,6 +31,15 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 CSRF_COOKIE_SECURE          = not DEBUG   # True in production (HTTPS), False in dev
 SESSION_COOKIE_SECURE       = not DEBUG   # same
 
+# Render / reverse-proxy settings
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'CSRF_TRUSTED_ORIGINS',
+    'https://ssbikez-erp.onrender.com'
+).split(',')
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST    = True
+
 
 # ---------------------------------------------------------------------------
 # Application definition
