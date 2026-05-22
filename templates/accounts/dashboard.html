@@ -15,35 +15,35 @@
   <div class="stat-card">
     <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
     <div>
-      <div class="stat-value">{{ enquiries_today }}</div>
+      <div class="stat-value">{{ enquiries_today|default:0 }}</div>
       <div class="stat-label">Enquiries Today</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-green">&#x1F4E6;</div>
     <div>
-      <div class="stat-value">{{ open_orders }}</div>
+      <div class="stat-value">{{ open_orders|default:0 }}</div>
       <div class="stat-label">Open Orders</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-orange">&#x1F527;</div>
     <div>
-      <div class="stat-value">{{ active_job_cards }}</div>
+      <div class="stat-value">{{ active_job_cards|default:0 }}</div>
       <div class="stat-label">Active Job Cards</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-red">&#x26A0;&#xFE0F;</div>
     <div>
-      <div class="stat-value">{{ low_stock_count }}</div>
+      <div class="stat-value">{{ low_stock_count|default:0 }}</div>
       <div class="stat-label">Low Stock Parts</div>
     </div>
   </div>
   <div class="stat-card">
     <div class="stat-icon stat-icon-purple">&#x1F4C5;</div>
     <div>
-      <div class="stat-value">{{ pending_appointments }}</div>
+      <div class="stat-value">{{ pending_appointments|default:0 }}</div>
       <div class="stat-label">Today's Appointments</div>
     </div>
   </div>
@@ -151,7 +151,7 @@
     </dl>
     <dl class="detail-list">
       <div class="detail-row"><dt>Branch</dt><dd>{{ user.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd>{{ user.get_status_display }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>{{ user.get_status_display|default:"Active" }}</dd></div>
     </dl>
   </div>
 </div>

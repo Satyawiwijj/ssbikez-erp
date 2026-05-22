@@ -50,28 +50,58 @@ def dashboard(request):
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
 
-    enquiries_today = SalesEnquiry.objects.filter(created_at__date=today).count()
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
 
-    open_orders = VehicleSalesOrder.objects.filter(sales_status='booked').count()
+    def safe_qs(qs, limit=10):
+        try:
+            return list(qs[:limit])
+        except Exception:
+            return []
 
-    active_job_cards = JobCard.objects.exclude(
-        service_status__in=['invoiced', 'ready']
-    ).count()
+    def safe_sum(qs, field):
+        try:
+            result = qs.aggregate(total=Sum(field))['total']
+            return result or 0
+        except Exception:
+            return 0
 
-    low_stock_count = SparePart.objects.filter(stock_quantity__lt=5).count()
+    enquiries_today = safe_count(
+        SalesEnquiry.objects.filter(created_at__date=today)
+    )
 
-    recent_activity = AuditLog.objects.select_related('user').all()[:10]
+    open_orders = safe_count(
+        VehicleSalesOrder.objects.filter(sales_status='booked')
+    )
 
-    pending_appointments = SalesAppointment.objects.filter(
-        appointment_date__date=today,
-        status='scheduled',
-    ).count()
+    active_job_cards = safe_count(
+        JobCard.objects.exclude(service_status__in=['invoiced', 'ready'])
+    )
 
-    monthly_revenue = (
+    low_stock_count = safe_count(
+        SparePart.objects.filter(stock_quantity__lt=5)
+    )
+
+    recent_activity = safe_qs(
+        AuditLog.objects.select_related('user').order_by('-created_at')
+    )
+
+    pending_appointments = safe_count(
+        SalesAppointment.objects.filter(
+            appointment_date__date=today,
+            status='scheduled',
+        )
+    )
+
+    monthly_revenue = safe_sum(
         Payment.objects.filter(
             payment_status='completed',
             payment_date__date__gte=this_month_start,
-        ).aggregate(total=Sum('amount'))['total'] or 0
+        ),
+        'amount',
     )
 
     return render(request, 'accounts/dashboard.html', {
