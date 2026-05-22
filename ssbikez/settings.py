@@ -17,13 +17,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get(
     'DJANGO_SECRET_KEY',
-    'django-insecure-=4zkbi0kwlm+(+@y18-0)%#t(f^=_xtg5hl-45y$)$qyx4$pb@'
+    'dev-secret-key-ssbikez-change-in-production'
 )
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-_hosts_env    = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
-ALLOWED_HOSTS = [h.strip() for h in _hosts_env.split(',') if h.strip()]
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1'
+).split(',')
 
 # Security headers
 X_FRAME_OPTIONS             = 'DENY'
@@ -34,7 +36,7 @@ SESSION_COOKIE_SECURE       = not DEBUG   # same
 # Render / reverse-proxy settings
 CSRF_TRUSTED_ORIGINS = os.environ.get(
     'CSRF_TRUSTED_ORIGINS',
-    'https://ssbikez-erp.onrender.com'
+    'http://localhost:8000,http://127.0.0.1:8000'
 ).split(',')
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -104,9 +106,9 @@ WSGI_APPLICATION = 'ssbikez.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
+        default=f'sqlite:///db.sqlite3',
         conn_max_age=600,
-        ssl_require=False,  # Neon passes ?sslmode=require in the URL itself
+        ssl_require=False,
     )
 }
 
