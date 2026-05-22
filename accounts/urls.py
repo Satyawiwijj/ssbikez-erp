@@ -18,7 +18,10 @@ urlpatterns = [
     path('branches/create/',             views.branch_create, name='branch_create'),
     path('branches/<int:pk>/edit/',      views.branch_update, name='branch_update'),
 
+    path('home/',                views.home,         name='home'),
     path('roles/',               views.role_list,   name='role_list'),
+    path('roles/create/',        views.role_create, name='role_create'),
+    path('roles/<int:pk>/edit/', views.role_update, name='role_update'),
 
     path('fuel-expenses/',               views.fuel_expense_list,   name='fuel_expense_list'),
     path('fuel-expenses/create/',        views.fuel_expense_create, name='fuel_expense_create'),

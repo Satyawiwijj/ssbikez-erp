@@ -5,6 +5,9 @@ from . import views
 app_name = 'sales'
 
 urlpatterns = [
+    # Dashboard
+    path('',                                   views.dashboard,             name='dashboard'),
+
     # SalesEnquiry
     path('enquiries/',                        views.enquiry_list,          name='enquiry_list'),
     path('enquiries/create/',                 views.enquiry_create,        name='enquiry_create'),
@@ -36,4 +39,14 @@ urlpatterns = [
     # ExchangeVehicle
     path('exchange/create/',                  views.exchange_create,       name='exchange_create'),
     path('exchange/<int:pk>/edit/',           views.exchange_update,       name='exchange_update'),
+    path('exchange-list/',                    views.exchange_list,         name='exchange_list'),
+
+    # Delivery list
+    path('delivery-list/',                    views.delivery_list,         name='delivery_list'),
+
+    # All appointments
+    path('all-appointments/',                 views.all_appointments,      name='all_appointments'),
+
+    # Feedback all
+    path('feedback-all/',                     views.feedback_all,          name='feedback_all'),
 ]

@@ -177,5 +177,5 @@ EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 # ---------------------------------------------------------------------------
 
 LOGIN_URL           = '/accounts/login/'
-LOGIN_REDIRECT_URL  = '/accounts/dashboard/'
+LOGIN_REDIRECT_URL  = '/accounts/home/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'

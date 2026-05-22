@@ -5,6 +5,9 @@ from . import views
 app_name = 'vas'
 
 urlpatterns = [
+    # Dashboard
+    path('',                           views.dashboard,  name='dashboard'),
+
     # AMCPackage
     path('amc/',                      views.amc_list,   name='amc_list'),
     path('amc/create/',               views.amc_create, name='amc_create'),

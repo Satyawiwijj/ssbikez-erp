@@ -5,6 +5,15 @@ from . import views
 app_name = 'service'
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/',                          views.dashboard,              name='dashboard'),
+
+    # Appointment list
+    path('appointments/',                       views.appointment_list,       name='appointment_list'),
+
+    # LaborCharge list
+    path('labor-charges/',                      views.labor_charge_list,      name='labor_charge_list'),
+
     # ServiceEnquiry
     path('',                                    views.enquiry_list,           name='enquiry_list'),
     path('enquiries/create/',                   views.enquiry_create,         name='enquiry_create'),

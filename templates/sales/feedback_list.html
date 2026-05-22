@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Sales Feedback — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Feedback{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:feedback_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Feedback</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h6 class="card-title mb-0">All Feedback <span class="badge bg-secondary ms-2">{{ feedbacks|length }}</span></h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Customer</th><th>Notes</th><th>Next Follow-up</th><th>Created By</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for fb in feedbacks %}
+          <tr>
+            <td>{{ fb.pk }}</td>
+            <td>{{ fb.enquiry.customer.full_name }}</td>
+            <td>{{ fb.feedback_notes|truncatechars:60|default:"—" }}</td>
+            <td>{{ fb.next_followup_date|default:"—" }}</td>
+            <td>{{ fb.created_by|default:"—" }}</td>
+            <td>{{ fb.created_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-star fa-2x mb-2 d-block"></i>No feedback records.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

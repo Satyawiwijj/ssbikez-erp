@@ -14,6 +14,83 @@ from .models import (ExchangeVehicle, SalesAppointment, SalesFeedback,
 
 
 # ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_enquiries  = safe_count(SalesEnquiry.objects.all())
+    total_orders     = safe_count(VehicleSalesOrder.objects.all())
+    open_orders      = safe_count(VehicleSalesOrder.objects.filter(sales_status='booked'))
+    total_deliveries = safe_count(VehicleDelivery.objects.all())
+    recent_enquiries = list(SalesEnquiry.objects.select_related('customer', 'bike_model').order_by('-created_at')[:10])
+    recent_orders    = list(VehicleSalesOrder.objects.select_related('customer', 'vehicle__bike_model').order_by('-created_at')[:5])
+
+    return render(request, 'sales/dashboard.html', {
+        'total_enquiries':  total_enquiries,
+        'total_orders':     total_orders,
+        'open_orders':      open_orders,
+        'total_deliveries': total_deliveries,
+        'recent_enquiries': recent_enquiries,
+        'recent_orders':    recent_orders,
+    })
+
+
+# ---------------------------------------------------------------------------
+# All Appointments list
+# ---------------------------------------------------------------------------
+
+@login_required
+def all_appointments(request):
+    appointments = SalesAppointment.objects.select_related(
+        'enquiry__customer'
+    ).order_by('-appointment_date')
+    return render(request, 'sales/appointment_list.html', {'appointments': appointments})
+
+
+# ---------------------------------------------------------------------------
+# Delivery list
+# ---------------------------------------------------------------------------
+
+@login_required
+def delivery_list(request):
+    deliveries = VehicleDelivery.objects.select_related(
+        'sales_order__customer', 'delivered_by'
+    ).order_by('-delivery_date')
+    return render(request, 'sales/delivery_list.html', {'deliveries': deliveries})
+
+
+# ---------------------------------------------------------------------------
+# Exchange list
+# ---------------------------------------------------------------------------
+
+@login_required
+def exchange_list(request):
+    exchanges = ExchangeVehicle.objects.select_related(
+        'sales_order__customer'
+    ).order_by('-created_at')
+    return render(request, 'sales/exchange_list.html', {'exchanges': exchanges})
+
+
+# ---------------------------------------------------------------------------
+# Feedback all
+# ---------------------------------------------------------------------------
+
+@login_required
+def feedback_all(request):
+    feedbacks = SalesFeedback.objects.select_related(
+        'enquiry__customer', 'created_by'
+    ).order_by('-created_at')
+    return render(request, 'sales/feedback_list.html', {'feedbacks': feedbacks})
+
+
+# ---------------------------------------------------------------------------
 # SalesEnquiry
 # ---------------------------------------------------------------------------
 

@@ -22,12 +22,12 @@ from .models import AuditLog, Branch, FuelExpense, Role, User
 
 def login_view(request):
     if request.user.is_authenticated:
-        return redirect('accounts:dashboard')
+        return redirect('accounts:home')
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
         login(request, user)
-        return redirect(request.GET.get('next', 'accounts:dashboard'))
+        return redirect(request.GET.get('next', 'accounts:home'))
     return render(request, 'accounts/login.html', {'form': form})
 
 
@@ -45,7 +45,10 @@ def dashboard(request):
     from billing.models import Payment
     from sales.models import SalesAppointment, SalesEnquiry, VehicleSalesOrder
     from service.models import JobCard
-    from spares.models import SparePart
+    try:
+        from spares.models import SparePart
+    except ImportError:
+        SparePart = None
 
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
@@ -83,7 +86,7 @@ def dashboard(request):
 
     low_stock_count = safe_count(
         SparePart.objects.filter(stock_quantity__lt=5)
-    )
+    ) if SparePart else 0
 
     recent_activity = safe_qs(
         AuditLog.objects.select_related('user').order_by('-created_at')
@@ -206,10 +209,39 @@ def branch_update(request, pk):
 # Roles
 # ---------------------------------------------------------------------------
 
+def home(request):
+    if not request.user.is_authenticated:
+        return redirect('accounts:login')
+    return render(request, 'accounts/home.html')
+
+
 @login_required
 def role_list(request):
     roles = Role.objects.all()
     return render(request, 'accounts/role_list.html', {'roles': roles})
+
+
+@login_required
+def role_create(request):
+    form = RoleForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        role = form.save()
+        log_action(request, 'Role', 'create', role.pk)
+        messages.success(request, 'Role created.')
+        return redirect('accounts:role_list')
+    return render(request, 'accounts/role_form.html', {'form': form, 'title': 'Create Role'})
+
+
+@login_required
+def role_update(request, pk):
+    role = get_object_or_404(Role, pk=pk)
+    form = RoleForm(request.POST or None, instance=role)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        log_action(request, 'Role', 'update', pk)
+        messages.success(request, 'Role updated.')
+        return redirect('accounts:role_list')
+    return render(request, 'accounts/role_form.html', {'form': form, 'title': 'Edit Role'})
 
 
 # ---------------------------------------------------------------------------
@@ -279,7 +311,10 @@ def global_search(request):
     from customers.models import Customer, VehicleStock
     from sales.models import SalesEnquiry, VehicleSalesOrder
     from service.models import JobCard
-    from spares.models import SparePart
+    try:
+        from spares.models import SparePart
+    except ImportError:
+        SparePart = None
 
     q       = request.GET.get('q', '').strip()
     results = {}
@@ -321,11 +356,14 @@ def global_search(request):
             )[:5]
         )
 
-        results['spare_parts'] = list(
-            SparePart.objects.filter(
-                Q(part_name__icontains=q) | Q(part_number__icontains=q)
-            )[:5]
-        )
+        if SparePart:
+            results['spare_parts'] = list(
+                SparePart.objects.filter(
+                    Q(part_name__icontains=q) | Q(part_number__icontains=q)
+                )[:5]
+            )
+        else:
+            results['spare_parts'] = []
 
     total = sum(len(v) for v in results.values())
 
@@ -405,7 +443,11 @@ def sales_report(request):
 
 @login_required
 def spares_report(request):
-    from spares.models import CounterSale, PurchaseOrder, SparePart, SparesIssue
+    try:
+        from spares.models import CounterSale, PurchaseOrder, SparePart, SparesIssue
+    except ImportError:
+        from spares.models import CounterSale, PurchaseOrder, SparePart
+        SparesIssue = None
 
     today            = timezone.now().date()
     this_month_start = today.replace(day=1)
@@ -420,12 +462,15 @@ def spares_report(request):
     low_stock_count = parts_qs.filter(stock_quantity__lt=5).count()
     low_stock       = list(parts_qs.filter(stock_quantity__lt=5).order_by('stock_quantity')[:10])
 
-    top_issued = list(
-        SparesIssue.objects
-        .values('spare_part__part_name')
-        .annotate(total_qty=Sum('quantity_issued'))
-        .order_by('-total_qty')[:10]
-    )
+    if SparesIssue:
+        top_issued = list(
+            SparesIssue.objects
+            .values('spare_part__part_name')
+            .annotate(total_qty=Sum('quantity_issued'))
+            .order_by('-total_qty')[:10]
+        )
+    else:
+        top_issued = []
     max_issued = max((p['total_qty'] for p in top_issued), default=1) or 1
 
     po_summary = list(

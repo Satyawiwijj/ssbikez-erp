@@ -4,558 +4,272 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}SSBikez ERP{% endblock %}</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #F9FAFB;
-      color: #111827;
-      min-height: 100vh;
+    :root {
+      --sidebar-width: 240px;
+      --topbar-height: 56px;
+      --primary: #2563EB;
+      --sidebar-bg: #1e293b;
+      --sidebar-text: #cbd5e1;
+      --sidebar-active-bg: rgba(37,99,235,0.2);
+      --sidebar-active-text: #60a5fa;
+      --sidebar-hover-bg: rgba(255,255,255,0.05);
     }
-
-    /* ── LAYOUT ── */
-    .layout { display: flex; min-height: 100vh; }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
 
     /* ── SIDEBAR ── */
     .sidebar {
-      width: 240px;
-      min-height: 100vh;
-      background: #F7F8FA;
-      border-right: 1px solid #E5E7EB;
-      display: flex;
-      flex-direction: column;
-      position: fixed;
-      top: 0; left: 0; bottom: 0;
-      overflow-y: auto;
-      z-index: 200;
-      transition: transform 0.2s ease;
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      overflow-y: auto; z-index: 1040;
+      transition: transform .25s ease;
     }
-    .sidebar-logo {
-      padding: 18px 20px 14px;
-      border-bottom: 1px solid #E5E7EB;
-      font-size: 18px;
-      font-weight: 700;
-      color: #2563EB;
-      letter-spacing: -0.3px;
-      flex-shrink: 0;
-    }
-    .sidebar-logo span { color: #374151; font-weight: 500; font-size: 13px; display: block; margin-top: 1px; }
-    .sidebar-nav { flex: 1; padding: 8px 0 24px; overflow-y: auto; }
-    .nav-section-label {
-      padding: 16px 20px 4px;
-      font-size: 10px;
-      font-weight: 700;
-      color: #9CA3AF;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-    .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 8px 20px;
-      font-size: 13.5px;
-      color: #374151;
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.08);
       text-decoration: none;
+    }
+    .sidebar-brand .brand-icon {
+      width: 36px; height: 36px; background: var(--primary);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; color: #fff;
+    }
+    .sidebar-brand .brand-name { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .sidebar-brand .brand-sub  { font-size: 10px; color: #94a3b8; }
+    .sidebar-section { padding: 12px 16px 4px; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: 13px; color: var(--sidebar-text);
+      text-decoration: none; border-radius: 0;
+      transition: background .15s, color .15s;
       border-left: 3px solid transparent;
-      transition: all 0.15s ease;
-      border-radius: 0;
     }
-    .nav-link:hover { background: #ECEEF2; color: #111827; }
-    .nav-link.active {
-      background: #EEF2FF;
-      color: #2563EB;
-      border-left-color: #2563EB;
-      font-weight: 600;
+    .sidebar-link:hover  { background: var(--sidebar-hover-bg); color: #fff; }
+    .sidebar-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); border-left-color: var(--primary); font-weight: 600; }
+
+    /* Legacy nav-link compatibility */
+    .nav-link.sidebar-compat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: 13px; color: var(--sidebar-text);
+      text-decoration: none; border-left: 3px solid transparent;
+      transition: background .15s, color .15s;
     }
-    .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+    .nav-link.sidebar-compat:hover { background: var(--sidebar-hover-bg); color: #fff; }
+    .nav-link.sidebar-compat.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); border-left-color: var(--primary); font-weight: 600; }
 
-    /* ── MAIN AREA ── */
-    .main { margin-left: 240px; flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
-
-    /* ── TOP BAR ── */
+    /* ── TOPBAR ── */
     .topbar {
-      height: 56px;
-      background: #FFFFFF;
-      border-bottom: 1px solid #E5E7EB;
-      display: flex;
-      align-items: center;
-      padding: 0 24px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      gap: 16px;
+      position: fixed; top: 0; left: var(--sidebar-width); right: 0;
+      height: var(--topbar-height); background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 1030;
     }
-    .topbar-hamburger {
-      display: none;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 6px;
-      color: #6B7280;
-      font-size: 20px;
+    .topbar-title { font-size: 17px; font-weight: 600; color: #1e293b; flex: 1; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .main-content {
+      margin-left: var(--sidebar-width); margin-top: var(--topbar-height);
+      padding: 24px; min-height: calc(100vh - var(--topbar-height));
     }
-    .topbar-title {
-      font-size: 16px;
-      font-weight: 600;
-      color: #111827;
-      flex: 1;
-    }
-    .topbar-right { display: flex; align-items: center; gap: 12px; }
-    .topbar-user {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      padding: 6px 10px;
-      border-radius: 8px;
-      transition: background 0.15s;
-      position: relative;
-    }
-    .topbar-user:hover { background: #F3F4F6; }
-    .user-avatar {
-      width: 32px; height: 32px;
-      background: #2563EB;
-      color: #fff;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
-    .user-info { line-height: 1.3; }
-    .user-name { font-size: 13px; font-weight: 600; color: #111827; }
-    .user-role { font-size: 11px; color: #6B7280; }
-    .user-dropdown {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      background: #fff;
-      border: 1px solid #E5E7EB;
-      border-radius: 10px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-      min-width: 160px;
-      display: none;
-      z-index: 300;
-      overflow: hidden;
-    }
-    .user-dropdown.open { display: block; }
-    .user-dropdown a {
-      display: block;
-      padding: 10px 16px;
-      font-size: 13px;
-      color: #374151;
-      text-decoration: none;
-      transition: background 0.15s;
-    }
-    .user-dropdown a:hover { background: #F9FAFB; }
-    .user-dropdown a.danger { color: #DC2626; }
 
-    /* ── MESSAGES ── */
-    .messages-container { padding: 12px 24px 0; }
-    .message {
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-size: 13.5px;
-      margin-bottom: 8px;
-      border: 1px solid transparent;
-    }
-    .message.success { background: #D1FAE5; color: #065F46; border-color: #6EE7B7; }
-    .message.error   { background: #FEE2E2; color: #991B1B; border-color: #FCA5A5; }
-    .message.warning { background: #FEF3C7; color: #92400E; border-color: #FCD34D; }
-    .message.info    { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
-
-    /* ── CONTENT ── */
-    .content { padding: 24px; flex: 1; width: 100%; min-width: 0; }
-
-    /* ── PAGE HEADER ── */
-    .page-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      margin-bottom: 24px;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .page-title { font-size: 20px; font-weight: 600; color: #111827; }
-    .page-subtitle { font-size: 13px; color: #6B7280; margin-top: 3px; }
-    .page-header-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-
-    /* ── CARDS ── */
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      padding: 24px;
-      margin-bottom: 20px;
-    }
-    .card-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-    .card-title { font-size: 15px; font-weight: 600; color: #111827; }
-
-    /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border-radius: 8px;
-      padding: 8px 16px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      border: none;
-      transition: all 0.15s ease;
-      font-family: inherit;
-      white-space: nowrap;
-    }
-    .btn-primary { background: #2563EB; color: #fff; }
-    .btn-primary:hover { background: #1D4ED8; color: #fff; }
-    .btn-secondary { background: #fff; color: #374151; border: 1px solid #D1D5DB; }
-    .btn-secondary:hover { background: #F9FAFB; color: #111827; }
-    .btn-danger { background: #DC2626; color: #fff; }
-    .btn-danger:hover { background: #B91C1C; color: #fff; }
-    .btn-sm { padding: 5px 10px; font-size: 12.5px; }
-    .btn-ghost { background: transparent; color: #6B7280; border: 1px solid transparent; }
-    .btn-ghost:hover { background: #F3F4F6; color: #374151; border-color: #E5E7EB; }
+    /* ── BOOTSTRAP CARD OVERRIDE ── */
+    .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; }
+    .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 12px 12px 0 0 !important; padding: 14px 20px; }
+    .card-header .card-title { font-size: 14px; font-weight: 600; color: #1e293b; margin: 0; }
 
     /* ── TABLES ── */
-    .table-wrapper { overflow-x: auto; }
-    .table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    .table th {
-      padding: 10px 16px;
-      text-align: left;
-      font-size: 12px;
-      font-weight: 600;
-      color: #6B7280;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      background: #F9FAFB;
-      border-bottom: 1px solid #E5E7EB;
-      white-space: nowrap;
-    }
-    .table td {
-      padding: 12px 16px;
-      color: #374151;
-      border-bottom: 1px solid #F3F4F6;
-      vertical-align: middle;
-    }
-    .table tr:nth-child(even) td { background: #FAFAFA; }
-    .table tr:hover td { background: #F0F7FF; }
-    .table .empty-state {
-      text-align: center;
-      color: #9CA3AF;
-      padding: 40px 16px;
-      font-size: 14px;
-    }
-    .table-actions { display: flex; gap: 6px; align-items: center; }
+    .table { font-size: 13.5px; }
+    .table thead th { background: #f8fafc; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid #e2e8f0; padding: 10px 12px; }
+    .table tbody td { padding: 11px 12px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; color: #374151; }
+    .table tbody tr:hover td { background: #f8fafc; }
 
-    /* ── BADGES ── */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-    .badge-blue   { background: #DBEAFE; color: #1D4ED8; }
-    .badge-green  { background: #D1FAE5; color: #065F46; }
-    .badge-red    { background: #FEE2E2; color: #991B1B; }
-    .badge-yellow { background: #FEF3C7; color: #92400E; }
-    .badge-purple { background: #EDE9FE; color: #5B21B6; }
-    .badge-gray   { background: #F3F4F6; color: #6B7280; }
-    .badge-orange { background: #FEF3C7; color: #92400E; }
+    /* ── SOFT BADGES ── */
+    .badge-soft-primary { background: #dbeafe; color: #1d4ed8; }
+    .badge-soft-success { background: #d1fae5; color: #065f46; }
+    .badge-soft-warning { background: #fef3c7; color: #92400e; }
+    .badge-soft-danger  { background: #fee2e2; color: #991b1b; }
+    .badge-soft-info    { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-gray    { background: #f3f4f6; color: #6b7280; }
 
-    /* ── FILTER TABS ── */
-    .filter-tabs {
-      display: flex;
-      gap: 4px;
-      background: #F3F4F6;
-      padding: 4px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .filter-tab {
-      padding: 6px 14px;
-      border-radius: 7px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #6B7280;
-      text-decoration: none;
-      transition: all 0.15s;
-      white-space: nowrap;
-    }
-    .filter-tab:hover { background: #fff; color: #374151; }
-    .filter-tab.active { background: #fff; color: #2563EB; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-    /* ── SEARCH BAR ── */
-    .search-bar {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-    }
-    .search-bar input {
-      flex: 1;
-      min-width: 200px;
-      border: 1px solid #D1D5DB;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      background: #fff;
-    }
-    .search-bar input:focus { border-color: #2563EB; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    /* Legacy badge classes (for old templates) */
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-green  { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-red    { background: #fee2e2; color: #991b1b; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-yellow { background: #fef3c7; color: #92400e; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-gray   { background: #f3f4f6; color: #6b7280; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-orange { background: #fef3c7; color: #92400e; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge { white-space: nowrap; }
 
     /* ── FORMS ── */
-    .form-card { max-width: 720px; margin-left: 0; width: 100%; }
+    .form-label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+    .form-control, .form-select { font-size: 13.5px; border-radius: 8px; border: 1px solid #d1d5db; padding: 8px 12px; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
 
-    /* ── FULL WIDTH GRID ── */
-    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; }
-    .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; width: 100%; }
+    /* Legacy form input styles */
+    input[type="text"]:not(.form-control),
+    input[type="email"]:not(.form-control),
+    input[type="password"]:not(.form-control),
+    input[type="number"]:not(.form-control),
+    input[type="date"]:not(.form-control),
+    input[type="datetime-local"]:not(.form-control),
+    input[type="tel"]:not(.form-control),
+    input[type="url"]:not(.form-control),
+    select:not(.form-select):not(.form-control),
+    textarea:not(.form-control) {
+      width: 100%; border: 1px solid #d1d5db; border-radius: 8px;
+      padding: 8px 12px; font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      background: #fff; color: #111827;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0; }
+    .page-header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    /* Legacy page header */
+    .page-title { font-size: 20px; font-weight: 600; color: #111827; }
+    .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 3px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 48px 24px; color: #9ca3af; }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── LEGACY LAYOUT (old templates use .layout/.main/.content) ── */
+    .layout { display: flex; min-height: 100vh; }
+    .main { margin-left: var(--sidebar-width); flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+    .content { padding: 24px; flex: 1; width: 100%; min-width: 0; padding-top: calc(var(--topbar-height) + 24px); }
+    .messages-container { padding: 12px 24px 0; padding-top: calc(var(--topbar-height) + 12px); }
+    .message { padding: 10px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; border: 1px solid transparent; }
+    .message.success { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+    .message.error   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .message.warning { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .message.info    { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+
+    /* ── LEGACY STAT CARDS ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08); display: flex; align-items: center; gap: 16px; }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .stat-icon-blue   { background: #dbeafe; }
+    .stat-icon-green  { background: #d1fae5; }
+    .stat-icon-orange { background: #fef3c7; }
+    .stat-icon-purple { background: #ede9fe; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #111827; }
+    .stat-label { font-size: 13px; color: #6b7280; margin-top: 2px; }
+
+    /* ── LEGACY BUTTONS ── */
+    .btn-ghost { background: transparent; color: #6b7280; border: 1px solid transparent; }
+    .btn-ghost:hover { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+    .btn-sm { padding: 5px 10px; font-size: 12.5px; }
+
+    /* ── LEGACY TABLE ── */
+    .table-wrapper { overflow-x: auto; }
+    .table th { padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    .table td { padding: 12px 16px; color: #374151; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    .table-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* ── LEGACY DETAIL ── */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .detail-grid-1 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid #f3f4f6; gap: 12px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row dt { font-size: 13px; font-weight: 500; color: #6b7280; flex-shrink: 0; width: 140px; }
+    .detail-row dd { font-size: 14px; color: #111827; flex: 1; }
+
+    /* ── LEGACY FORM ── */
+    .form-card { max-width: 720px; }
     .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
     .form-group { margin-bottom: 18px; }
     .form-group.span-2 { grid-column: span 2; }
     .form-group.span-3 { grid-column: span 3; }
-    .form-label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 6px; }
-    .form-actions { display: flex; gap: 8px; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #F3F4F6; }
-    .form-error { color: #DC2626; font-size: 12px; margin-top: 4px; }
+    .form-actions { display: flex; gap: 8px; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6; }
+    .form-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
 
-    /* Django form inputs */
-    input[type="text"],
-    input[type="email"],
-    input[type="password"],
-    input[type="number"],
-    input[type="date"],
-    input[type="datetime-local"],
-    input[type="tel"],
-    input[type="url"],
-    select,
-    textarea {
-      width: 100%;
-      border: 1px solid #D1D5DB;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-size: 14px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      background: #fff;
-      color: #111827;
-    }
-    input[type="text"]:focus,
-    input[type="email"]:focus,
-    input[type="password"]:focus,
-    input[type="number"]:focus,
-    input[type="date"]:focus,
-    input[type="datetime-local"]:focus,
-    input[type="tel"]:focus,
-    input[type="url"]:focus,
-    select:focus,
-    textarea:focus {
-      border-color: #2563EB;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
-    }
-    textarea { min-height: 90px; resize: vertical; }
-    select { cursor: pointer; }
+    /* ── LEGACY GRID ── */
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
 
-    /* ── DETAIL LAYOUT ── */
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .detail-grid-1 { display: grid; grid-template-columns: 1fr; gap: 20px; }
-    .detail-list { list-style: none; }
-    .detail-row {
-      display: flex;
-      padding: 10px 0;
-      border-bottom: 1px solid #F3F4F6;
-      gap: 12px;
-    }
-    .detail-row:last-child { border-bottom: none; }
-    .detail-row dt {
-      font-size: 13px;
-      font-weight: 500;
-      color: #6B7280;
-      flex-shrink: 0;
-      width: 140px;
-    }
-    .detail-row dd { font-size: 14px; color: #111827; flex: 1; }
-    .detail-row dd a { color: #2563EB; text-decoration: none; }
-    .detail-row dd a:hover { text-decoration: underline; }
+    /* ── SECTION HEADER ── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #374151; }
 
-    /* ── STAT CARDS ── */
-    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; width: 100%; }
-    .stat-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px 24px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .stat-icon {
-      width: 44px; height: 44px;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .stat-icon-blue   { background: #DBEAFE; }
-    .stat-icon-green  { background: #D1FAE5; }
-    .stat-icon-orange { background: #FEF3C7; }
-    .stat-icon-purple { background: #EDE9FE; }
-    .stat-value { font-size: 24px; font-weight: 700; color: #111827; }
-    .stat-label { font-size: 13px; color: #6B7280; margin-top: 2px; }
+    /* ── INLINE FORM ── */
+    .inline-form { display: inline; }
+    .inline-form button { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 12.5px; font-family: inherit; padding: 4px 8px; border-radius: 6px; transition: background .15s; }
+    .inline-form button:hover { background: #fee2e2; }
 
-    /* ── TABS ── */
-    .tab-nav {
-      display: flex;
-      border-bottom: 2px solid #E5E7EB;
-      margin-bottom: 24px;
-      gap: 4px;
-    }
-    .tab-btn {
-      padding: 10px 20px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #6B7280;
-      background: none;
-      border: none;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -2px;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: inherit;
-      text-decoration: none;
-    }
+    /* ── FILTER TABS ── */
+    .filter-tabs { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-tab { padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; transition: all .15s; white-space: nowrap; }
+    .filter-tab:hover { background: #fff; color: #374151; }
+    .filter-tab.active { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+    /* ── SEARCH BAR ── */
+    .search-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-bar input { flex: 1; min-width: 200px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; }
+
+    /* ── INVOICE LAYOUT ── */
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .invoice-number { font-size: 22px; font-weight: 700; color: #111827; }
+    .invoice-amount { font-size: 28px; font-weight: 700; color: #2563eb; }
+    .amount-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .amount-row:last-child { border-bottom: none; }
+    .amount-row .label { color: #6b7280; }
+    .amount-row .value { font-weight: 500; color: #111827; }
+    .amount-row.total .label, .amount-row.total .value { font-weight: 700; font-size: 16px; }
+    .amount-row.balance .value { color: #dc2626; font-weight: 700; font-size: 16px; }
+
+    /* ── STATUS BAR ── */
+    .status-bar { display: flex; align-items: center; gap: 0; background: #fff; border-radius: 10px; padding: 12px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; overflow-x: auto; }
+    .status-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; white-space: nowrap; padding: 4px 10px; }
+    .status-step.done { color: #065f46; }
+    .status-step.current { background: #dbeafe; color: #1d4ed8; border-radius: 20px; font-weight: 600; }
+    .status-step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .status-step-arrow { color: #d1d5db; margin: 0 2px; font-size: 16px; }
+
+    /* ── TAB SYSTEM ── */
+    .tab-nav { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; gap: 4px; }
+    .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; color: #6b7280; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; transition: all .15s; font-family: inherit; text-decoration: none; }
     .tab-btn:hover { color: #374151; }
-    .tab-btn.active { color: #2563EB; border-bottom-color: #2563EB; }
+    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
-    /* ── STATUS WORKFLOW BAR ── */
-    .status-bar {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      background: #fff;
-      border-radius: 10px;
-      padding: 12px 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-    .status-step {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #9CA3AF;
-      white-space: nowrap;
-      padding: 4px 10px;
-    }
-    .status-step.done { color: #065F46; }
-    .status-step.current {
-      background: #DBEAFE;
-      color: #1D4ED8;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .status-step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: currentColor;
-      flex-shrink: 0;
-    }
-    .status-step-arrow { color: #D1D5DB; margin: 0 2px; font-size: 16px; }
+    /* ── USER DROPDOWN (legacy) ── */
+    .topbar-user { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: background .15s; position: relative; }
+    .topbar-user:hover { background: #f3f4f6; }
+    .user-avatar { width: 32px; height: 32px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .user-info { line-height: 1.3; }
+    .user-name { font-size: 13px; font-weight: 600; color: #111827; }
+    .user-role { font-size: 11px; color: #6b7280; }
+    .user-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.1); min-width: 160px; display: none; z-index: 300; overflow: hidden; }
+    .user-dropdown.open { display: block; }
+    .user-dropdown a { display: block; padding: 10px 16px; font-size: 13px; color: #374151; text-decoration: none; transition: background .15s; }
+    .user-dropdown a:hover { background: #f9fafb; }
+    .user-dropdown a.danger { color: #dc2626; }
 
-    /* ── SECTION HEADER (inside card) ── */
-    .section-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 16px;
-    }
-    .section-title { font-size: 14px; font-weight: 600; color: #374151; }
+    /* ── MISC ── */
+    .low-stock { color: #dc2626; font-size: 11px; font-weight: 600; }
+    .nav-section-label { padding: 16px 20px 4px; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
+    .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 150; }
+    .sidebar-overlay.open { display: block; }
+    .topbar-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px; color: #6b7280; font-size: 20px; }
 
-    /* ── INLINE DELETE FORM ── */
-    .inline-form { display: inline; }
-    .inline-form button {
-      background: none;
-      border: none;
-      color: #DC2626;
-      cursor: pointer;
-      font-size: 12.5px;
-      font-family: inherit;
-      padding: 4px 8px;
-      border-radius: 6px;
-      transition: background 0.15s;
-    }
-    .inline-form button:hover { background: #FEE2E2; }
-
-    /* ── LOW STOCK ── */
-    .low-stock { color: #DC2626; font-size: 11px; font-weight: 600; }
-
-    /* ── INVOICE LAYOUT ── */
-    .invoice-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
-    }
-    .invoice-number { font-size: 22px; font-weight: 700; color: #111827; }
-    .invoice-meta { text-align: right; }
-    .invoice-amount {
-      font-size: 28px;
-      font-weight: 700;
-      color: #2563EB;
-    }
-    .amount-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 8px 0;
-      border-bottom: 1px solid #F3F4F6;
-      font-size: 14px;
-    }
-    .amount-row:last-child { border-bottom: none; }
-    .amount-row .label { color: #6B7280; }
-    .amount-row .value { font-weight: 500; color: #111827; }
-    .amount-row.total .label,
-    .amount-row.total .value { font-weight: 700; font-size: 16px; color: #111827; }
-    .amount-row.balance .value { color: #DC2626; font-weight: 700; font-size: 16px; }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 1100px) {
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
-    }
     @media (max-width: 767px) {
       .sidebar { transform: translateX(-100%); }
       .sidebar.open { transform: translateX(0); }
-      .sidebar-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.3);
-        z-index: 150;
-      }
-      .sidebar-overlay.open { display: block; }
+      .topbar { left: 0; }
+      .main-content { margin-left: 0; }
       .main { margin-left: 0; }
       .topbar-hamburger { display: block; }
-      .stat-grid { grid-template-columns: repeat(2, 1fr); }
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
       .detail-grid { grid-template-columns: 1fr; }
       .form-grid { grid-template-columns: 1fr; }
       .form-grid-3 { grid-template-columns: 1fr; }
@@ -563,215 +277,156 @@
       .grid-2col { grid-template-columns: 1fr; }
       .grid-3col { grid-template-columns: 1fr; }
     }
+    @media (max-width: 1100px) {
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+    }
     @media (max-width: 480px) {
       .stat-grid { grid-template-columns: 1fr; }
     }
+
+    {% block extra_css %}{% endblock %}
   </style>
 </head>
 <body>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-<div class="layout">
-  {% if user.is_authenticated %}
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      SSBikez ERP
-      <span>Motorcycle Dealership</span>
+{% if user.is_authenticated %}
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar" id="sidebar">
+  <a class="sidebar-brand" href="{% url 'accounts:home' %}">
+    <div class="brand-icon"><i class="fas fa-motorcycle"></i></div>
+    <div>
+      <div class="brand-name">SSBikez ERP</div>
+      <div class="brand-sub">Dealership Management</div>
     </div>
-    <nav class="sidebar-nav">
+  </a>
 
-      <a href="{% url 'accounts:dashboard' %}" class="nav-link" data-href="/accounts/dashboard/">
-        <span class="nav-icon">&#x1F4CA;</span> Dashboard
-      </a>
+  <div class="sidebar-section">Main</div>
+  <a href="{% url 'accounts:home' %}" class="sidebar-link" data-href="/accounts/home/"><i class="fas fa-home"></i> Home</a>
+  <a href="{% url 'accounts:dashboard' %}" class="sidebar-link" data-href="/accounts/dashboard/"><i class="fas fa-chart-line"></i> Dashboard</a>
 
-      <div class="nav-section-label">Sales</div>
-      <a href="{% url 'sales:enquiry_list' %}" class="nav-link" data-href="/sales/enquiries/">
-        <span class="nav-icon">&#x1F4CB;</span> Enquiries
-      </a>
-      <a href="{% url 'sales:appointment_create' %}" class="nav-link" data-href="/sales/appointments/">
-        <span class="nav-icon">&#x1F4C5;</span> Appointments
-      </a>
-      <a href="{% url 'sales:order_list' %}" class="nav-link" data-href="/sales/orders/">
-        <span class="nav-icon">&#x1F4E6;</span> Orders
-      </a>
-      <a href="{% url 'sales:delivery_create' %}" class="nav-link" data-href="/sales/delivery/">
-        <span class="nav-icon">&#x1F697;</span> Deliveries
-      </a>
+  <div class="sidebar-section">Sales</div>
+  <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="fas fa-clipboard-list"></i> Enquiries</a>
+  <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="fas fa-shopping-cart"></i> Orders</a>
+  <a href="{% url 'sales:delivery_list' %}" class="sidebar-link" data-href="/sales/delivery-list/"><i class="fas fa-truck"></i> Deliveries</a>
+  <a href="{% url 'sales:exchange_list' %}" class="sidebar-link" data-href="/sales/exchange-list/"><i class="fas fa-exchange-alt"></i> Exchange</a>
 
-      <div class="nav-section-label">Customers</div>
-      <a href="{% url 'customers:customer_list' %}" class="nav-link" data-href="/customers/">
-        <span class="nav-icon">&#x1F465;</span> Customers
-      </a>
-      <a href="{% url 'customers:bike_model_list' %}" class="nav-link" data-href="/customers/bikes/">
-        <span class="nav-icon">&#x1F3CD;&#xFE0F;</span> Bike Models
-      </a>
-      <a href="{% url 'customers:vehicle_stock_list' %}" class="nav-link" data-href="/customers/stock/">
-        <span class="nav-icon">&#x1F4E6;</span> Vehicle Stock
-      </a>
-      <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="nav-link" data-href="/customer-vehicles/">
-        <span class="nav-icon">&#x1F511;</span> Customer Vehicles
-      </a>
+  <div class="sidebar-section">Customers</div>
+  <a href="{% url 'customers:customer_list' %}" class="sidebar-link" data-href="/customers/"><i class="fas fa-users"></i> Customers</a>
+  <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="fas fa-list"></i> Bike Models</a>
+  <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="fas fa-motorcycle"></i> Vehicle Stock</a>
+  <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="sidebar-link" data-href="/customer-vehicles/"><i class="fas fa-key"></i> Customer Vehicles</a>
 
-      <div class="nav-section-label">Finance</div>
-      <a href="{% url 'billing:invoice_list' %}" class="nav-link" data-href="/billing/invoices/">
-        <span class="nav-icon">&#x1F9FE;</span> Invoices
-      </a>
-      <a href="{% url 'billing:payment_create' %}" class="nav-link" data-href="/billing/payments/">
-        <span class="nav-icon">&#x1F4B3;</span> Payments
-      </a>
-      <a href="{% url 'billing:loan_create' %}" class="nav-link" data-href="/billing/loans/">
-        <span class="nav-icon">&#x1F3E6;</span> Loans
-      </a>
-      <a href="{% url 'billing:insurance_policy_list' %}" class="nav-link" data-href="/billing/insurance/">
-        <span class="nav-icon">&#x1F6E1;&#xFE0F;</span> Insurance
-      </a>
+  <div class="sidebar-section">Finance</div>
+  <a href="{% url 'billing:invoice_list' %}" class="sidebar-link" data-href="/billing/invoices/"><i class="fas fa-file-invoice"></i> Invoices</a>
+  <a href="{% url 'billing:loan_list' %}" class="sidebar-link" data-href="/billing/loans/"><i class="fas fa-landmark"></i> Loans</a>
+  <a href="{% url 'billing:insurance_policy_list' %}" class="sidebar-link" data-href="/billing/insurance/"><i class="fas fa-shield-alt"></i> Insurance</a>
 
-      <div class="nav-section-label">RTO</div>
-      <a href="{% url 'rto:registration_list' %}" class="nav-link" data-href="/rto/">
-        <span class="nav-icon">&#x1F4DD;</span> Registrations
-      </a>
-      <a href="{% url 'rto:plate_create' %}" class="nav-link" data-href="/rto/plates/">
-        <span class="nav-icon">&#x1F3F7;&#xFE0F;</span> Number Plates
-      </a>
+  <div class="sidebar-section">RTO</div>
+  <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="fas fa-id-card"></i> Registrations</a>
+  <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="fas fa-hashtag"></i> Number Plates</a>
 
-      <div class="nav-section-label">Service</div>
-      <a href="{% url 'service:enquiry_list' %}" class="nav-link" data-href="/service/">
-        <span class="nav-icon">&#x1F527;</span> Enquiries
-      </a>
-      <a href="{% url 'service:jobcard_list' %}" class="nav-link" data-href="/service/jobcards/">
-        <span class="nav-icon">&#x1F4C5;</span> Job Cards
-      </a>
-      <a href="{% url 'service:bay_list' %}" class="nav-link" data-href="/service/bays/">
-        <span class="nav-icon">&#x1F3D7;&#xFE0F;</span> Service Bays
-      </a>
+  <div class="sidebar-section">Service</div>
+  <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="fas fa-clipboard"></i> Enquiries</a>
+  <a href="{% url 'service:jobcard_list' %}" class="sidebar-link" data-href="/service/jobcards/"><i class="fas fa-file-alt"></i> Job Cards</a>
+  <a href="{% url 'service:bay_list' %}" class="sidebar-link" data-href="/service/bays/"><i class="fas fa-warehouse"></i> Bays</a>
+  <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="fas fa-calendar-check"></i> Appointments</a>
+  <a href="{% url 'service:labor_charge_list' %}" class="sidebar-link" data-href="/service/labor-charges/"><i class="fas fa-tools"></i> Labor Charges</a>
 
-      <div class="nav-section-label">Spares</div>
-      <a href="{% url 'spares:part_list' %}" class="nav-link" data-href="/spares/parts/">
-        <span class="nav-icon">&#x1F529;</span> Parts
-      </a>
-      <a href="{% url 'spares:category_list' %}" class="nav-link" data-href="/spares/categories/">
-        <span class="nav-icon">&#x1F4C2;</span> Categories
-      </a>
-      <a href="{% url 'spares:supplier_list' %}" class="nav-link" data-href="/spares/suppliers/">
-        <span class="nav-icon">&#x1F3ED;</span> Suppliers
-      </a>
-      <a href="{% url 'spares:po_list' %}" class="nav-link" data-href="/spares/purchase-orders/">
-        <span class="nav-icon">&#x1F6D2;</span> Purchase Orders
-      </a>
-      <a href="{% url 'spares:counter_sale_list' %}" class="nav-link" data-href="/spares/counter-sales/">
-        <span class="nav-icon">&#x1F3EA;</span> Counter Sales
-      </a>
-      <a href="{% url 'spares:issue_list' %}" class="nav-link" data-href="/spares/issues/">
-        <span class="nav-icon">&#x1F4E4;</span> Issues
-      </a>
+  <div class="sidebar-section">Spares</div>
+  <a href="{% url 'spares:part_list' %}" class="sidebar-link" data-href="/spares/parts/"><i class="fas fa-boxes"></i> Spare Parts</a>
+  <a href="{% url 'spares:category_list' %}" class="sidebar-link" data-href="/spares/categories/"><i class="fas fa-tags"></i> Categories</a>
+  <a href="{% url 'spares:supplier_list' %}" class="sidebar-link" data-href="/spares/suppliers/"><i class="fas fa-truck-loading"></i> Suppliers</a>
+  <a href="{% url 'spares:po_list' %}" class="sidebar-link" data-href="/spares/purchase-orders/"><i class="fas fa-shopping-bag"></i> Purchase Orders</a>
+  <a href="{% url 'spares:counter_sale_list' %}" class="sidebar-link" data-href="/spares/counter-sales/"><i class="fas fa-cash-register"></i> Counter Sales</a>
+  <a href="{% url 'spares:issue_list' %}" class="sidebar-link" data-href="/spares/issues/"><i class="fas fa-share-square"></i> Issues</a>
 
-      <div class="nav-section-label">VAS</div>
-      <a href="{% url 'vas:amc_list' %}" class="nav-link" data-href="/vas/amc/">
-        <span class="nav-icon">&#x2699;&#xFE0F;</span> AMC Packages
-      </a>
-      <a href="{% url 'vas:rsa_list' %}" class="nav-link" data-href="/vas/rsa/">
-        <span class="nav-icon">&#x1F198;</span> RSA Packages
-      </a>
-      <a href="{% url 'vas:pp_list' %}" class="nav-link" data-href="/vas/protection-plus/">
-        <span class="nav-icon">&#x1F6E1;&#xFE0F;</span> Protection Plus
-      </a>
+  <div class="sidebar-section">VAS</div>
+  <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="fas fa-cog"></i> AMC Packages</a>
+  <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="fas fa-ambulance"></i> RSA Packages</a>
+  <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="fas fa-shield-alt"></i> Protection Plus</a>
 
-      <div class="nav-section-label">Reports</div>
-      <a href="{% url 'accounts:sales_report' %}" class="nav-link" data-href="/accounts/reports/sales/">
-        <span class="nav-icon">&#x1F4C8;</span> Sales Report
-      </a>
-      <a href="{% url 'accounts:spares_report' %}" class="nav-link" data-href="/accounts/reports/spares/">
-        <span class="nav-icon">&#x1F4CA;</span> Spares Report
-      </a>
-      <a href="{% url 'accounts:service_report' %}" class="nav-link" data-href="/accounts/reports/service/">
-        <span class="nav-icon">&#x1F527;</span> Service Report
-      </a>
+  <div class="sidebar-section">Reports</div>
+  <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="fas fa-chart-bar"></i> Sales Report</a>
+  <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="fas fa-chart-pie"></i> Spares Report</a>
+  <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="fas fa-wrench"></i> Service Report</a>
+  <a href="{% url 'accounts:search' %}" class="sidebar-link" data-href="/accounts/search/"><i class="fas fa-search"></i> Search</a>
 
-      <div class="nav-section-label">Admin</div>
-      <a href="{% url 'accounts:user_list' %}" class="nav-link" data-href="/accounts/users/">
-        <span class="nav-icon">&#x1F464;</span> Users
-      </a>
-      <a href="{% url 'accounts:role_list' %}" class="nav-link" data-href="/accounts/roles/">
-        <span class="nav-icon">&#x1F3AD;</span> Roles
-      </a>
-      <a href="{% url 'accounts:branch_list' %}" class="nav-link" data-href="/accounts/branches/">
-        <span class="nav-icon">&#x1F3E2;</span> Branches
-      </a>
-      <a href="{% url 'accounts:fuel_expense_list' %}" class="nav-link" data-href="/accounts/fuel-expenses/">
-        <span class="nav-icon">&#x26FD;</span> Fuel Expenses
-      </a>
+  <div class="sidebar-section">Admin</div>
+  <a href="{% url 'accounts:user_list' %}" class="sidebar-link" data-href="/accounts/users/"><i class="fas fa-users-cog"></i> Users</a>
+  <a href="{% url 'accounts:role_list' %}" class="sidebar-link" data-href="/accounts/roles/"><i class="fas fa-user-tag"></i> Roles</a>
+  <a href="{% url 'accounts:branch_list' %}" class="sidebar-link" data-href="/accounts/branches/"><i class="fas fa-building"></i> Branches</a>
+  <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="fas fa-gas-pump"></i> Fuel Expenses</a>
+</nav>
 
-    </nav>
-  </aside>
-  {% endif %}
-
-  <!-- ── MAIN ── -->
-  <div class="main" {% if not user.is_authenticated %}style="margin-left:0"{% endif %}>
-
-    {% if user.is_authenticated %}
-    <!-- ── TOP BAR ── -->
-    <header class="topbar">
-      <button class="topbar-hamburger" id="hamburger" aria-label="Toggle menu">&#9776;</button>
-      <div class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</div>
-      <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:360px; margin:0 16px;">
-        <div style="position:relative;">
-          <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); color:#9CA3AF; font-size:14px;">&#x1F50D;</span>
-          <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search customers, vehicles, job cards…" style="padding-left:32px; width:100%; border-radius:8px; border:1px solid #E5E7EB; font-size:13px; height:36px; background:#F9FAFB;">
-        </div>
-      </form>
-      <div class="topbar-right">
-        <div class="topbar-user" id="userMenuBtn">
-          <div class="user-avatar">
-            {% with name=request.user.get_full_name|default:request.user.username %}
-            {{ name|slice:":1"|upper }}{% with parts=name.split %}{% if parts|length > 1 %}{{ parts.1|slice:":1"|upper }}{% endif %}{% endwith %}
-            {% endwith %}
-          </div>
-          <div class="user-info">
-            <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
-            <div class="user-role">{{ request.user.role|default:"User" }}</div>
-          </div>
-          <span style="color:#9CA3AF; font-size:12px; margin-left:4px;">&#9660;</span>
-          <div class="user-dropdown" id="userDropdown">
-            <a href="{% url 'accounts:profile' %}">&#x1F464; My Profile</a>
-            <a href="{% url 'accounts:password_change' %}">&#x1F512; Change Password</a>
-            <a href="{% url 'accounts:logout' %}" class="danger">&#x1F6AA; Logout</a>
-          </div>
-        </div>
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <button class="topbar-hamburger" id="hamburger" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+  <div class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</div>
+  <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:320px; margin: 0 12px;">
+    <div style="position:relative;">
+      <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
+      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…" style="padding-left:32px;width:100%;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;height:36px;background:#f9fafb;">
+    </div>
+  </form>
+  <div class="topbar-actions">
+    {% block topbar_actions %}{% endblock %}
+    <div class="topbar-user" id="userMenuBtn">
+      <div class="user-avatar">
+        {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}
       </div>
-    </header>
-    {% endif %}
-
-    <!-- ── MESSAGES ── -->
-    {% if messages %}
-    <div class="messages-container">
-      {% for message in messages %}
-      <div class="message {{ message.tags }}">{{ message }}</div>
-      {% endfor %}
+      <div class="user-info d-none d-md-block">
+        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="user-role">{{ request.user.role|default:"User" }}</div>
+      </div>
+      <span style="color:#9ca3af;font-size:12px;margin-left:4px;"><i class="fas fa-chevron-down"></i></span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i>My Profile</a>
+        <a href="{% url 'accounts:password_change' %}"><i class="fas fa-key me-2"></i>Change Password</a>
+        <a href="{% url 'accounts:logout' %}" class="danger"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+      </div>
     </div>
-    {% endif %}
+  </div>
+</header>
 
-    <!-- ── CONTENT ── -->
-    <main class="content">
-      {% block content %}{% endblock %}
-    </main>
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main-content">
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
 
-  </div><!-- /.main -->
-</div><!-- /.layout -->
+<!-- Legacy .layout/.main/.content wrapper support -->
+<div style="display:none" id="legacy-layout-shim"></div>
 
+{% else %}
+{% block content %}{% endblock %}
+{% endif %}
+
+<!-- Bootstrap 5 JS + jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Sidebar toggle (mobile)
-  const sidebar  = document.getElementById('sidebar');
-  const overlay  = document.getElementById('sidebarOverlay');
+  // Sidebar toggle
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebarOverlay');
   const hamburger = document.getElementById('hamburger');
-
   if (hamburger && sidebar) {
     hamburger.addEventListener('click', () => {
       sidebar.classList.toggle('open');
-      overlay.classList.toggle('open');
+      overlay && overlay.classList.toggle('open');
     });
-    overlay.addEventListener('click', () => {
+    overlay && overlay.addEventListener('click', () => {
       sidebar.classList.remove('open');
       overlay.classList.remove('open');
     });
@@ -781,17 +436,14 @@
   const userBtn  = document.getElementById('userMenuBtn');
   const dropdown = document.getElementById('userDropdown');
   if (userBtn && dropdown) {
-    userBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      dropdown.classList.toggle('open');
-    });
+    userBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
     document.addEventListener('click', () => dropdown.classList.remove('open'));
   }
 
-  // Sidebar active state
-  document.querySelectorAll('.nav-link[data-href]').forEach(link => {
+  // Sidebar active state based on URL prefix
+  document.querySelectorAll('.sidebar-link[data-href]').forEach(link => {
     const href = link.getAttribute('data-href');
-    if (href && window.location.pathname.startsWith(href)) {
+    if (href && window.location.pathname.startsWith(href) && href !== '/') {
       link.classList.add('active');
     }
   });
@@ -799,30 +451,26 @@
   // Tab system
   document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const tabId = btn.getAttribute('data-tab');
+      const tabId    = btn.getAttribute('data-tab');
       const container = btn.closest('.tab-container') || document;
       container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
-      const target = (container === document ? document : container).querySelector('#' + tabId);
+      const target = container.querySelector('#' + tabId);
       if (target) target.classList.add('active');
     });
   });
 
-  // Disable submit buttons on form submit to prevent double-submission
+  // Prevent double-submit
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', function () {
-      const submitBtns = this.querySelectorAll('button[type="submit"], input[type="submit"]');
-      submitBtns.forEach(btn => {
+      this.querySelectorAll('button[type="submit"]').forEach(btn => {
         btn.disabled = true;
-        if (btn.tagName === 'BUTTON') {
-          btn.dataset.originalText = btn.textContent;
-          btn.textContent = 'Saving…';
-        }
+        if (btn.textContent && !btn.textContent.includes('…')) btn.textContent = 'Saving…';
       });
     });
   });
 </script>
-
+{% block extra_js %}{% endblock %}
 </body>
 </html>

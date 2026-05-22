@@ -10,6 +10,33 @@ from .models import AMCPackage, ProtectionPlusPackage, RSAPackage
 
 
 # ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_amc = safe_count(AMCPackage.objects.all())
+    total_rsa = safe_count(RSAPackage.objects.all())
+    total_pp  = safe_count(ProtectionPlusPackage.objects.all())
+    active_amc = safe_count(AMCPackage.objects.filter(status='active'))
+    active_rsa = safe_count(RSAPackage.objects.filter(status='active'))
+
+    return render(request, 'vas/dashboard.html', {
+        'total_amc':  total_amc,
+        'total_rsa':  total_rsa,
+        'total_pp':   total_pp,
+        'active_amc': active_amc,
+        'active_rsa': active_rsa,
+    })
+
+
+# ---------------------------------------------------------------------------
 # AMCPackage
 # ---------------------------------------------------------------------------
 

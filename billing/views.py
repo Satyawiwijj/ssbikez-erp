@@ -11,6 +11,43 @@ from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentFor
 from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
 
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_invoices = safe_count(Invoice.objects.all())
+    total_revenue  = Invoice.objects.aggregate(t=Sum('final_amount'))['t'] or 0
+    total_loans    = safe_count(FinanceLoan.objects.all())
+    total_policies = safe_count(InsurancePolicy.objects.all())
+    recent_invoices = Invoice.objects.select_related('sales_order__customer').order_by('-invoice_date')[:10]
+
+    return render(request, 'billing/dashboard.html', {
+        'total_invoices': total_invoices,
+        'total_revenue':  total_revenue,
+        'total_loans':    total_loans,
+        'total_policies': total_policies,
+        'recent_invoices': recent_invoices,
+    })
+
+
+# ---------------------------------------------------------------------------
+# FinanceLoan list
+# ---------------------------------------------------------------------------
+
+@login_required
+def loan_list(request):
+    loans = FinanceLoan.objects.select_related('sales_order__customer').order_by('-created_at')
+    return render(request, 'billing/loan_list.html', {'loans': loans})
+
+
 @login_required
 def invoice_list(request):
     q  = request.GET.get('q', '').strip()

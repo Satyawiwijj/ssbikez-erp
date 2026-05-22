@@ -18,6 +18,60 @@ from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
 
 
 # ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_jc   = safe_count(JobCard.objects.all())
+    active_jc  = safe_count(JobCard.objects.exclude(service_status__in=['invoiced']))
+    total_bays = safe_count(ServiceBay.objects.all())
+    total_enq  = safe_count(ServiceEnquiry.objects.all())
+    recent_jc  = JobCard.objects.select_related(
+        'customer_vehicle__customer', 'customer_vehicle__vehicle__bike_model', 'service_advisor'
+    ).order_by('-created_at')[:10]
+
+    return render(request, 'service/dashboard.html', {
+        'total_jc':   total_jc,
+        'active_jc':  active_jc,
+        'total_bays': total_bays,
+        'total_enq':  total_enq,
+        'recent_jc':  recent_jc,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Appointment list
+# ---------------------------------------------------------------------------
+
+@login_required
+def appointment_list(request):
+    appointments = ServiceAppointment.objects.select_related(
+        'service_enquiry__customer_vehicle__customer',
+        'service_enquiry__customer_vehicle__vehicle__bike_model',
+    ).order_by('-appointment_date')
+    return render(request, 'service/appointment_list.html', {'appointments': appointments})
+
+
+# ---------------------------------------------------------------------------
+# LaborCharge list
+# ---------------------------------------------------------------------------
+
+@login_required
+def labor_charge_list(request):
+    charges = LaborCharge.objects.select_related(
+        'job_card__customer_vehicle__customer'
+    ).order_by('-id')
+    return render(request, 'service/labor_charge_list.html', {'charges': charges})
+
+
+# ---------------------------------------------------------------------------
 # ServiceEnquiry
 # ---------------------------------------------------------------------------
 

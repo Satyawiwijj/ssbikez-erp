@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Labor Charges — SSBikez ERP{% endblock %}
+{% block page_title %}Labor Charges{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'service:labor_charge_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Labor Charge</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h6 class="card-title mb-0">All Labor Charges <span class="badge bg-secondary ms-2">{{ charges|length }}</span></h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Job Card</th><th>Customer</th><th>Service Name</th><th>Cost</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for charge in charges %}
+          <tr>
+            <td>{{ charge.pk }}</td>
+            <td><a href="{% url 'service:jobcard_detail' charge.job_card.pk %}">JC-{{ charge.job_card.pk }}</a></td>
+            <td>{{ charge.job_card.customer_vehicle.customer.full_name }}</td>
+            <td>{{ charge.service_name }}</td>
+            <td>Rs. {{ charge.labor_cost }}</td>
+            <td>
+              <a href="{% url 'service:labor_charge_update' charge.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <form method="post" action="{% url 'service:labor_charge_delete' charge.pk %}" class="inline-form" onsubmit="return confirm('Delete this charge?');">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-tools fa-2x mb-2 d-block"></i>No labor charges found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -5,6 +5,9 @@ from . import views
 app_name = 'spares'
 
 urlpatterns = [
+    # Dashboard
+    path('',                                      views.dashboard,                 name='dashboard'),
+
     # SparesCategory
     path('categories/',                          views.category_list,             name='category_list'),
     path('categories/create/',                   views.category_create,           name='category_create'),

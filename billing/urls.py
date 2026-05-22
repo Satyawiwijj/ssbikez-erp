@@ -5,6 +5,9 @@ from . import pdf_views, views
 app_name = 'billing'
 
 urlpatterns = [
+    # Dashboard
+    path('',                             views.dashboard,              name='dashboard'),
+
     # Invoice
     path('invoices/',                   views.invoice_list,   name='invoice_list'),
     path('invoices/create/',            views.invoice_create, name='invoice_create'),
@@ -24,6 +27,7 @@ urlpatterns = [
     path('insurance/<int:pk>/edit/',         views.insurance_policy_update, name='insurance_policy_update'),
 
     # FinanceLoan
+    path('loans/',                      views.loan_list,      name='loan_list'),
     path('loans/create/',               views.loan_create,    name='loan_create'),
     path('loans/<int:pk>/',             views.loan_detail,    name='loan_detail'),
     path('loans/<int:pk>/edit/',        views.loan_update,    name='loan_update'),

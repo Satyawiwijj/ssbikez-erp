@@ -5,6 +5,12 @@ from . import views
 app_name = 'rto'
 
 urlpatterns = [
+    # Dashboard
+    path('dashboard/',                    views.dashboard,                  name='dashboard'),
+
+    # NumberPlate list
+    path('plates/',                       views.plate_list,                 name='plate_list'),
+
     # RTORegistration
     path('',                              views.registration_list,          name='registration_list'),
     path('create/',                       views.registration_create,        name='registration_create'),

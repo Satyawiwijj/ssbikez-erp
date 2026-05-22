@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Number Plates — SSBikez ERP{% endblock %}
+{% block page_title %}Number Plate Orders{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'rto:plate_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Plate Order</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h6 class="card-title mb-0">All Number Plate Orders <span class="badge bg-secondary ms-2">{{ plates|length }}</span></h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Customer</th><th>Plate Number</th><th>Vendor</th><th>Status</th><th>Issue Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for plate in plates %}
+          <tr>
+            <td>PLATE-{{ plate.pk }}</td>
+            <td>{{ plate.rto.sales_order.customer.full_name }}</td>
+            <td>{{ plate.plate_number|default:"Unassigned" }}</td>
+            <td>{{ plate.vendor_name|default:"—" }}</td>
+            <td>
+              <span class="badge badge-soft-{% if plate.status == 'issued' %}success{% elif plate.status == 'ordered' %}info{% else %}warning{% endif %}">
+                {{ plate.get_status_display }}
+              </span>
+            </td>
+            <td>{{ plate.issue_date|default:"—" }}</td>
+            <td>
+              <a href="{% url 'rto:registration_detail' plate.rto.pk %}" class="btn btn-sm btn-outline-secondary">RTO</a>
+              <a href="{% url 'rto:plate_update' plate.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-hashtag fa-2x mb-2 d-block"></i>No plate orders.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

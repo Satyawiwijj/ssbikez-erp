@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Service Dashboard — SSBikez ERP{% endblock %}
+{% block page_title %}Service Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'service:jobcard_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fas fa-file-alt" style="color:#1d4ed8"></i></div>
+    <div>
+      <div class="stat-value">{{ total_jc }}</div>
+      <div class="stat-label">Total Job Cards</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fas fa-wrench" style="color:#92400e"></i></div>
+    <div>
+      <div class="stat-value">{{ active_jc }}</div>
+      <div class="stat-label">Active Job Cards</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fas fa-warehouse" style="color:#065f46"></i></div>
+    <div>
+      <div class="stat-value">{{ total_bays }}</div>
+      <div class="stat-label">Service Bays</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple"><i class="fas fa-clipboard" style="color:#5b21b6"></i></div>
+    <div>
+      <div class="stat-value">{{ total_enq }}</div>
+      <div class="stat-label">Service Enquiries</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="card-title mb-0">Recent Job Cards</h6>
+    <a href="{% url 'service:jobcard_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Customer</th><th>Vehicle</th><th>Advisor</th><th>Status</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for jc in recent_jc %}
+          <tr>
+            <td><a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a></td>
+            <td>{{ jc.customer_vehicle.customer.full_name }}</td>
+            <td>{{ jc.customer_vehicle.vehicle.bike_model }}</td>
+            <td>{{ jc.service_advisor|default:"—" }}</td>
+            <td>
+              <span class="badge badge-soft-{% if jc.service_status == 'invoiced' %}success{% elif jc.service_status == 'in_progress' %}info{% elif jc.service_status == 'ready' %}primary{% else %}warning{% endif %}">
+                {{ jc.get_service_status_display }}
+              </span>
+            </td>
+            <td>{{ jc.created_at|date:"d M Y" }}</td>
+            <td><a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No job cards yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

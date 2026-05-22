@@ -15,3 +15,4 @@ urlpatterns = [
     path('vas/', include('vas.urls', namespace='vas')),
     path('', RedirectView.as_view(pattern_name='accounts:login', permanent=False)),
 ]
+

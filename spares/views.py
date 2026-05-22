@@ -18,6 +18,33 @@ from .models import (CounterSale, CounterSaleItem, PurchaseOrder,
 
 
 # ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_parts     = safe_count(SparePart.objects.all())
+    low_stock_parts = safe_count(SparePart.objects.filter(stock_quantity__lt=5))
+    total_suppliers = safe_count(Supplier.objects.all())
+    recent_sales    = CounterSale.objects.select_related('customer').order_by('-sale_date')[:10]
+    recent_pos      = PurchaseOrder.objects.select_related('supplier').order_by('-order_date')[:5]
+
+    return render(request, 'spares/dashboard.html', {
+        'total_parts':     total_parts,
+        'low_stock_parts': low_stock_parts,
+        'total_suppliers': total_suppliers,
+        'recent_sales':    recent_sales,
+        'recent_pos':      recent_pos,
+    })
+
+
+# ---------------------------------------------------------------------------
 # SparesCategory
 # ---------------------------------------------------------------------------
 

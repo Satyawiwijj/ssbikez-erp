@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% block title %}Spares Dashboard — SSBikez ERP{% endblock %}
+{% block page_title %}Spares Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:part_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Part</a>
+{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fas fa-boxes" style="color:#1d4ed8"></i></div>
+    <div>
+      <div class="stat-value">{{ total_parts }}</div>
+      <div class="stat-label">Total Parts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fas fa-exclamation-triangle" style="color:#92400e"></i></div>
+    <div>
+      <div class="stat-value">{{ low_stock_parts }}</div>
+      <div class="stat-label">Low Stock</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fas fa-truck-loading" style="color:#065f46"></i></div>
+    <div>
+      <div class="stat-value">{{ total_suppliers }}</div>
+      <div class="stat-label">Suppliers</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple"><i class="fas fa-cash-register" style="color:#5b21b6"></i></div>
+    <div>
+      <div class="stat-value">{{ recent_sales|length }}</div>
+      <div class="stat-label">Recent Sales</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title mb-0">Recent Counter Sales</h6>
+        <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for sale in recent_sales %}
+              <tr>
+                <td><a href="{% url 'spares:counter_sale_detail' sale.pk %}">{{ sale.invoice_number }}</a></td>
+                <td>{{ sale.customer|default:"Walk-in" }}</td>
+                <td>{{ sale.sale_date }}</td>
+                <td>Rs. {{ sale.total_amount }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No sales yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="card-title mb-0">Recent Purchase Orders</h6>
+        <a href="{% url 'spares:po_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead>
+              <tr><th>PO</th><th>Supplier</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for po in recent_pos %}
+              <tr>
+                <td><a href="{% url 'spares:po_detail' po.pk %}">PO-{{ po.pk }}</a></td>
+                <td>{{ po.supplier }}</td>
+                <td><span class="badge badge-soft-{% if po.status == 'received' %}success{% elif po.status == 'cancelled' %}danger{% else %}warning{% endif %}">{{ po.get_status_display }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-4">No orders.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

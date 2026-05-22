@@ -10,6 +10,41 @@ from .forms import NumberPlateOrderForm, RTORegistrationForm
 from .models import NumberPlateOrder, RTORegistration
 
 
+# ---------------------------------------------------------------------------
+# Dashboard
+# ---------------------------------------------------------------------------
+
+@login_required
+def dashboard(request):
+    def safe_count(qs):
+        try:
+            return qs.count()
+        except Exception:
+            return 0
+
+    total_reg    = safe_count(RTORegistration.objects.all())
+    pending_reg  = safe_count(RTORegistration.objects.filter(registration_status='pending'))
+    total_plates = safe_count(NumberPlateOrder.objects.all())
+    recent_regs  = RTORegistration.objects.select_related('sales_order__customer').order_by('-created_at')[:10]
+
+    return render(request, 'rto/dashboard.html', {
+        'total_reg':    total_reg,
+        'pending_reg':  pending_reg,
+        'total_plates': total_plates,
+        'recent_regs':  recent_regs,
+    })
+
+
+# ---------------------------------------------------------------------------
+# NumberPlate list
+# ---------------------------------------------------------------------------
+
+@login_required
+def plate_list(request):
+    plates = NumberPlateOrder.objects.select_related('rto__sales_order__customer').order_by('-created_at')
+    return render(request, 'rto/plate_list.html', {'plates': plates})
+
+
 @login_required
 def registration_list(request):
     q             = request.GET.get('q', '').strip()
