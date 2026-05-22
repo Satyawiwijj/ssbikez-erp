@@ -157,7 +157,7 @@
             {% endif %}
           </td>
           <td>{% if p.mrp %}&#x20B9; {{ p.mrp }}{% else %}—{% endif %}</td>
-          <td><a href="{% url 'spares:part_detail' p.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+          <td><a href="{% url 'spares:item_detail' p.pk %}" class="btn btn-ghost btn-sm">View</a></td>
         </tr>
         {% endfor %}
       </tbody>

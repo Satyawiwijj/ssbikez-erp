@@ -236,13 +236,8 @@ class ServiceInvoice(models.Model):
             or Decimal('0.00')
         )
 
-        spares_total = Decimal('0.00')
-        for si in self.job_card.spares_issues.select_related('spare_part').all():
-            if si.unit_price is not None:
-                spares_total += si.quantity_issued * si.unit_price
-            elif si.spare_part.mrp is not None:
-                spares_total += si.quantity_issued * si.spare_part.mrp
-        self.spares_total = spares_total
+        # Spares total is now managed via spares.SparesIssueAlteration; set to 0 here
+        self.spares_total = Decimal('0.00')
 
         self.outwork_total = (
             self.job_card.outwork_entries.aggregate(total=Sum('cost'))['total']

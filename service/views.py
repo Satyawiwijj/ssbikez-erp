@@ -233,7 +233,7 @@ def jobcard_detail(request, pk):
         'bay_assignments': bay_assignments,
         'labor_charges':   labor_charges,
         'total_labor':     total_labor,
-        'spares_issues':   job_card.spares_issues.select_related('spare_part', 'issued_by').all(),
+        'spares_issues':   [],
         'outwork_entries': outwork_entries,
     })
 
@@ -294,13 +294,12 @@ def jobcard_print(request, pk):
     )
     labor_charges   = job_card.labor_charges.all()
     total_labor     = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
-    spares_issues   = job_card.spares_issues.select_related('spare_part').all()
     outwork_entries = job_card.outwork_entries.all()
     return render(request, 'service/jobcard_print.html', {
         'job_card':       job_card,
         'labor_charges':  labor_charges,
         'total_labor':    total_labor,
-        'spares_issues':  spares_issues,
+        'spares_issues':  [],
         'outwork_entries': outwork_entries,
     })
 
@@ -468,7 +467,7 @@ def service_invoice_detail(request, pk):
         pk=pk
     )
     labor_charges   = invoice.job_card.labor_charges.all()
-    spares_issues   = invoice.job_card.spares_issues.select_related('spare_part').all()
+    spares_issues   = []
     outwork_entries = invoice.job_card.outwork_entries.all()
     gst_half = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
     return render(request, 'service/service_invoice_detail.html', {

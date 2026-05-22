@@ -7,7 +7,7 @@
   <div>
     <h1 class="page-title">Spares Issues</h1>
     {% if jobcard_filter %}
-    <p class="page-subtitle">Showing issues for JC-{{ jobcard_filter }} &mdash; <a href="{% url 'spares:issue_list' %}" style="color:#2563EB;">Show all</a></p>
+    <p class="page-subtitle">Showing issues for JC-{{ jobcard_filter }} &mdash; <a href="{% url 'spares:issue_alteration_list' %}" style="color:#2563EB;">Show all</a></p>
     {% else %}
     <p class="page-subtitle">Parts issued to service job cards</p>
     {% endif %}
@@ -43,7 +43,7 @@
           <td style="color:#6B7280; font-size:13px;">{{ issue.issued_by|default:"—" }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ issue.issued_at|date:"d M Y H:i" }}</td>
           <td>
-            <a href="{% url 'spares:issue_update' issue.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            <a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-ghost btn-sm">View All</a>
           </td>
         </tr>
         {% empty %}

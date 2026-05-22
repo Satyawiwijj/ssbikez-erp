@@ -9,8 +9,8 @@
     <p class="page-subtitle">{{ part.category }}</p>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'spares:part_update' part.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'spares:part_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'spares:item_update' part.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'spares:item_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>
 </div>
 
@@ -46,7 +46,7 @@
       <tbody>
         {% for item in po_items %}
         <tr>
-          <td><a href="{% url 'spares:po_detail' item.purchase_order.pk %}" style="color:#2563EB; text-decoration:none;">PO-{{ item.purchase_order.pk }}</a></td>
+          <td><a href="{% url 'spares:order_detail' item.purchase_order.pk %}" style="color:#2563EB; text-decoration:none;">PO-{{ item.purchase_order.pk }}</a></td>
           <td>{{ item.purchase_order.supplier }}</td>
           <td>{{ item.quantity }}</td>
           <td>&#x20B9; {{ item.price }}</td>

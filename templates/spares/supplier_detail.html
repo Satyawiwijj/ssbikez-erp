@@ -9,8 +9,8 @@
     <p class="page-subtitle">Supplier profile</p>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'spares:supplier_update' supplier.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'spares:supplier_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'masters:supplier_update' supplier.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'masters:supplier_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>
 </div>
 
@@ -29,7 +29,7 @@
 <div class="card">
   <div class="card-header">
     <span class="card-title">Purchase Orders</span>
-    <a href="{% url 'spares:po_create' %}" class="btn btn-primary btn-sm">+ New PO</a>
+    <a href="{% url 'spares:order_create' %}" class="btn btn-primary btn-sm">+ New PO</a>
   </div>
   <div class="table-wrapper">
     <table class="table">
@@ -46,7 +46,7 @@
         {% for po in purchase_orders %}
         <tr>
           <td>
-            <a href="{% url 'spares:po_detail' po.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">PO-{{ po.pk }}</a>
+            <a href="{% url 'spares:order_detail' po.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">PO-{{ po.pk }}</a>
           </td>
           <td>{{ po.order_date|date:"d M Y" }}</td>
           <td>{% if po.total_amount %}&#x20B9; {{ po.total_amount }}{% else %}—{% endif %}</td>
@@ -55,8 +55,8 @@
           </td>
           <td>
             <div class="table-actions">
-              <a href="{% url 'spares:po_detail' po.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'spares:po_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <a href="{% url 'spares:order_detail' po.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
             </div>
           </td>
         </tr>

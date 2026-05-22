@@ -8,7 +8,7 @@
     <h1 class="page-title">Purchase Orders</h1>
     <p class="page-subtitle">Supplier purchase orders</p>
   </div>
-  <a href="{% url 'spares:po_create' %}" class="btn btn-primary">+ New Purchase Order</a>
+  <a href="{% url 'spares:order_create' %}" class="btn btn-primary">+ New Purchase Order</a>
 </div>
 
 <div class="filter-tabs">
@@ -35,7 +35,7 @@
         {% for po in purchase_orders %}
         <tr>
           <td>
-            <a href="{% url 'spares:po_detail' po.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">PO-{{ po.pk }}</a>
+            <a href="{% url 'spares:order_detail' po.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">PO-{{ po.pk }}</a>
           </td>
           <td>{{ po.supplier }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ po.order_date|date:"d M Y" }}</td>
@@ -43,8 +43,8 @@
           <td><span class="badge badge-blue">{{ po.get_status_display }}</span></td>
           <td>
             <div class="table-actions">
-              <a href="{% url 'spares:po_detail' po.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'spares:po_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <a href="{% url 'spares:order_detail' po.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
             </div>
           </td>
         </tr>

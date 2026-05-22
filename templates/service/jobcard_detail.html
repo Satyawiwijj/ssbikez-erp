@@ -158,7 +158,7 @@
           <td>{{ issue.unit_price|default:"—" }}</td>
           <td style="font-weight:500;">{{ issue.total_price|default:"—" }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ issue.issued_by|default:"—" }}</td>
-          <td><a href="{% url 'spares:issue_update' issue.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
+          <td><a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-ghost btn-sm">View</a></td>
         </tr>
         {% empty %}
         <tr><td colspan="8" class="empty-state">No spares issued yet.</td></tr>

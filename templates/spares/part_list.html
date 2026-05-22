@@ -8,7 +8,7 @@
     <h1 class="page-title">Spare Parts</h1>
     <p class="page-subtitle">Parts inventory</p>
   </div>
-  <a href="{% url 'spares:part_create' %}" class="btn btn-primary">+ Add Part</a>
+  <a href="{% url 'spares:item_create' %}" class="btn btn-primary">+ Add Part</a>
 </div>
 
 <form class="search-bar" method="get">
@@ -20,7 +20,7 @@
     {% endfor %}
   </select>
   <button type="submit" class="btn btn-secondary">Filter</button>
-  {% if q or category_filter %}<a href="{% url 'spares:part_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+  {% if q or category_filter %}<a href="{% url 'spares:item_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
 </form>
 
 <div class="card">
@@ -41,7 +41,7 @@
         {% for part in parts %}
         <tr>
           <td>
-            <a href="{% url 'spares:part_detail' part.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">{{ part.part_name }}</a>
+            <a href="{% url 'spares:item_detail' part.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">{{ part.part_name }}</a>
           </td>
           <td style="font-family:monospace; font-size:13px;">{{ part.part_number|default:"—" }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ part.category }}</td>
@@ -57,8 +57,8 @@
           </td>
           <td>
             <div class="table-actions">
-              <a href="{% url 'spares:part_detail' part.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'spares:part_update' part.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <a href="{% url 'spares:item_detail' part.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'spares:item_update' part.pk %}" class="btn btn-ghost btn-sm">Edit</a>
             </div>
           </td>
         </tr>

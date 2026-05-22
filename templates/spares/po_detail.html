@@ -9,8 +9,8 @@
     <p class="page-subtitle">{{ po.supplier }}</p>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'spares:po_update' po.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'spares:po_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'spares:order_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>
 </div>
 
@@ -27,7 +27,7 @@
 
   <div class="card">
     <div class="card-header"><span class="card-title">Update Status</span></div>
-    <form method="post" action="{% url 'spares:po_status_update' po.pk %}">
+    <form method="post" action="{% url 'spares:order_update' po.pk %}">
       {% csrf_token %}
       <div class="form-group">
         <label class="form-label">Status</label>
@@ -45,7 +45,7 @@
 <div class="card">
   <div class="card-header">
     <span class="card-title">Line Items</span>
-    <a href="{% url 'spares:po_item_create' %}?po={{ po.pk }}" class="btn btn-primary btn-sm">+ Add Item</a>
+    <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-primary btn-sm">+ Add Item</a>
   </div>
   <div class="table-wrapper">
     <table class="table">
@@ -69,11 +69,7 @@
           <td style="font-weight:500;">&#x20B9; {{ item.line_total }}</td>
           <td>
             <div class="table-actions">
-              <a href="{% url 'spares:po_item_update' item.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-              <form method="post" action="{% url 'spares:po_item_delete' item.pk %}" style="display:inline;" onsubmit="return confirm('Delete this item?')">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-ghost btn-sm" style="color:#EF4444;">Delete</button>
-              </form>
+              <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
             </div>
           </td>
         </tr>
