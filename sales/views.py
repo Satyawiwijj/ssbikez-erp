@@ -48,10 +48,14 @@ def dashboard(request):
 
 @login_required
 def all_appointments(request):
-    appointments = SalesAppointment.objects.select_related(
-        'enquiry__customer'
-    ).order_by('-appointment_date')
-    return render(request, 'sales/appointment_list.html', {'appointments': appointments})
+    q = request.GET.get('q', '').strip()
+    qs = SalesAppointment.objects.select_related('enquiry__customer').order_by('-appointment_date')
+    if q:
+        qs = qs.filter(
+            Q(enquiry__customer__full_name__icontains=q) |
+            Q(enquiry__customer__phone__icontains=q)
+        )
+    return render(request, 'sales/appointment_list.html', {'appointments': qs, 'q': q})
 
 
 # ---------------------------------------------------------------------------

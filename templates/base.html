@@ -284,6 +284,26 @@
       .stat-grid { grid-template-columns: 1fr; }
     }
 
+    /* ── BREADCRUMBS ── */
+    .breadcrumb-bar { display:flex; align-items:center; gap:6px; font-size:12.5px; color:#9ca3af; margin-bottom:16px; flex-wrap:wrap; }
+    .breadcrumb-bar a { color:#6b7280; text-decoration:none; }
+    .breadcrumb-bar a:hover { color:#2563eb; text-decoration:underline; }
+    .breadcrumb-bar .bc-sep { color:#d1d5db; }
+    .breadcrumb-bar .bc-current { color:#374151; font-weight:500; }
+
+    /* ── CONFIRMATION DIALOG ── */
+    .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:2000; align-items:center; justify-content:center; }
+    .confirm-overlay.open { display:flex; }
+    .confirm-box { background:#fff; border-radius:14px; padding:28px 32px; max-width:420px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+    .confirm-box h3 { font-size:17px; font-weight:700; color:#111827; margin-bottom:10px; }
+    .confirm-box p { font-size:14px; color:#6b7280; margin-bottom:24px; line-height:1.5; }
+    .confirm-box .btn-row { display:flex; gap:10px; justify-content:center; }
+
+    /* ── BACK TO TOP ── */
+    #backToTop { position:fixed; bottom:24px; right:24px; width:40px; height:40px; border-radius:50%; background:#2563eb; color:#fff; border:none; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; box-shadow:0 4px 12px rgba(37,99,235,.4); z-index:500; }
+    #backToTop.visible { opacity:1; pointer-events:auto; }
+    #backToTop:hover { transform:translateY(-3px); }
+
     {% block extra_css %}{% endblock %}
   </style>
 </head>
@@ -418,6 +438,21 @@
 
 {% endif %}
 
+<!-- Back to top -->
+<button id="backToTop" aria-label="Back to top" title="Back to top">&#8679;</button>
+
+<!-- Confirmation dialog -->
+<div class="confirm-overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMessage">This action cannot be undone.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline-secondary" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Yes, proceed</button>
+    </div>
+  </div>
+</div>
+
 <!-- Bootstrap 5 JS + jQuery -->
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -475,6 +510,57 @@
       });
     });
   });
+
+  // Back to top
+  const btt = document.getElementById('backToTop');
+  if (btt) {
+    window.addEventListener('scroll', () => {
+      btt.classList.toggle('visible', window.scrollY > 300);
+    }, { passive: true });
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  // Confirmation dialogs — add data-confirm="message" to any <a> or <button>
+  (function () {
+    const overlay  = document.getElementById('confirmOverlay');
+    const msgEl    = document.getElementById('confirmMessage');
+    const titleEl  = document.getElementById('confirmTitle');
+    const cancelBtn = document.getElementById('confirmCancel');
+    const okBtn    = document.getElementById('confirmOk');
+    if (!overlay) return;
+    let pendingAction = null;
+
+    function openConfirm(msg, title, action) {
+      titleEl.textContent  = title  || 'Are you sure?';
+      msgEl.textContent    = msg    || 'This action cannot be undone.';
+      pendingAction = action;
+      overlay.classList.add('open');
+    }
+    function closeConfirm() {
+      overlay.classList.remove('open');
+      pendingAction = null;
+    }
+    cancelBtn.addEventListener('click', closeConfirm);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeConfirm(); });
+    okBtn.addEventListener('click', () => {
+      if (typeof pendingAction === 'function') pendingAction();
+      closeConfirm();
+    });
+
+    document.addEventListener('click', function (e) {
+      const el = e.target.closest('[data-confirm]');
+      if (!el) return;
+      const msg   = el.getAttribute('data-confirm');
+      const title = el.getAttribute('data-confirm-title') || 'Confirm Action';
+      e.preventDefault();
+      const href = el.href;
+      const form = el.closest('form');
+      openConfirm(msg, title, () => {
+        if (href) window.location.href = href;
+        else if (form) form.submit();
+      });
+    });
+  })();
 </script>
 {% block extra_js %}{% endblock %}
 </body>

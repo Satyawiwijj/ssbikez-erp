@@ -3,6 +3,13 @@
 {% block page_title %}RTO Registration{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'rto:registration_list' %}">RTO Registrations</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ rto.sales_order.customer.full_name }}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1 class="page-title">RTO — {{ rto.sales_order.customer.full_name }}</h1>

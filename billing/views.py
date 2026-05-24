@@ -44,8 +44,15 @@ def dashboard(request):
 
 @login_required
 def loan_list(request):
-    loans = FinanceLoan.objects.select_related('sales_order__customer').order_by('-created_at')
-    return render(request, 'billing/loan_list.html', {'loans': loans})
+    q = request.GET.get('q', '').strip()
+    qs = FinanceLoan.objects.select_related('sales_order__customer').order_by('-created_at')
+    if q:
+        qs = qs.filter(
+            Q(bank_name__icontains=q) |
+            Q(sales_order__customer__full_name__icontains=q) |
+            Q(sales_order__customer__phone__icontains=q)
+        )
+    return render(request, 'billing/loan_list.html', {'loans': qs, 'q': q})
 
 
 @login_required

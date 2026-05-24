@@ -10,6 +10,15 @@
   </div>
 </div>
 
+{% if expiring_insurance_count %}
+<div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+  <i class="fas fa-shield-alt me-2"></i>
+  <strong>{{ expiring_insurance_count }} vehicle{{ expiring_insurance_count|pluralize }}</strong>&nbsp;
+  have insurance expiring within 30 days.
+  <a href="{% url 'billing:insurance_policy_list' %}" class="ms-2 alert-link">View policies &rarr;</a>
+</div>
+{% endif %}
+
 <!-- STAT CARDS -->
 <div class="stat-grid">
   <div class="stat-card">

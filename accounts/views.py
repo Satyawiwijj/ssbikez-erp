@@ -42,16 +42,18 @@ def logout_view(request):
 
 @login_required
 def dashboard(request):
+    import datetime
+    from decimal import Decimal
     from billing.models import Payment
-    from sales.models import SalesAppointment, SalesEnquiry, VehicleSalesOrder
-    from service.models import JobCard
+    from sales.models import SalesAppointment, SalesEnquiry
+    from service.models import JobCard, ServiceAppointment as ServiceSvcApt
+    from customer_vehicles.models import CustomerVehicle
     try:
-        from spares.models import SparesItem, StockLedger
+        from spares.models import SparesItem
     except ImportError:
         SparesItem = None
-        StockLedger = None
 
-    today            = timezone.now().date()
+    today = timezone.now().date()
     this_month_start = today.replace(day=1)
 
     def safe_count(qs):
@@ -69,54 +71,87 @@ def dashboard(request):
     def safe_sum(qs, field):
         try:
             result = qs.aggregate(total=Sum(field))['total']
-            return result or 0
+            return result if result is not None else Decimal('0')
         except Exception:
-            return 0
+            return Decimal('0')
 
-    enquiries_today = safe_count(
-        SalesEnquiry.objects.filter(created_at__date=today)
-    )
+    try:
+        today_enquiries = SalesEnquiry.objects.filter(created_at__date=today).count()
+    except Exception:
+        today_enquiries = 0
 
-    open_orders = safe_count(
-        VehicleSalesOrder.objects.filter(sales_status='booked')
-    )
-
-    active_job_cards = safe_count(
-        JobCard.objects.exclude(service_status__in=['invoiced', 'ready'])
-    )
-
-    low_stock_count = safe_count(
-        StockLedger.objects.filter(quantity__lte=0)
-    ) if StockLedger else 0
-
-    recent_activity = safe_qs(
-        AuditLog.objects.select_related('user').order_by('-created_at')
-    )
-
-    pending_appointments = safe_count(
-        SalesAppointment.objects.filter(
-            appointment_date__date=today,
-            status='scheduled',
-        )
-    )
-
-    monthly_revenue = safe_sum(
-        Payment.objects.filter(
+    try:
+        month_revenue = Payment.objects.filter(
             payment_status='completed',
-            payment_date__date__gte=this_month_start,
-        ),
-        'amount',
-    )
+            payment_date__month=today.month,
+            payment_date__year=today.year,
+        ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    except Exception:
+        month_revenue = Decimal('0')
+
+    try:
+        open_job_cards = JobCard.objects.exclude(service_status__in=['invoiced']).count()
+    except Exception:
+        open_job_cards = 0
+
+    try:
+        low_stock_items = SparesItem.objects.filter(
+            maintain_stock=True, is_active=True, reorder_level__gt=0
+        ).count() if SparesItem else 0
+    except Exception:
+        low_stock_items = 0
+
+    try:
+        today_sales_appointments = list(
+            SalesAppointment.objects.filter(
+                appointment_date__date=today, status='scheduled'
+            ).select_related('enquiry__customer')
+        )
+    except Exception:
+        today_sales_appointments = []
+
+    try:
+        today_service_appointments = list(
+            ServiceSvcApt.objects.filter(
+                appointment_date__date=today, status='scheduled'
+            ).select_related('service_enquiry__customer_vehicle__customer')
+        )
+    except Exception:
+        today_service_appointments = []
+
+    try:
+        recent_audit_logs = list(
+            AuditLog.objects.select_related('user').order_by('-created_at')[:5]
+        )
+    except Exception:
+        recent_audit_logs = []
+
+    try:
+        expiry_limit = today + datetime.timedelta(days=30)
+        expiring_insurance_count = CustomerVehicle.objects.filter(
+            insurance_expiry__lte=expiry_limit,
+            insurance_expiry__gte=today,
+        ).count()
+    except Exception:
+        expiring_insurance_count = 0
+
+    today_appointments_count = len(today_sales_appointments) + len(today_service_appointments)
 
     return render(request, 'accounts/dashboard.html', {
-        'user':                 request.user,
-        'enquiries_today':      enquiries_today,
-        'open_orders':          open_orders,
-        'active_job_cards':     active_job_cards,
-        'low_stock_count':      low_stock_count,
-        'recent_activity':      recent_activity,
-        'pending_appointments': pending_appointments,
-        'monthly_revenue':      monthly_revenue,
+        'user':                        request.user,
+        # canonical names used by template
+        'enquiries_today':             today_enquiries,
+        'monthly_revenue':             month_revenue,
+        'active_job_cards':            open_job_cards,
+        'low_stock_count':             low_stock_items,
+        'pending_appointments':        today_appointments_count,
+        # extra detail lists
+        'today_sales_appointments':    today_sales_appointments,
+        'today_service_appointments':  today_service_appointments,
+        'today_appointments_count':    today_appointments_count,
+        'recent_audit_logs':           recent_audit_logs,
+        'recent_activity':             recent_audit_logs,
+        'expiring_insurance_count':    expiring_insurance_count,
     })
 
 

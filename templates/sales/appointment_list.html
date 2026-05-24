@@ -7,6 +7,11 @@
 {% endblock %}
 
 {% block content %}
+<form method="get" class="d-flex gap-2 mb-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search customer…" class="form-control" style="max-width:320px;">
+  <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+  {% if q %}<a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+</form>
 <div class="card">
   <div class="card-header">
     <h6 class="card-title mb-0">All Appointments <span class="badge bg-secondary ms-2">{{ appointments|length }}</span></h6>

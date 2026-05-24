@@ -3,6 +3,13 @@
 {% block page_title %}Sales Order{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:order_list' %}">Sales Orders</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">ORD-{{ order.pk }}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1 class="page-title">ORD-{{ order.pk }}</h1>

@@ -3,6 +3,13 @@
 {% block page_title %}Customer Vehicle{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'customer_vehicles:customervehicle_list' %}">Customer Vehicles</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ cv.customer.full_name }}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1 class="page-title">{{ cv.customer.full_name }} — {{ cv.vehicle.bike_model }}</h1>

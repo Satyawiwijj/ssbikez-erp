@@ -3,6 +3,13 @@
 {% block page_title %}Invoice{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'billing:invoice_list' %}">Invoices</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ invoice.invoice_number }}</span>
+</nav>
 <div class="page-header">
   <div>
     <h1 class="page-title">{{ invoice.invoice_number }}</h1>

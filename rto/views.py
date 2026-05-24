@@ -41,8 +41,15 @@ def dashboard(request):
 
 @login_required
 def plate_list(request):
-    plates = NumberPlateOrder.objects.select_related('rto__sales_order__customer').order_by('-created_at')
-    return render(request, 'rto/plate_list.html', {'plates': plates})
+    q = request.GET.get('q', '').strip()
+    qs = NumberPlateOrder.objects.select_related('rto__sales_order__customer').order_by('-created_at')
+    if q:
+        qs = qs.filter(
+            Q(plate_number__icontains=q) |
+            Q(vendor_name__icontains=q) |
+            Q(rto__sales_order__customer__full_name__icontains=q)
+        )
+    return render(request, 'rto/plate_list.html', {'plates': qs, 'q': q})
 
 
 @login_required
