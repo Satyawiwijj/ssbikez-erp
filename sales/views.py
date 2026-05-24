@@ -147,6 +147,8 @@ def enquiry_create(request):
         log_action(request, 'Sales Enquiry', 'create', enquiry.pk)
         messages.success(request, 'Enquiry created successfully.')
         return redirect('sales:enquiry_detail', pk=enquiry.pk)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/enquiry_form.html', {'form': form, 'title': 'New Enquiry'})
 
 
@@ -201,6 +203,8 @@ def appointment_create(request):
         log_action(request, 'Sales Appointment', 'create', apt.pk)
         messages.success(request, 'Appointment scheduled successfully.')
         return redirect('sales:enquiry_detail', pk=apt.enquiry_id)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/appointment_form.html',
                   {'form': form, 'title': 'Add Appointment'})
 
@@ -214,6 +218,8 @@ def appointment_update(request, pk):
         log_action(request, 'Sales Appointment', 'update', pk)
         messages.success(request, 'Appointment updated successfully.')
         return redirect('sales:enquiry_detail', pk=apt.enquiry_id)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/appointment_form.html',
                   {'form': form, 'title': 'Edit Appointment'})
 
@@ -245,6 +251,8 @@ def feedback_create(request):
         log_action(request, 'Sales Feedback', 'create', fb.pk)
         messages.success(request, 'Feedback recorded successfully.')
         return redirect('sales:enquiry_detail', pk=fb.enquiry_id)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/feedback_form.html',
                   {'form': form, 'title': 'Add Feedback'})
 
@@ -325,6 +333,8 @@ def order_create(request):
         log_action(request, 'Sales Order', 'create', order.pk)
         messages.success(request, 'Sales order created successfully.')
         return redirect('sales:order_detail', pk=order.pk)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/order_form.html', {'form': form, 'title': 'Create Sales Order'})
 
 
@@ -355,6 +365,8 @@ def delivery_create(request):
         log_action(request, 'Vehicle Delivery', 'create', delivery.pk)
         messages.success(request, 'Delivery recorded successfully.')
         return redirect('sales:order_detail', pk=delivery.sales_order_id)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/delivery_form.html',
                   {'form': form, 'title': 'Record Vehicle Delivery'})
 
@@ -395,6 +407,8 @@ def exchange_create(request):
         log_action(request, 'Exchange Vehicle', 'create', exchange.pk)
         messages.success(request, 'Exchange vehicle recorded successfully.')
         return redirect('sales:order_detail', pk=exchange.sales_order_id)
+    if request.method == 'POST' and getattr(form, 'is_bound', False) and not form.is_valid():
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'sales/exchange_form.html',
                   {'form': form, 'title': 'Add Exchange Vehicle'})
 

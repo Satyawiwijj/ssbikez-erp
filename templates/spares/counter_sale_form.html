@@ -5,7 +5,7 @@
 <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
 {% endblock %}
 {% block content %}
-<form method="post">
+<form method="post" novalidate>
   {% csrf_token %}
   {{ formset.management_form }}
   <div class="row g-3">
@@ -13,11 +13,32 @@
       <div class="card border-0 shadow-sm mb-3">
         <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Sale Header</h6></div>
         <div class="card-body">
+          {% if form.non_field_errors %}
+          <div class="alert alert-danger py-2">
+            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+          </div>
+          {% endif %}
           <div class="row g-3">
-            <div class="col-sm-6"><label class="form-label">Customer Name *</label>{{ form.customer }}</div>
-            <div class="col-sm-6"><label class="form-label">Mobile *</label>{{ form.mobile }}</div>
-            <div class="col-sm-6"><label class="form-label">Date *</label>{{ form.date }}</div>
-            <div class="col-sm-6"><label class="form-label">Godown *</label>{{ form.godown }}</div>
+            <div class="col-sm-6">
+              <label class="form-label">Customer Name *</label>
+              {{ form.customer }}
+              {% if form.customer.errors %}<div class="text-danger small mt-1">{{ form.customer.errors }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Mobile *</label>
+              {{ form.mobile }}
+              {% if form.mobile.errors %}<div class="text-danger small mt-1">{{ form.mobile.errors }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Date *</label>
+              {{ form.date }}
+              {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors }}</div>{% endif %}
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label">Godown *</label>
+              {{ form.godown }}
+              {% if form.godown.errors %}<div class="text-danger small mt-1">{{ form.godown.errors }}</div>{% endif %}
+            </div>
             <div class="col-sm-6"><label class="form-label">GST Category</label>{{ form.gst_category }}</div>
             <div class="col-sm-6"><label class="form-label">Pay Type</label>{{ form.pay_type }}</div>
             <div class="col-sm-6"><label class="form-label">Status</label>{{ form.status }}</div>

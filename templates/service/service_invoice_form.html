@@ -39,7 +39,7 @@
   <div class="card-header">
     <span class="card-title">Invoice Details</span>
   </div>
-  <form method="post">
+  <form method="post" novalidate>
     {% csrf_token %}
 
     {% if not invoice %}

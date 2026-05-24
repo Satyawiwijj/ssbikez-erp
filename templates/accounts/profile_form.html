@@ -15,7 +15,7 @@
 
 <div class="card form-card">
   <div class="card-header"><span class="card-title">Profile Information</span></div>
-  <form method="post">
+  <form method="post" novalidate>
     {% csrf_token %}
     <p style="color:#6B7280; font-size:13px; margin-bottom:20px;">
       Note: Username, role, and branch can only be changed by an administrator.

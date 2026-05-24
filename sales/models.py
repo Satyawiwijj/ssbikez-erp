@@ -145,7 +145,8 @@ class VehicleSalesOrder(models.Model):
     vehicle         = models.ForeignKey(
         'customers.VehicleStock',
         on_delete=models.PROTECT,
-        related_name='sales_orders'
+        related_name='sales_orders',
+        null=True, blank=True,
     )
     sales_executive = models.ForeignKey(
         settings.AUTH_USER_MODEL,
