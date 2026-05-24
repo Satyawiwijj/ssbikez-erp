@@ -120,3 +120,23 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.action_name} by {self.user} on {self.module_name} #{self.record_id}"
+
+import random
+from django.utils import timezone
+
+class OTPVerification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='otps')
+    otp_code = models.CharField(max_length=6)
+    action = models.CharField(max_length=100) # e.g. "discount_approval"
+    expires_at = models.DateTimeField()
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def generate_otp(self):
+        self.otp_code = f"{random.randint(100000, 999999)}"
+        self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
+        self.save()
+        print(f"--- MOCK SMS/EMAIL: OTP for {self.user.email} is {self.otp_code} ---")
+
+    class Meta:
+        ordering = ['-created_at']
