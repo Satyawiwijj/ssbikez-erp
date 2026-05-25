@@ -113,7 +113,8 @@ def invoice_update(request, pk):
 
 @login_required
 def payment_create(request):
-    initial = {}
+    from django.utils import timezone
+    initial = {'payment_date': timezone.now().date()}
     if request.GET.get('invoice'):
         initial['invoice'] = request.GET['invoice']
     form = PaymentForm(request.POST or None, initial=initial)

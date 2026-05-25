@@ -3,24 +3,239 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header" style="display:flex;align-items:center;justify-content:space-between;">
   <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'billing:invoice_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
+  <a href="{% url 'billing:loan_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
 </div>
-<div class="card form-card">
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 340px;gap:20px;align-items:start;">
+
+  <!-- ── LOAN FORM ── -->
+  <div class="card form-card" style="max-width:none;">
+    <div class="card-header"><span class="card-title">&#x1F3E6; Loan Details</span></div>
+    <div style="padding:20px;">
+      <form method="post" novalidate id="loanForm">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-3">
+          {% for e in form.non_field_errors %}{{ e }}{% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="form-grid">
+          <!-- Sales Order (full width) -->
+          <div class="form-group span-2">
+            <label class="form-label" for="{{ form.sales_order.id_for_label }}">
+              {{ form.sales_order.label }} <span style="color:#dc2626;">*</span>
+            </label>
+            {{ form.sales_order }}
+            {% if form.sales_order.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.sales_order.help_text }}</div>{% endif %}
+            {% if form.sales_order.errors %}<div class="form-error">{% for e in form.sales_order.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Bank Name -->
+          <div class="form-group span-2">
+            <label class="form-label" for="{{ form.bank_name.id_for_label }}">
+              {{ form.bank_name.label }} <span style="color:#dc2626;">*</span>
+            </label>
+            {{ form.bank_name }}
+            {% if form.bank_name.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.bank_name.help_text }}</div>{% endif %}
+            {% if form.bank_name.errors %}<div class="form-error">{% for e in form.bank_name.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Sanctioned Date -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.sanctioned_date.id_for_label }}">{{ form.sanctioned_date.label }}</label>
+            {{ form.sanctioned_date }}
+            {% if form.sanctioned_date.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.sanctioned_date.help_text }}</div>{% endif %}
+            {% if form.sanctioned_date.errors %}<div class="form-error">{% for e in form.sanctioned_date.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Loan Status -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.loan_status.id_for_label }}">{{ form.loan_status.label }}</label>
+            {{ form.loan_status }}
+            {% if form.loan_status.errors %}<div class="form-error">{% for e in form.loan_status.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Loan Amount -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.loan_amount.id_for_label }}">
+              {{ form.loan_amount.label }} <span style="color:#dc2626;">*</span>
+            </label>
+            {{ form.loan_amount }}
+            {% if form.loan_amount.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.loan_amount.help_text }}</div>{% endif %}
+            {% if form.loan_amount.errors %}<div class="form-error">{% for e in form.loan_amount.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Interest Rate -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.interest_rate.id_for_label }}">{{ form.interest_rate.label }}</label>
+            {{ form.interest_rate }}
+            {% if form.interest_rate.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.interest_rate.help_text }}</div>{% endif %}
+            {% if form.interest_rate.errors %}<div class="form-error">{% for e in form.interest_rate.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- Tenure -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.tenure_months.id_for_label }}">{{ form.tenure_months.label }}</label>
+            {{ form.tenure_months }}
+            {% if form.tenure_months.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.tenure_months.help_text }}</div>{% endif %}
+            {% if form.tenure_months.errors %}<div class="form-error">{% for e in form.tenure_months.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- EMI Amount -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.emi_amount.id_for_label }}">{{ form.emi_amount.label }}</label>
+            <div style="display:flex;gap:8px;align-items:center;">
+              {{ form.emi_amount }}
+              <button type="button" class="btn btn-secondary btn-sm" id="calcEmiBtn" title="Calculate EMI from principal, rate &amp; tenure">
+                &#x1F5A9; Calc
+              </button>
+            </div>
+            {% if form.emi_amount.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.emi_amount.help_text }}</div>{% endif %}
+            {% if form.emi_amount.errors %}<div class="form-error">{% for e in form.emi_amount.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+
+          <!-- First EMI Date -->
+          <div class="form-group">
+            <label class="form-label" for="{{ form.first_emi_date.id_for_label }}">{{ form.first_emi_date.label }}</label>
+            {{ form.first_emi_date }}
+            {% if form.first_emi_date.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ form.first_emi_date.help_text }}</div>{% endif %}
+            {% if form.first_emi_date.errors %}<div class="form-error">{% for e in form.first_emi_date.errors %}{{ e }}{% endfor %}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Save Loan</button>
+          <a href="{% url 'billing:loan_list' %}" class="btn btn-secondary">Cancel</a>
+        </div>
+      </form>
     </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Loan</button>
-      <a href="{% url 'billing:invoice_list' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+
+  <!-- ── EMI CALCULATOR PANEL ── -->
+  <div class="card" style="position:sticky;top:76px;">
+    <div class="card-header"><span class="card-title">&#x1F4CA; EMI Calculator</span></div>
+    <div style="padding:16px;">
+      <p style="font-size:12px;color:#6b7280;margin-bottom:12px;">
+        Fill <strong>Loan Amount</strong>, <strong>Interest Rate</strong> and <strong>Tenure</strong>
+        in the form, then click <strong>Calc</strong> to auto-fill the EMI.
+      </p>
+
+      <div id="emiResult" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px;">
+        <div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;">Calculation Result</div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e7ff;font-size:13px;">
+          <span style="color:#6b7280;">Principal</span>
+          <span id="resP" style="font-weight:600;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e7ff;font-size:13px;">
+          <span style="color:#6b7280;">Rate &times; Tenure</span>
+          <span id="resRT" style="font-weight:600;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e7ff;font-size:13px;">
+          <span style="color:#6b7280;">Monthly EMI</span>
+          <span id="resEMI" style="font-weight:700;color:#1d4ed8;font-size:15px;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #e0e7ff;font-size:13px;">
+          <span style="color:#6b7280;">Total Payable</span>
+          <span id="resTotal" style="font-weight:600;">—</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;">
+          <span style="color:#6b7280;">Total Interest</span>
+          <span id="resInterest" style="font-weight:600;color:#d97706;">—</span>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm" id="applyEmiBtn" style="width:100%;margin-top:12px;">
+          &#x2713; Apply to Form
+        </button>
+      </div>
+
+      <div id="emiError" style="display:none;background:#fee2e2;border:1px solid #fca5a5;border-radius:8px;padding:10px;font-size:12px;color:#991b1b;margin-top:8px;"></div>
     </div>
-  </form>
+  </div>
 </div>
+{% endblock %}
+
+{% block extra_css %}
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+.form-group.span-2 { grid-column: span 2; }
+@media (max-width:600px) { .form-grid { grid-template-columns:1fr; } .form-group.span-2 { grid-column:1; } }
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var loanInput    = document.getElementById('{{ form.loan_amount.id_for_label }}');
+  var rateInput    = document.getElementById('{{ form.interest_rate.id_for_label }}');
+  var tenureInput  = document.getElementById('{{ form.tenure_months.id_for_label }}');
+  var emiInput     = document.getElementById('{{ form.emi_amount.id_for_label }}');
+  var calcBtn      = document.getElementById('calcEmiBtn');
+  var applyBtn     = document.getElementById('applyEmiBtn');
+  var resultDiv    = document.getElementById('emiResult');
+  var errorDiv     = document.getElementById('emiError');
+  var calculatedEMI = null;
+
+  function fmt(n) {
+    return '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+
+  function calcEMI() {
+    errorDiv.style.display = 'none';
+    resultDiv.style.display = 'none';
+    calculatedEMI = null;
+
+    var P = parseFloat(loanInput ? loanInput.value : 0);
+    var annualRate = parseFloat(rateInput ? rateInput.value : 0);
+    var n = parseInt(tenureInput ? tenureInput.value : 0, 10);
+
+    if (!P || P <= 0) { showError('Enter a valid Loan Amount.'); return; }
+    if (!annualRate || annualRate <= 0) { showError('Enter a valid Interest Rate.'); return; }
+    if (!n || n <= 0) { showError('Enter a valid Tenure (months).'); return; }
+
+    var r = annualRate / 12 / 100;           // monthly rate
+    var emi;
+    if (r === 0) {
+      emi = P / n;
+    } else {
+      var factor = Math.pow(1 + r, n);
+      emi = P * r * factor / (factor - 1);
+    }
+
+    var totalPayable = emi * n;
+    var totalInterest = totalPayable - P;
+    calculatedEMI = emi.toFixed(2);
+
+    document.getElementById('resP').textContent        = fmt(P);
+    document.getElementById('resRT').textContent       = annualRate + '% × ' + n + ' months';
+    document.getElementById('resEMI').textContent      = fmt(emi);
+    document.getElementById('resTotal').textContent    = fmt(totalPayable);
+    document.getElementById('resInterest').textContent = fmt(totalInterest);
+    resultDiv.style.display = 'block';
+  }
+
+  function showError(msg) {
+    errorDiv.textContent = msg;
+    errorDiv.style.display = 'block';
+  }
+
+  if (calcBtn) calcBtn.addEventListener('click', calcEMI);
+
+  if (applyBtn) applyBtn.addEventListener('click', function () {
+    if (calculatedEMI && emiInput) {
+      emiInput.value = calculatedEMI;
+      emiInput.focus();
+      emiInput.style.background = '#d1fae5';
+      setTimeout(function () { emiInput.style.background = ''; }, 1200);
+    }
+  });
+
+  // Auto-recalculate when any input changes if result is already visible
+  [loanInput, rateInput, tenureInput].forEach(function (el) {
+    if (el) el.addEventListener('input', function () {
+      if (resultDiv.style.display !== 'none') calcEMI();
+    });
+  });
+})();
+</script>
 {% endblock %}

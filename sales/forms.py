@@ -118,7 +118,22 @@ class SalesFeedbackForm(forms.ModelForm):
         }
 
 
+class VehicleChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        parts = [str(obj.bike_model)]
+        if obj.chassis_no:
+            parts.append(obj.chassis_no)
+        if obj.color:
+            parts.append(obj.color)
+        return ' — '.join(parts)
+
+
 class VehicleSalesOrderForm(forms.ModelForm):
+    vehicle = VehicleChoiceField(
+        queryset=VehicleStock.objects.none(),
+        help_text='Only available (unsold) vehicles are listed.',
+    )
+
     class Meta:
         model  = VehicleSalesOrder
         fields = ('enquiry', 'customer', 'vehicle', 'sales_executive', 'branch',
@@ -128,16 +143,35 @@ class VehicleSalesOrderForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['vehicle'].queryset = VehicleStock.objects.filter(
             stock_status=VehicleStock.StockStatus.AVAILABLE
-        ).select_related('bike_model')
+        ).select_related('bike_model').order_by('bike_model__model_name')
+        self.fields['total_amount'].help_text  = 'Full on-road / ex-showroom price. Minimum ₹50,000.'
+        self.fields['booking_amount'].help_text = 'Advance collected at booking. Minimum ₹1,000.'
+        self.fields['discount_amount'].help_text = 'Maximum discount is 20% of total amount.'
 
     def clean(self):
-        cleaned_data   = super().clean()
-        booking_amount = cleaned_data.get('booking_amount')
-        total_amount   = cleaned_data.get('total_amount')
+        from decimal import Decimal
+        cleaned_data    = super().clean()
+        booking_amount  = cleaned_data.get('booking_amount')
+        total_amount    = cleaned_data.get('total_amount')
+        discount_amount = cleaned_data.get('discount_amount')
+
+        if total_amount is not None and total_amount < Decimal('50000'):
+            self.add_error('total_amount', 'Total amount must be at least ₹50,000.')
+
+        if booking_amount is not None and booking_amount < Decimal('1000'):
+            self.add_error('booking_amount', 'Booking amount must be at least ₹1,000.')
+
         if booking_amount is not None and total_amount is not None:
             if booking_amount > total_amount:
                 self.add_error('booking_amount',
                                'Booking amount cannot exceed the total order amount.')
+
+        if discount_amount is not None and total_amount is not None and total_amount > 0:
+            max_discount = total_amount * Decimal('0.20')
+            if discount_amount > max_discount:
+                self.add_error('discount_amount',
+                               f'Discount cannot exceed 20% of total amount (₹{max_discount:.0f}).')
+
         return cleaned_data
 
 
@@ -155,3 +189,34 @@ class ExchangeVehicleForm(forms.ModelForm):
     class Meta:
         model  = ExchangeVehicle
         fields = ('sales_order', 'old_vehicle_model', 'registration_no', 'valuation_amount')
+        widgets = {
+            'registration_no': forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['old_vehicle_model'].required = True
+        self.fields['registration_no'].required   = True
+        self.fields['valuation_amount'].required  = True
+        self.fields['registration_no'].help_text  = 'Vehicle registration number, e.g. TN11CD5678'
+        self.fields['valuation_amount'].help_text = 'Assessed trade-in value in ₹'
+
+    def clean_registration_no(self):
+        import re
+        value = (self.cleaned_data.get('registration_no') or '').strip().upper()
+        if not value:
+            raise forms.ValidationError('Registration number is required.')
+        if not re.match(r'^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}$', value):
+            raise forms.ValidationError(
+                'Enter a valid registration number, e.g. TN11CD5678.'
+            )
+        return value
+
+    def clean_valuation_amount(self):
+        from decimal import Decimal
+        amount = self.cleaned_data.get('valuation_amount')
+        if amount is None:
+            raise forms.ValidationError('Valuation amount is required.')
+        if amount <= Decimal('0'):
+            raise forms.ValidationError('Valuation amount must be greater than zero.')
+        return amount

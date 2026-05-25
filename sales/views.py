@@ -490,6 +490,10 @@ def order_create(request):
         except SalesEnquiry.DoesNotExist:
             pass
 
+    # Pre-fill sales executive with the logged-in user
+    if 'sales_executive' not in initial:
+        initial['sales_executive'] = request.user.pk
+
     form = VehicleSalesOrderForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         order = form.save()
