@@ -161,18 +161,16 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 
 
 # ---------------------------------------------------------------------------
-# Email — console backend for development; swap to SMTP in production
+# Email
 # ---------------------------------------------------------------------------
 
-EMAIL_BACKEND = os.environ.get(
-    'EMAIL_BACKEND',
-    'django.core.mail.backends.console.EmailBackend'
-)
-EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'acadsecure3@gmail.com'
+EMAIL_HOST_PASSWORD = 'fcasqhaxcknqjryw'
+DEFAULT_FROM_EMAIL = 'SSBikez ERP <acadsecure3@gmail.com>'
 
 
 # ---------------------------------------------------------------------------
@@ -182,7 +180,6 @@ EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 LOGIN_URL           = '/accounts/login/'
 LOGIN_REDIRECT_URL  = '/accounts/home/'
 LOGOUT_REDIRECT_URL = '/accounts/login/'
-
 
 # ---------------------------------------------------------------------------
 # Logging — stream errors to stdout so Render captures them even when DEBUG=False
