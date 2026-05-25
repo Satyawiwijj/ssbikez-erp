@@ -358,8 +358,6 @@
 
   <div class="sidebar-section">Spares</div>
   <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="fas fa-boxes"></i> Spare Items</a>
-  <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="fas fa-tags"></i> Categories</a>
-  <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="fas fa-truck-loading"></i> Suppliers</a>
   <a href="{% url 'spares:order_list' %}" class="sidebar-link" data-href="/spares/orders/"><i class="fas fa-shopping-bag"></i> Purchase Orders</a>
   <a href="{% url 'spares:counter_sale_list' %}" class="sidebar-link" data-href="/spares/counter-sales/"><i class="fas fa-cash-register"></i> Counter Sales</a>
   <a href="{% url 'spares:issue_alteration_list' %}" class="sidebar-link" data-href="/spares/issue-alterations/"><i class="fas fa-share-square"></i> Issue Alterations</a>
@@ -373,7 +371,6 @@
   <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="fas fa-chart-bar"></i> Sales Report</a>
   <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="fas fa-chart-pie"></i> Spares Report</a>
   <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="fas fa-wrench"></i> Service Report</a>
-  <a href="{% url 'accounts:search' %}" class="sidebar-link" data-href="/accounts/search/"><i class="fas fa-search"></i> Search</a>
 
   <div class="sidebar-section">Masters</div>
   <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="fas fa-truck-loading"></i> Suppliers</a>
@@ -489,6 +486,22 @@
       link.classList.add('active');
     }
   });
+
+  // Sidebar scroll persistence — save/restore position across page loads
+  if (sidebar) {
+    const savedScroll = localStorage.getItem('sidebarScroll');
+    if (savedScroll) {
+      sidebar.scrollTop = parseInt(savedScroll, 10);
+    }
+    window.addEventListener('beforeunload', function () {
+      localStorage.setItem('sidebarScroll', sidebar.scrollTop);
+    });
+    sidebar.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        localStorage.setItem('sidebarScroll', sidebar.scrollTop);
+      });
+    });
+  }
 
   // Tab system
   document.querySelectorAll('.tab-btn').forEach(btn => {
