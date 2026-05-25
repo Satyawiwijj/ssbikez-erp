@@ -434,3 +434,102 @@ def ajax_rack_bins(request):
         return JsonResponse({'bins': []})
     bins = list(Bin.objects.filter(rack_id=rack_id).values('id', 'name'))
     return JsonResponse({'bins': bins})
+
+
+# ---------------------------------------------------------------------------
+# GAP 13: Bulk Insert (CSV)
+# ---------------------------------------------------------------------------
+
+@login_required
+def bulk_insert(request):
+    import csv
+    from io import TextIOWrapper, StringIO
+    from decimal import Decimal, InvalidOperation
+
+    results = None
+    if request.method == 'POST' and request.FILES.get('file'):
+        f = request.FILES['file']
+        name = (f.name or '').lower()
+        rows = []
+        errors = []
+        imported = []
+        try:
+            if name.endswith('.csv') or name.endswith('.txt'):
+                text = TextIOWrapper(f.file, encoding='utf-8-sig', errors='ignore')
+                reader = csv.DictReader(text)
+                rows = list(reader)
+            elif name.endswith('.xlsx') or name.endswith('.xls'):
+                try:
+                    from openpyxl import load_workbook
+                    wb = load_workbook(f, read_only=True, data_only=True)
+                    ws = wb.active
+                    headers = None
+                    for r in ws.iter_rows(values_only=True):
+                        if headers is None:
+                            headers = [str(c).strip() if c is not None else '' for c in r]
+                            continue
+                        if all(c is None for c in r):
+                            continue
+                        rows.append({headers[i]: r[i] for i in range(len(headers))})
+                except ImportError:
+                    errors.append({'row': 0, 'error': 'openpyxl not installed; please upload CSV.'})
+            else:
+                errors.append({'row': 0, 'error': 'Unsupported file type. Use .csv or .xlsx'})
+        except Exception as exc:
+            errors.append({'row': 0, 'error': f'Could not read file: {exc}'})
+
+        def D(v, default='0'):
+            if v in (None, ''):
+                return Decimal(default)
+            try:
+                return Decimal(str(v).strip())
+            except (InvalidOperation, ValueError):
+                return Decimal(default)
+
+        for idx, row in enumerate(rows, start=2):
+            try:
+                row = {(k or '').strip().lower(): v for k, v in row.items()}
+                name_v = (row.get('item_name') or '').strip()
+                if not name_v:
+                    errors.append({'row': idx, 'error': 'item_name is required'})
+                    continue
+                part_no = (row.get('part_number') or '').strip()
+                hsn = (row.get('hsn_sac') or '').strip()
+                category = (row.get('category') or '').strip()
+
+                item = SparesItem(
+                    item_name=name_v,
+                    part_number=part_no,
+                    hsn_sac=hsn,
+                    mrp=D(row.get('mrp')),
+                    standard_selling_rate=D(row.get('selling_rate')),
+                    sgst=D(row.get('sgst'), '9'),
+                    cgst=D(row.get('cgst'), '9'),
+                    reorder_level=D(row.get('reorder_level')),
+                )
+                item.save()
+                if category:
+                    try:
+                        from masters.models import SparesCategory
+                        cat, _ = SparesCategory.objects.get_or_create(name=category)
+                        item.category = cat
+                        item.save(update_fields=['category'])
+                    except Exception:
+                        pass
+                imported.append({'row': idx, 'item_code': item.item_code, 'name': item.item_name})
+            except Exception as exc:
+                errors.append({'row': idx, 'error': str(exc)})
+
+        results = {
+            'total': len(rows),
+            'imported': imported,
+            'errors': errors,
+            'imported_count': len(imported),
+            'error_count': len(errors),
+        }
+        if imported:
+            messages.success(request, f"{len(imported)} items imported successfully.")
+        if errors:
+            messages.warning(request, f"{len(errors)} rows had errors.")
+
+    return render(request, 'spares/bulk_insert.html', {'results': results})

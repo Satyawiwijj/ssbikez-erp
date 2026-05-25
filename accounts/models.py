@@ -69,6 +69,43 @@ class User(AbstractUser):
         return f"{self.get_full_name()} ({self.email})"
 
 
+class CompanySettings(models.Model):
+    """Singleton model storing company-wide configuration."""
+    company_name  = models.CharField(max_length=200, default='SS Bikez')
+    tagline       = models.CharField(max_length=200, blank=True, default='Motorcycle Dealership')
+    address_line1 = models.CharField(max_length=255, blank=True)
+    address_line2 = models.CharField(max_length=255, blank=True)
+    city          = models.CharField(max_length=100, blank=True)
+    state         = models.CharField(max_length=100, blank=True)
+    pincode       = models.CharField(max_length=10, blank=True)
+    phone         = models.CharField(max_length=20, blank=True)
+    email         = models.EmailField(blank=True)
+    gstin         = models.CharField(max_length=20, blank=True)
+    pan_number    = models.CharField(max_length=20, blank=True)
+    logo_url      = models.URLField(blank=True)
+    gst_rate      = models.DecimalField(max_digits=5, decimal_places=2, default=18)
+    cgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    sgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    updated_at    = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name        = 'Company Settings'
+        verbose_name_plural = 'Company Settings'
+
+    def __str__(self):
+        return self.company_name
+
+    def save(self, *args, **kwargs):
+        # Force singleton: always pk=1
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_instance(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class FuelExpense(models.Model):
     vehicle        = models.ForeignKey(
         'customers.VehicleStock',

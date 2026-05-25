@@ -1,8 +1,10 @@
 from django import forms
 from django.utils import timezone
 
-from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
-                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice)
+from .models import (BayAssignment, InsuranceEstimation, JobCard, LaborCharge,
+                     OutworkEntry, ServiceAppointment, ServiceBay,
+                     ServiceDiscountMaster, ServiceEnquiry, ServiceInvoice,
+                     WarrantyClaim)
 
 _DT_WIDGET = forms.DateTimeInput(attrs={'type': 'datetime-local'})
 _DT_FORMATS = ['%Y-%m-%dT%H:%M']
@@ -99,3 +101,34 @@ class OutworkEntryForm(forms.ModelForm):
     class Meta:
         model  = OutworkEntry
         fields = ('job_card', 'vendor_name', 'work_description', 'cost')
+
+
+class WarrantyClaimForm(forms.ModelForm):
+    class Meta:
+        model  = WarrantyClaim
+        fields = ('job_card', 'description', 'claimed_amount',
+                  'approved_amount', 'status', 'notes')
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+            'notes':       forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class InsuranceEstimationForm(forms.ModelForm):
+    class Meta:
+        model  = InsuranceEstimation
+        fields = ('job_card', 'insurance_company', 'policy_number',
+                  'labour_estimate', 'spares_estimate',
+                  'approved_amount', 'status', 'notes')
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class ServiceDiscountMasterForm(forms.ModelForm):
+    class Meta:
+        model  = ServiceDiscountMaster
+        fields = ('service_type', 'discount_percent', 'is_active')
+        widgets = {
+            'service_type': forms.TextInput(attrs={'placeholder': 'e.g. free_service, paid_service, accidental'}),
+        }

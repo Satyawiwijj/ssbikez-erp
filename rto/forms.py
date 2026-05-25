@@ -2,7 +2,7 @@ import re
 
 from django import forms
 
-from .models import NumberPlateOrder, RTORegistration
+from .models import NumberPlateOrder, RCBook, RTORegistration
 
 
 class RTORegistrationForm(forms.ModelForm):
@@ -86,3 +86,15 @@ class NumberPlateOrderForm(forms.ModelForm):
         if not value:
             raise forms.ValidationError('Vendor name is required.')
         return value
+
+
+class RCBookForm(forms.ModelForm):
+    class Meta:
+        model  = RCBook
+        fields = ('rto_registration', 'rc_number', 'issue_date',
+                  'issued_to', 'status', 'notes')
+        widgets = {
+            'issue_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes':      forms.Textarea(attrs={'rows': 3}),
+            'rc_number':  forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678-RC'}),
+        }

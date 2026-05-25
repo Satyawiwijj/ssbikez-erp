@@ -521,3 +521,12 @@ def outwork_return(request, pk):
     log_action(request, 'Outwork', 'update', pk)
     messages.success(request, 'Outwork marked as returned.')
     return redirect('service:jobcard_detail', pk=entry.job_card_id)
+
+
+# GAP 4/5/9/10/11 views
+from service._gap_views import (
+    jobcard_advance_status, jobcard_issue_spare,
+    warranty_claim_list, warranty_claim_create, warranty_claim_detail, warranty_claim_update,
+    insurance_estimation_create, insurance_estimation_detail, insurance_estimation_update,
+    discount_master_list, discount_master_create,
+)

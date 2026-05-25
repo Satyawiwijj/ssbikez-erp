@@ -246,11 +246,35 @@ class ServiceInvoice(models.Model):
 
         subtotal       = self.labor_total + self.spares_total + self.outwork_total
         self.subtotal  = subtotal
-        self.gst_amount = (subtotal * Decimal('0.18')).quantize(Decimal('0.01'))
+
+        # GAP 12: read GST rate from CompanySettings
+        gst_rate = Decimal('18')
+        try:
+            from accounts.models import CompanySettings
+            gst_rate = Decimal(str(CompanySettings.get_instance().gst_rate or 18))
+        except Exception:
+            pass
+        self.gst_amount = (subtotal * gst_rate / Decimal('100')).quantize(Decimal('0.01'))
+
+        # GAP 11: auto-apply ServiceDiscountMaster (if no manual discount)
+        if (not self.discount_amount) and self.job_card.service_appointment_id:
+            try:
+                stype = self.job_card.service_appointment.service_type
+                if stype:
+                    sdm = ServiceDiscountMaster.objects.filter(
+                        service_type=stype, is_active=True
+                    ).first()
+                    if sdm and sdm.discount_percent:
+                        self.discount_amount = (
+                            subtotal * sdm.discount_percent / Decimal('100')
+                        ).quantize(Decimal('0.01'))
+            except Exception:
+                pass
+
         self.final_amount = subtotal + self.gst_amount - (self.discount_amount or Decimal('0.00'))
         self.save(update_fields=[
             'labor_total', 'spares_total', 'outwork_total',
-            'subtotal', 'gst_amount', 'final_amount',
+            'subtotal', 'gst_amount', 'final_amount', 'discount_amount',
         ])
 
 
@@ -300,3 +324,106 @@ class OutworkEntry(models.Model):
 
     def __str__(self):
         return f"Outwork-{self.pk} | JC-{self.job_card_id} — {self.vendor_name}"
+
+
+# ---------------------------------------------------------------------------
+# Warranty Claim
+# ---------------------------------------------------------------------------
+
+class WarrantyClaim(models.Model):
+    class Status(models.TextChoices):
+        SUBMITTED = 'submitted', 'Submitted'
+        APPROVED  = 'approved',  'Approved'
+        REJECTED  = 'rejected',  'Rejected'
+        SETTLED   = 'settled',   'Settled'
+
+    job_card        = models.ForeignKey(
+        JobCard,
+        on_delete=models.CASCADE,
+        related_name='warranty_claims'
+    )
+    claim_number    = models.CharField(max_length=100, blank=True)
+    claim_date      = models.DateField(auto_now_add=True)
+    description     = models.TextField()
+    claimed_amount  = models.DecimalField(max_digits=10, decimal_places=2)
+    approved_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status          = models.CharField(
+        max_length=20, choices=Status.choices,
+        default=Status.SUBMITTED
+    )
+    notes           = models.TextField(blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Warranty Claims'
+
+    def save(self, *args, **kwargs):
+        if not self.claim_number:
+            last = WarrantyClaim.objects.order_by('-id').first()
+            num  = (last.id + 1) if last else 1
+            self.claim_number = f"WC-{num:05d}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.claim_number
+
+
+# ---------------------------------------------------------------------------
+# Insurance Estimation
+# ---------------------------------------------------------------------------
+
+class InsuranceEstimation(models.Model):
+    class Status(models.TextChoices):
+        DRAFT    = 'draft',    'Draft'
+        SENT     = 'sent',     'Sent to Insurance'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
+
+    job_card          = models.ForeignKey(
+        JobCard,
+        on_delete=models.CASCADE,
+        related_name='insurance_estimations'
+    )
+    insurance_company = models.CharField(max_length=200)
+    policy_number     = models.CharField(max_length=100, blank=True)
+    estimation_date   = models.DateField(auto_now_add=True)
+    labour_estimate   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    spares_estimate   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total_estimate    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    approved_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status            = models.CharField(
+        max_length=20, choices=Status.choices,
+        default=Status.DRAFT
+    )
+    notes             = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Insurance Estimations'
+
+    def save(self, *args, **kwargs):
+        self.total_estimate = (self.labour_estimate or 0) + (self.spares_estimate or 0)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"IE-{self.pk} | JC-{self.job_card_id}"
+
+
+# ---------------------------------------------------------------------------
+# Service Discount Master
+# ---------------------------------------------------------------------------
+
+class ServiceDiscountMaster(models.Model):
+    service_type     = models.CharField(max_length=100, unique=True)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    is_active        = models.BooleanField(default=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['service_type']
+        verbose_name_plural = 'Service Discount Master'
+
+    def __str__(self):
+        return f"{self.service_type} — {self.discount_percent}%"

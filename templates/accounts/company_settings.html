@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Company Settings — SSBikez ERP{% endblock %}
+{% block page_title %}Company Settings{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Company Settings</span>
+</nav>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Company Settings</h1>
+    <div class="page-subtitle">Showroom details, GSTIN, PAN, GST slabs &mdash; used on invoices and reports.</div>
+  </div>
+</div>
+
+<div class="card form-card" style="max-width:880px;">
+  <div class="card-header"><span class="card-title">&#x1F3E2; Company &amp; GST Configuration</span></div>
+  <form method="post" novalidate style="padding:20px;">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+
+    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Company Identity</h3>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">Company Name</label>{{ form.company_name }}{{ form.company_name.errors }}</div>
+      <div class="form-group"><label class="form-label">Tagline</label>{{ form.tagline }}{{ form.tagline.errors }}</div>
+      <div class="form-group span-2"><label class="form-label">Logo URL</label>{{ form.logo_url }}{{ form.logo_url.errors }}</div>
+    </div>
+
+    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Address</h3>
+    <div class="form-grid">
+      <div class="form-group span-2"><label class="form-label">Address Line 1</label>{{ form.address_line1 }}</div>
+      <div class="form-group span-2"><label class="form-label">Address Line 2</label>{{ form.address_line2 }}</div>
+      <div class="form-group"><label class="form-label">City</label>{{ form.city }}</div>
+      <div class="form-group"><label class="form-label">State</label>{{ form.state }}</div>
+      <div class="form-group"><label class="form-label">Pincode</label>{{ form.pincode }}</div>
+      <div class="form-group"><label class="form-label">Phone</label>{{ form.phone }}</div>
+      <div class="form-group span-2"><label class="form-label">Email</label>{{ form.email }}</div>
+    </div>
+
+    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Tax Identifiers</h3>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">GSTIN</label>{{ form.gstin }}</div>
+      <div class="form-group"><label class="form-label">PAN Number</label>{{ form.pan_number }}</div>
+    </div>
+
+    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">GST Slabs</h3>
+    <div class="form-grid-3">
+      <div class="form-group"><label class="form-label">Total GST Rate (%)</label>{{ form.gst_rate }}</div>
+      <div class="form-group"><label class="form-label">CGST Rate (%)</label>{{ form.cgst_rate }}</div>
+      <div class="form-group"><label class="form-label">SGST Rate (%)</label>{{ form.sgst_rate }}</div>
+    </div>
+    <p style="font-size:12px;color:#6b7280;margin-top:6px;">CGST + SGST should equal Total GST Rate.</p>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">Save Settings</button>
+      <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+.form-group.span-2 { grid-column: span 2; }
+@media (max-width:600px) { .form-grid, .form-grid-3 { grid-template-columns:1fr; } .form-group.span-2 { grid-column:1; } }
+{% endblock %}

@@ -58,4 +58,28 @@ urlpatterns = [
 
     # Print
     path('jobcards/<int:pk>/print/',            views.jobcard_print,   name='jobcard_print'),
+
+    # GAP 4 — Job Card workflow
+    path('jobcards/<int:pk>/advance/',          views.jobcard_advance_status, name='jobcard_advance_status'),
+
+    # GAP 5 — Issue Spare from Job Card
+    path('jobcards/<int:pk>/issue-spare/',      views.jobcard_issue_spare,    name='jobcard_issue_spare'),
+
+    # GAP 9 — Warranty Claims
+    path('warranty-claims/',                    views.warranty_claim_list,    name='warranty_claim_list'),
+    path('warranty-claims/create/',             views.warranty_claim_create,  name='warranty_claim_create'),
+    path('jobcards/<int:jc_pk>/warranty-claim/', views.warranty_claim_create, name='warranty_claim_create_for_jc'),
+    path('warranty-claims/<int:pk>/',           views.warranty_claim_detail,  name='warranty_claim_detail'),
+    path('warranty-claims/<int:pk>/edit/',      views.warranty_claim_update,  name='warranty_claim_update'),
+
+    # GAP 10 — Insurance Estimation
+    path('insurance-estimations/create/',       views.insurance_estimation_create, name='insurance_estimation_create'),
+    path('jobcards/<int:jc_pk>/insurance-estimation/', views.insurance_estimation_create, name='insurance_estimation_create_for_jc'),
+    path('insurance-estimations/<int:pk>/',     views.insurance_estimation_detail, name='insurance_estimation_detail'),
+    path('insurance-estimations/<int:pk>/edit/', views.insurance_estimation_update, name='insurance_estimation_update'),
+
+    # GAP 11 — Service Discount Master
+    path('discount-master/',                    views.discount_master_list,   name='discount_master_list'),
+    path('discount-master/create/',             views.discount_master_create, name='discount_master_create'),
+    path('discount-master/<int:pk>/edit/',      views.discount_master_create, name='discount_master_update'),
 ]

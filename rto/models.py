@@ -57,3 +57,33 @@ class NumberPlateOrder(models.Model):
 
     def __str__(self):
         return f"PLATE-{self.pk} | {self.plate_number or 'Unassigned'}"
+
+
+class RCBook(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        CREATED = 'created', 'Created'
+        ISSUED  = 'issued',  'Issued to Customer'
+
+    rto_registration = models.OneToOneField(
+        RTORegistration,
+        on_delete=models.CASCADE,
+        related_name='rc_book'
+    )
+    rc_number  = models.CharField(max_length=100, blank=True)
+    issue_date = models.DateField(null=True, blank=True)
+    issued_to  = models.CharField(max_length=200, blank=True)
+    status     = models.CharField(
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING
+    )
+    notes      = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'RC Books'
+
+    def __str__(self):
+        return f"RC-{self.pk} | {self.rc_number or 'Pending'}"

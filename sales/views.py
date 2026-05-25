@@ -591,3 +591,61 @@ def exchange_update(request, pk):
         return redirect('sales:order_detail', pk=exchange.sales_order_id)
     return render(request, 'sales/exchange_form.html',
                   {'form': form, 'title': 'Edit Exchange Vehicle'})
+
+
+# ---------------------------------------------------------------------------
+# VehicleAllotment
+# ---------------------------------------------------------------------------
+
+@login_required
+def allotment_create(request, order_pk):
+    from .forms import VehicleAllotmentForm
+    from .models import VehicleAllotment
+    order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
+    initial = {'sales_order': order.pk, 'vehicle': order.vehicle_id}
+    instance = VehicleAllotment.objects.filter(sales_order=order).first()
+    form = VehicleAllotmentForm(request.POST or None, instance=instance, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        allot = form.save(commit=False)
+        if not allot.allotted_by_id:
+            allot.allotted_by = request.user
+        allot.save()
+        log_action(request, 'Vehicle Allotment', 'create' if not instance else 'update', allot.pk)
+        messages.success(request, 'Vehicle allotted successfully.')
+        return redirect('sales:order_detail', pk=order.pk)
+    return render(request, 'sales/allotment_form.html', {
+        'form': form, 'order': order,
+        'title': 'Allot Vehicle' if not instance else 'Update Allotment',
+    })
+
+
+# ---------------------------------------------------------------------------
+# VehicleFitting
+# ---------------------------------------------------------------------------
+
+@login_required
+def fitting_create(request, order_pk):
+    from .forms import VehicleFittingForm
+    order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
+    initial = {'sales_order': order.pk}
+    form = VehicleFittingForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        fitting = form.save()
+        log_action(request, 'Vehicle Fitting', 'create', fitting.pk)
+        messages.success(request, 'Fitting added successfully.')
+        return redirect('sales:order_detail', pk=order.pk)
+    return render(request, 'sales/fitting_form.html', {
+        'form': form, 'order': order, 'title': 'Add Fitting',
+    })
+
+
+@login_required
+def fitting_delete(request, pk):
+    from .models import VehicleFitting
+    fit = get_object_or_404(VehicleFitting, pk=pk)
+    order_id = fit.sales_order_id
+    if request.method == 'POST':
+        fit.delete()
+        log_action(request, 'Vehicle Fitting', 'delete', pk)
+        messages.success(request, 'Fitting removed.')
+    return redirect('sales:order_detail', pk=order_id)

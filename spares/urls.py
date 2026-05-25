@@ -50,6 +50,9 @@ urlpatterns = [
     # Legacy backward-compat
     path('issue/create/', views.issue_alteration_create, name='issue_create'),
 
+    # GAP 13: Bulk Insert
+    path('bulk-insert/', views.bulk_insert, name='bulk_insert'),
+
     # AJAX
     path('ajax/item-details/', views.ajax_item_details, name='ajax_item_details'),
     path('ajax/rack-bins/', views.ajax_rack_bins, name='ajax_rack_bins'),

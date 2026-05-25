@@ -2,7 +2,16 @@ from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
 
-from .models import Branch, FuelExpense, Role, User
+from .models import Branch, CompanySettings, FuelExpense, Role, User
+
+
+class CompanySettingsForm(forms.ModelForm):
+    class Meta:
+        model  = CompanySettings
+        fields = ('company_name', 'tagline', 'address_line1', 'address_line2',
+                  'city', 'state', 'pincode', 'phone', 'email',
+                  'gstin', 'pan_number', 'logo_url',
+                  'gst_rate', 'cgst_rate', 'sgst_rate')
 
 
 class BranchForm(forms.ModelForm):

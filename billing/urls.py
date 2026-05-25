@@ -34,4 +34,7 @@ urlpatterns = [
 
     # Service Invoice PDF
     path('service-invoice/<int:job_card_id>/pdf/', pdf_views.service_invoice_pdf, name='service_invoice_pdf'),
+
+    # GAP 3 — Daily Collection Report
+    path('daily-report/', views.daily_collection_report, name='daily_collection_report'),
 ]

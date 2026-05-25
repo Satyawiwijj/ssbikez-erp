@@ -683,3 +683,24 @@ def insurance_expiry_list(request):
         'expiring_60':      expiring_60_qs,
         'today':            today,
     })
+
+
+# ---------------------------------------------------------------------------
+# Company Settings (singleton)
+# ---------------------------------------------------------------------------
+
+@login_required
+def company_settings(request):
+    from .forms import CompanySettingsForm
+    from .models import CompanySettings as CS
+    instance = CS.get_instance()
+    form = CompanySettingsForm(request.POST or None, instance=instance)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        log_action(request, 'Company Settings', 'update', instance.pk)
+        messages.success(request, 'Company settings saved successfully.')
+        return redirect('accounts:company_settings')
+    return render(request, 'accounts/company_settings.html', {
+        'form':    form,
+        'company': instance,
+    })

@@ -154,3 +154,44 @@ def plate_update(request, pk):
         return redirect('rto:registration_detail', pk=plate.rto_id)
     return render(request, 'rto/plate_form.html',
                   {'form': form, 'title': 'Edit Number Plate Order'})
+
+
+# ---------------------------------------------------------------------------
+# RC Book
+# ---------------------------------------------------------------------------
+
+@login_required
+def rc_book_list(request):
+    from .models import RCBook
+    qs = RCBook.objects.select_related(
+        'rto_registration__sales_order__customer'
+    ).order_by('-created_at')
+    return render(request, 'rto/rc_book_list.html', {'rc_books': qs})
+
+
+@login_required
+def rc_book_create(request, rto_pk):
+    from .forms import RCBookForm
+    from .models import RCBook
+    rto = get_object_or_404(RTORegistration, pk=rto_pk)
+    instance = RCBook.objects.filter(rto_registration=rto).first()
+    initial = {'rto_registration': rto.pk}
+    form = RCBookForm(request.POST or None, instance=instance, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        rc = form.save()
+        log_action(request, 'RC Book', 'create' if not instance else 'update', rc.pk)
+        messages.success(request, 'RC Book saved successfully.')
+        return redirect('rto:registration_detail', pk=rto.pk)
+    return render(request, 'rto/rc_book_form.html', {
+        'form': form, 'rto': rto,
+        'title': 'Add RC Book' if not instance else 'Update RC Book',
+    })
+
+
+@login_required
+def rc_book_detail(request, pk):
+    from .models import RCBook
+    rc = get_object_or_404(RCBook.objects.select_related(
+        'rto_registration__sales_order__customer'
+    ), pk=pk)
+    return render(request, 'rto/rc_book_detail.html', {'rc': rc})

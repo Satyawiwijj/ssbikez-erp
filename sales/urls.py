@@ -52,4 +52,11 @@ urlpatterns = [
 
     # Follow-Up Board
     path('follow-ups/',                       views.follow_up_list,        name='follow_up_list'),
+
+    # Vehicle Allotment (per order)
+    path('orders/<int:order_pk>/allot/',      views.allotment_create,      name='allotment_create'),
+
+    # Vehicle Fittings (per order)
+    path('orders/<int:order_pk>/fittings/add/', views.fitting_create,      name='fitting_create'),
+    path('fittings/<int:pk>/delete/',         views.fitting_delete,        name='fitting_delete'),
 ]

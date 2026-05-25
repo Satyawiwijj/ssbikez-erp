@@ -21,4 +21,9 @@ urlpatterns = [
     # NumberPlateOrder
     path('plates/create/',                views.plate_create,               name='plate_create'),
     path('plates/<int:pk>/edit/',         views.plate_update,               name='plate_update'),
+
+    # RC Book
+    path('rc-books/',                     views.rc_book_list,               name='rc_book_list'),
+    path('rc-books/<int:pk>/',            views.rc_book_detail,             name='rc_book_detail'),
+    path('<int:rto_pk>/rc-book/',         views.rc_book_create,             name='rc_book_create'),
 ]

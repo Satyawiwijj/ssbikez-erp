@@ -333,6 +333,73 @@ class ExchangeVehicle(models.Model):
 
 
 # ---------------------------------------------------------------------------
+# VehicleAllotment — formal chassis/engine assignment to an order
+# ---------------------------------------------------------------------------
+
+class VehicleAllotment(models.Model):
+    sales_order    = models.OneToOneField(
+        VehicleSalesOrder,
+        on_delete=models.CASCADE,
+        related_name='allotment'
+    )
+    vehicle        = models.ForeignKey(
+        'customers.VehicleStock',
+        on_delete=models.PROTECT,
+        related_name='allotments'
+    )
+    allotted_by    = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='vehicle_allotments'
+    )
+    allotment_date = models.DateField(auto_now_add=True)
+    notes          = models.TextField(blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Vehicle Allotments'
+
+    def __str__(self):
+        return f"Allot-{self.pk} | ORD-{self.sales_order_id}"
+
+    def save(self, *args, **kwargs):
+        # Mark the allotted vehicle as reserved
+        try:
+            from customers.models import VehicleStock
+            VehicleStock.objects.filter(pk=self.vehicle_id).exclude(
+                stock_status='sold'
+            ).update(stock_status='reserved')
+        except Exception:
+            pass
+        super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# VehicleFitting — accessories / add-ons attached at time of sale
+# ---------------------------------------------------------------------------
+
+class VehicleFitting(models.Model):
+    sales_order  = models.ForeignKey(
+        VehicleSalesOrder,
+        on_delete=models.CASCADE,
+        related_name='fittings'
+    )
+    fitting_name = models.CharField(max_length=200)
+    description  = models.TextField(blank=True)
+    cost         = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Vehicle Fittings'
+
+    def __str__(self):
+        return f"{self.fitting_name} — Rs.{self.cost}"
+
+
+# ---------------------------------------------------------------------------
 # FIX 3 — Signals: auto-create CustomerVehicle on delivery
 # ---------------------------------------------------------------------------
 

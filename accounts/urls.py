@@ -63,4 +63,7 @@ urlpatterns = [
 
     # Insurance Expiry
     path('insurance-expiry/', views.insurance_expiry_list, name='insurance_expiry_list'),
+
+    # Company Settings
+    path('settings/', views.company_settings, name='company_settings'),
 ]

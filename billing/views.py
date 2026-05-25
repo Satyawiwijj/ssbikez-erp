@@ -148,6 +148,77 @@ def payment_list(request, invoice_pk):
     })
 
 
+# ---------------------------------------------------------------------------
+# GAP 3: Daily Collection Report
+# ---------------------------------------------------------------------------
+
+@login_required
+def daily_collection_report(request):
+    from datetime import datetime, date as _date
+    from django.utils import timezone
+
+    date_str = request.GET.get('date') or ''
+    if date_str:
+        try:
+            report_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        except ValueError:
+            report_date = timezone.now().date()
+    else:
+        report_date = timezone.now().date()
+
+    # Vehicle invoice payments for this date
+    payments = Payment.objects.select_related('invoice__sales_order__customer').filter(
+        payment_status=Payment.PaymentStatus.COMPLETED,
+        payment_date__date=report_date,
+    ).order_by('payment_date')
+
+    # Aggregate by method
+    method_totals = {}
+    for m, label in Payment.Method.choices:
+        method_totals[m] = {
+            'label': label,
+            'total': payments.filter(payment_method=m).aggregate(t=Sum('amount'))['t'] or Decimal('0'),
+            'count': payments.filter(payment_method=m).count(),
+        }
+    vehicle_total = payments.aggregate(t=Sum('amount'))['t'] or Decimal('0')
+
+    # Service invoices issued on this date
+    service_invoices = []
+    service_total = Decimal('0')
+    try:
+        from service.models import ServiceInvoice
+        service_invoices = ServiceInvoice.objects.select_related(
+            'job_card__customer_vehicle__customer'
+        ).filter(invoice_date=report_date).order_by('-created_at')
+        service_total = service_invoices.aggregate(t=Sum('final_amount'))['t'] or Decimal('0')
+    except Exception:
+        pass
+
+    # Counter sales on this date
+    counter_sales = []
+    counter_total = Decimal('0')
+    try:
+        from spares.models import CounterSale
+        counter_sales = CounterSale.objects.filter(date=report_date).order_by('-created_at')
+        counter_total = counter_sales.aggregate(t=Sum('total_amount'))['t'] or Decimal('0')
+    except Exception:
+        pass
+
+    grand_total = vehicle_total + service_total + counter_total
+
+    return render(request, 'billing/daily_collection_report.html', {
+        'report_date':     report_date,
+        'payments':        payments,
+        'method_totals':   method_totals,
+        'vehicle_total':   vehicle_total,
+        'service_invoices': service_invoices,
+        'service_total':   service_total,
+        'counter_sales':   counter_sales,
+        'counter_total':   counter_total,
+        'grand_total':     grand_total,
+    })
+
+
 @login_required
 def insurance_policy_list(request):
     q  = request.GET.get('q', '').strip()

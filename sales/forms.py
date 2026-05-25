@@ -4,7 +4,8 @@ from django.utils import timezone
 from customers.models import VehicleStock
 
 from .models import (ExchangeVehicle, Prospect, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleDelivery, VehicleSalesOrder)
+                     SalesEnquiry, VehicleAllotment, VehicleDelivery,
+                     VehicleFitting, VehicleSalesOrder)
 
 
 class SalesEnquiryForm(forms.ModelForm):
@@ -220,3 +221,36 @@ class ExchangeVehicleForm(forms.ModelForm):
         if amount <= Decimal('0'):
             raise forms.ValidationError('Valuation amount must be greater than zero.')
         return amount
+
+
+class VehicleAllotmentForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleAllotment
+        fields = ('sales_order', 'vehicle', 'notes')
+        widgets = {
+            'notes': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Optional notes about this allotment'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only available or reserved vehicles can be allotted
+        self.fields['vehicle'].queryset = VehicleStock.objects.filter(
+            stock_status__in=['available', 'reserved']
+        ).select_related('bike_model')
+
+
+class VehicleFittingForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleFitting
+        fields = ('sales_order', 'fitting_name', 'description', 'cost')
+        widgets = {
+            'description':  forms.Textarea(attrs={'rows': 2}),
+            'fitting_name': forms.TextInput(attrs={'placeholder': 'e.g. Crash Guard, Seat Cover, Side Box'}),
+        }
+
+    def clean_cost(self):
+        from decimal import Decimal
+        cost = self.cleaned_data.get('cost')
+        if cost is None or cost < Decimal('0'):
+            raise forms.ValidationError('Cost cannot be negative.')
+        return cost

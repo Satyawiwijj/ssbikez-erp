@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Service Discount Master{% endblock %}
+{% block page_title %}Service Discount Master{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+  <h1 class="page-title">Service Discount Master</h1>
+  <a href="{% url 'service:discount_master_create' %}" class="btn btn-primary">+ Add Discount</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Service Type</th><th>Discount %</th><th>Active</th><th></th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td><strong>{{ r.service_type }}</strong></td>
+          <td>{{ r.discount_percent }}%</td>
+          <td>{% if r.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Inactive</span>{% endif %}</td>
+          <td><a href="{% url 'service:discount_master_update' r.pk %}" class="btn btn-sm btn-ghost">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4"><div class="empty-state"><i class="fas fa-percent"></i><p>No discounts configured.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
