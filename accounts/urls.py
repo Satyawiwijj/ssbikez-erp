@@ -60,4 +60,7 @@ urlpatterns = [
     path('reports/sales/',   views.sales_report,   name='sales_report'),
     path('reports/spares/',  views.spares_report,  name='spares_report'),
     path('reports/service/', views.service_report, name='service_report'),
+
+    # Insurance Expiry
+    path('insurance-expiry/', views.insurance_expiry_list, name='insurance_expiry_list'),
 ]

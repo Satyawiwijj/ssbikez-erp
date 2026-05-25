@@ -83,7 +83,7 @@ def dashboard(request):
     import datetime
     from decimal import Decimal
     from billing.models import Payment
-    from sales.models import SalesAppointment, SalesEnquiry
+    from sales.models import SalesAppointment, SalesEnquiry, SalesFeedback
     from service.models import JobCard, ServiceAppointment as ServiceSvcApt
     from customer_vehicles.models import CustomerVehicle
     try:
@@ -91,7 +91,7 @@ def dashboard(request):
     except ImportError:
         SparesItem = None
 
-    today = timezone.now().date()
+    today            = timezone.now().date()
     this_month_start = today.replace(day=1)
 
     def safe_count(qs):
@@ -99,12 +99,6 @@ def dashboard(request):
             return qs.count()
         except Exception:
             return 0
-
-    def safe_qs(qs, limit=10):
-        try:
-            return list(qs[:limit])
-        except Exception:
-            return []
 
     def safe_sum(qs, field):
         try:
@@ -143,7 +137,7 @@ def dashboard(request):
         today_sales_appointments = list(
             SalesAppointment.objects.filter(
                 appointment_date__date=today, status='scheduled'
-            ).select_related('enquiry__customer')
+            ).select_related('enquiry__customer', 'enquiry__prospect')
         )
     except Exception:
         today_sales_appointments = []
@@ -164,32 +158,85 @@ def dashboard(request):
     except Exception:
         recent_audit_logs = []
 
+    # Insurance expiry data
     try:
-        expiry_limit = today + datetime.timedelta(days=30)
-        expiring_insurance_count = CustomerVehicle.objects.filter(
-            insurance_expiry__lte=expiry_limit,
+        expiry_30     = today + datetime.timedelta(days=30)
+        expiry_60     = today + datetime.timedelta(days=60)
+        expiring_30   = CustomerVehicle.objects.filter(
+            insurance_expiry__lte=expiry_30,
             insurance_expiry__gte=today,
-        ).count()
+        ).select_related('customer', 'vehicle__bike_model').order_by('insurance_expiry')
+        expiring_60   = CustomerVehicle.objects.filter(
+            insurance_expiry__lte=expiry_60,
+            insurance_expiry__gt=expiry_30,
+        ).select_related('customer', 'vehicle__bike_model').order_by('insurance_expiry')
+        already_expired = CustomerVehicle.objects.filter(
+            insurance_expiry__lt=today,
+        ).select_related('customer', 'vehicle__bike_model').order_by('insurance_expiry')
+        expiring_insurance_count = expiring_30.count()
     except Exception:
+        expiring_30 = []
+        expiring_60 = []
+        already_expired = []
         expiring_insurance_count = 0
+
+    # Follow-up data for sales executives
+    try:
+        _fb_base = SalesFeedback.objects.select_related(
+            'enquiry__customer', 'enquiry__prospect', 'enquiry__bike_model',
+        ).filter(enquiry__sales_executive=request.user)
+
+        todays_followups = list(
+            _fb_base.filter(next_followup_date=today).order_by('next_followup_date')
+        )
+        overdue_followups = list(
+            _fb_base.filter(
+                next_followup_date__lt=today,
+                enquiry__status__in=['open', 'follow_up'],
+            ).order_by('next_followup_date')
+        )
+        upcoming_followups = list(
+            _fb_base.filter(
+                next_followup_date__gt=today,
+                next_followup_date__lte=today + datetime.timedelta(days=7),
+            ).order_by('next_followup_date')
+        )
+    except Exception:
+        todays_followups   = []
+        overdue_followups  = []
+        upcoming_followups = []
 
     today_appointments_count = len(today_sales_appointments) + len(today_service_appointments)
 
+    # Detect CRE role
+    is_cre = (
+        request.user.role and
+        'cre' in request.user.role.role_name.lower()
+    ) if hasattr(request.user, 'role') and request.user.role else False
+
     return render(request, 'accounts/dashboard.html', {
         'user':                        request.user,
-        # canonical names used by template
         'enquiries_today':             today_enquiries,
         'monthly_revenue':             month_revenue,
         'active_job_cards':            open_job_cards,
         'low_stock_count':             low_stock_items,
         'pending_appointments':        today_appointments_count,
-        # extra detail lists
         'today_sales_appointments':    today_sales_appointments,
         'today_service_appointments':  today_service_appointments,
         'today_appointments_count':    today_appointments_count,
         'recent_audit_logs':           recent_audit_logs,
         'recent_activity':             recent_audit_logs,
+        # Insurance
         'expiring_insurance_count':    expiring_insurance_count,
+        'expiring_30':                 expiring_30,
+        'expiring_60':                 expiring_60,
+        'already_expired':             already_expired,
+        'is_cre':                      is_cre,
+        # Follow-ups
+        'todays_followups':            todays_followups,
+        'overdue_followups':           overdue_followups,
+        'upcoming_followups':          upcoming_followups,
+        'today':                       today,
     })
 
 
@@ -603,4 +650,36 @@ def service_report(request):
         'max_labor':     max_labor,
         'bay_stats':     bay_stats,
         'max_bay':       max_bay,
+    })
+
+
+# ---------------------------------------------------------------------------
+# FIX 6 — Insurance Expiry List
+# ---------------------------------------------------------------------------
+
+@login_required
+def insurance_expiry_list(request):
+    from customer_vehicles.models import CustomerVehicle
+
+    today     = timezone.now().date()
+    expiry_30 = today + datetime.timedelta(days=30)
+    expiry_60 = today + datetime.timedelta(days=60)
+
+    base = CustomerVehicle.objects.select_related(
+        'customer', 'vehicle__bike_model'
+    )
+
+    already_expired = base.filter(insurance_expiry__lt=today).order_by('insurance_expiry')
+    expiring_30_qs  = base.filter(
+        insurance_expiry__gte=today, insurance_expiry__lte=expiry_30
+    ).order_by('insurance_expiry')
+    expiring_60_qs  = base.filter(
+        insurance_expiry__gt=expiry_30, insurance_expiry__lte=expiry_60
+    ).order_by('insurance_expiry')
+
+    return render(request, 'accounts/insurance_expiry.html', {
+        'already_expired':  already_expired,
+        'expiring_30':      expiring_30_qs,
+        'expiring_60':      expiring_60_qs,
+        'today':            today,
     })

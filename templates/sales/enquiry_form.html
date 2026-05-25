@@ -3,24 +3,108 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:enquiry_list' %}">Enquiries</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ title }}</span>
+</nav>
+
 <div class="page-header">
   <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'sales:enquiry_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
+  <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">&#8592; Cancel</a>
 </div>
-<div class="card form-card">
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {% for field in form %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  {% if form.non_field_errors %}
+  <div class="alert alert-warning" style="margin-bottom:16px;">
+    {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- PROSPECT SECTION -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <span class="card-title">&#x1F464; New Prospect (Walk-in / Phone Call)</span>
+    </div>
+    <p style="font-size:13px; color:#6B7280; margin-bottom:16px;">
+      Fill this section for a visitor who is <strong>not yet</strong> a registered customer.
+      If they are an existing customer, leave blank and select below.
+    </p>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.prospect_name.id_for_label }}">{{ form.prospect_name.label }}</label>
+        {{ form.prospect_name }}
+        {% if form.prospect_name.errors %}
+        <div class="form-error">{% for e in form.prospect_name.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.prospect_phone.id_for_label }}">{{ form.prospect_phone.label }}</label>
+        {{ form.prospect_phone }}
+        {% if form.prospect_phone.errors %}
+        <div class="form-error">{% for e in form.prospect_phone.errors %}{{ e }}{% endfor %}</div>
+        {% endif %}
+        <div class="form-help">If this phone matches an existing customer, they will be linked automatically.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXISTING CUSTOMER -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4CB; Existing Customer (Optional)</span>
+    </div>
     <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+      <label class="form-label" for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>
+      {{ form.customer }}
+      <div class="form-help">{{ form.customer.help_text }}</div>
+      {% if form.customer.errors %}
+      <div class="form-error">{% for e in form.customer.errors %}{{ e }}{% endfor %}</div>
+      {% endif %}
     </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save</button>
-      <a href="{% url 'sales:enquiry_list' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+
+  <!-- ENQUIRY DETAILS -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-header">
+      <span class="card-title">&#x1F50D; Enquiry Details</span>
     </div>
-  </form>
-</div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.bike_model.id_for_label }}">Vehicle of Interest</label>
+        {{ form.bike_model }}
+        {% if form.bike_model.errors %}<div class="form-error">{% for e in form.bike_model.errors %}{{ e }}{% endfor %}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.enquiry_source.id_for_label }}">{{ form.enquiry_source.label }}</label>
+        {{ form.enquiry_source }}
+        {% if form.enquiry_source.errors %}<div class="form-error">{% for e in form.enquiry_source.errors %}{{ e }}{% endfor %}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.sales_executive.id_for_label }}">{{ form.sales_executive.label }}</label>
+        {{ form.sales_executive }}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.branch.id_for_label }}">{{ form.branch.label }}</label>
+        {{ form.branch }}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
+        {{ form.status }}
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label" for="{{ form.remarks.id_for_label }}">{{ form.remarks.label }}</label>
+      {{ form.remarks }}
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Save Enquiry</button>
+    <a href="{% url 'sales:enquiry_list' %}" class="btn btn-secondary">Cancel</a>
+  </div>
+</form>
 {% endblock %}

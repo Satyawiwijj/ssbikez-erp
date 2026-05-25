@@ -7,102 +7,267 @@
 {% endblock %}
 
 {% block content %}
+<!-- MY PERSONAL STATS (TOP ROW) -->
 <div class="stat-grid">
   <div class="stat-card">
-    <div class="stat-icon stat-icon-blue"><i class="fas fa-clipboard-list" style="color:#1d4ed8"></i></div>
+    <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
     <div>
-      <div class="stat-value">{{ total_enquiries }}</div>
-      <div class="stat-label">Total Enquiries</div>
+      <div class="stat-value">{{ my_enquiries_today }}</div>
+      <div class="stat-label">My Enquiries Today</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-green"><i class="fas fa-shopping-cart" style="color:#065f46"></i></div>
+    <div class="stat-icon stat-icon-orange">&#x1F4AC;</div>
     <div>
-      <div class="stat-value">{{ total_orders }}</div>
-      <div class="stat-label">Total Orders</div>
+      <div class="stat-value">{{ my_open_enquiries }}</div>
+      <div class="stat-label">My Open Enquiries</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-orange"><i class="fas fa-hourglass-half" style="color:#92400e"></i></div>
+    <div class="stat-icon stat-icon-green">&#x2705;</div>
     <div>
-      <div class="stat-value">{{ open_orders }}</div>
-      <div class="stat-label">Open Orders</div>
+      <div class="stat-value">{{ my_converted_month }}</div>
+      <div class="stat-label">Converted This Month</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-purple"><i class="fas fa-truck" style="color:#5b21b6"></i></div>
+    <div class="stat-icon stat-icon-purple">&#x1F6CD;&#xFE0F;</div>
     <div>
-      <div class="stat-value">{{ total_deliveries }}</div>
-      <div class="stat-label">Deliveries</div>
+      <div class="stat-value">{{ my_orders_month }}</div>
+      <div class="stat-label">Orders This Month</div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="card-title mb-0">Recent Enquiries</h6>
-        <a href="{% url 'sales:enquiry_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
-      </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead>
-              <tr><th>#</th><th>Customer</th><th>Bike Model</th><th>Status</th><th>Date</th></tr>
-            </thead>
-            <tbody>
-              {% for enq in recent_enquiries %}
-              <tr>
-                <td><a href="{% url 'sales:enquiry_detail' enq.pk %}">ENQ-{{ enq.pk }}</a></td>
-                <td>{{ enq.customer.full_name }}</td>
-                <td>{{ enq.bike_model|default:"—" }}</td>
-                <td>
-                  <span class="badge badge-soft-{% if enq.status == 'converted' %}success{% elif enq.status == 'lost' %}danger{% elif enq.status == 'follow_up' %}warning{% else %}info{% endif %}">
-                    {{ enq.get_status_display }}
-                  </span>
-                </td>
-                <td>{{ enq.created_at|date:"d M Y" }}</td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No enquiries yet.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
+<!-- GLOBAL STATS (SECONDARY ROW) -->
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:24px;">
+  <div class="stat-card" style="background:#F8FAFC;">
+    <div class="stat-icon" style="background:#E0F2FE; font-size:18px;">&#x1F4CB;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">{{ total_enquiries }}</div>
+      <div class="stat-label" style="font-size:11px;">Total Enquiries</div>
     </div>
   </div>
-  <div class="col-lg-4">
-    <div class="card">
-      <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="card-title mb-0">Recent Orders</h6>
-        <a href="{% url 'sales:order_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+  <div class="stat-card" style="background:#F8FAFC;">
+    <div class="stat-icon" style="background:#D1FAE5; font-size:18px;">&#x1F6CD;&#xFE0F;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">{{ total_orders }}</div>
+      <div class="stat-label" style="font-size:11px;">Total Orders</div>
+    </div>
+  </div>
+  <div class="stat-card" style="background:#F8FAFC;">
+    <div class="stat-icon" style="background:#FEF3C7; font-size:18px;">&#x23F3;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">{{ open_orders }}</div>
+      <div class="stat-label" style="font-size:11px;">Open Orders</div>
+    </div>
+  </div>
+  <div class="stat-card" style="background:#F8FAFC;">
+    <div class="stat-icon" style="background:#EDE9FE; font-size:18px;">&#x1F69A;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">{{ total_deliveries }}</div>
+      <div class="stat-label" style="font-size:11px;">Total Deliveries</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOLLOW-UP BOARD (MIDDLE ROW) -->
+<div style="margin-bottom:24px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+    <h2 style="font-size:16px; font-weight:700; color:#1E293B; margin:0;">&#x1F4DE; My Follow-Up Board</h2>
+    <a href="{% url 'sales:follow_up_list' %}" class="btn btn-ghost btn-sm">View All Follow-Ups →</a>
+  </div>
+  <div class="grid-3col">
+
+    <!-- OVERDUE -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
+      <div class="card-header" style="background:#FEF2F2;">
+        <span class="card-title" style="color:#991B1B;">&#x1F534; Overdue
+          {% if overdue_followups|length %}<span class="badge badge-red" style="margin-left:6px;">{{ overdue_followups|length }}</span>{% endif %}
+        </span>
       </div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead>
-              <tr><th>#</th><th>Customer</th><th>Status</th></tr>
-            </thead>
-            <tbody>
-              {% for order in recent_orders %}
-              <tr>
-                <td><a href="{% url 'sales:order_detail' order.pk %}">ORD-{{ order.pk }}</a></td>
-                <td>{{ order.customer.full_name }}</td>
-                <td>
-                  <span class="badge badge-soft-{% if order.sales_status == 'delivered' %}success{% elif order.sales_status == 'cancelled' %}danger{% elif order.sales_status == 'invoiced' %}info{% else %}warning{% endif %}">
-                    {{ order.get_sales_status_display }}
-                  </span>
-                </td>
-              </tr>
-              {% empty %}
-              <tr><td colspan="3" class="text-center text-muted py-3">No orders.</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
+      {% if overdue_followups %}
+      {% for fb in overdue_followups|slice:":5" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="flex:1; min-width:0;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </a>
+            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px; color:#DC2626; margin-top:2px;">{{ today|timesince:fb.next_followup_date }} overdue</div>
+            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          </div>
         </div>
       </div>
+      {% endwith %}
+      {% endfor %}
+      {% if overdue_followups|length > 5 %}
+      <div style="padding:8px 16px;">
+        <a href="{% url 'sales:follow_up_list' %}?period=overdue" style="font-size:12px; color:#2563EB;">View all {{ overdue_followups|length }} overdue →</a>
+      </div>
+      {% endif %}
+      {% else %}
+      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">&#x2705; No overdue follow-ups!</p>
+      {% endif %}
+    </div>
+
+    <!-- TODAY -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
+      <div class="card-header" style="background:#FFFBEB;">
+        <span class="card-title" style="color:#92400E;">&#x1F7E1; Due Today
+          {% if todays_followups|length %}<span class="badge badge-yellow" style="margin-left:6px;">{{ todays_followups|length }}</span>{% endif %}
+        </span>
+      </div>
+      {% if todays_followups %}
+      {% for fb in todays_followups|slice:":5" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="flex:1; min-width:0;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </a>
+            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px; color:#D97706; font-weight:600; margin-top:2px;">TODAY</div>
+            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if todays_followups|length > 5 %}
+      <div style="padding:8px 16px;">
+        <a href="{% url 'sales:follow_up_list' %}?period=today" style="font-size:12px; color:#2563EB;">View all {{ todays_followups|length }} today →</a>
+      </div>
+      {% endif %}
+      {% else %}
+      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">No follow-ups due today.</p>
+      {% endif %}
+    </div>
+
+    <!-- THIS WEEK -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
+      <div class="card-header" style="background:#EFF6FF;">
+        <span class="card-title" style="color:#1E40AF;">&#x1F535; This Week
+          {% if upcoming_followups|length %}<span class="badge badge-blue" style="margin-left:6px;">{{ upcoming_followups|length }}</span>{% endif %}
+        </span>
+      </div>
+      {% if upcoming_followups %}
+      {% for fb in upcoming_followups|slice:":5" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <div style="flex:1; min-width:0;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </a>
+            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px; color:#2563EB; margin-top:2px;">{{ fb.next_followup_date|date:"d M Y" }}</div>
+            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+          </div>
+          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          </div>
+        </div>
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if upcoming_followups|length > 5 %}
+      <div style="padding:8px 16px;">
+        <a href="{% url 'sales:follow_up_list' %}?period=upcoming" style="font-size:12px; color:#2563EB;">View all {{ upcoming_followups|length }} →</a>
+      </div>
+      {% endif %}
+      {% else %}
+      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">No upcoming follow-ups this week.</p>
+      {% endif %}
+    </div>
+  </div><!-- /grid-3col -->
+</div>
+
+<!-- BOTTOM ROW: RECENT ENQUIRIES + RECENT ORDERS -->
+<div class="grid-2col">
+  <!-- Recent Enquiries -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4CB; Recent Enquiries</span>
+      <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr><th>Lead</th><th>Vehicle</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+          {% for enq in recent_enquiries %}
+          <tr>
+            <td>
+              <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">
+                {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}ENQ-{{ enq.pk }}{% endif %}
+              </a>
+            </td>
+            <td style="font-size:12px; color:#6B7280;">{{ enq.bike_model|default:"—" }}</td>
+            <td>
+              {% if enq.status == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
+              {% elif enq.status == 'follow_up' %}<span class="badge badge-yellow">{{ enq.get_status_display }}</span>
+              {% elif enq.status == 'converted' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
+              {% elif enq.status == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
+              {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>{% endif %}
+            </td>
+            <td style="font-size:12px; color:#9CA3AF;">{{ enq.created_at|date:"d M Y" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="empty-state" style="padding:24px;">No enquiries yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Recent Orders -->
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F6CD;&#xFE0F; Recent Orders</span>
+      <a href="{% url 'sales:order_list' %}" class="btn btn-ghost btn-sm">View All</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr><th>Order</th><th>Customer</th><th>Vehicle</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for order in recent_orders %}
+          <tr>
+            <td>
+              <a href="{% url 'sales:order_detail' order.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">ORD-{{ order.pk }}</a>
+            </td>
+            <td style="font-size:13px;">{{ order.customer.full_name }}</td>
+            <td style="font-size:12px; color:#6B7280;">{{ order.vehicle.bike_model|default:"—" }}</td>
+            <td>
+              {% if order.sales_status == 'delivered' %}<span class="badge badge-green">{{ order.get_sales_status_display }}</span>
+              {% elif order.sales_status == 'invoiced' %}<span class="badge badge-blue">{{ order.get_sales_status_display }}</span>
+              {% elif order.sales_status == 'booked' %}<span class="badge badge-yellow">{{ order.get_sales_status_display }}</span>
+              {% else %}<span class="badge badge-red">{{ order.get_sales_status_display }}</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" class="empty-state" style="padding:24px;">No orders yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
   </div>
 </div>

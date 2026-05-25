@@ -49,4 +49,7 @@ urlpatterns = [
 
     # Feedback all
     path('feedback-all/',                     views.feedback_all,          name='feedback_all'),
+
+    # Follow-Up Board
+    path('follow-ups/',                       views.follow_up_list,        name='follow_up_list'),
 ]

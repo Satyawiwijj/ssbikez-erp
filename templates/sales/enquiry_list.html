@@ -20,7 +20,7 @@
 
 <form class="search-bar" method="get">
   {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name or phone...">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name, phone...">
   <button type="submit" class="btn btn-secondary">Search</button>
   {% if q or status_filter %}<a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
 </form>
@@ -30,7 +30,7 @@
     <table class="table">
       <thead>
         <tr>
-          <th>Customer</th>
+          <th>Lead</th>
           <th>Bike Model</th>
           <th>Source</th>
           <th>Executive</th>
@@ -43,8 +43,18 @@
         {% for enq in enquiries %}
         <tr>
           <td>
+            {% if enq.customer %}
             <div style="font-weight:500;">{{ enq.customer.full_name }}</div>
             <div style="font-size:12px; color:#6B7280;">{{ enq.customer.phone }}</div>
+            {% elif enq.prospect %}
+            <div style="font-weight:500;">
+              {{ enq.prospect.full_name }}
+              <span class="badge badge-gray" style="font-size:10px; margin-left:4px;">Prospect</span>
+            </div>
+            <div style="font-size:12px; color:#6B7280;">{{ enq.prospect.phone }}</div>
+            {% else %}
+            <div style="color:#9CA3AF;">—</div>
+            {% endif %}
           </td>
           <td>{{ enq.bike_model|default:"—" }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ enq.get_enquiry_source_display|default:"—" }}</td>
@@ -74,4 +84,5 @@
     </table>
   </div>
 </div>
+{% include 'partials/pagination.html' %}
 {% endblock %}

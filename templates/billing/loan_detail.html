@@ -3,10 +3,23 @@
 {% block page_title %}Finance Loan{% endblock %}
 
 {% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'billing:loan_list' %}">Loans</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">LOAN-{{ loan.pk }}</span>
+</nav>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">LOAN-{{ loan.pk }}</h1>
-    <span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ loan.get_loan_status_display }}</span>
+    <div style="display:flex; gap:8px; margin-top:6px; flex-wrap:wrap;">
+      {% if loan.loan_status == 'active' %}<span class="badge badge-green">{{ loan.get_loan_status_display }}</span>
+      {% elif loan.loan_status == 'closed' %}<span class="badge badge-gray">{{ loan.get_loan_status_display }}</span>
+      {% else %}<span class="badge badge-red">{{ loan.get_loan_status_display }}</span>{% endif %}
+      <span class="badge badge-blue">{{ loan.bank_name }}</span>
+    </div>
   </div>
   <div class="page-header-actions">
     <a href="{% url 'billing:loan_update' loan.pk %}" class="btn btn-secondary">Edit</a>
@@ -15,42 +28,120 @@
 </div>
 
 <div class="detail-grid">
+  <!-- LOAN CORE DETAILS -->
   <div class="card">
-    <div class="card-header"><span class="card-title">Loan Details</span></div>
+    <div class="card-header"><span class="card-title">&#x1F3E6; Loan Details</span></div>
     <dl class="detail-list">
-      <div class="detail-row"><dt>Sales Order</dt><dd>
-        <a href="{% url 'sales:order_detail' loan.sales_order.pk %}">ORD-{{ loan.sales_order.pk }}</a>
-      </dd></div>
-      <div class="detail-row"><dt>Customer</dt><dd>{{ loan.sales_order.customer.full_name }}</dd></div>
-      <div class="detail-row"><dt>Bank</dt><dd style="font-weight:500;">{{ loan.bank_name }}</dd></div>
-      <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:600; color:#2563EB;">&#x20B9; {{ loan.loan_amount }}</dd></div>
-      <div class="detail-row"><dt>Interest Rate</dt><dd>
-        {% if loan.interest_rate %}{{ loan.interest_rate }}% p.a.{% else %}—{% endif %}
-      </dd></div>
-      <div class="detail-row"><dt>Tenure</dt><dd>
-        {% if loan.tenure_months %}{{ loan.tenure_months }} months{% else %}—{% endif %}
-      </dd></div>
-      <div class="detail-row"><dt>EMI</dt><dd>
-        {% if loan.emi_amount %}&#x20B9; {{ loan.emi_amount }}{% else %}—{% endif %}
-      </dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ loan.created_at|date:"d M Y" }}</dd></div>
+      <div class="detail-row">
+        <dt>Sales Order</dt>
+        <dd><a href="{% url 'sales:order_detail' loan.sales_order.pk %}" style="color:#2563EB;">ORD-{{ loan.sales_order.pk }}</a></dd>
+      </div>
+      <div class="detail-row">
+        <dt>Customer</dt>
+        <dd style="font-weight:600;">{{ loan.sales_order.customer.full_name }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>Bank / NBFC</dt>
+        <dd style="font-weight:600; font-size:15px;">{{ loan.bank_name }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>Loan Amount</dt>
+        <dd style="font-weight:700; color:#2563EB; font-size:15px;">&#x20B9; {{ loan.loan_amount }}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>Interest Rate</dt>
+        <dd>{% if loan.interest_rate %}{{ loan.interest_rate }}% p.a.{% else %}—{% endif %}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>Tenure</dt>
+        <dd>{% if loan.tenure_months %}{{ loan.tenure_months }} months{% else %}—{% endif %}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>EMI Amount</dt>
+        <dd>{% if loan.emi_amount %}<strong>&#x20B9; {{ loan.emi_amount }}</strong> / month{% else %}—{% endif %}</dd>
+      </div>
+      <div class="detail-row">
+        <dt>Status</dt>
+        <dd>
+          {% if loan.loan_status == 'active' %}<span class="badge badge-green">{{ loan.get_loan_status_display }}</span>
+          {% elif loan.loan_status == 'closed' %}<span class="badge badge-gray">{{ loan.get_loan_status_display }}</span>
+          {% else %}<span class="badge badge-red">{{ loan.get_loan_status_display }}</span>{% endif %}
+        </dd>
+      </div>
     </dl>
   </div>
 
-  {% if total_repayment %}
+  <!-- DATES + REPAYMENT ESTIMATE -->
   <div class="card">
-    <div class="card-header"><span class="card-title">Repayment Estimate</span></div>
-    <p style="font-size:12px; color:#9CA3AF; margin-bottom:16px;">Based on simple interest. Actual may differ.</p>
-    <div class="amount-row">
-      <span class="label">Principal</span>
-      <span class="value">&#x20B9; {{ loan.loan_amount }}</span>
+    <div class="card-header"><span class="card-title">&#x1F4C5; Loan Timeline</span></div>
+    <dl class="detail-list">
+      <div class="detail-row">
+        <dt>Sanctioned Date</dt>
+        <dd>
+          {% if loan.sanctioned_date %}<strong>{{ loan.sanctioned_date|date:"d M Y" }}</strong>
+          {% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>First EMI Date</dt>
+        <dd>
+          {% if loan.first_emi_date %}<strong>{{ loan.first_emi_date|date:"d M Y" }}</strong>
+          {% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>Loan End Date</dt>
+        <dd>
+          {% if loan.loan_end_date %}<strong>{{ loan.loan_end_date|date:"d M Y" }}</strong>
+          {% else %}<span style="color:#9CA3AF;">
+            {% if loan.first_emi_date %}Set tenure to calculate{% else %}Set first EMI date + tenure{% endif %}
+          </span>{% endif %}
+        </dd>
+      </div>
+      <div class="detail-row">
+        <dt>Created On</dt>
+        <dd>{{ loan.created_at|date:"d M Y" }}</dd>
+      </div>
+    </dl>
+
+    {% if loan.total_payable or total_repayment %}
+    <div style="margin-top:16px; padding:16px; background:#EFF6FF; border-radius:8px; border:1px solid #BFDBFE;">
+      <div style="font-size:12px; font-weight:700; color:#6B7280; text-transform:uppercase; letter-spacing:.05em; margin-bottom:12px;">Repayment Estimate <span style="font-weight:400; text-transform:none;">(simple interest basis)</span></div>
+      <div class="amount-row">
+        <span class="label">Principal</span>
+        <span class="value">&#x20B9; {{ loan.loan_amount }}</span>
+      </div>
+      {% if loan.interest_rate and loan.tenure_months %}
+      <div class="amount-row">
+        <span class="label">Interest ({{ loan.interest_rate }}% × {{ loan.tenure_months }}m)</span>
+        <span class="value" style="color:#D97706;">
+          &#x20B9; {% if loan.total_payable %}{{ loan.total_payable|floatformat:2|default:"—" }}{% endif %}
+        </span>
+      </div>
+      {% endif %}
+      <div class="amount-row total" style="border-top:2px solid #BFDBFE; margin-top:4px; padding-top:8px;">
+        <span class="label">Total Repayment</span>
+        <span class="value" style="color:#1D4ED8; font-size:16px; font-weight:700;">
+          &#x20B9; {% if loan.total_payable %}{{ loan.total_payable|floatformat:2 }}{% elif total_repayment %}{{ total_repayment|floatformat:2 }}{% endif %}
+        </span>
+      </div>
+      {% if loan.emi_amount and loan.tenure_months %}
+      <div style="margin-top:8px; font-size:12px; color:#6B7280; text-align:center;">
+        &#x20B9; {{ loan.emi_amount }} &times; {{ loan.tenure_months }} EMIs
+      </div>
+      {% endif %}
     </div>
-    <div class="amount-row total">
-      <span class="label">Total Repayment</span>
-      <span class="value" style="color:#2563EB;">&#x20B9; {{ total_repayment|floatformat:2 }}</span>
-    </div>
+    {% endif %}
   </div>
-  {% endif %}
+</div>
+
+<!-- QUICK LINKS -->
+<div class="card">
+  <div class="card-header"><span class="card-title">Quick Links</span></div>
+  <div style="display:flex; gap:12px; flex-wrap:wrap; padding:8px 0;">
+    <a href="{% url 'sales:order_detail' loan.sales_order.pk %}" class="btn btn-secondary">&#x1F4CB; View Sales Order</a>
+    <a href="{% url 'customers:customer_detail' loan.sales_order.customer.pk %}" class="btn btn-ghost">&#x1F464; View Customer</a>
+    <a href="{% url 'billing:loan_update' loan.pk %}" class="btn btn-ghost">&#x270F;&#xFE0F; Edit Loan</a>
+  </div>
 </div>
 {% endblock %}

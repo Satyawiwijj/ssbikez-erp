@@ -10,12 +10,206 @@
   </div>
 </div>
 
+<!-- ══ CRE INSURANCE EXPIRY ALERTS ══ -->
+{% if is_cre %}
+<div class="grid-3col" style="margin-bottom:20px;">
+  <!-- Already Expired -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
+    <div class="card-header" style="background:#FEF2F2;">
+      <span class="card-title" style="color:#991B1B;">&#x1F6A8; {{ already_expired|length }} Vehicle{{ already_expired|length|pluralize }} — Insurance EXPIRED</span>
+    </div>
+    {% if already_expired %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Reg No</th><th>Expired</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in already_expired|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td style="font-family:monospace;font-size:12px;">{{ cv.registration_no|default:"—" }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#FEE2E2;color:#991B1B;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if already_expired|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ already_expired|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">No expired insurance.</p>{% endif %}
+  </div>
+
+  <!-- Expiring in 30 days -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
+    <div class="card-header" style="background:#FFFBEB;">
+      <span class="card-title" style="color:#92400E;">&#x26A0;&#xFE0F; {{ expiring_30|length }} Expiring Within 30 Days</span>
+    </div>
+    {% if expiring_30 %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Expiry</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in expiring_30|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#FEF3C7;color:#92400E;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if expiring_30|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ expiring_30|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">None expiring in 30 days.</p>{% endif %}
+  </div>
+
+  <!-- Expiring in 31–60 days -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
+    <div class="card-header" style="background:#EFF6FF;">
+      <span class="card-title" style="color:#1E40AF;">&#x1F6E1;&#xFE0F; {{ expiring_60|length }} Expiring in 31–60 Days</span>
+    </div>
+    {% if expiring_60 %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Expiry</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in expiring_60|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#DBEAFE;color:#1E40AF;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if expiring_60|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ expiring_60|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">None expiring in 31–60 days.</p>{% endif %}
+  </div>
+</div>
+{% else %}
 {% if expiring_insurance_count %}
 <div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
   <i class="fas fa-shield-alt me-2"></i>
   <strong>{{ expiring_insurance_count }} vehicle{{ expiring_insurance_count|pluralize }}</strong>&nbsp;
   have insurance expiring within 30 days.
-  <a href="{% url 'billing:insurance_policy_list' %}" class="ms-2 alert-link">View policies &rarr;</a>
+  <a href="{% url 'accounts:insurance_expiry_list' %}" class="ms-2 alert-link">View →</a>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- ══ FOLLOW-UP BOARD (Sales Executive) ══ -->
+{% if todays_followups or overdue_followups or upcoming_followups %}
+<div style="margin-bottom:24px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+    <h2 style="font-size:16px; font-weight:700; color:#1E293B; margin:0;">&#x1F4DE; My Follow-Up Board</h2>
+    <a href="{% url 'sales:follow_up_list' %}" class="btn btn-ghost btn-sm">View All →</a>
+  </div>
+  <div class="grid-3col">
+    <!-- OVERDUE -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
+      <div class="card-header" style="background:#FEF2F2;">
+        <span class="card-title" style="color:#991B1B;">&#x1F534; Overdue ({{ overdue_followups|length }})</span>
+      </div>
+      {% if overdue_followups %}
+      {% for fb in overdue_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call {{ enq.customer.phone }}">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call {{ enq.prospect.phone }}">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#DC2626; margin-top:4px;">Due {{ fb.next_followup_date|date:"d M" }} — {{ today|timesince:fb.next_followup_date }} overdue</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if overdue_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=overdue">+{{ overdue_followups|length|add:"-4" }} more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No overdue follow-ups. &#x2705;</p>{% endif %}
+    </div>
+
+    <!-- TODAY -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
+      <div class="card-header" style="background:#FFFBEB;">
+        <span class="card-title" style="color:#92400E;">&#x1F7E1; Due Today ({{ todays_followups|length }})</span>
+      </div>
+      {% if todays_followups %}
+      {% for fb in todays_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#D97706; margin-top:4px; font-weight:600;">DUE TODAY</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if todays_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=today">+more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No follow-ups due today.</p>{% endif %}
+    </div>
+
+    <!-- THIS WEEK -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
+      <div class="card-header" style="background:#EFF6FF;">
+        <span class="card-title" style="color:#1E40AF;">&#x1F535; This Week ({{ upcoming_followups|length }})</span>
+      </div>
+      {% if upcoming_followups %}
+      {% for fb in upcoming_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#2563EB; margin-top:4px;">{{ fb.next_followup_date|date:"d M Y" }}</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if upcoming_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=upcoming">+more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No upcoming follow-ups this week.</p>{% endif %}
+    </div>
+  </div>
 </div>
 {% endif %}
 

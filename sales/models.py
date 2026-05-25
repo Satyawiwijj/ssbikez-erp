@@ -1,6 +1,61 @@
+import logging
+
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Prospect — walk-in leads not yet registered as Customers
+# ---------------------------------------------------------------------------
+
+class Prospect(models.Model):
+    """A walk-in or inbound lead who is not yet a registered Customer."""
+    ENQUIRY_SOURCE_CHOICES = [
+        ('walk_in',  'Walk In'),
+        ('phone',    'Phone'),
+        ('website',  'Website'),
+        ('referral', 'Referral'),
+        ('social',   'Social Media'),
+    ]
+
+    full_name           = models.CharField(max_length=200)
+    phone               = models.CharField(max_length=15)
+    vehicle_of_interest = models.ForeignKey(
+        'customers.BikeModel',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='prospects'
+    )
+    enquiry_source = models.CharField(
+        max_length=50,
+        choices=ENQUIRY_SOURCE_CHOICES,
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Prospects'
+
+    def __str__(self):
+        return f"{self.full_name} ({self.phone})"
+
+    @property
+    def display_name(self):
+        return self.full_name
+
+    @property
+    def display_phone(self):
+        return self.phone
+
+
+# ---------------------------------------------------------------------------
+# SalesEnquiry
+# ---------------------------------------------------------------------------
 
 class SalesEnquiry(models.Model):
     class Status(models.TextChoices):
@@ -16,10 +71,18 @@ class SalesEnquiry(models.Model):
         REFERRAL = 'referral', 'Referral'
         SOCIAL   = 'social',   'Social Media'
 
+    # Either customer OR prospect must be set (validated in clean())
     customer        = models.ForeignKey(
         'customers.Customer',
         on_delete=models.PROTECT,
-        related_name='enquiries'
+        related_name='enquiries',
+        null=True, blank=True,
+    )
+    prospect        = models.ForeignKey(
+        Prospect,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='enquiries',
     )
     sales_executive = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -58,8 +121,40 @@ class SalesEnquiry(models.Model):
         verbose_name_plural = 'Sales Enquiries'
 
     def __str__(self):
-        return f"ENQ-{self.pk} | {self.customer} — {self.bike_model}"
+        lead = self.customer or self.prospect
+        return f"ENQ-{self.pk} | {lead} — {self.bike_model}"
 
+    def clean(self):
+        from django.core.exceptions import ValidationError
+        if not self.customer and not self.prospect:
+            raise ValidationError(
+                'Either a Customer or a Prospect must be set on the enquiry.'
+            )
+
+    @property
+    def lead_name(self):
+        if self.customer:
+            return self.customer.full_name
+        if self.prospect:
+            return self.prospect.full_name
+        return '—'
+
+    @property
+    def lead_phone(self):
+        if self.customer:
+            return self.customer.phone
+        if self.prospect:
+            return self.prospect.phone
+        return '—'
+
+    @property
+    def is_prospect_only(self):
+        return bool(self.prospect and not self.customer)
+
+
+# ---------------------------------------------------------------------------
+# SalesAppointment
+# ---------------------------------------------------------------------------
 
 class SalesAppointment(models.Model):
     class Status(models.TextChoices):
@@ -97,8 +192,12 @@ class SalesAppointment(models.Model):
         verbose_name_plural = 'Sales Appointments'
 
     def __str__(self):
-        return f"APT-{self.pk} | {self.enquiry.customer} on {self.appointment_date:%d %b %Y}"
+        return f"APT-{self.pk} | {self.enquiry.lead_name} on {self.appointment_date:%d %b %Y}"
 
+
+# ---------------------------------------------------------------------------
+# SalesFeedback
+# ---------------------------------------------------------------------------
 
 class SalesFeedback(models.Model):
     enquiry            = models.ForeignKey(
@@ -123,6 +222,10 @@ class SalesFeedback(models.Model):
     def __str__(self):
         return f"Feedback on ENQ-{self.enquiry_id} — {self.created_at:%d %b %Y}"
 
+
+# ---------------------------------------------------------------------------
+# VehicleSalesOrder
+# ---------------------------------------------------------------------------
 
 class VehicleSalesOrder(models.Model):
     class SalesStatus(models.TextChoices):
@@ -179,6 +282,10 @@ class VehicleSalesOrder(models.Model):
         return f"ORD-{self.pk} | {self.customer} — {self.vehicle}"
 
 
+# ---------------------------------------------------------------------------
+# VehicleDelivery
+# ---------------------------------------------------------------------------
+
 class VehicleDelivery(models.Model):
     sales_order   = models.OneToOneField(
         VehicleSalesOrder,
@@ -203,6 +310,10 @@ class VehicleDelivery(models.Model):
         return f"DELIVERY-{self.pk} | ORD-{self.sales_order_id} on {self.delivery_date}"
 
 
+# ---------------------------------------------------------------------------
+# ExchangeVehicle
+# ---------------------------------------------------------------------------
+
 class ExchangeVehicle(models.Model):
     sales_order       = models.OneToOneField(
         VehicleSalesOrder,
@@ -219,3 +330,54 @@ class ExchangeVehicle(models.Model):
 
     def __str__(self):
         return f"Exchange for ORD-{self.sales_order_id} — {self.old_vehicle_model}"
+
+
+# ---------------------------------------------------------------------------
+# FIX 3 — Signals: auto-create CustomerVehicle on delivery
+# ---------------------------------------------------------------------------
+
+@receiver(post_save, sender=VehicleDelivery)
+def on_delivery_created(sender, instance, created, **kwargs):
+    """When a VehicleDelivery is recorded, mark the sales order as delivered."""
+    if not created:
+        return
+    order = instance.sales_order
+    if order.sales_status != VehicleSalesOrder.SalesStatus.DELIVERED:
+        # Use .save() so the VehicleSalesOrder post_save signal fires
+        order.sales_status = VehicleSalesOrder.SalesStatus.DELIVERED
+        order.save(update_fields=['sales_status'])
+
+
+@receiver(post_save, sender=VehicleSalesOrder)
+def auto_create_customer_vehicle(sender, instance, created, update_fields, **kwargs):
+    """When a VehicleSalesOrder status changes to delivered, auto-create CustomerVehicle."""
+    # Skip if this save didn't touch sales_status
+    if update_fields is not None and 'sales_status' not in update_fields:
+        return
+    if instance.sales_status != VehicleSalesOrder.SalesStatus.DELIVERED:
+        return
+    if not instance.vehicle_id:
+        return
+
+    try:
+        from customer_vehicles.models import CustomerVehicle
+        CustomerVehicle.objects.get_or_create(
+            customer=instance.customer,
+            vehicle=instance.vehicle,
+            defaults={'purchase_date': instance.created_at.date()},
+        )
+        # Mark vehicle stock as sold (avoid triggering VehicleStock signal chain by using .update())
+        from customers.models import VehicleStock
+        VehicleStock.objects.filter(
+            pk=instance.vehicle_id,
+        ).exclude(stock_status='sold').update(stock_status='sold')
+
+        # Mark enquiry as converted
+        if instance.enquiry_id:
+            SalesEnquiry.objects.filter(
+                pk=instance.enquiry_id,
+                status__in=[SalesEnquiry.Status.OPEN, SalesEnquiry.Status.FOLLOW_UP]
+            ).update(status=SalesEnquiry.Status.CONVERTED)
+
+    except Exception as exc:
+        logger.error("auto_create_customer_vehicle failed for order %s: %s", instance.pk, exc)

@@ -29,16 +29,59 @@ def customervehicle_list(request):
 
 @login_required
 def customervehicle_detail(request, pk):
+    from decimal import Decimal
     cv = get_object_or_404(
         CustomerVehicle.objects.select_related('customer', 'vehicle__bike_model', 'vehicle__branch'),
         pk=pk
     )
+    job_cards     = list(JobCard.objects.filter(customer_vehicle=cv).select_related('service_advisor', 'branch').order_by('-created_at'))
+    amc_packages  = list(AMCPackage.objects.filter(customer_vehicle=cv))
+    rsa_packages  = list(RSAPackage.objects.filter(customer_vehicle=cv))
+    protection_plus = list(ProtectionPlusPackage.objects.filter(customer_vehicle=cv))
+
+    # Financials from related sales order
+    from sales.models import VehicleSalesOrder
+    from billing.models import Invoice, FinanceLoan, InsurancePolicy, Payment
+    from django.db.models import Sum
+
+    sales_order = VehicleSalesOrder.objects.filter(vehicle=cv.vehicle).select_related('customer').first()
+    invoice     = None
+    loan        = None
+    policies    = []
+    payments    = []
+    total_paid  = Decimal('0')
+    balance     = Decimal('0')
+
+    if sales_order:
+        try:
+            invoice = sales_order.invoice
+        except Exception:
+            invoice = None
+        try:
+            loan = sales_order.loan
+        except Exception:
+            loan = None
+        policies = list(sales_order.insurance_policies.all())
+        if invoice:
+            payments   = list(invoice.payments.filter(payment_status='completed').order_by('payment_date'))
+            total_paid = sum((p.amount for p in payments), Decimal('0'))
+            balance    = invoice.final_amount - total_paid
+
+    from django.utils import timezone
     return render(request, 'customer_vehicles/customervehicle_detail.html', {
         'cv':              cv,
-        'job_cards':       JobCard.objects.filter(customer_vehicle=cv).select_related('service_advisor', 'branch'),
-        'amc_packages':    AMCPackage.objects.filter(customer_vehicle=cv),
-        'rsa_packages':    RSAPackage.objects.filter(customer_vehicle=cv),
-        'protection_plus': ProtectionPlusPackage.objects.filter(customer_vehicle=cv),
+        'job_cards':       job_cards,
+        'amc_packages':    amc_packages,
+        'rsa_packages':    rsa_packages,
+        'protection_plus': protection_plus,
+        'sales_order':     sales_order,
+        'invoice':         invoice,
+        'loan':            loan,
+        'policies':        policies,
+        'payments':        payments,
+        'total_paid':      total_paid,
+        'balance':         balance,
+        'today':           timezone.now().date(),
     })
 
 

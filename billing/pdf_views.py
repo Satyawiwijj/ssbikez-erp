@@ -109,17 +109,36 @@ def _pdf_response(template_name, context, filename):
 @login_required
 def invoice_pdf(request, pk):
     invoice = get_object_or_404(
-        Invoice.objects.select_related('sales_order__customer', 'sales_order__vehicle__bike_model'),
+        Invoice.objects.select_related(
+            'sales_order__customer',
+            'sales_order__vehicle__bike_model',
+            'sales_order__branch',
+            'sales_order__sales_executive',
+        ),
         pk=pk,
     )
+    order    = invoice.sales_order
+    payments = list(invoice.payments.filter(payment_status='completed').order_by('payment_date'))
+    loan     = getattr(order, 'loan', None)
 
-    # GST breakdown: 9% CGST + 9% SGST
+    # GST breakdown: 9% CGST + 9% SGST on ex-showroom (subtotal)
     gst_half = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+
+    # Total paid breakdown
+    from decimal import Decimal as D
+    total_paid = sum(p.amount for p in payments) + (loan.loan_amount if loan else D('0'))
+    balance    = invoice.final_amount - total_paid
 
     context = {
         'invoice':       invoice,
+        'order':         order,
+        'payments':      payments,
+        'loan':          loan,
         'gst_half':      gst_half,
         'amount_words':  amount_in_words(invoice.final_amount),
+        'total_paid':    total_paid,
+        'balance':       balance,
+        'hsn_code':      '87112000',   # HSN for two-wheelers
     }
     return _pdf_response(
         'billing/invoice_pdf.html',

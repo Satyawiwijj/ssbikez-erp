@@ -92,22 +92,24 @@ class FinanceLoan(models.Model):
         CLOSED   = 'closed',   'Closed'
         REJECTED = 'rejected', 'Rejected'
 
-    sales_order   = models.OneToOneField(
+    sales_order     = models.OneToOneField(
         'sales.VehicleSalesOrder',
         on_delete=models.PROTECT,
         related_name='loan'
     )
-    bank_name     = models.CharField(max_length=100)
-    loan_amount   = models.DecimalField(max_digits=10, decimal_places=2)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    tenure_months = models.IntegerField(null=True, blank=True)
-    emi_amount    = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    loan_status   = models.CharField(
+    bank_name       = models.CharField(max_length=100)
+    loan_amount     = models.DecimalField(max_digits=10, decimal_places=2)
+    interest_rate   = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    tenure_months   = models.IntegerField(null=True, blank=True)
+    emi_amount      = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    loan_status     = models.CharField(
         max_length=20,
         choices=LoanStatus.choices,
         default=LoanStatus.ACTIVE
     )
-    created_at    = models.DateTimeField(auto_now_add=True)
+    sanctioned_date = models.DateField(null=True, blank=True)
+    first_emi_date  = models.DateField(null=True, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -115,3 +117,24 @@ class FinanceLoan(models.Model):
 
     def __str__(self):
         return f"LOAN-{self.pk} | {self.bank_name} — Rs.{self.loan_amount}"
+
+    @property
+    def loan_end_date(self):
+        """Calculate loan end date from first EMI date + tenure."""
+        if self.first_emi_date and self.tenure_months:
+            from dateutil.relativedelta import relativedelta
+            try:
+                return self.first_emi_date + relativedelta(months=self.tenure_months)
+            except Exception:
+                pass
+        return None
+
+    @property
+    def total_payable(self):
+        """Simple interest estimate of total repayment."""
+        from decimal import Decimal
+        if self.loan_amount and self.interest_rate and self.tenure_months:
+            years    = Decimal(str(self.tenure_months)) / Decimal('12')
+            interest = self.loan_amount * (self.interest_rate / Decimal('100')) * years
+            return self.loan_amount + interest
+        return None

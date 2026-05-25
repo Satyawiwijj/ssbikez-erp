@@ -43,8 +43,13 @@ class InsurancePolicyForm(forms.ModelForm):
 class FinanceLoanForm(forms.ModelForm):
     class Meta:
         model  = FinanceLoan
-        fields = ('sales_order', 'bank_name', 'loan_amount',
-                  'interest_rate', 'tenure_months', 'emi_amount', 'loan_status')
+        fields = ('sales_order', 'bank_name', 'loan_amount', 'interest_rate',
+                  'tenure_months', 'emi_amount', 'loan_status',
+                  'sanctioned_date', 'first_emi_date')
+        widgets = {
+            'sanctioned_date': forms.DateInput(attrs={'type': 'date'}),
+            'first_emi_date':  forms.DateInput(attrs={'type': 'date'}),
+        }
 
     def clean(self):
         from decimal import Decimal
