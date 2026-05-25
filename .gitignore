@@ -19,6 +19,11 @@ files.zip
 # Claude Code worktrees
 .claude/worktrees/
 
+# Environment / secrets — NEVER commit real credentials
+.env
+.env.local
+.env.production
+
 # OS
 .DS_Store
 Thumbs.db
