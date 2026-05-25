@@ -533,3 +533,36 @@ def bulk_insert(request):
             messages.warning(request, f"{len(errors)} rows had errors.")
 
     return render(request, 'spares/bulk_insert.html', {'results': results})
+
+
+# ---------------------------------------------------------------------------
+# GAP 21 — PO Used Qty Report
+# ---------------------------------------------------------------------------
+
+@login_required
+def po_used_qty_report(request):
+    from .models import (CounterSaleItem, PurchaseOrder, PurchaseOrderItem,
+                         SparesIssueAlterationItem)
+
+    rows = []
+    for poi in PurchaseOrderItem.objects.select_related('order__supplier', 'item').order_by('-order__date'):
+        item_id = poi.item_id
+        ordered = poi.quantity or 0
+        used_in_service = SparesIssueAlterationItem.objects.filter(
+            item_id=item_id
+        ).aggregate(t=Sum('quantity'))['t'] or 0
+        sold_counter = CounterSaleItem.objects.filter(
+            item_id=item_id
+        ).aggregate(t=Sum('quantity'))['t'] or 0
+        consumed = (used_in_service or 0) + (sold_counter or 0)
+        remaining = (ordered or 0) - consumed
+        rows.append({
+            'po_no': poi.order.po_no,
+            'supplier': poi.order.supplier.name if poi.order.supplier else '—',
+            'item': poi.item,
+            'ordered': ordered,
+            'used_service': used_in_service,
+            'sold_counter': sold_counter,
+            'remaining': remaining,
+        })
+    return render(request, 'spares/po_used_qty_report.html', {'rows': rows})

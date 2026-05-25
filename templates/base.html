@@ -344,16 +344,26 @@
   <a href="{% url 'billing:invoice_list' %}" class="sidebar-link" data-href="/billing/invoices/"><i class="nav-icon fas fa-file-invoice"></i> Invoices</a>
   <a href="{% url 'billing:loan_list' %}" class="sidebar-link" data-href="/billing/loans/"><i class="nav-icon fas fa-landmark"></i> Loans</a>
   <a href="{% url 'billing:insurance_policy_list' %}" class="sidebar-link" data-href="/billing/insurance/"><i class="nav-icon fas fa-shield-alt"></i> Insurance</a>
+  <a href="{% url 'billing:invoice_search' %}" class="sidebar-link" data-href="/billing/search/"><i class="nav-icon fas fa-search"></i> Search Invoices</a>
+  <a href="{% url 'billing:payment_reconciliation' %}" class="sidebar-link" data-href="/billing/reconciliation/"><i class="nav-icon fas fa-balance-scale"></i> Reconciliation</a>
+  <a href="{% url 'billing:refund_advance_list' %}" class="sidebar-link" data-href="/billing/refunds-advances/"><i class="nav-icon fas fa-exchange-alt"></i> Refunds &amp; Advances</a>
+  <a href="{% url 'billing:journal_entry_list' %}" class="sidebar-link" data-href="/billing/journal/"><i class="nav-icon fas fa-book"></i> Journal Entries</a>
+  <a href="{% url 'billing:general_ledger' %}" class="sidebar-link" data-href="/billing/ledger/"><i class="nav-icon fas fa-list"></i> General Ledger</a>
 
   <div class="sidebar-section">RTO</div>
   <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-id-card"></i> Registrations</a>
   <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="nav-icon fas fa-hashtag"></i> Number Plates</a>
+  <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
 
   <div class="sidebar-section">Service</div>
   <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Enquiries</a>
+  <a href="{% url 'service:enquiry_bulk_import' %}" class="sidebar-link" data-href="/service/bulk-import/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
   <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="nav-icon fas fa-calendar-alt"></i> Appointments</a>
   <a href="{% url 'service:jobcard_list' %}" class="sidebar-link" data-href="/service/jobcards/"><i class="nav-icon fas fa-file-alt"></i> Job Cards</a>
   <a href="{% url 'service:bay_list' %}" class="sidebar-link" data-href="/service/bays/"><i class="nav-icon fas fa-warehouse"></i> Bays</a>
+  <a href="{% url 'service:call_list' %}" class="sidebar-link" data-href="/service/calls/"><i class="nav-icon fas fa-phone"></i> Customer Calls</a>
+  <a href="{% url 'service:warranty_claim_list' %}" class="sidebar-link" data-href="/service/warranty-claims/"><i class="nav-icon fas fa-shield-alt"></i> Warranty Claims</a>
+  <a href="{% url 'service:insurance_claim_list' %}" class="sidebar-link" data-href="/service/insurance-claims/"><i class="nav-icon fas fa-file-medical"></i> Insurance Claims</a>
 
   <div class="sidebar-section">Spares</div>
   <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="nav-icon fas fa-boxes"></i> Items</a>
@@ -364,6 +374,7 @@
   <a href="{% url 'spares:issue_alteration_list' %}" class="sidebar-link" data-href="/spares/issue-alterations/"><i class="nav-icon fas fa-share-square"></i> Issue Alterations</a>
   <a href="{% url 'spares:stock_report' %}" class="sidebar-link" data-href="/spares/stock/"><i class="nav-icon fas fa-chart-bar"></i> Stock Report</a>
   <a href="{% url 'spares:bulk_insert' %}" class="sidebar-link" data-href="/spares/bulk-insert/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
+  <a href="{% url 'spares:po_used_qty_report' %}" class="sidebar-link" data-href="/spares/reports/po-used-qty/"><i class="nav-icon fas fa-chart-line"></i> PO Used Qty Report</a>
 
   <div class="sidebar-section">VAS</div>
   <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>

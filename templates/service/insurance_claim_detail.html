@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Claim {{ claim.claim_number }}{% endblock %}
+{% block page_title %}Insurance Claim {{ claim.claim_number }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'service:insurance_claim_list' %}">Claims</a>
+  <span class="bc-sep">/</span><span class="bc-current">{{ claim.claim_number }}</span>
+</nav>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">{{ claim.claim_number }} — {{ claim.get_status_display }}</span>
+    <a href="{% url 'service:insurance_claim_update' claim.pk %}" class="btn btn-sm btn-secondary" style="float:right;">Edit</a>
+  </div>
+  <div style="padding:20px;line-height:1.9;">
+    <div><strong>Job Card:</strong> <a href="{% url 'service:jobcard_detail' claim.job_card_id %}">JC-{{ claim.job_card_id }}</a></div>
+    <div><strong>Insurance Co:</strong> {{ claim.insurance_company }}</div>
+    <div><strong>Policy #:</strong> {{ claim.policy_number }}</div>
+    <div><strong>Claim Amount:</strong> &#x20B9; {{ claim.claim_amount }}</div>
+    <div><strong>Approved Amount:</strong> &#x20B9; {{ claim.approved_amount }}</div>
+    <div><strong>Status:</strong> {{ claim.get_status_display }}</div>
+    <div><strong>Settlement Date:</strong> {{ claim.settlement_date|date:"d M Y"|default:"—" }}</div>
+    {% if claim.notes %}<div><strong>Notes:</strong><br>{{ claim.notes|linebreaksbr }}</div>{% endif %}
+  </div>
+</div>
+{% endblock %}

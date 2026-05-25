@@ -26,4 +26,10 @@ urlpatterns = [
     path('rc-books/',                     views.rc_book_list,               name='rc_book_list'),
     path('rc-books/<int:pk>/',            views.rc_book_detail,             name='rc_book_detail'),
     path('<int:rto_pk>/rc-book/',         views.rc_book_create,             name='rc_book_create'),
+
+    # GAP 19 — Registration Payment
+    path('<int:rto_pk>/reg-payment/',     views.reg_payment_create,         name='reg_payment_create'),
+
+    # GAP 20 — RTO Income
+    path('<int:rto_pk>/income/',          views.rto_income_create,          name='rto_income_create'),
 ]

@@ -132,3 +132,57 @@ class ServiceDiscountMasterForm(forms.ModelForm):
         widgets = {
             'service_type': forms.TextInput(attrs={'placeholder': 'e.g. free_service, paid_service, accidental'}),
         }
+
+
+# ===========================================================================
+# GAP 14-31 forms
+# ===========================================================================
+
+from .models import (AdditionalWorkApproval, CustomerCall, InsuranceClaim,
+                     JobCardRevisit, JobCardServiceChild)
+
+
+class JobCardRevisitForm(forms.ModelForm):
+    class Meta:
+        model = JobCardRevisit
+        fields = ('next_service_km', 'next_service_days', 'next_service_date', 'notes')
+        widgets = {
+            'next_service_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class JobCardServiceChildForm(forms.ModelForm):
+    class Meta:
+        model = JobCardServiceChild
+        fields = ('task_name', 'description', 'assigned_to', 'status')
+        widgets = {'description': forms.Textarea(attrs={'rows': 2})}
+
+
+class CustomerCallForm(forms.ModelForm):
+    class Meta:
+        model = CustomerCall
+        fields = ('customer_vehicle', 'purpose', 'notes', 'outcome', 'next_call_date')
+        widgets = {
+            'next_call_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class InsuranceClaimForm(forms.ModelForm):
+    class Meta:
+        model = InsuranceClaim
+        fields = ('job_card', 'insurance_estimation', 'claim_number',
+                  'insurance_company', 'policy_number', 'claim_amount',
+                  'approved_amount', 'status', 'settlement_date', 'notes')
+        widgets = {
+            'settlement_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class AdditionalWorkApprovalForm(forms.ModelForm):
+    class Meta:
+        model = AdditionalWorkApproval
+        fields = ('description', 'estimated_labour', 'estimated_spares')
+        widgets = {'description': forms.Textarea(attrs={'rows': 3})}

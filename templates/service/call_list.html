@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Customer Calls{% endblock %}
+{% block page_title %}Customer Calls{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+  <h1 class="page-title">Customer Call Log</h1>
+  <a href="{% url 'service:call_create' %}" class="btn btn-primary">+ Log Call</a>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Customer / Vehicle</th><th>Purpose</th><th>Outcome</th><th>Called By</th><th>Next</th></tr></thead>
+      <tbody>
+        {% for c in calls %}
+        <tr>
+          <td>{{ c.call_date|date:"d M Y H:i" }}</td>
+          <td>{{ c.customer_vehicle }}</td>
+          <td>{{ c.purpose }}</td>
+          <td><span class="badge">{{ c.get_outcome_display }}</span></td>
+          <td>{{ c.called_by|default:"—" }}</td>
+          <td>{{ c.next_call_date|date:"d M Y"|default:"—" }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6"><div class="empty-state"><p>No calls logged yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

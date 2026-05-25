@@ -92,9 +92,36 @@ class RCBookForm(forms.ModelForm):
     class Meta:
         model  = RCBook
         fields = ('rto_registration', 'rc_number', 'issue_date',
-                  'issued_to', 'status', 'notes')
+                  'issued_to', 'status', 'hp_endorsed', 'hp_bank_name', 'notes')
         widgets = {
             'issue_date': forms.DateInput(attrs={'type': 'date'}),
             'notes':      forms.Textarea(attrs={'rows': 3}),
             'rc_number':  forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678-RC'}),
+        }
+
+
+# ===========================================================================
+# GAP 19, 20 forms
+# ===========================================================================
+
+from .models import RegPayment, RTOIncome
+
+
+class RegPaymentForm(forms.ModelForm):
+    class Meta:
+        model = RegPayment
+        fields = ('payment_type', 'amount', 'receipt_number', 'payment_date', 'notes')
+        widgets = {
+            'payment_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class RTOIncomeForm(forms.ModelForm):
+    class Meta:
+        model = RTOIncome
+        fields = ('income_type', 'amount', 'collected_from', 'date', 'notes')
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
         }

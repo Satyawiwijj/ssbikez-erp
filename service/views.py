@@ -228,6 +228,17 @@ def jobcard_detail(request, pk):
     labor_charges    = job_card.labor_charges.all()
     total_labor      = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
     outwork_entries  = job_card.outwork_entries.all()
+    # GAP 14, 15, 26, 30, 31
+    revisit = getattr(job_card, 'revisit', None)
+    service_childs = job_card.service_childs.all() if hasattr(job_card, 'service_childs') else []
+    additional_approvals = job_card.additional_approvals.all() if hasattr(job_card, 'additional_approvals') else []
+    insurance_claims = job_card.insurance_claims.all() if hasattr(job_card, 'insurance_claims') else []
+    cv = job_card.customer_vehicle
+    warranty_active = getattr(cv, 'warranty_active', False)
+    warranty_end = getattr(cv, 'warranty_end_date', None)
+    free_services_remaining = getattr(cv, 'free_services_remaining', 0)
+    free_services_used = getattr(cv, 'free_services_used', 0)
+    total_free_services = getattr(cv, 'total_free_services', 0)
     return render(request, 'service/jobcard_detail.html', {
         'job_card':        job_card,
         'bay_assignments': bay_assignments,
@@ -235,6 +246,15 @@ def jobcard_detail(request, pk):
         'total_labor':     total_labor,
         'spares_issues':   [],
         'outwork_entries': outwork_entries,
+        'revisit':         revisit,
+        'service_childs':  service_childs,
+        'additional_approvals': additional_approvals,
+        'insurance_claims': insurance_claims,
+        'warranty_active': warranty_active,
+        'warranty_end':    warranty_end,
+        'free_services_remaining': free_services_remaining,
+        'free_services_used':      free_services_used,
+        'total_free_services':     total_free_services,
     })
 
 
@@ -530,3 +550,7 @@ from service._gap_views import (
     insurance_estimation_create, insurance_estimation_detail, insurance_estimation_update,
     discount_master_list, discount_master_create,
 )
+
+# GAP 14-31 views imported from sub-module
+from service._gap14_31_views import *  # noqa: E402,F401,F403
+

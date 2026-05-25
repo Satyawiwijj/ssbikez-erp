@@ -189,3 +189,38 @@ def service_invoice_pdf(request, job_card_id):
         context,
         f'ServiceInvoice-JC{job_card_id}.pdf',
     )
+
+
+# ---------------------------------------------------------------------------
+# GAP 27 — Payment Receipt PDF
+# ---------------------------------------------------------------------------
+
+from .models import Payment
+
+
+@login_required
+def payment_receipt_pdf(request, pk):
+    payment = get_object_or_404(
+        Payment.objects.select_related('invoice__sales_order__customer'), pk=pk
+    )
+    try:
+        from accounts.models import CompanySettings
+        company = CompanySettings.get_instance()
+    except Exception:
+        company = None
+
+    context = {
+        'payment': payment,
+        'invoice': payment.invoice,
+        'customer': payment.invoice.sales_order.customer,
+        'company': company,
+        'amount_in_words': amount_in_words(payment.amount),
+    }
+    html = render_to_string('billing/payment_receipt_pdf.html', context)
+    if not XHTML2PDF_AVAILABLE:
+        return HttpResponse(html, content_type='text/html')
+    buf = BytesIO()
+    pisa.CreatePDF(html, dest=buf)
+    response = HttpResponse(buf.getvalue(), content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="receipt-{payment.pk}.pdf"'
+    return response

@@ -19,7 +19,25 @@ class CustomerVehicle(models.Model):
     registration_no  = models.CharField(max_length=50, blank=True, null=True)
     purchase_date    = models.DateField(blank=True, null=True)
     insurance_expiry = models.DateField(blank=True, null=True)
+
+    # GAP 31 — Warranty status tracking
+    warranty_start_date = models.DateField(null=True, blank=True)
+    warranty_end_date   = models.DateField(null=True, blank=True)
+    total_free_services = models.IntegerField(default=5)
+    free_services_used  = models.IntegerField(default=0)
+
     created_at       = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def warranty_active(self):
+        from datetime import date
+        if self.warranty_end_date:
+            return self.warranty_end_date >= date.today()
+        return False
+
+    @property
+    def free_services_remaining(self):
+        return max(0, self.total_free_services - self.free_services_used)
 
     class Meta:
         ordering = ['-created_at']

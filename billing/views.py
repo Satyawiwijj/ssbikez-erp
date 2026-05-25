@@ -306,3 +306,7 @@ def loan_detail(request, pk):
         'loan':            loan,
         'total_repayment': total_repayment,
     })
+
+# GAP 14-31 views
+from billing._gap14_31_views import *  # noqa: E402,F401,F403
+

@@ -53,6 +53,9 @@ urlpatterns = [
     # GAP 13: Bulk Insert
     path('bulk-insert/', views.bulk_insert, name='bulk_insert'),
 
+    # GAP 21: PO Used Qty Report
+    path('reports/po-used-qty/', views.po_used_qty_report, name='po_used_qty_report'),
+
     # AJAX
     path('ajax/item-details/', views.ajax_item_details, name='ajax_item_details'),
     path('ajax/rack-bins/', views.ajax_rack_bins, name='ajax_rack_bins'),

@@ -427,3 +427,169 @@ class ServiceDiscountMaster(models.Model):
 
     def __str__(self):
         return f"{self.service_type} — {self.discount_percent}%"
+
+
+# ---------------------------------------------------------------------------
+# GAP 14 — Job Card Revisit
+# ---------------------------------------------------------------------------
+
+class JobCardRevisit(models.Model):
+    job_card          = models.OneToOneField(
+        JobCard, on_delete=models.CASCADE, related_name='revisit'
+    )
+    next_service_km   = models.IntegerField(help_text="Odometer reading for next service")
+    next_service_days = models.IntegerField(help_text="Days until next service")
+    next_service_date = models.DateField(null=True, blank=True)
+    notes             = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if self.next_service_days and not self.next_service_date:
+            from datetime import timedelta
+            base = self.job_card.created_at.date() if self.job_card.created_at else None
+            if base:
+                self.next_service_date = base + timedelta(days=self.next_service_days)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Revisit JC-{self.job_card_id} at {self.next_service_km}km"
+
+
+# ---------------------------------------------------------------------------
+# GAP 15 — Job Card Service Childs (Sub-tasks)
+# ---------------------------------------------------------------------------
+
+class JobCardServiceChild(models.Model):
+    class Status(models.TextChoices):
+        PENDING     = 'pending',     'Pending'
+        IN_PROGRESS = 'in_progress', 'In Progress'
+        COMPLETED   = 'completed',   'Completed'
+        SKIPPED     = 'skipped',     'Skipped'
+
+    job_card     = models.ForeignKey(
+        JobCard, on_delete=models.CASCADE, related_name='service_childs'
+    )
+    task_name    = models.CharField(max_length=200)
+    description  = models.TextField(blank=True)
+    assigned_to  = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+    status       = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    completed_at = models.DateTimeField(null=True, blank=True)
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.task_name} — {self.status}"
+
+
+# ---------------------------------------------------------------------------
+# GAP 23 — Customer Call Log
+# ---------------------------------------------------------------------------
+
+class CustomerCall(models.Model):
+    class Outcome(models.TextChoices):
+        INTERESTED     = 'interested',     'Interested'
+        NOT_INTERESTED = 'not_interested', 'Not Interested'
+        CALLBACK       = 'callback',       'Callback Later'
+        NO_ANSWER      = 'no_answer',      'No Answer'
+        BOOKED         = 'booked',         'Appointment Booked'
+
+    customer_vehicle = models.ForeignKey(
+        'customer_vehicles.CustomerVehicle',
+        on_delete=models.CASCADE, related_name='calls'
+    )
+    called_by       = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    call_date       = models.DateTimeField(auto_now_add=True)
+    purpose         = models.CharField(max_length=200)
+    notes           = models.TextField(blank=True)
+    outcome         = models.CharField(max_length=20, choices=Outcome.choices)
+    next_call_date  = models.DateField(null=True, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-call_date']
+
+    def __str__(self):
+        return f"Call-{self.pk} | {self.customer_vehicle} — {self.outcome}"
+
+
+# ---------------------------------------------------------------------------
+# GAP 26 — Insurance Claim
+# ---------------------------------------------------------------------------
+
+class InsuranceClaim(models.Model):
+    class Status(models.TextChoices):
+        SUBMITTED    = 'submitted',    'Submitted'
+        UNDER_REVIEW = 'under_review', 'Under Review'
+        APPROVED     = 'approved',     'Approved'
+        REJECTED     = 'rejected',     'Rejected'
+        SETTLED      = 'settled',      'Settled'
+
+    job_card             = models.ForeignKey(
+        JobCard, on_delete=models.CASCADE, related_name='insurance_claims'
+    )
+    insurance_estimation = models.ForeignKey(
+        InsuranceEstimation, on_delete=models.SET_NULL, null=True, blank=True
+    )
+    claim_number      = models.CharField(max_length=100)
+    insurance_company = models.CharField(max_length=200)
+    policy_number     = models.CharField(max_length=100)
+    claim_amount      = models.DecimalField(max_digits=10, decimal_places=2)
+    approved_amount   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    status            = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.SUBMITTED
+    )
+    settlement_date   = models.DateField(null=True, blank=True)
+    notes             = models.TextField(blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"IC-{self.pk} | {self.claim_number}"
+
+
+# ---------------------------------------------------------------------------
+# GAP 30 — Additional Work Approval
+# ---------------------------------------------------------------------------
+
+class AdditionalWorkApproval(models.Model):
+    class Status(models.TextChoices):
+        PENDING  = 'pending',  'Pending Approval'
+        SENT     = 'sent',     'Sent to Customer'
+        APPROVED = 'approved', 'Approved'
+        REJECTED = 'rejected', 'Rejected'
+
+    job_card           = models.ForeignKey(
+        JobCard, on_delete=models.CASCADE, related_name='additional_approvals'
+    )
+    description        = models.TextField(help_text="Description of additional work needed")
+    estimated_labour   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    estimated_spares   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    estimated_total    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    customer_response  = models.TextField(blank=True)
+    status             = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    sent_at            = models.DateTimeField(null=True, blank=True)
+    responded_at       = models.DateTimeField(null=True, blank=True)
+    created_at         = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        self.estimated_total = (self.estimated_labour or 0) + (self.estimated_spares or 0)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"AWA-{self.pk} | JC-{self.job_card_id} — {self.status}"

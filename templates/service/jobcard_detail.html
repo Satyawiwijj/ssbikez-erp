@@ -3,6 +3,29 @@
 {% block page_title %}Job Card{% endblock %}
 
 {% block content %}
+
+{# GAP 31: Warranty Status Card #}
+{% if warranty_active %}
+<div class="card" style="background:#f0fdf4;border:2px solid #16a34a;padding:14px 18px;margin-bottom:14px;">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div>
+      <strong style="color:#16a34a;font-size:15px;">&#x2705; WARRANTY ACTIVE</strong> &mdash;
+      Valid until <strong>{{ warranty_end|date:"d M Y" }}</strong>
+    </div>
+    <div style="font-size:13px;color:#166534;">
+      Free services remaining: <strong>{{ free_services_remaining }}</strong> of {{ total_free_services }}
+      {% if free_services_remaining %}<br>This is free service #{{ free_services_used|add:1 }} of {{ total_free_services }}{% endif %}
+    </div>
+  </div>
+  <div style="font-size:12px;color:#166534;margin-top:4px;">This service is eligible for warranty coverage.</div>
+</div>
+{% elif warranty_end %}
+<div class="card" style="background:#fef2f2;border:2px solid #dc2626;padding:14px 18px;margin-bottom:14px;">
+  <strong style="color:#dc2626;">&#x274C; WARRANTY EXPIRED</strong> &mdash;
+  Expired on <strong>{{ warranty_end|date:"d M Y" }}</strong>. Normal paid service applies.
+</div>
+{% endif %}
+
 <div class="page-header">
   <div>
     <h1 class="page-title">JC-{{ job_card.pk }}</h1>
@@ -333,4 +356,136 @@
   {% endif %}
   {% endwith %}
 </div>
+
+{# GAP 24: Update Customer button #}
+<div class="card" style="margin-top:14px;">
+  <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div><strong>Customer:</strong> {{ job_card.customer_vehicle.customer.full_name }} &middot; {{ job_card.customer_vehicle.customer.phone }}</div>
+    <a href="{% url 'service:jobcard_update_customer' job_card.pk %}" class="btn btn-sm btn-secondary">&#x270E; Update Customer Info</a>
+  </div>
+</div>
+
+{# GAP 15: Service Childs (Sub-tasks) #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x2705; Service Sub-Tasks ({{ service_childs|length }})</span>
+    <a href="{% url 'service:service_child_add' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Add Sub-Task</a>
+  </div>
+  <div style="padding:12px 16px;">
+    {% for child in service_childs %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+        <div>
+          <form method="post" action="{% url 'service:service_child_toggle' child.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:18px;">
+              {% if child.status == 'completed' %}&#x2705;{% else %}&#x2B1C;{% endif %}
+            </button>
+          </form>
+          <span style="{% if child.status == 'completed' %}text-decoration:line-through;color:#9ca3af;{% endif %}">
+            <strong>{{ child.task_name }}</strong>
+            {% if child.description %} &mdash; {{ child.description }}{% endif %}
+          </span>
+        </div>
+        <div style="font-size:12px;color:#6b7280;">
+          {% if child.assigned_to %}@{{ child.assigned_to.username }} &middot; {% endif %}
+          {{ child.get_status_display }}
+        </div>
+      </div>
+    {% empty %}
+      <div style="color:#9ca3af;padding:8px;">No sub-tasks added.</div>
+    {% endfor %}
+  </div>
+</div>
+
+{# GAP 30: Additional Work Approvals #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F527; Additional Work Approvals ({{ additional_approvals|length }})</span>
+    <a href="{% url 'service:additional_work_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Request Additional Work</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Created</th><th>Description</th><th>Labour</th><th>Spares</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for awa in additional_approvals %}
+        <tr>
+          <td>{{ awa.created_at|date:"d M Y" }}</td>
+          <td>{{ awa.description|truncatechars:80 }}</td>
+          <td>&#x20B9; {{ awa.estimated_labour }}</td>
+          <td>&#x20B9; {{ awa.estimated_spares }}</td>
+          <td><strong>&#x20B9; {{ awa.estimated_total }}</strong></td>
+          <td><span class="badge">{{ awa.get_status_display }}</span></td>
+          <td>
+            {% if awa.status == 'pending' %}
+              <form method="post" action="{% url 'service:additional_work_send' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-secondary">Send to Customer</button>
+              </form>
+            {% elif awa.status == 'sent' %}
+              <form method="post" action="{% url 'service:additional_work_approve' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-primary">Approve</button>
+              </form>
+              <form method="post" action="{% url 'service:additional_work_reject' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-secondary">Reject</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No additional work requests.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# GAP 26: Insurance Claims #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F4D1; Insurance Claims ({{ insurance_claims|length }})</span>
+    <a href="{% url 'service:insurance_claim_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ New Claim</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Claim #</th><th>Insurance Co</th><th>Policy</th><th>Claim Amount</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in insurance_claims %}
+        <tr>
+          <td>{{ c.claim_number }}</td>
+          <td>{{ c.insurance_company }}</td>
+          <td>{{ c.policy_number }}</td>
+          <td>&#x20B9; {{ c.claim_amount }}</td>
+          <td>&#x20B9; {{ c.approved_amount }}</td>
+          <td>{{ c.get_status_display }}</td>
+          <td><a href="{% url 'service:insurance_claim_detail' c.pk %}" class="btn btn-sm btn-secondary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No claims.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# GAP 14: Revisit Card #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F4C5; Next Service Revisit</span>
+    {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' or revisit %}
+    <a href="{% url 'service:revisit_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">
+      {% if revisit %}Edit Revisit{% else %}Set Revisit{% endif %}
+    </a>
+    {% endif %}
+  </div>
+  <div style="padding:14px 18px;">
+    {% if revisit %}
+      <div><strong>Next service KM:</strong> {{ revisit.next_service_km }}</div>
+      <div><strong>Next service days:</strong> {{ revisit.next_service_days }} days</div>
+      <div><strong>Next service date:</strong> {{ revisit.next_service_date|date:"d M Y"|default:"—" }}</div>
+      {% if revisit.notes %}<div><strong>Notes:</strong> {{ revisit.notes }}</div>{% endif %}
+    {% else %}
+      <div style="color:#9ca3af;">No revisit scheduled.</div>
+    {% endif %}
+  </div>
+</div>
+
 {% endblock %}

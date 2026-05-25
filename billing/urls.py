@@ -37,4 +37,23 @@ urlpatterns = [
 
     # GAP 3 — Daily Collection Report
     path('daily-report/', views.daily_collection_report, name='daily_collection_report'),
+
+    # GAP 16 — Payment Reconciliation
+    path('reconciliation/', views.payment_reconciliation, name='payment_reconciliation'),
+
+    # GAP 17 — Search Invoices
+    path('search/', views.invoice_search, name='invoice_search'),
+
+    # GAP 18 — Refunds & Advances
+    path('refunds-advances/', views.refund_advance_list, name='refund_advance_list'),
+    path('refunds-advances/create/', views.refund_advance_create, name='refund_advance_create'),
+    path('refunds-advances/<int:pk>/', views.refund_advance_detail, name='refund_advance_detail'),
+
+    # GAP 25 — Journal & General Ledger
+    path('journal/', views.journal_entry_list, name='journal_entry_list'),
+    path('journal/create/', views.journal_entry_create, name='journal_entry_create'),
+    path('ledger/', views.general_ledger, name='general_ledger'),
+
+    # GAP 27 — Payment Receipt PDF
+    path('payment/<int:pk>/receipt/', pdf_views.payment_receipt_pdf, name='payment_receipt_pdf'),
 ]

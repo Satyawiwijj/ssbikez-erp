@@ -67,10 +67,16 @@ class FinanceLoanForm(forms.ModelForm):
         model  = FinanceLoan
         fields = ('sales_order', 'bank_name', 'sanctioned_date', 'loan_amount',
                   'interest_rate', 'tenure_months', 'emi_amount',
-                  'first_emi_date', 'loan_status')
+                  'first_emi_date', 'loan_status',
+                  # GAP 29 - HP workflow
+                  'hp_status', 'hp_bank_name', 'hp_submission_date',
+                  'hp_endorsement_date', 'hp_release_date')
         widgets = {
-            'sanctioned_date': forms.DateInput(attrs={'type': 'date'}),
-            'first_emi_date':  forms.DateInput(attrs={'type': 'date'}),
+            'sanctioned_date':     forms.DateInput(attrs={'type': 'date'}),
+            'first_emi_date':      forms.DateInput(attrs={'type': 'date'}),
+            'hp_submission_date':  forms.DateInput(attrs={'type': 'date'}),
+            'hp_endorsement_date': forms.DateInput(attrs={'type': 'date'}),
+            'hp_release_date':     forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -143,3 +149,29 @@ class FinanceLoanForm(forms.ModelForm):
                     f'for a ₹{loan_amount} loan over {tenure_months} months.'
                 )
         return cleaned_data
+
+
+# ===========================================================================
+# GAP 18, 25 forms
+# ===========================================================================
+
+from .models import JournalEntry, RefundAdvance
+
+
+class RefundAdvanceForm(forms.ModelForm):
+    class Meta:
+        model = RefundAdvance
+        fields = ('customer', 'transaction_type', 'amount', 'reference_invoice',
+                  'reason', 'payment_method', 'status')
+        widgets = {'reason': forms.Textarea(attrs={'rows': 3})}
+
+
+class JournalEntryForm(forms.ModelForm):
+    class Meta:
+        model = JournalEntry
+        fields = ('entry_date', 'account_name', 'entry_type', 'amount',
+                  'description', 'reference')
+        widgets = {
+            'entry_date': forms.DateInput(attrs={'type': 'date'}),
+            'description': forms.Textarea(attrs={'rows': 2}),
+        }

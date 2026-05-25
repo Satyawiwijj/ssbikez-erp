@@ -82,4 +82,34 @@ urlpatterns = [
     path('discount-master/',                    views.discount_master_list,   name='discount_master_list'),
     path('discount-master/create/',             views.discount_master_create, name='discount_master_create'),
     path('discount-master/<int:pk>/edit/',      views.discount_master_create, name='discount_master_update'),
+
+    # GAP 14 — Job Card Revisit
+    path('jobcards/<int:jc_pk>/revisit/',       views.revisit_create,         name='revisit_create'),
+
+    # GAP 15 — Job Card Service Childs (sub-tasks)
+    path('jobcards/<int:jc_pk>/childs/add/',    views.service_child_add,      name='service_child_add'),
+    path('service-childs/<int:pk>/toggle/',     views.service_child_toggle,   name='service_child_toggle'),
+
+    # GAP 22 — Service Enquiry Bulk Import
+    path('bulk-import/',                        views.service_enquiry_bulk_import, name='enquiry_bulk_import'),
+
+    # GAP 23 — Customer Call Log
+    path('calls/',                              views.call_list,              name='call_list'),
+    path('calls/create/',                       views.call_create,            name='call_create'),
+    path('customer-vehicles/<int:cv_pk>/call/', views.call_create,            name='call_create_for_cv'),
+
+    # GAP 24 — Update Customer from Job Card
+    path('jobcards/<int:pk>/update-customer/',  views.jobcard_update_customer, name='jobcard_update_customer'),
+
+    # GAP 26 — Insurance Claims
+    path('insurance-claims/',                   views.insurance_claim_list,   name='insurance_claim_list'),
+    path('jobcards/<int:jc_pk>/insurance-claim/', views.insurance_claim_create, name='insurance_claim_create'),
+    path('insurance-claims/<int:pk>/',          views.insurance_claim_detail, name='insurance_claim_detail'),
+    path('insurance-claims/<int:pk>/edit/',     views.insurance_claim_update, name='insurance_claim_update'),
+
+    # GAP 30 — Additional Work Approval
+    path('jobcards/<int:jc_pk>/additional-work/create/', views.additional_work_create, name='additional_work_create'),
+    path('additional-work/<int:pk>/send/',      views.additional_work_send,   name='additional_work_send'),
+    path('additional-work/<int:pk>/approve/',   views.additional_work_approve, name='additional_work_approve'),
+    path('additional-work/<int:pk>/reject/',    views.additional_work_reject, name='additional_work_reject'),
 ]

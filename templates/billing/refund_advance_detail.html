@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.get_transaction_type_display }} #{{ obj.pk }}{% endblock %}
+{% block page_title %}{{ obj.get_transaction_type_display }} #{{ obj.pk }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'billing:refund_advance_list' %}">Refunds & Advances</a>
+  <span class="bc-sep">/</span><span class="bc-current">#{{ obj.pk }}</span>
+</nav>
+<div class="card">
+  <div style="padding:20px;line-height:1.9;">
+    <div><strong>Customer:</strong> {{ obj.customer }}</div>
+    <div><strong>Type:</strong> {{ obj.get_transaction_type_display }}</div>
+    <div><strong>Amount:</strong> &#x20B9; {{ obj.amount }}</div>
+    <div><strong>Method:</strong> {{ obj.payment_method|default:"—" }}</div>
+    <div><strong>Reference Invoice:</strong> {{ obj.reference_invoice|default:"—" }}</div>
+    <div><strong>Status:</strong> {{ obj.get_status_display }}</div>
+    <div><strong>Processed By:</strong> {{ obj.processed_by|default:"—" }}</div>
+    <div><strong>Reason:</strong><br>{{ obj.reason|linebreaksbr }}</div>
+  </div>
+</div>
+{% endblock %}

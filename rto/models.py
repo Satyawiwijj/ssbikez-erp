@@ -70,9 +70,12 @@ class RCBook(models.Model):
         on_delete=models.CASCADE,
         related_name='rc_book'
     )
-    rc_number  = models.CharField(max_length=100, blank=True)
-    issue_date = models.DateField(null=True, blank=True)
-    issued_to  = models.CharField(max_length=200, blank=True)
+    rc_number     = models.CharField(max_length=100, blank=True)
+    issue_date    = models.DateField(null=True, blank=True)
+    issued_to     = models.CharField(max_length=200, blank=True)
+    # GAP 29 — HP endorsement on RC
+    hp_endorsed   = models.BooleanField(default=False)
+    hp_bank_name  = models.CharField(max_length=200, blank=True)
     status     = models.CharField(
         max_length=20,
         choices=Status.choices,
@@ -87,3 +90,47 @@ class RCBook(models.Model):
 
     def __str__(self):
         return f"RC-{self.pk} | {self.rc_number or 'Pending'}"
+
+
+# ---------------------------------------------------------------------------
+# GAP 19 — RegPay (Registration Payment)
+# ---------------------------------------------------------------------------
+
+class RegPayment(models.Model):
+    rto_registration = models.ForeignKey(
+        RTORegistration, on_delete=models.CASCADE, related_name='reg_payments'
+    )
+    payment_type   = models.CharField(max_length=100)
+    amount         = models.DecimalField(max_digits=10, decimal_places=2)
+    receipt_number = models.CharField(max_length=100, blank=True)
+    payment_date   = models.DateField()
+    notes          = models.TextField(blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-payment_date']
+
+    def __str__(self):
+        return f"RegPay-{self.pk} | Rs.{self.amount}"
+
+
+# ---------------------------------------------------------------------------
+# GAP 20 — RTO Income
+# ---------------------------------------------------------------------------
+
+class RTOIncome(models.Model):
+    rto_registration = models.ForeignKey(
+        RTORegistration, on_delete=models.CASCADE, related_name='income_entries'
+    )
+    income_type     = models.CharField(max_length=100)
+    amount          = models.DecimalField(max_digits=10, decimal_places=2)
+    collected_from  = models.CharField(max_length=200, blank=True)
+    date            = models.DateField()
+    notes           = models.TextField(blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"RTOIncome-{self.pk} | Rs.{self.amount}"

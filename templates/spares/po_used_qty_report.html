@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}PO Used Qty Report{% endblock %}
+{% block page_title %}PO Used Qty Report{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header"><span class="card-title">PO vs Consumption</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr>
+        <th>PO No</th><th>Supplier</th><th>Item</th>
+        <th class="text-right">Ordered</th>
+        <th class="text-right">Used (Service)</th>
+        <th class="text-right">Sold (Counter)</th>
+        <th class="text-right">Remaining</th>
+      </tr></thead>
+      <tbody>
+        {% for r in rows %}
+        <tr>
+          <td>{{ r.po_no }}</td>
+          <td>{{ r.supplier }}</td>
+          <td>{{ r.item.item_code }} — {{ r.item.item_name }}</td>
+          <td style="text-align:right;">{{ r.ordered }}</td>
+          <td style="text-align:right;">{{ r.used_service }}</td>
+          <td style="text-align:right;">{{ r.sold_counter }}</td>
+          <td style="text-align:right;"><strong>{{ r.remaining }}</strong></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No purchase orders found.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

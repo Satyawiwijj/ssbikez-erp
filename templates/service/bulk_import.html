@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Service Enquiry Bulk Import{% endblock %}
+{% block page_title %}Service Enquiry Bulk Import{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'service:enquiry_list' %}">Enquiries</a>
+  <span class="bc-sep">/</span><span class="bc-current">Bulk Import</span>
+</nav>
+<div class="card form-card">
+  <div class="card-header"><span class="card-title">&#x1F4E5; Upload CSV</span></div>
+  <div style="padding:20px;">
+    <div style="background:#f3f4f6;padding:14px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+      <strong>Required columns:</strong>
+      <code>customer_name</code>, <code>phone</code>, <code>registration_no</code>, <code>issue_description</code><br>
+      <a href="/static/sample_service_enquiries.csv" download class="btn btn-sm btn-secondary" style="margin-top:8px;">
+        &#x2B07; Download Sample CSV
+      </a>
+    </div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="form-group">
+        <label class="form-label">Select CSV File</label>
+        <input type="file" name="file" accept=".csv" class="form-control" required>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Upload &amp; Import</button>
+        <a href="{% url 'service:enquiry_list' %}" class="btn btn-secondary">Back</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% if results %}
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F4CB; Results</span>
+    <span style="float:right;font-size:13px;">
+      Total: <strong>{{ results.total }}</strong> &middot;
+      Imported: <strong style="color:#16a34a;">{{ results.imported_count }}</strong> &middot;
+      Errors: <strong style="color:#dc2626;">{{ results.error_count }}</strong>
+    </span>
+  </div>
+  <div class="table-wrapper">
+    {% if results.imported %}
+    <table class="table">
+      <thead><tr><th>Row</th><th>Reg No</th><th>Enquiry ID</th></tr></thead>
+      <tbody>
+        {% for r in results.imported %}<tr><td>{{ r.row }}</td><td>{{ r.reg }}</td><td>{{ r.enquiry_id }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+    {% if results.errors %}
+    <table class="table">
+      <thead><tr><th>Row</th><th>Error</th></tr></thead>
+      <tbody>
+        {% for e in results.errors %}<tr><td>{{ e.row }}</td><td style="color:#dc2626;">{{ e.error }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

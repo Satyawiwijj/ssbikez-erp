@@ -195,3 +195,7 @@ def rc_book_detail(request, pk):
         'rto_registration__sales_order__customer'
     ), pk=pk)
     return render(request, 'rto/rc_book_detail.html', {'rc': rc})
+
+# GAP 19, 20
+from rto._gap_views import *  # noqa: E402,F401,F403
+

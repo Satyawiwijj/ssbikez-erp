@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Log Customer Call{% endblock %}
+{% block page_title %}Log Customer Call{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'service:call_list' %}">Calls</a>
+  <span class="bc-sep">/</span><span class="bc-current">New</span>
+</nav>
+<div class="card form-card">
+  <div class="card-header"><span class="card-title">&#x260E; Call Details</span></div>
+  <div style="padding:20px;">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Call</button>
+        <a href="{% url 'service:call_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
