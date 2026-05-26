@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:item_list' %}" class="btn btn-outline-secondary btn-sm">
+  <i class="fa fa-arrow-left me-1"></i>Back
+</a>
+{% endblock %}
+
+{% block content %}
+<form method="post">
+  {% csrf_token %}
+  <div class="row g-3">
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Basic Info</h6></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-8">
+              <label class="form-label">Item Name *</label>
+              {{ form.item_name }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Category</label>
+              {{ form.category }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Part Number</label>
+              {{ form.part_number }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Brand</label>
+              {{ form.brand }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">HSN/SAC</label>
+              {{ form.hsn_sac }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">UOM</label>
+              {{ form.uom }}
+            </div>
+            <div class="col-sm-4">
+              <label class="form-label">Sub Group</label>
+              {{ form.item_sub_group }}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Description</label>
+              {{ form.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Pricing &amp; GST</h6></div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-sm-4"><label class="form-label">MRP</label>{{ form.mrp }}</div>
+            <div class="col-sm-4"><label class="form-label">Selling Rate</label>{{ form.standard_selling_rate }}</div>
+            <div class="col-sm-4"><label class="form-label">Valuation Rate</label>{{ form.valuation_rate }}</div>
+            <div class="col-sm-4"><label class="form-label">Max Discount %</label>{{ form.max_discount }}</div>
+            <div class="col-sm-4"><label class="form-label">SGST %</label>{{ form.sgst }}</div>
+            <div class="col-sm-4"><label class="form-label">CGST %</label>{{ form.cgst }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Stock Settings</h6></div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Opening Stock</label>{{ form.opening_stock }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reorder Level</label>{{ form.reorder_level }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Reorder Qty</label>{{ form.reorder_qty }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Warranty Period (days)</label>{{ form.warranty_period_days }}
+          </div>
+          <div class="form-check mb-2">{{ form.maintain_stock }} <label class="form-check-label">Maintain Stock</label></div>
+          <div class="form-check mb-2">{{ form.allow_negative_stock }} <label class="form-check-label">Allow Negative Stock</label></div>
+          <div class="form-check mb-2">{{ form.is_ineligible_for_itc }} <label class="form-check-label">Ineligible for ITC</label></div>
+          <div class="form-check">{{ form.is_active }} <label class="form-check-label">Active</label></div>
+        </div>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">
+          <i class="fa fa-save me-1"></i>Save Item
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Sales Enquiries — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Enquiries{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sales Enquiries</h1>
+    <p class="page-subtitle">Track and manage customer enquiries</p>
+  </div>
+  <a href="{% url 'sales:enquiry_create' %}" class="btn btn-primary">+ New Enquiry</a>
+</div>
+
+<div class="filter-tabs">
+  <a href="{% url 'sales:enquiry_list' %}{% if q %}?q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
+  {% for val, label in status_choices %}
+  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<form class="search-bar" method="get">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by name, phone...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q or status_filter %}<a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Lead</th>
+          <th>Bike Model</th>
+          <th>Source</th>
+          <th>Executive</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for enq in enquiries %}
+        <tr>
+          <td>
+            {% if enq.customer %}
+            <div style="font-weight:500;">{{ enq.customer.full_name }}</div>
+            <div style="font-size:12px; color:#6B7280;">{{ enq.customer.phone }}</div>
+            {% elif enq.prospect %}
+            <div style="font-weight:500;">
+              {{ enq.prospect.full_name }}
+              <span class="badge badge-gray" style="font-size:10px; margin-left:4px;">Prospect</span>
+            </div>
+            <div style="font-size:12px; color:#6B7280;">{{ enq.prospect.phone }}</div>
+            {% else %}
+            <div style="color:#9CA3AF;">—</div>
+            {% endif %}
+          </td>
+          <td>{{ enq.bike_model|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ enq.get_enquiry_source_display|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ enq.sales_executive|default:"—" }}</td>
+          <td>
+            {% with s=enq.status %}
+            {% if s == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
+            {% elif s == 'follow_up' %}<span class="badge badge-yellow">{{ enq.get_status_display }}</span>
+            {% elif s == 'converted' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
+            {% elif s == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td style="color:#6B7280; font-size:13px;">{{ enq.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'sales:enquiry_update' enq.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No enquiries found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% include 'partials/pagination.html' %}
+{% endblock %}

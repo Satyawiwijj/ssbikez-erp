@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Service Enquiries — SSBikez ERP{% endblock %}
+{% block page_title %}Service Enquiries{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Service Enquiries</h1>
+    <p class="page-subtitle">Customer vehicle service requests</p>
+  </div>
+  <a href="{% url 'service:enquiry_create' %}" class="btn btn-primary">+ New Enquiry</a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search customer, phone, reg. no.">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'service:enquiry_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Reg. No.</th>
+          <th>Bike Model</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for enq in enquiries %}
+        <tr>
+          <td style="font-weight:500;">{{ enq.customer_vehicle.customer.full_name }}</td>
+          <td><span class="badge badge-gray">{{ enq.customer_vehicle.registration_no }}</span></td>
+          <td>{{ enq.customer_vehicle.vehicle.bike_model }}</td>
+          <td>
+            {% if enq.status == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
+            {% elif enq.status == 'closed' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td style="color:#6B7280; font-size:13px;">{{ enq.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:enquiry_detail' enq.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'service:enquiry_update' enq.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No enquiries found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

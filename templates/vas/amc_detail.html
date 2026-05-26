@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}AMC-{{ package.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}AMC Package Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">AMC Package — AMC-{{ package.pk }}</h1>
+    <p class="page-subtitle">{{ package.customer_vehicle.customer.full_name }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'vas:amc_update' package.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'vas:amc_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Package Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Package Name</dt><dd style="font-weight:500;">{{ package.package_name }}</dd></div>
+      <div class="detail-row"><dt>Start Date</dt><dd>{{ package.start_date|date:"d M Y"|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>End Date</dt><dd>{{ package.end_date|date:"d M Y"|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Amount</dt><dd style="font-weight:600;">{% if package.amount %}&#x20B9; {{ package.amount }}{% else %}—{% endif %}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-green">{{ package.get_status_display }}</span></dd></div>
+      <div class="detail-row"><dt>Created</dt><dd style="color:#6B7280; font-size:13px;">{{ package.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Customer Vehicle</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ package.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ package.customer_vehicle.customer.phone }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ package.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd style="font-family:monospace;">{{ package.customer_vehicle.registration_no|default:"—" }}</dd></div>
+    </dl>
+    <div style="margin-top:16px;">
+      <a href="{% url 'customer_vehicles:customervehicle_detail' package.customer_vehicle.pk %}" class="btn btn-secondary btn-sm">View Customer Vehicle</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

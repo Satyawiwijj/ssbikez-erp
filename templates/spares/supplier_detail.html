@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}{{ supplier.supplier_name }} — SSBikez ERP{% endblock %}
+{% block page_title %}Supplier Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ supplier.supplier_name }}</h1>
+    <p class="page-subtitle">Supplier profile</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'masters:supplier_update' supplier.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'masters:supplier_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Supplier Info</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Name</dt><dd style="font-weight:500;">{{ supplier.supplier_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ supplier.phone|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Email</dt><dd style="color:#6B7280;">{{ supplier.email|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Address</dt><dd>{{ supplier.address|default:"—" }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Purchase Orders</span>
+    <a href="{% url 'spares:order_create' %}" class="btn btn-primary btn-sm">+ New PO</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>PO No.</th>
+          <th>Order Date</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for po in purchase_orders %}
+        <tr>
+          <td>
+            <a href="{% url 'spares:order_detail' po.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">PO-{{ po.pk }}</a>
+          </td>
+          <td>{{ po.order_date|date:"d M Y" }}</td>
+          <td>{% if po.total_amount %}&#x20B9; {{ po.total_amount }}{% else %}—{% endif %}</td>
+          <td>
+            <span class="badge badge-blue">{{ po.get_status_display }}</span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'spares:order_detail' po.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'spares:order_update' po.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">No purchase orders yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

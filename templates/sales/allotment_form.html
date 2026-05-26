@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — ORD-{{ order.pk }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'sales:order_list' %}">Orders</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:order_detail' order.pk %}">ORD-{{ order.pk }}</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ title }}</span>
+</nav>
+
+<div class="card form-card">
+  <div class="card-header"><span class="card-title">&#x1F4CB; Allot Vehicle to ORD-{{ order.pk }}</span></div>
+  <div style="padding:20px;">
+    <div style="background:#f9fafb;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+      <strong>Customer:</strong> {{ order.customer.full_name }} &middot;
+      <strong>Total:</strong> &#x20B9; {{ order.total_amount }}
+    </div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+        <div class="form-group">
+          <label class="form-label">{{ field.label }}</label>
+          {{ field }}
+          {% if field.help_text %}<div style="font-size:12px;color:#6b7280;margin-top:3px;">{{ field.help_text }}</div>{% endif %}
+          {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
+        </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Allot Vehicle</button>
+        <a href="{% url 'sales:order_detail' order.pk %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

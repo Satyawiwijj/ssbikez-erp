@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% block title %}{{ cv }} — SSBikez ERP{% endblock %}
+{% block page_title %}Customer Vehicle{% endblock %}
+
+{% block extra_css %}
+.tab-container { position: relative; }
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'customer_vehicles:customervehicle_list' %}">Customer Vehicles</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ cv.customer.full_name }}</span>
+</nav>
+
+<!-- HEADER PASSPORT STRIP -->
+<div class="card" style="margin-bottom:20px; background:linear-gradient(135deg,#1E293B,#334155); color:#fff; border-radius:12px;">
+  <div style="padding:20px 24px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:16px;">
+    <div style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+      <div style="width:56px; height:56px; background:rgba(255,255,255,.12); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:28px;">&#x1F3CD;&#xFE0F;</div>
+      <div>
+        <div style="font-size:20px; font-weight:700; color:#fff;">{{ cv.vehicle.bike_model }}</div>
+        <div style="font-size:13px; color:#94A3B8; margin-top:2px;">
+          {{ cv.vehicle.color|default:"" }}{% if cv.vehicle.color %} &bull; {% endif %}{{ cv.vehicle.chassis_no|default:"No Chassis" }}
+        </div>
+      </div>
+      <div style="padding-left:20px; border-left:1px solid rgba(255,255,255,.15);">
+        <div style="font-size:13px; color:#94A3B8;">Owner</div>
+        <div style="font-size:15px; font-weight:600; color:#fff;">{{ cv.customer.full_name }}</div>
+        <div style="font-size:13px; color:#60A5FA;"><a href="tel:{{ cv.customer.phone }}" style="color:#60A5FA; text-decoration:none;">{{ cv.customer.phone }}</a></div>
+      </div>
+    </div>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      {% if cv.registration_no %}
+      <div style="background:rgba(255,255,255,.12); border-radius:8px; padding:8px 16px; text-align:center;">
+        <div style="font-size:10px; color:#94A3B8; text-transform:uppercase; letter-spacing:.05em;">Reg No</div>
+        <div style="font-size:15px; font-weight:700; color:#fff; font-family:monospace;">{{ cv.registration_no }}</div>
+      </div>
+      {% endif %}
+      {% if cv.insurance_expiry %}
+      <div style="border-radius:8px; padding:8px 16px; text-align:center;
+        {% if cv.insurance_expiry < today %}background:#DC2626;{% else %}background:rgba(255,255,255,.12);{% endif %}">
+        <div style="font-size:10px; color:rgba(255,255,255,.7); text-transform:uppercase; letter-spacing:.05em;">Insurance</div>
+        <div style="font-size:13px; font-weight:600; color:#fff;">
+          {{ cv.insurance_expiry|date:"d M Y" }}{% if cv.insurance_expiry < today %} &#x26A0;{% endif %}
+        </div>
+      </div>
+      {% endif %}
+      <div class="page-header-actions">
+        <a href="{% url 'customer_vehicles:customervehicle_update' cv.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TAB NAVIGATION -->
+<div class="tab-container">
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="tab-overview">&#x1F4CB; Vehicle Info</button>
+    <button class="tab-btn" data-tab="tab-service">&#x1F527; Service History ({{ job_cards|length }})</button>
+    <button class="tab-btn" data-tab="tab-vas">&#x1F4E6; VAS Packages</button>
+    <button class="tab-btn" data-tab="tab-financials">&#x1F4B3; Financials</button>
+  </div>
+
+  <!-- TAB 1: VEHICLE INFO -->
+  <div class="tab-content active" id="tab-overview">
+    <div class="detail-grid">
+      <div class="card">
+        <div class="card-header"><span class="card-title">&#x1F464; Customer Info</span>
+          <a href="{% url 'customers:customer_detail' cv.customer.pk %}" class="btn btn-ghost btn-sm">View Profile</a>
+        </div>
+        <dl class="detail-list">
+          <div class="detail-row"><dt>Name</dt><dd style="font-weight:600;">{{ cv.customer.full_name }}</dd></div>
+          <div class="detail-row"><dt>Phone</dt><dd><a href="tel:{{ cv.customer.phone }}" style="color:#2563EB;">{{ cv.customer.phone }}</a></dd></div>
+          <div class="detail-row"><dt>Email</dt><dd>{{ cv.customer.email|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Aadhaar</dt><dd>{{ cv.customer.aadhaar_no|default:"—" }}</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><span class="card-title">&#x1F3CD;&#xFE0F; Vehicle Info</span></div>
+        <dl class="detail-list">
+          <div class="detail-row"><dt>Bike Model</dt><dd style="font-weight:600;">{{ cv.vehicle.bike_model }}</dd></div>
+          <div class="detail-row"><dt>Chassis No</dt><dd style="font-family:monospace;">{{ cv.vehicle.chassis_no|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Engine No</dt><dd style="font-family:monospace;">{{ cv.vehicle.engine_no|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Color</dt><dd>{{ cv.vehicle.color|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Branch</dt><dd>{{ cv.vehicle.branch|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Registration No</dt><dd>
+            {% if cv.registration_no %}<span class="badge badge-green">{{ cv.registration_no }}</span>
+            {% else %}<span class="badge badge-gray">Unregistered</span>{% endif %}
+          </dd></div>
+          <div class="detail-row"><dt>Purchase Date</dt><dd>{{ cv.purchase_date|date:"d M Y"|default:"—" }}</dd></div>
+          <div class="detail-row"><dt>Insurance Expiry</dt><dd>
+            {% if cv.insurance_expiry %}
+              {% if cv.insurance_expiry < today %}
+                <span class="badge badge-red">&#x26A0;&#xFE0F; {{ cv.insurance_expiry|date:"d M Y" }} — EXPIRED</span>
+              {% else %}
+                <span class="badge badge-green">{{ cv.insurance_expiry|date:"d M Y" }}</span>
+              {% endif %}
+            {% else %}—{% endif %}
+          </dd></div>
+        </dl>
+      </div>
+    </div>
+
+    {% if sales_order %}
+    <div class="card">
+      <div class="card-header"><span class="card-title">&#x1F4CB; Original Sales Order</span>
+        <a href="{% url 'sales:order_detail' sales_order.pk %}" class="btn btn-ghost btn-sm">View Order</a>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; padding:8px 0; flex-wrap:wrap;">
+        <a href="{% url 'sales:order_detail' sales_order.pk %}" style="font-weight:600; color:#2563EB; text-decoration:none; font-size:16px;">ORD-{{ sales_order.pk }}</a>
+        {% if sales_order.sales_status == 'delivered' %}<span class="badge badge-green">{{ sales_order.get_sales_status_display }}</span>
+        {% elif sales_order.sales_status == 'invoiced' %}<span class="badge badge-blue">{{ sales_order.get_sales_status_display }}</span>
+        {% elif sales_order.sales_status == 'booked' %}<span class="badge badge-yellow">{{ sales_order.get_sales_status_display }}</span>
+        {% else %}<span class="badge badge-red">{{ sales_order.get_sales_status_display }}</span>{% endif %}
+        <span style="color:#374151; font-weight:500;">&#x20B9; {{ sales_order.total_amount }}</span>
+        <span style="color:#6B7280; font-size:13px;">{{ sales_order.created_at|date:"d M Y" }}</span>
+        {% if invoice %}
+        <a href="{% url 'billing:invoice_detail' invoice.pk %}" style="color:#2563EB; font-size:13px;">Invoice: {{ invoice.invoice_number }}</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- TAB 2: SERVICE HISTORY -->
+  <div class="tab-content" id="tab-service">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F527; Service History</span>
+        <a href="{% url 'service:jobcard_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ New Job Card</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Job Card</th><th>Date</th><th>Odometer</th><th>Advisor</th><th>Branch</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for jc in job_cards %}
+            <tr>
+              <td style="font-weight:500; font-family:monospace;">
+                <a href="{% url 'service:jobcard_detail' jc.pk %}" style="color:#2563EB; text-decoration:none;">JC-{{ jc.pk }}</a>
+              </td>
+              <td style="color:#6B7280; font-size:13px;">{{ jc.created_at|date:"d M Y" }}</td>
+              <td style="font-family:monospace; font-size:13px;">{{ jc.odometer_reading|default:"—" }}</td>
+              <td>{{ jc.service_advisor|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ jc.branch|default:"—" }}</td>
+              <td>
+                {% if jc.service_status == 'invoiced' %}<span class="badge badge-green">{{ jc.get_service_status_display }}</span>
+                {% elif jc.service_status == 'in_progress' %}<span class="badge badge-blue">{{ jc.get_service_status_display }}</span>
+                {% else %}<span class="badge badge-yellow">{{ jc.get_service_status_display }}</span>{% endif %}
+              </td>
+              <td><a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary btn-sm">View</a></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="empty-state">No service history yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: VAS -->
+  <div class="tab-content" id="tab-vas">
+    <!-- AMC -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F527; AMC Packages</span>
+        <a href="{% url 'vas:amc_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add AMC</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Package</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for amc in amc_packages %}
+            <tr>
+              <td style="font-weight:500;">{{ amc.package_name }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ amc.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ amc.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{% if amc.amount %}&#x20B9; {{ amc.amount }}{% else %}—{% endif %}</td>
+              <td><span class="badge badge-green">{{ amc.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:amc_detail' amc.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:amc_update' amc.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">No AMC packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- RSA -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F691; RSA Packages</span>
+        <a href="{% url 'vas:rsa_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add RSA</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for rsa in rsa_packages %}
+            <tr>
+              <td style="font-weight:500;">{{ rsa.provider_name|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ rsa.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ rsa.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{% if rsa.amount %}&#x20B9; {{ rsa.amount }}{% else %}—{% endif %}</td>
+              <td><span class="badge badge-blue">{{ rsa.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:rsa_detail' rsa.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:rsa_update' rsa.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6" class="empty-state">No RSA packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Protection Plus -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F6E1;&#xFE0F; Protection Plus</span>
+        <a href="{% url 'vas:pp_create' %}?cv={{ cv.pk }}" class="btn btn-primary btn-sm">+ Add Package</a>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr><th>Package</th><th>Provider</th><th>Start</th><th>End</th><th>Amount</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            {% for pp in protection_plus %}
+            <tr>
+              <td style="font-weight:500;">{{ pp.package_name|default:"—" }}</td>
+              <td>{{ pp.provider_name|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ pp.start_date|date:"d M Y"|default:"—" }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ pp.end_date|date:"d M Y"|default:"—" }}</td>
+              <td>{% if pp.amount %}&#x20B9; {{ pp.amount }}{% else %}—{% endif %}</td>
+              <td><span class="badge badge-purple">{{ pp.get_status_display }}</span></td>
+              <td>
+                <div class="table-actions">
+                  <a href="{% url 'vas:pp_detail' pp.pk %}" class="btn btn-secondary btn-sm">View</a>
+                  <a href="{% url 'vas:pp_update' pp.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+                </div>
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="empty-state">No Protection Plus packages.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: FINANCIALS -->
+  <div class="tab-content" id="tab-financials">
+    {% if sales_order %}
+
+    <!-- INVOICE -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F4C4; Invoice</span>
+        {% if not invoice and sales_order %}
+        <a href="{% url 'billing:invoice_create' %}?order={{ sales_order.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
+        {% endif %}
+      </div>
+      {% if invoice %}
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Invoice No</dt>
+          <dd><a href="{% url 'billing:invoice_detail' invoice.pk %}" style="color:#2563EB; font-weight:600;">{{ invoice.invoice_number }}</a></dd>
+        </div>
+        <div class="detail-row"><dt>Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Subtotal</dt><dd>&#x20B9; {{ invoice.subtotal }}</dd></div>
+        <div class="detail-row"><dt>GST Amount</dt><dd>&#x20B9; {{ invoice.gst_amount }}</dd></div>
+        {% if invoice.discount_amount %}<div class="detail-row"><dt>Discount</dt><dd style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</dd></div>{% endif %}
+        <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:15px; color:#2563EB;">&#x20B9; {{ invoice.final_amount }}</dd></div>
+        <div class="detail-row"><dt>Total Paid</dt><dd style="font-weight:600; color:#059669;">&#x20B9; {{ total_paid }}</dd></div>
+        {% if balance > 0 %}
+        <div class="detail-row"><dt>Balance</dt><dd style="font-weight:700; color:#DC2626;">&#x20B9; {{ balance }}</dd></div>
+        {% elif balance == 0 %}
+        <div class="detail-row"><dt>Balance</dt><dd><span class="badge badge-green">&#x2705; Fully Paid</span></dd></div>
+        {% endif %}
+      </dl>
+      <div style="padding:12px 0;">
+        <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
+        {% if invoice %}<a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-ghost btn-sm" target="_blank">&#x1F4C4; Download PDF</a>{% endif %}
+      </div>
+
+      <!-- PAYMENTS -->
+      {% if payments %}
+      <div style="margin-top:12px;">
+        <div style="font-size:12px; font-weight:700; color:#6B7280; text-transform:uppercase; margin-bottom:8px;">Payments</div>
+        <div class="table-wrapper">
+          <table class="table">
+            <thead><tr><th>Method</th><th>Reference</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              {% for p in payments %}
+              <tr>
+                <td>{{ p.get_payment_method_display|default:"—" }}</td>
+                <td style="font-family:monospace; font-size:12px;">{{ p.transaction_reference|default:"—" }}</td>
+                <td style="font-weight:500;">&#x20B9; {{ p.amount }}</td>
+                <td style="font-size:13px; color:#6B7280;">{{ p.payment_date|date:"d M Y"|default:"—" }}</td>
+                <td>
+                  {% if p.payment_status == 'completed' %}<span class="badge badge-green">{{ p.get_payment_status_display }}</span>
+                  {% elif p.payment_status == 'pending' %}<span class="badge badge-yellow">{{ p.get_payment_status_display }}</span>
+                  {% else %}<span class="badge badge-red">{{ p.get_payment_status_display }}</span>{% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+      {% else %}
+      <p class="empty-state">No invoice created yet.</p>
+      {% endif %}
+    </div>
+
+    <!-- LOAN -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F3E6; Finance Loan</span>
+        {% if not loan %}
+        <a href="{% url 'billing:loan_create' %}?order={{ sales_order.pk }}" class="btn btn-primary btn-sm">+ Add Loan</a>
+        {% endif %}
+      </div>
+      {% if loan %}
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Bank / NBFC</dt><dd style="font-weight:600;">{{ loan.bank_name }}</dd></div>
+        <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:700; color:#2563EB; font-size:15px;">&#x20B9; {{ loan.loan_amount }}</dd></div>
+        <div class="detail-row"><dt>Interest Rate</dt><dd>{% if loan.interest_rate %}{{ loan.interest_rate }}% p.a.{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Tenure</dt><dd>{% if loan.tenure_months %}{{ loan.tenure_months }} months{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>EMI</dt><dd>{% if loan.emi_amount %}&#x20B9; {{ loan.emi_amount }}/month{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Sanctioned</dt><dd>{{ loan.sanctioned_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>First EMI</dt><dd>{{ loan.first_emi_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Loan End</dt><dd>{{ loan.loan_end_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Status</dt>
+          <dd>{% if loan.loan_status == 'active' %}<span class="badge badge-green">{{ loan.get_loan_status_display }}</span>
+          {% elif loan.loan_status == 'closed' %}<span class="badge badge-gray">{{ loan.get_loan_status_display }}</span>
+          {% else %}<span class="badge badge-red">{{ loan.get_loan_status_display }}</span>{% endif %}</dd>
+        </div>
+      </dl>
+      <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-secondary btn-sm" style="margin-top:8px;">View Loan Details</a>
+      {% else %}
+      <p class="empty-state">No finance loan recorded.</p>
+      {% endif %}
+    </div>
+
+    <!-- INSURANCE POLICIES -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">&#x1F6E1;&#xFE0F; Insurance Policies</span>
+        {% if sales_order %}<a href="{% url 'billing:insurance_policy_create' %}?order={{ sales_order.pk }}" class="btn btn-primary btn-sm">+ Add Policy</a>{% endif %}
+      </div>
+      {% if policies %}
+      <div class="table-wrapper">
+        <table class="table">
+          <thead><tr><th>Provider</th><th>Policy No</th><th>Premium</th><th>Start</th><th>End / Expiry</th></tr></thead>
+          <tbody>
+            {% for pol in policies %}
+            <tr>
+              <td style="font-weight:500;">{{ pol.provider_name }}</td>
+              <td style="font-family:monospace; font-size:12px;">{{ pol.policy_number }}</td>
+              <td>&#x20B9; {{ pol.premium_amount }}</td>
+              <td style="font-size:13px; color:#6B7280;">{{ pol.start_date|date:"d M Y" }}</td>
+              <td>
+                {% if pol.end_date < today %}
+                  <span class="badge badge-red">{{ pol.end_date|date:"d M Y" }} — Expired</span>
+                {% else %}
+                  <span class="badge badge-green">{{ pol.end_date|date:"d M Y" }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <p class="empty-state">No insurance policies recorded.</p>
+      {% endif %}
+    </div>
+
+    {% else %}
+    <div class="card">
+      <p class="empty-state" style="padding:40px;">No sales order linked to this vehicle yet.</p>
+    </div>
+    {% endif %}
+  </div><!-- /tab-financials -->
+
+</div><!-- /tab-container -->
+{% endblock %}

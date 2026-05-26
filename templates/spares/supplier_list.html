@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Suppliers — SSBikez ERP{% endblock %}
+{% block page_title %}Suppliers{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Suppliers</h1>
+    <p class="page-subtitle">Parts suppliers and vendors</p>
+  </div>
+  <a href="{% url 'masters:supplier_create' %}" class="btn btn-primary">+ Add Supplier</a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search name, phone or email...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'masters:supplier_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for supplier in suppliers %}
+        <tr>
+          <td>
+            <a href="{% url 'masters:supplier_detail' supplier.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">{{ supplier.supplier_name }}</a>
+          </td>
+          <td>{{ supplier.phone|default:"—" }}</td>
+          <td style="color:#6B7280;">{{ supplier.email|default:"—" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'masters:supplier_detail' supplier.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'masters:supplier_update' supplier.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="empty-state">No suppliers found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

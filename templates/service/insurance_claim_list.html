@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Insurance Claims{% endblock %}
+{% block page_title %}Insurance Claims{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Claim #</th><th>JC</th><th>Insurance Co</th><th>Policy #</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in claims %}
+        <tr>
+          <td>{{ c.claim_number }}</td>
+          <td><a href="{% url 'service:jobcard_detail' c.job_card_id %}">JC-{{ c.job_card_id }}</a></td>
+          <td>{{ c.insurance_company }}</td>
+          <td>{{ c.policy_number }}</td>
+          <td>&#x20B9; {{ c.claim_amount }}</td>
+          <td><span class="badge">{{ c.get_status_display }}</span></td>
+          <td><a href="{% url 'service:insurance_claim_detail' c.pk %}" class="btn btn-sm btn-secondary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No insurance claims yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Spares Categories — SSBikez ERP{% endblock %}
+{% block page_title %}Spares Categories{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Spares Categories</h1>
+    <p class="page-subtitle">Part classification categories</p>
+  </div>
+  <a href="{% url 'masters:category_create' %}" class="btn btn-primary">+ Add Category</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Category Name</th>
+          <th>Created</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categories %}
+        <tr>
+          <td style="font-weight:500;">{{ cat.name }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ cat.created_at|date:"d M Y" }}</td>
+          <td><a href="{% url 'masters:category_update' cat.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty-state">No categories yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

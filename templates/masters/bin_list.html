@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Bins — Masters{% endblock %}
+{% block page_title %}Bins{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'masters:bin_create' %}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus me-1"></i>New Bin
+</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="card-title">All Bins</span>
+    <span class="badge bg-secondary">{{ bins|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if bins %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Bin Name</th><th>Rack</th><th>Warehouse</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for bin in bins %}
+        <tr>
+          <td class="fw-semibold">{{ bin.name }}</td>
+          <td>{{ bin.rack.name }}</td>
+          <td>{{ bin.rack.warehouse.name }}</td>
+          <td class="text-end">
+            <a href="{% url 'masters:bin_update' bin.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-edit"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-box text-muted"></i>
+      <p class="mt-2">No bins yet. <a href="{% url 'masters:bin_create' %}">Add one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

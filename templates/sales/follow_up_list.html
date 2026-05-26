@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}Follow-Ups — SSBikez ERP{% endblock %}
+{% block page_title %}Follow-Up Board{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:dashboard' %}">Sales</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Follow-Ups</span>
+</nav>
+
+<div class="page-header">
+  <div><h1 class="page-title">My Follow-Up Board</h1></div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-tabs">
+  <a href="?period=all"      class="filter-tab {% if period == 'all' %}active{% endif %}">All</a>
+  <a href="?period=overdue"  class="filter-tab {% if period == 'overdue' %}active{% endif %}">
+    Overdue {% if overdue_count %}<span class="badge badge-red" style="font-size:11px; margin-left:4px;">{{ overdue_count }}</span>{% endif %}
+  </a>
+  <a href="?period=today"    class="filter-tab {% if period == 'today' %}active{% endif %}">
+    Today {% if today_count %}<span class="badge badge-yellow" style="font-size:11px; margin-left:4px;">{{ today_count }}</span>{% endif %}
+  </a>
+  <a href="?period=upcoming" class="filter-tab {% if period == 'upcoming' %}active{% endif %}">
+    This Week {% if upcoming_count %}<span class="badge badge-blue" style="font-size:11px; margin-left:4px;">{{ upcoming_count }}</span>{% endif %}
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Lead</th>
+          <th>Phone</th>
+          <th>Vehicle of Interest</th>
+          <th>Last Notes</th>
+          <th>Follow-up Date</th>
+          <th>Enquiry Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for fb in followups %}
+        {% with enq=fb.enquiry %}
+        <tr>
+          <td>
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; color:#2563EB; text-decoration:none;">
+              {% if enq.customer %}{{ enq.customer.full_name }}
+              {% elif enq.prospect %}{{ enq.prospect.full_name }}
+              {% else %}—{% endif %}
+            </a>
+            <div style="font-size:11px; color:#9CA3AF;">ENQ-{{ enq.pk }}</div>
+          </td>
+          <td>
+            {% if enq.customer %}
+            <a href="tel:{{ enq.customer.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ enq.customer.phone }}</a>
+            {% elif enq.prospect %}
+            <a href="tel:{{ enq.prospect.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ enq.prospect.phone }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ enq.bike_model|default:"—" }}</td>
+          <td style="max-width:220px; font-size:13px; color:#374151;">
+            {% if fb.feedback_notes %}
+              {{ fb.feedback_notes|truncatechars:70 }}
+            {% else %}<span style="color:#9CA3AF;">No notes</span>{% endif %}
+          </td>
+          <td>
+            {% if fb.next_followup_date %}
+            <span style="display:inline-block; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:500;
+              {% if fb.next_followup_date < today %}background:#FEE2E2; color:#991B1B;
+              {% elif fb.next_followup_date == today %}background:#FEF3C7; color:#92400E;
+              {% else %}background:#DBEAFE; color:#1E40AF;{% endif %}">
+              {{ fb.next_followup_date|date:"d M Y" }}
+              {% if fb.next_followup_date < today %}
+              ({{ today|timesince:fb.next_followup_date }} ago)
+              {% elif fb.next_followup_date == today %}TODAY
+              {% endif %}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% with s=enq.status %}
+            {% if s == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
+            {% elif s == 'follow_up' %}<span class="badge badge-yellow">{{ enq.get_status_display }}</span>
+            {% elif s == 'converted' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
+            {% elif s == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm">Add Feedback</a>
+              <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-ghost btn-sm">View</a>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="7" class="empty-state">
+            {% if period == 'overdue' %}No overdue follow-ups. Great work!
+            {% elif period == 'today' %}No follow-ups due today.
+            {% elif period == 'upcoming' %}No upcoming follow-ups this week.
+            {% else %}No follow-ups recorded yet.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

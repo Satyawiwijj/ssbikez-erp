@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Insurance Policies — SSBikez ERP{% endblock %}
+{% block page_title %}Insurance Policies{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Insurance Policies</h1>
+    <p class="page-subtitle">All vehicle insurance policies</p>
+  </div>
+  <a href="{% url 'billing:insurance_policy_create' %}" class="btn btn-primary">+ Add Policy</a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search policy no., provider or customer...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'billing:insurance_policy_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Policy Number</th>
+          <th>Provider</th>
+          <th>Customer</th>
+          <th>Premium</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for policy in policies %}
+        <tr>
+          <td style="font-family:monospace; font-size:13px; font-weight:600;">
+            <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" style="color:#2563EB; text-decoration:none;">{{ policy.policy_number }}</a>
+          </td>
+          <td>{{ policy.provider_name }}</td>
+          <td>{{ policy.sales_order.customer.full_name }}</td>
+          <td style="font-weight:500;">&#x20B9;{{ policy.premium_amount }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ policy.start_date|date:"d M Y" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ policy.end_date|date:"d M Y" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No policies found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

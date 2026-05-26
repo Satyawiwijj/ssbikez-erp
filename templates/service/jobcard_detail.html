@@ -1,0 +1,491 @@
+{% extends 'base.html' %}
+{% block title %}JC-{{ job_card.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Job Card{% endblock %}
+
+{% block content %}
+
+{# GAP 31: Warranty Status Card #}
+{% if warranty_active %}
+<div class="card" style="background:#f0fdf4;border:2px solid #16a34a;padding:14px 18px;margin-bottom:14px;">
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div>
+      <strong style="color:#16a34a;font-size:15px;">&#x2705; WARRANTY ACTIVE</strong> &mdash;
+      Valid until <strong>{{ warranty_end|date:"d M Y" }}</strong>
+    </div>
+    <div style="font-size:13px;color:#166534;">
+      Free services remaining: <strong>{{ free_services_remaining }}</strong> of {{ total_free_services }}
+      {% if free_services_remaining %}<br>This is free service #{{ free_services_used|add:1 }} of {{ total_free_services }}{% endif %}
+    </div>
+  </div>
+  <div style="font-size:12px;color:#166534;margin-top:4px;">This service is eligible for warranty coverage.</div>
+</div>
+{% elif warranty_end %}
+<div class="card" style="background:#fef2f2;border:2px solid #dc2626;padding:14px 18px;margin-bottom:14px;">
+  <strong style="color:#dc2626;">&#x274C; WARRANTY EXPIRED</strong> &mdash;
+  Expired on <strong>{{ warranty_end|date:"d M Y" }}</strong>. Normal paid service applies.
+</div>
+{% endif %}
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">JC-{{ job_card.pk }}</h1>
+    <p class="page-subtitle">{{ job_card.customer_vehicle.customer.full_name }} — {{ job_card.customer_vehicle.vehicle.bike_model }}</p>
+  </div>
+  <div class="page-header-actions">
+    <!-- Quick status update -->
+    <form method="post" action="{% url 'service:jobcard_status_update' job_card.pk %}" style="display:flex; gap:6px; align-items:center;">
+      {% csrf_token %}
+      <select name="service_status" style="width:auto; padding:7px 10px; font-size:13px;">
+        {% for val, label in job_card.ServiceStatus.choices %}
+        <option value="{{ val }}" {% if val == job_card.service_status %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn btn-primary btn-sm">Update</button>
+    </form>
+    <a href="{% url 'service:jobcard_print' job_card.pk %}" class="btn btn-secondary" target="_blank">&#x1F5A8; Print Job Card</a>
+    <a href="{% url 'service:jobcard_update' job_card.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'service:jobcard_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<!-- STATUS WORKFLOW BAR -->
+<div class="status-bar">
+  {% with stages="pending,water_wash,in_bay,in_progress,outwork,final_inspection,ready,invoiced" %}
+  {% with labels="Pending,Water Wash,In Bay,In Progress,Outwork,Final Inspection,Ready,Invoiced" %}
+  {% with current=job_card.service_status %}
+  {% for val, label in job_card.ServiceStatus.choices %}
+  {% if not forloop.first %}
+  <span class="status-step-arrow">&#8250;</span>
+  {% endif %}
+  <div class="status-step {% if val == current %}current{% elif forloop.counter0 < job_card.ServiceStatus.choices|length %}{% endif %}">
+    <span class="status-step-dot"></span>
+    {{ label }}
+  </div>
+  {% endfor %}
+  {% endwith %}
+  {% endwith %}
+  {% endwith %}
+</div>
+
+<!-- GAP 4: ONE-CLICK WORKFLOW ADVANCE BUTTON -->
+<div class="card" style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #bfdbfe;">
+  <div style="padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:12px;color:#1d4ed8;font-weight:700;text-transform:uppercase;letter-spacing:.05em;">Workflow Action</div>
+      <div style="font-size:15px;color:#111827;font-weight:600;margin-top:2px;">Current Step: {{ job_card.get_service_status_display }}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      {% if job_card.service_status == 'pending' %}
+        <form method="post" action="{% url 'service:jobcard_advance_status' job_card.pk %}" class="inline-form">{% csrf_token %}
+          <button type="submit" class="btn btn-primary">&#x2713; Mark Water Wash Done &#8594;</button></form>
+      {% elif job_card.service_status == 'water_wash' %}
+        <a href="{% url 'service:bay_assignment_create' %}?jc={{ job_card.pk }}" class="btn btn-primary">&#x1F527; Assign Bay (Bay In) &#8594;</a>
+      {% elif job_card.service_status == 'in_bay' %}
+        <form method="post" action="{% url 'service:jobcard_advance_status' job_card.pk %}" class="inline-form">{% csrf_token %}
+          <button type="submit" class="btn btn-primary">&#x25B6; Start Work (In Progress) &#8594;</button></form>
+      {% elif job_card.service_status == 'in_progress' %}
+        <form method="post" action="{% url 'service:jobcard_advance_status' job_card.pk %}" class="inline-form">{% csrf_token %}
+          <button type="submit" class="btn btn-primary">&#x1F50D; Send for Final Inspection &#8594;</button></form>
+      {% elif job_card.service_status == 'final_inspection' %}
+        <form method="post" action="{% url 'service:jobcard_advance_status' job_card.pk %}" class="inline-form">{% csrf_token %}
+          <button type="submit" class="btn btn-primary">&#x2705; Mark Ready for Delivery &#8594;</button></form>
+      {% elif job_card.service_status == 'ready' %}
+        <a href="{% url 'service:service_invoice_create' %}?job_card={{ job_card.pk }}" class="btn btn-primary">&#x1F4C4; Create Service Invoice &#8594;</a>
+      {% else %}
+        <span class="badge badge-green">Workflow Complete</span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if job_card.service_status == 'in_bay' or job_card.service_status == 'in_progress' %}
+  <div style="border-top:1px solid #bfdbfe;padding:12px 20px;background:rgba(255,255,255,.5);display:flex;gap:8px;flex-wrap:wrap;">
+    <a href="{% url 'service:jobcard_issue_spare' job_card.pk %}" class="btn btn-sm btn-secondary">&#x1F527; Issue Spare Part</a>
+    {% if job_card.service_status == 'in_progress' %}
+    <a href="{% url 'service:labor_charge_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-secondary">&#x1F4B0; Add Labour Charge</a>
+    <a href="{% url 'service:outwork_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-secondary">&#x1F69A; Send for Outwork</a>
+    {% endif %}
+    <a href="{% url 'service:warranty_claim_create_for_jc' job_card.pk %}" class="btn btn-sm btn-ghost">&#x1F6E1; Warranty Claim</a>
+    <a href="{% url 'service:insurance_estimation_create_for_jc' job_card.pk %}" class="btn btn-sm btn-ghost">&#x1F4C4; Insurance Estimation</a>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Warranty Claims for this JC -->
+{% if job_card.warranty_claims.exists %}
+<div class="card">
+  <div class="card-header"><span class="card-title">&#x1F6E1; Warranty Claims</span>
+    <a href="{% url 'service:warranty_claim_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
+  <div class="table-wrapper"><table class="table">
+    <thead><tr><th>Claim #</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for c in job_card.warranty_claims.all %}
+      <tr><td>{{ c.claim_number }}</td><td>{{ c.claim_date|date:"d M Y" }}</td>
+      <td>&#x20B9; {{ c.claimed_amount }}</td><td>&#x20B9; {{ c.approved_amount }}</td>
+      <td>{{ c.get_status_display }}</td>
+      <td><a href="{% url 'service:warranty_claim_detail' c.pk %}" class="btn btn-sm btn-ghost">View</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+</div>
+{% endif %}
+
+<!-- Insurance Estimations for this JC -->
+{% if job_card.insurance_estimations.exists %}
+<div class="card">
+  <div class="card-header"><span class="card-title">&#x1F4C4; Insurance Estimations</span>
+    <a href="{% url 'service:insurance_estimation_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
+  <div class="table-wrapper"><table class="table">
+    <thead><tr><th>IE #</th><th>Date</th><th>Insurance Co</th><th>Total</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for ie in job_card.insurance_estimations.all %}
+      <tr><td>IE-{{ ie.pk }}</td><td>{{ ie.estimation_date|date:"d M Y" }}</td>
+      <td>{{ ie.insurance_company }}</td>
+      <td>&#x20B9; {{ ie.total_estimate }}</td><td>&#x20B9; {{ ie.approved_amount }}</td>
+      <td>{{ ie.get_status_display }}</td>
+      <td><a href="{% url 'service:insurance_estimation_detail' ie.pk %}" class="btn btn-sm btn-ghost">View</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+</div>
+{% endif %}
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Vehicle &amp; Customer</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Customer</dt><dd>{{ job_card.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Phone</dt><dd>{{ job_card.customer_vehicle.customer.phone }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ job_card.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd><span class="badge badge-gray">{{ job_card.customer_vehicle.registration_no }}</span></dd></div>
+      <div class="detail-row"><dt>Odometer</dt><dd>{{ job_card.odometer_reading|default:"—" }} km</dd></div>
+      <div class="detail-row"><dt>Problem</dt><dd>{{ job_card.problem_description|default:"—" }}</dd></div>
+    </dl>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Staff &amp; Branch</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Advisor</dt><dd>{{ job_card.service_advisor|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Supervisor</dt><dd>{{ job_card.floor_supervisor|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Branch</dt><dd>{{ job_card.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ job_card.created_at }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- BAY ASSIGNMENTS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Bay Assignments</span>
+    <a href="{% url 'service:bay_assignment_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Assign Bay</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Bay</th><th>Mechanic</th><th>Start Time</th><th>End Time</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for ba in bay_assignments %}
+        <tr>
+          <td style="font-weight:500;">{{ ba.bay.bay_name }}</td>
+          <td>{{ ba.mechanic|default:"—" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ba.start_time|default:"—" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ba.end_time|default:"—" }}</td>
+          <td><span class="badge badge-blue">{{ ba.get_assignment_status_display }}</span></td>
+          <td><a href="{% url 'service:bay_assignment_update' ba.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No bay assignments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- LABOR CHARGES -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Labor Charges</span>
+    <a href="{% url 'service:labor_charge_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Add Charge</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Service</th><th>Cost</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for lc in labor_charges %}
+        <tr>
+          <td>{{ lc.service_name }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ lc.labor_cost }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:labor_charge_update' lc.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <form method="post" action="{% url 'service:labor_charge_delete' lc.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty-state">No labor charges yet.</td></tr>
+        {% endfor %}
+        {% if labor_charges %}
+        <tr style="background:#F0F7FF;">
+          <td style="font-weight:700;">Total Labor</td>
+          <td style="font-weight:700; color:#2563EB;">&#x20B9; {{ total_labor }}</td>
+          <td></td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SPARES ISSUED -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Spares Issued</span>
+    <a href="{% url 'spares:issue_create' %}?jobcard={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Issue Part</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Part</th><th>Issued</th><th>Returned</th><th>Net</th><th>Unit Price</th><th>Total</th><th>Issued By</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for issue in spares_issues %}
+        <tr>
+          <td style="font-weight:500;">{{ issue.spare_part.part_name }}</td>
+          <td>{{ issue.quantity_issued }}</td>
+          <td>{{ issue.quantity_returned }}</td>
+          <td style="font-weight:500;">{{ issue.net_quantity }}</td>
+          <td>{{ issue.unit_price|default:"—" }}</td>
+          <td style="font-weight:500;">{{ issue.total_price|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ issue.issued_by|default:"—" }}</td>
+          <td><a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty-state">No spares issued yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- OUTWORK ENTRIES -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Outwork Entries</span>
+    <a href="{% url 'service:outwork_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Send for Outwork</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Vendor</th><th>Work Description</th><th>Cost</th><th>Issued At</th><th>Returned At</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for ow in outwork_entries %}
+        <tr>
+          <td style="font-weight:500;">{{ ow.vendor_name }}</td>
+          <td style="color:#374151;">{{ ow.work_description }}</td>
+          <td>{% if ow.cost %}&#x20B9;{{ ow.cost }}{% else %}&mdash;{% endif %}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ow.issued_at|date:"d M Y H:i" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ ow.returned_at|date:"d M Y H:i"|default:"&mdash;" }}</td>
+          <td>
+            {% if ow.status == 'issued' %}
+            <span class="badge badge-yellow">Issued</span>
+            {% else %}
+            <span class="badge badge-green">Returned</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:outwork_update' ow.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              {% if ow.status == 'issued' %}
+              <form method="post" action="{% url 'service:outwork_return' ow.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Mark Returned</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No outwork entries yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SERVICE INVOICE -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Service Invoice</span>
+    {% with invoice=job_card.service_invoice %}
+    {% if not invoice %}
+      {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' %}
+      <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
+      {% else %}
+      <span style="font-size:12px; color:#9CA3AF;">Available when status is &ldquo;Ready&rdquo;</span>
+      {% endif %}
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% with invoice=job_card.service_invoice %}
+  {% if invoice %}
+  <dl class="detail-list">
+    <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number|default:"—" }}</dd></div>
+    <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+    <div class="detail-row"><dt>Status</dt><dd>
+      {% if invoice.status == 'draft' %}<span class="badge badge-yellow">Draft</span>
+      {% elif invoice.status == 'issued' %}<span class="badge badge-blue">Issued</span>
+      {% elif invoice.status == 'paid' %}<span class="badge badge-green">Paid</span>
+      {% endif %}
+    </dd></div>
+    <div class="detail-row"><dt>Labor</dt><dd>&#x20B9;{{ invoice.labor_total }}</dd></div>
+    <div class="detail-row"><dt>Parts</dt><dd>&#x20B9;{{ invoice.spares_total }}</dd></div>
+    <div class="detail-row"><dt>GST (18%)</dt><dd>&#x20B9;{{ invoice.gst_amount }}</dd></div>
+    {% if invoice.discount_amount %}<div class="detail-row"><dt>Discount</dt><dd>— &#x20B9;{{ invoice.discount_amount }}</dd></div>{% endif %}
+    <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:16px; color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</dd></div>
+  </dl>
+  <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
+    <a href="{% url 'billing:service_invoice_pdf' invoice.job_card.pk %}" class="btn btn-primary btn-sm" target="_blank">&#x1F4E5; Download PDF</a>
+    <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;">No service invoice created yet.{% if job_card.service_status != 'ready' and job_card.service_status != 'invoiced' %} Mark the job card as <strong>Ready</strong> to create an invoice.{% endif %}</p>
+  {% endif %}
+  {% endwith %}
+</div>
+
+{# GAP 24: Update Customer button #}
+<div class="card" style="margin-top:14px;">
+  <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div><strong>Customer:</strong> {{ job_card.customer_vehicle.customer.full_name }} &middot; {{ job_card.customer_vehicle.customer.phone }}</div>
+    <a href="{% url 'service:jobcard_update_customer' job_card.pk %}" class="btn btn-sm btn-secondary">&#x270E; Update Customer Info</a>
+  </div>
+</div>
+
+{# GAP 15: Service Childs (Sub-tasks) #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x2705; Service Sub-Tasks ({{ service_childs|length }})</span>
+    <a href="{% url 'service:service_child_add' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Add Sub-Task</a>
+  </div>
+  <div style="padding:12px 16px;">
+    {% for child in service_childs %}
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3f4f6;">
+        <div>
+          <form method="post" action="{% url 'service:service_child_toggle' child.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:18px;">
+              {% if child.status == 'completed' %}&#x2705;{% else %}&#x2B1C;{% endif %}
+            </button>
+          </form>
+          <span style="{% if child.status == 'completed' %}text-decoration:line-through;color:#9ca3af;{% endif %}">
+            <strong>{{ child.task_name }}</strong>
+            {% if child.description %} &mdash; {{ child.description }}{% endif %}
+          </span>
+        </div>
+        <div style="font-size:12px;color:#6b7280;">
+          {% if child.assigned_to %}@{{ child.assigned_to.username }} &middot; {% endif %}
+          {{ child.get_status_display }}
+        </div>
+      </div>
+    {% empty %}
+      <div style="color:#9ca3af;padding:8px;">No sub-tasks added.</div>
+    {% endfor %}
+  </div>
+</div>
+
+{# GAP 30: Additional Work Approvals #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F527; Additional Work Approvals ({{ additional_approvals|length }})</span>
+    <a href="{% url 'service:additional_work_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Request Additional Work</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Created</th><th>Description</th><th>Labour</th><th>Spares</th><th>Total</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for awa in additional_approvals %}
+        <tr>
+          <td>{{ awa.created_at|date:"d M Y" }}</td>
+          <td>{{ awa.description|truncatechars:80 }}</td>
+          <td>&#x20B9; {{ awa.estimated_labour }}</td>
+          <td>&#x20B9; {{ awa.estimated_spares }}</td>
+          <td><strong>&#x20B9; {{ awa.estimated_total }}</strong></td>
+          <td><span class="badge">{{ awa.get_status_display }}</span></td>
+          <td>
+            {% if awa.status == 'pending' %}
+              <form method="post" action="{% url 'service:additional_work_send' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-secondary">Send to Customer</button>
+              </form>
+            {% elif awa.status == 'sent' %}
+              <form method="post" action="{% url 'service:additional_work_approve' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-primary">Approve</button>
+              </form>
+              <form method="post" action="{% url 'service:additional_work_reject' awa.pk %}" style="display:inline;">
+                {% csrf_token %}<button class="btn btn-sm btn-secondary">Reject</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No additional work requests.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# GAP 26: Insurance Claims #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F4D1; Insurance Claims ({{ insurance_claims|length }})</span>
+    <a href="{% url 'service:insurance_claim_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ New Claim</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Claim #</th><th>Insurance Co</th><th>Policy</th><th>Claim Amount</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in insurance_claims %}
+        <tr>
+          <td>{{ c.claim_number }}</td>
+          <td>{{ c.insurance_company }}</td>
+          <td>{{ c.policy_number }}</td>
+          <td>&#x20B9; {{ c.claim_amount }}</td>
+          <td>&#x20B9; {{ c.approved_amount }}</td>
+          <td>{{ c.get_status_display }}</td>
+          <td><a href="{% url 'service:insurance_claim_detail' c.pk %}" class="btn btn-sm btn-secondary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No claims.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# GAP 14: Revisit Card #}
+<div class="card" style="margin-top:14px;">
+  <div class="card-header">
+    <span class="card-title">&#x1F4C5; Next Service Revisit</span>
+    {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' or revisit %}
+    <a href="{% url 'service:revisit_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">
+      {% if revisit %}Edit Revisit{% else %}Set Revisit{% endif %}
+    </a>
+    {% endif %}
+  </div>
+  <div style="padding:14px 18px;">
+    {% if revisit %}
+      <div><strong>Next service KM:</strong> {{ revisit.next_service_km }}</div>
+      <div><strong>Next service days:</strong> {{ revisit.next_service_days }} days</div>
+      <div><strong>Next service date:</strong> {{ revisit.next_service_date|date:"d M Y"|default:"—" }}</div>
+      {% if revisit.notes %}<div><strong>Notes:</strong> {{ revisit.notes }}</div>{% endif %}
+    {% else %}
+      <div style="color:#9ca3af;">No revisit scheduled.</div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

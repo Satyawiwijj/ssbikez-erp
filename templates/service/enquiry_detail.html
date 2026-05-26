@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}SENQ-{{ enquiry.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Service Enquiry{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'service:enquiry_list' %}">Service Enquiries</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">SENQ-{{ enquiry.pk }}</span>
+</nav>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">SENQ-{{ enquiry.pk }}</h1>
+    {% if enquiry.status == 'open' %}<span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% else %}<span class="badge badge-green" style="margin-top:6px; display:inline-flex;">{{ enquiry.get_status_display }}</span>
+    {% endif %}
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'service:jobcard_create' %}?cv={{ enquiry.customer_vehicle_id }}" class="btn btn-primary">+ Create Job Card</a>
+    <a href="{% url 'service:enquiry_update' enquiry.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'service:enquiry_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Enquiry Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Customer</dt><dd>{{ enquiry.customer_vehicle.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ enquiry.customer_vehicle.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd>{{ enquiry.customer_vehicle.registration_no }}</dd></div>
+      <div class="detail-row"><dt>Issue</dt><dd>{{ enquiry.issue_description|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>{{ enquiry.get_status_display }}</dd></div>
+      <div class="detail-row"><dt>Created By</dt><dd>{{ enquiry.created_by|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Created At</dt><dd>{{ enquiry.created_at }}</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- APPOINTMENTS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Appointments</span>
+    <a href="{% url 'service:appointment_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Add</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Date</th><th>Service Type</th><th>Status</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for appt in appointments %}
+        <tr>
+          <td style="font-weight:500;">{{ appt.appointment_date|date:"d M Y H:i" }}</td>
+          <td>{{ appt.get_service_type_display|default:"—" }}</td>
+          <td>
+            {% if appt.status == 'scheduled' %}<span class="badge badge-blue">{{ appt.get_status_display }}</span>
+            {% elif appt.status == 'completed' %}<span class="badge badge-green">{{ appt.get_status_display }}</span>
+            {% elif appt.status == 'cancelled' %}<span class="badge badge-red">{{ appt.get_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ appt.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:appointment_update' appt.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              {% if appt.status != 'cancelled' %}
+              <form method="post" action="{% url 'service:appointment_cancel' appt.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit">Cancel</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="empty-state">No appointments yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}Invoices — SSBikez ERP{% endblock %}
+{% block page_title %}Invoices{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Invoices</h1>
+    <p class="page-subtitle">All sales invoices</p>
+  </div>
+  <a href="{% url 'billing:invoice_create' %}" class="btn btn-primary">+ Create Invoice</a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by invoice number or customer name...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Invoice No</th>
+          <th>Customer</th>
+          <th>Final Amount</th>
+          <th>Date</th>
+          <th>Payment</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for inv in invoices %}
+        <tr>
+          <td style="font-family:monospace; font-weight:600;">
+            <a href="{% url 'billing:invoice_detail' inv.pk %}" style="color:#2563EB; text-decoration:none;">{{ inv.invoice_number }}</a>
+          </td>
+          <td>{{ inv.sales_order.customer.full_name }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ inv.final_amount }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ inv.invoice_date|date:"d M Y" }}</td>
+          <td>
+            {% with paid=inv.payments.all %}
+            {% if not paid %}
+            <span class="badge badge-yellow">Unpaid</span>
+            {% else %}
+            <span class="badge badge-green">Payments Recorded</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'billing:invoice_detail' inv.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'billing:invoice_update' inv.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No invoices found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}SSBikez ERP{% endblock %}</title>
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    :root {
+      --sidebar-width: 240px;
+      --topbar-height: 56px;
+      --primary: #2563EB;
+      --sidebar-bg: #1e293b;
+      --sidebar-text: #cbd5e1;
+      --sidebar-active-bg: rgba(37,99,235,0.2);
+      --sidebar-active-text: #60a5fa;
+      --sidebar-hover-bg: rgba(255,255,255,0.05);
+    }
+    body { background: #f1f5f9; font-family: 'Segoe UI', system-ui, sans-serif; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      overflow-y: auto; z-index: 1040;
+      transition: transform .25s ease;
+    }
+    .sidebar-brand {
+      display: flex; align-items: center; gap: 10px;
+      padding: 16px 20px; border-bottom: 1px solid rgba(255,255,255,.08);
+      text-decoration: none;
+    }
+    .sidebar-brand .brand-icon {
+      width: 36px; height: 36px; background: var(--primary);
+      border-radius: 8px; display: flex; align-items: center;
+      justify-content: center; font-size: 18px; color: #fff;
+    }
+    .sidebar-brand .brand-name { font-size: 15px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .sidebar-brand .brand-sub  { font-size: 10px; color: #94a3b8; }
+    .sidebar-section { padding: 12px 16px 4px; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
+    .sidebar-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: 13px; color: var(--sidebar-text);
+      text-decoration: none; border-radius: 0;
+      transition: background .15s, color .15s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-link:hover  { background: var(--sidebar-hover-bg); color: #fff; }
+    .sidebar-link.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); border-left-color: var(--primary); font-weight: 600; }
+
+    /* Legacy nav-link compatibility */
+    .nav-link.sidebar-compat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px; font-size: 13px; color: var(--sidebar-text);
+      text-decoration: none; border-left: 3px solid transparent;
+      transition: background .15s, color .15s;
+    }
+    .nav-link.sidebar-compat:hover { background: var(--sidebar-hover-bg); color: #fff; }
+    .nav-link.sidebar-compat.active { background: var(--sidebar-active-bg); color: var(--sidebar-active-text); border-left-color: var(--primary); font-weight: 600; }
+
+    /* ── TOPBAR ── */
+    .topbar {
+      position: fixed; top: 0; left: var(--sidebar-width); right: 0;
+      height: var(--topbar-height); background: #fff;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; padding: 0 24px; gap: 16px; z-index: 1030;
+    }
+    .topbar-title { font-size: 17px; font-weight: 600; color: #1e293b; flex: 1; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; }
+    .main-content {
+      margin-left: var(--sidebar-width); margin-top: var(--topbar-height);
+      padding: 24px; min-height: calc(100vh - var(--topbar-height));
+    }
+
+    /* ── BOOTSTRAP CARD OVERRIDE ── */
+    .card { border: none; border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; }
+    .card-header { background: #fff; border-bottom: 1px solid #f1f5f9; border-radius: 12px 12px 0 0 !important; padding: 14px 20px; }
+    .card-header .card-title { font-size: 14px; font-weight: 600; color: #1e293b; margin: 0; }
+
+    /* ── TABLES ── */
+    .table { font-size: 13.5px; }
+    .table thead th { background: #f8fafc; font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .05em; border-bottom: 2px solid #e2e8f0; padding: 10px 12px; }
+    .table tbody td { padding: 11px 12px; vertical-align: middle; border-bottom: 1px solid #f1f5f9; color: #374151; }
+    .table tbody tr:hover td { background: #f8fafc; }
+
+    /* ── SOFT BADGES ── */
+    .badge-soft-primary { background: #dbeafe; color: #1d4ed8; }
+    .badge-soft-success { background: #d1fae5; color: #065f46; }
+    .badge-soft-warning { background: #fef3c7; color: #92400e; }
+    .badge-soft-danger  { background: #fee2e2; color: #991b1b; }
+    .badge-soft-info    { background: #e0f2fe; color: #0369a1; }
+    .badge-soft-gray    { background: #f3f4f6; color: #6b7280; }
+
+    /* Legacy badge classes (for old templates) */
+    .badge-blue   { background: #dbeafe; color: #1d4ed8; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-green  { background: #d1fae5; color: #065f46; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-red    { background: #fee2e2; color: #991b1b; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-yellow { background: #fef3c7; color: #92400e; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-purple { background: #ede9fe; color: #5b21b6; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-gray   { background: #f3f4f6; color: #6b7280; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge-orange { background: #fef3c7; color: #92400e; border-radius: 20px; padding: 2px 10px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
+    .badge { white-space: nowrap; }
+
+    /* ── FORMS ── */
+    .form-label { font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 4px; }
+    .form-control, .form-select { font-size: 13.5px; border-radius: 8px; border: 1px solid #d1d5db; padding: 8px 12px; }
+    .form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+
+    /* Legacy form input styles */
+    input[type="text"]:not(.form-control),
+    input[type="email"]:not(.form-control),
+    input[type="password"]:not(.form-control),
+    input[type="number"]:not(.form-control),
+    input[type="date"]:not(.form-control),
+    input[type="datetime-local"]:not(.form-control),
+    input[type="tel"]:not(.form-control),
+    input[type="url"]:not(.form-control),
+    select:not(.form-select):not(.form-control),
+    textarea:not(.form-control) {
+      width: 100%; border: 1px solid #d1d5db; border-radius: 8px;
+      padding: 8px 12px; font-size: 14px; font-family: inherit;
+      outline: none; transition: border-color .15s, box-shadow .15s;
+      background: #fff; color: #111827;
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 22px; font-weight: 700; color: #1e293b; margin: 0; }
+    .page-header .subtitle { font-size: 13px; color: #64748b; margin-top: 2px; }
+    /* Legacy page header */
+    .page-title { font-size: 20px; font-weight: 600; color: #111827; }
+    .page-subtitle { font-size: 13px; color: #6b7280; margin-top: 3px; }
+
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 48px 24px; color: #9ca3af; }
+    .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── LEGACY LAYOUT (old templates use .layout/.main/.content) ── */
+    .layout { display: flex; min-height: 100vh; }
+    .main { margin-left: var(--sidebar-width); flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 100vh; }
+    .content { padding: 24px; flex: 1; width: 100%; min-width: 0; padding-top: calc(var(--topbar-height) + 24px); }
+    .messages-container { padding: 12px 24px 0; padding-top: calc(var(--topbar-height) + 12px); }
+    .message { padding: 10px 16px; border-radius: 8px; font-size: 13.5px; margin-bottom: 8px; border: 1px solid transparent; }
+    .message.success { background: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+    .message.error   { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    .message.warning { background: #fef3c7; color: #92400e; border-color: #fcd34d; }
+    .message.info    { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+
+    /* ── LEGACY STAT CARDS ── */
+    .stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08); display: flex; align-items: center; gap: 16px; }
+    .stat-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .stat-icon-blue   { background: #dbeafe; }
+    .stat-icon-green  { background: #d1fae5; }
+    .stat-icon-orange { background: #fef3c7; }
+    .stat-icon-purple { background: #ede9fe; }
+    .stat-value { font-size: 24px; font-weight: 700; color: #111827; }
+    .stat-label { font-size: 13px; color: #6b7280; margin-top: 2px; }
+
+    /* ── LEGACY BUTTONS ── */
+    .btn-ghost { background: transparent; color: #6b7280; border: 1px solid transparent; }
+    .btn-ghost:hover { background: #f3f4f6; color: #374151; border-color: #e5e7eb; }
+    .btn-sm { padding: 5px 10px; font-size: 12.5px; }
+
+    /* ── LEGACY TABLE ── */
+    .table-wrapper { overflow-x: auto; }
+    .table th { padding: 10px 16px; text-align: left; font-size: 12px; font-weight: 600; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; background: #f9fafb; border-bottom: 1px solid #e5e7eb; white-space: nowrap; }
+    .table td { padding: 12px 16px; color: #374151; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
+    .table-actions { display: flex; gap: 6px; align-items: center; }
+
+    /* ── LEGACY DETAIL ── */
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .detail-grid-1 { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .detail-row { display: flex; padding: 10px 0; border-bottom: 1px solid #f3f4f6; gap: 12px; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-row dt { font-size: 13px; font-weight: 500; color: #6b7280; flex-shrink: 0; width: 140px; }
+    .detail-row dd { font-size: 14px; color: #111827; flex: 1; }
+
+    /* ── LEGACY FORM ── */
+    .form-card { max-width: 720px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+    .form-group { margin-bottom: 18px; }
+    .form-group.span-2 { grid-column: span 2; }
+    .form-group.span-3 { grid-column: span 3; }
+    .form-actions { display: flex; gap: 8px; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6; }
+    .form-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
+
+    /* ── LEGACY GRID ── */
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+
+    /* ── SECTION HEADER ── */
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; color: #374151; }
+
+    /* ── INLINE FORM ── */
+    .inline-form { display: inline; }
+    .inline-form button { background: none; border: none; color: #dc2626; cursor: pointer; font-size: 12.5px; font-family: inherit; padding: 4px 8px; border-radius: 6px; transition: background .15s; }
+    .inline-form button:hover { background: #fee2e2; }
+
+    /* ── FILTER TABS ── */
+    .filter-tabs { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filter-tab { padding: 6px 14px; border-radius: 7px; font-size: 13px; font-weight: 500; color: #6b7280; text-decoration: none; transition: all .15s; white-space: nowrap; }
+    .filter-tab:hover { background: #fff; color: #374151; }
+    .filter-tab.active { background: #fff; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+    /* ── SEARCH BAR ── */
+    .search-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-bar input { flex: 1; min-width: 200px; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 14px; font-family: inherit; outline: none; background: #fff; }
+
+    /* ── INVOICE LAYOUT ── */
+    .invoice-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .invoice-number { font-size: 22px; font-weight: 700; color: #111827; }
+    .invoice-amount { font-size: 28px; font-weight: 700; color: #2563eb; }
+    .amount-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .amount-row:last-child { border-bottom: none; }
+    .amount-row .label { color: #6b7280; }
+    .amount-row .value { font-weight: 500; color: #111827; }
+    .amount-row.total .label, .amount-row.total .value { font-weight: 700; font-size: 16px; }
+    .amount-row.balance .value { color: #dc2626; font-weight: 700; font-size: 16px; }
+
+    /* ── STATUS BAR ── */
+    .status-bar { display: flex; align-items: center; gap: 0; background: #fff; border-radius: 10px; padding: 12px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; overflow-x: auto; }
+    .status-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; white-space: nowrap; padding: 4px 10px; }
+    .status-step.done { color: #065f46; }
+    .status-step.current { background: #dbeafe; color: #1d4ed8; border-radius: 20px; font-weight: 600; }
+    .status-step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+    .status-step-arrow { color: #d1d5db; margin: 0 2px; font-size: 16px; }
+
+    /* ── TAB SYSTEM ── */
+    .tab-nav { display: flex; border-bottom: 2px solid #e5e7eb; margin-bottom: 24px; gap: 4px; }
+    .tab-btn { padding: 10px 20px; font-size: 14px; font-weight: 500; color: #6b7280; background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; cursor: pointer; transition: all .15s; font-family: inherit; text-decoration: none; }
+    .tab-btn:hover { color: #374151; }
+    .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── USER DROPDOWN (legacy) ── */
+    .topbar-user { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 6px 10px; border-radius: 8px; transition: background .15s; position: relative; }
+    .topbar-user:hover { background: #f3f4f6; }
+    .user-avatar { width: 32px; height: 32px; background: #2563eb; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .user-info { line-height: 1.3; }
+    .user-name { font-size: 13px; font-weight: 600; color: #111827; }
+    .user-role { font-size: 11px; color: #6b7280; }
+    .user-dropdown { position: absolute; top: calc(100% + 6px); right: 0; background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.1); min-width: 160px; display: none; z-index: 300; overflow: hidden; }
+    .user-dropdown.open { display: block; }
+    .user-dropdown a { display: block; padding: 10px 16px; font-size: 13px; color: #374151; text-decoration: none; transition: background .15s; }
+    .user-dropdown a:hover { background: #f9fafb; }
+    .user-dropdown a.danger { color: #dc2626; }
+
+    /* ── MISC ── */
+    .low-stock { color: #dc2626; font-size: 11px; font-weight: 600; }
+    .nav-section-label { padding: 16px 20px 4px; font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: .08em; }
+    .nav-icon { font-size: 15px; flex-shrink: 0; width: 18px; text-align: center; }
+    .sidebar-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.3); z-index: 150; }
+    .sidebar-overlay.open { display: block; }
+    .topbar-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px; color: #6b7280; font-size: 20px; }
+
+    @media (max-width: 767px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .topbar { left: 0; }
+      .main-content { margin-left: 0; }
+      .main { margin-left: 0; }
+      .topbar-hamburger { display: block; }
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+      .detail-grid { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .form-grid-3 { grid-template-columns: 1fr; }
+      .form-group.span-2, .form-group.span-3 { grid-column: span 1; }
+      .grid-2col { grid-template-columns: 1fr; }
+      .grid-3col { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 1100px) {
+      .stat-grid { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 480px) {
+      .stat-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── BREADCRUMBS ── */
+    .breadcrumb-bar { display:flex; align-items:center; gap:6px; font-size:12.5px; color:#9ca3af; margin-bottom:16px; flex-wrap:wrap; }
+    .breadcrumb-bar a { color:#6b7280; text-decoration:none; }
+    .breadcrumb-bar a:hover { color:#2563eb; text-decoration:underline; }
+    .breadcrumb-bar .bc-sep { color:#d1d5db; }
+    .breadcrumb-bar .bc-current { color:#374151; font-weight:500; }
+
+    /* ── CONFIRMATION DIALOG ── */
+    .confirm-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:2000; align-items:center; justify-content:center; }
+    .confirm-overlay.open { display:flex; }
+    .confirm-box { background:#fff; border-radius:14px; padding:28px 32px; max-width:420px; width:90%; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+    .confirm-box h3 { font-size:17px; font-weight:700; color:#111827; margin-bottom:10px; }
+    .confirm-box p { font-size:14px; color:#6b7280; margin-bottom:24px; line-height:1.5; }
+    .confirm-box .btn-row { display:flex; gap:10px; justify-content:center; }
+
+    /* ── BACK TO TOP ── */
+    #backToTop { position:fixed; bottom:24px; right:24px; width:40px; height:40px; border-radius:50%; background:#2563eb; color:#fff; border:none; cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s; box-shadow:0 4px 12px rgba(37,99,235,.4); z-index:500; }
+    #backToTop.visible { opacity:1; pointer-events:auto; }
+    #backToTop:hover { transform:translateY(-3px); }
+
+    {% block extra_css %}{% endblock %}
+  </style>
+</head>
+<body>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+{% if user.is_authenticated %}
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar" id="sidebar">
+  <a class="sidebar-brand" href="{% url 'accounts:home' %}">
+    <div class="brand-icon"><i class="fas fa-motorcycle"></i></div>
+    <div>
+      <div class="brand-name">SSBikez ERP</div>
+      <div class="brand-sub">Dealership Management</div>
+    </div>
+  </a>
+
+  <div class="sidebar-section">Main</div>
+  <a href="{% url 'accounts:home' %}" class="sidebar-link" data-href="/accounts/home/"><i class="nav-icon fas fa-home"></i> Home</a>
+  <a href="{% url 'accounts:dashboard' %}" class="sidebar-link" data-href="/accounts/dashboard/"><i class="nav-icon fas fa-chart-line"></i> Dashboard</a>
+
+  <div class="sidebar-section">Sales</div>
+  <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="nav-icon fas fa-clipboard-list"></i> Enquiries</a>
+  <a href="{% url 'sales:follow_up_list' %}" class="sidebar-link" data-href="/sales/follow-ups/"><i class="nav-icon fas fa-phone-alt"></i> Follow-Ups</a>
+  <a href="{% url 'sales:all_appointments' %}" class="sidebar-link" data-href="/sales/all-appointments/"><i class="nav-icon fas fa-calendar-check"></i> Appointments</a>
+  <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="nav-icon fas fa-shopping-cart"></i> Orders</a>
+  <a href="{% url 'sales:delivery_list' %}" class="sidebar-link" data-href="/sales/delivery-list/"><i class="nav-icon fas fa-truck"></i> Deliveries</a>
+
+  <div class="sidebar-section">Customers</div>
+  <a href="{% url 'customers:customer_list' %}" class="sidebar-link" data-href="/customers/"><i class="nav-icon fas fa-users"></i> Customers</a>
+  <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="sidebar-link" data-href="/customer-vehicles/"><i class="nav-icon fas fa-key"></i> Customer Vehicles</a>
+  <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="nav-icon fas fa-list"></i> Bike Models</a>
+  <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Stock</a>
+
+  <div class="sidebar-section">Finance</div>
+  <a href="{% url 'billing:invoice_list' %}" class="sidebar-link" data-href="/billing/invoices/"><i class="nav-icon fas fa-file-invoice"></i> Invoices</a>
+  <a href="{% url 'billing:loan_list' %}" class="sidebar-link" data-href="/billing/loans/"><i class="nav-icon fas fa-landmark"></i> Loans</a>
+  <a href="{% url 'billing:insurance_policy_list' %}" class="sidebar-link" data-href="/billing/insurance/"><i class="nav-icon fas fa-shield-alt"></i> Insurance</a>
+  <a href="{% url 'billing:invoice_search' %}" class="sidebar-link" data-href="/billing/search/"><i class="nav-icon fas fa-search"></i> Search Invoices</a>
+  <a href="{% url 'billing:payment_reconciliation' %}" class="sidebar-link" data-href="/billing/reconciliation/"><i class="nav-icon fas fa-balance-scale"></i> Reconciliation</a>
+  <a href="{% url 'billing:refund_advance_list' %}" class="sidebar-link" data-href="/billing/refunds-advances/"><i class="nav-icon fas fa-exchange-alt"></i> Refunds &amp; Advances</a>
+  <a href="{% url 'billing:journal_entry_list' %}" class="sidebar-link" data-href="/billing/journal/"><i class="nav-icon fas fa-book"></i> Journal Entries</a>
+  <a href="{% url 'billing:general_ledger' %}" class="sidebar-link" data-href="/billing/ledger/"><i class="nav-icon fas fa-list"></i> General Ledger</a>
+
+  <div class="sidebar-section">RTO</div>
+  <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-id-card"></i> Registrations</a>
+  <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="nav-icon fas fa-hashtag"></i> Number Plates</a>
+  <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
+
+  <div class="sidebar-section">Service</div>
+  <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Enquiries</a>
+  <a href="{% url 'service:enquiry_bulk_import' %}" class="sidebar-link" data-href="/service/bulk-import/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
+  <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="nav-icon fas fa-calendar-alt"></i> Appointments</a>
+  <a href="{% url 'service:jobcard_list' %}" class="sidebar-link" data-href="/service/jobcards/"><i class="nav-icon fas fa-file-alt"></i> Job Cards</a>
+  <a href="{% url 'service:bay_list' %}" class="sidebar-link" data-href="/service/bays/"><i class="nav-icon fas fa-warehouse"></i> Bays</a>
+  <a href="{% url 'service:call_list' %}" class="sidebar-link" data-href="/service/calls/"><i class="nav-icon fas fa-phone"></i> Customer Calls</a>
+  <a href="{% url 'service:warranty_claim_list' %}" class="sidebar-link" data-href="/service/warranty-claims/"><i class="nav-icon fas fa-shield-alt"></i> Warranty Claims</a>
+  <a href="{% url 'service:insurance_claim_list' %}" class="sidebar-link" data-href="/service/insurance-claims/"><i class="nav-icon fas fa-file-medical"></i> Insurance Claims</a>
+
+  <div class="sidebar-section">Spares</div>
+  <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="nav-icon fas fa-boxes"></i> Items</a>
+  <a href="{% url 'spares:order_list' %}" class="sidebar-link" data-href="/spares/orders/"><i class="nav-icon fas fa-shopping-bag"></i> Purchase Orders</a>
+  <a href="{% url 'spares:invoice_list' %}" class="sidebar-link" data-href="/spares/invoices/"><i class="nav-icon fas fa-file-invoice-dollar"></i> Purchase Invoices</a>
+  <a href="{% url 'spares:counter_sale_list' %}" class="sidebar-link" data-href="/spares/counter-sales/"><i class="nav-icon fas fa-cash-register"></i> Counter Sales</a>
+  <a href="{% url 'spares:counter_return_list' %}" class="sidebar-link" data-href="/spares/counter-returns/"><i class="nav-icon fas fa-undo-alt"></i> Counter Returns</a>
+  <a href="{% url 'spares:issue_alteration_list' %}" class="sidebar-link" data-href="/spares/issue-alterations/"><i class="nav-icon fas fa-share-square"></i> Issue Alterations</a>
+  <a href="{% url 'spares:stock_report' %}" class="sidebar-link" data-href="/spares/stock/"><i class="nav-icon fas fa-chart-bar"></i> Stock Report</a>
+  <a href="{% url 'spares:bulk_insert' %}" class="sidebar-link" data-href="/spares/bulk-insert/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
+  <a href="{% url 'spares:po_used_qty_report' %}" class="sidebar-link" data-href="/spares/reports/po-used-qty/"><i class="nav-icon fas fa-chart-line"></i> PO Used Qty Report</a>
+
+  <div class="sidebar-section">VAS</div>
+  <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>
+  <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="nav-icon fas fa-ambulance"></i> RSA Packages</a>
+  <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
+
+  <div class="sidebar-section">Masters</div>
+  <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="nav-icon fas fa-truck-loading"></i> Suppliers</a>
+  <a href="{% url 'masters:warehouse_list' %}" class="sidebar-link" data-href="/masters/warehouses/"><i class="nav-icon fas fa-warehouse"></i> Warehouses</a>
+  <a href="{% url 'masters:rack_list' %}" class="sidebar-link" data-href="/masters/racks/"><i class="nav-icon fas fa-th-large"></i> Racks &amp; Bins</a>
+  <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="nav-icon fas fa-tags"></i> Categories</a>
+
+  <div class="sidebar-section">Admin</div>
+  <a href="{% url 'accounts:user_list' %}" class="sidebar-link" data-href="/accounts/users/"><i class="nav-icon fas fa-users-cog"></i> Users</a>
+  <a href="{% url 'accounts:role_list' %}" class="sidebar-link" data-href="/accounts/roles/"><i class="nav-icon fas fa-user-tag"></i> Roles</a>
+  <a href="{% url 'accounts:branch_list' %}" class="sidebar-link" data-href="/accounts/branches/"><i class="nav-icon fas fa-building"></i> Branches</a>
+  <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="nav-icon fas fa-gas-pump"></i> Fuel Expenses</a>
+  <a href="{% url 'accounts:insurance_expiry_list' %}" class="sidebar-link" data-href="/accounts/insurance-expiry/"><i class="nav-icon fas fa-exclamation-triangle"></i> Insurance Expiry</a>
+  <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="nav-icon fas fa-chart-bar"></i> Sales Report</a>
+  <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="nav-icon fas fa-chart-pie"></i> Spares Report</a>
+  <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="nav-icon fas fa-wrench"></i> Service Report</a>
+</nav>
+
+<!-- ═══ TOPBAR ═══ -->
+<header class="topbar">
+  <button class="topbar-hamburger" id="hamburger" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
+  <div class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</div>
+  <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:320px; margin: 0 12px;">
+    <div style="position:relative;">
+      <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
+      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…" style="padding-left:32px;width:100%;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;height:36px;background:#f9fafb;">
+    </div>
+  </form>
+  <div class="topbar-actions">
+    {% block topbar_actions %}{% endblock %}
+    <div class="topbar-user" id="userMenuBtn">
+      <div class="user-avatar">
+        {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}
+      </div>
+      <div class="user-info d-none d-md-block">
+        <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
+        <div class="user-role">{{ request.user.role|default:"User" }}</div>
+      </div>
+      <span style="color:#9ca3af;font-size:12px;margin-left:4px;"><i class="fas fa-chevron-down"></i></span>
+      <div class="user-dropdown" id="userDropdown">
+        <a href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i>My Profile</a>
+        <a href="{% url 'accounts:password_change' %}"><i class="fas fa-key me-2"></i>Change Password</a>
+        <a href="{% url 'accounts:logout' %}" class="danger"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<div class="main-content">
+  {% if messages %}
+  <div class="mb-3">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</div>
+
+<!-- Legacy .layout/.main/.content wrapper support -->
+<div style="display:none" id="legacy-layout-shim"></div>
+
+{% endif %}
+
+<!-- Back to top -->
+<button id="backToTop" aria-label="Back to top" title="Back to top">&#8679;</button>
+
+<!-- Confirmation dialog -->
+<div class="confirm-overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="confirm-box">
+    <h3 id="confirmTitle">Are you sure?</h3>
+    <p id="confirmMessage">This action cannot be undone.</p>
+    <div class="btn-row">
+      <button class="btn btn-outline-secondary" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger" id="confirmOk">Yes, proceed</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap 5 JS + jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Sidebar toggle
+  const sidebar   = document.getElementById('sidebar');
+  const overlay   = document.getElementById('sidebarOverlay');
+  const hamburger = document.getElementById('hamburger');
+  if (hamburger && sidebar) {
+    hamburger.addEventListener('click', () => {
+      sidebar.classList.toggle('open');
+      overlay && overlay.classList.toggle('open');
+    });
+    overlay && overlay.addEventListener('click', () => {
+      sidebar.classList.remove('open');
+      overlay.classList.remove('open');
+    });
+  }
+
+  // User dropdown
+  const userBtn  = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (userBtn && dropdown) {
+    userBtn.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('open'); });
+    document.addEventListener('click', () => dropdown.classList.remove('open'));
+  }
+
+  // Sidebar active state based on URL prefix
+  document.querySelectorAll('.sidebar-link[data-href]').forEach(link => {
+    const href = link.getAttribute('data-href');
+    if (href && window.location.pathname.startsWith(href) && href !== '/') {
+      link.classList.add('active');
+    }
+  });
+
+  // Sidebar scroll persistence — save/restore position across page loads
+  if (sidebar) {
+    const savedScroll = localStorage.getItem('sidebarScroll');
+    if (savedScroll) {
+      sidebar.scrollTop = parseInt(savedScroll, 10);
+    }
+    window.addEventListener('beforeunload', function () {
+      localStorage.setItem('sidebarScroll', sidebar.scrollTop);
+    });
+    sidebar.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        localStorage.setItem('sidebarScroll', sidebar.scrollTop);
+      });
+    });
+  }
+
+  // Tab system
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId    = btn.getAttribute('data-tab');
+      const container = btn.closest('.tab-container') || document;
+      container.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      container.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      const target = container.querySelector('#' + tabId);
+      if (target) target.classList.add('active');
+    });
+  });
+
+  // Prevent double-submit
+  document.querySelectorAll('form').forEach(form => {
+    form.addEventListener('submit', function () {
+      this.querySelectorAll('button[type="submit"]').forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent && !btn.textContent.includes('…')) btn.textContent = 'Saving…';
+      });
+    });
+  });
+
+  // Back to top
+  const btt = document.getElementById('backToTop');
+  if (btt) {
+    window.addEventListener('scroll', () => {
+      btt.classList.toggle('visible', window.scrollY > 300);
+    }, { passive: true });
+    btt.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  }
+
+  // Confirmation dialogs — add data-confirm="message" to any <a> or <button>
+  (function () {
+    const overlay  = document.getElementById('confirmOverlay');
+    const msgEl    = document.getElementById('confirmMessage');
+    const titleEl  = document.getElementById('confirmTitle');
+    const cancelBtn = document.getElementById('confirmCancel');
+    const okBtn    = document.getElementById('confirmOk');
+    if (!overlay) return;
+    let pendingAction = null;
+
+    function openConfirm(msg, title, action) {
+      titleEl.textContent  = title  || 'Are you sure?';
+      msgEl.textContent    = msg    || 'This action cannot be undone.';
+      pendingAction = action;
+      overlay.classList.add('open');
+    }
+    function closeConfirm() {
+      overlay.classList.remove('open');
+      pendingAction = null;
+    }
+    cancelBtn.addEventListener('click', closeConfirm);
+    overlay.addEventListener('click', e => { if (e.target === overlay) closeConfirm(); });
+    okBtn.addEventListener('click', () => {
+      if (typeof pendingAction === 'function') pendingAction();
+      closeConfirm();
+    });
+
+    document.addEventListener('click', function (e) {
+      const el = e.target.closest('[data-confirm]');
+      if (!el) return;
+      const msg   = el.getAttribute('data-confirm');
+      const title = el.getAttribute('data-confirm-title') || 'Confirm Action';
+      e.preventDefault();
+      const href = el.href;
+      const form = el.closest('form');
+      openConfirm(msg, title, () => {
+        if (href) window.location.href = href;
+        else if (form) form.submit();
+      });
+    });
+  })();
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

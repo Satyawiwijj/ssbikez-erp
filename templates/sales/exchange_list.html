@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Exchange Vehicles — SSBikez ERP{% endblock %}
+{% block page_title %}Exchange Vehicles{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:exchange_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Record Exchange</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header">
+    <h6 class="card-title mb-0">All Exchange Vehicles <span class="badge bg-secondary ms-2">{{ exchanges|length }}</span></h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Order</th><th>Customer</th><th>Old Vehicle</th><th>Reg No</th><th>Valuation</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for ex in exchanges %}
+          <tr>
+            <td>{{ ex.pk }}</td>
+            <td><a href="{% url 'sales:order_detail' ex.sales_order.pk %}">ORD-{{ ex.sales_order.pk }}</a></td>
+            <td>{{ ex.sales_order.customer.full_name }}</td>
+            <td>{{ ex.old_vehicle_model|default:"—" }}</td>
+            <td>{{ ex.registration_no|default:"—" }}</td>
+            <td>{% if ex.valuation_amount %}Rs. {{ ex.valuation_amount }}{% else %}—{% endif %}</td>
+            <td>
+              <a href="{% url 'sales:exchange_update' ex.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-exchange-alt fa-2x mb-2 d-block"></i>No exchange records.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

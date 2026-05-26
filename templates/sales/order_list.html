@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Sales Orders — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Orders{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sales Orders</h1>
+    <p class="page-subtitle">All vehicle sales orders</p>
+  </div>
+  <a href="{% url 'sales:order_create' %}" class="btn btn-primary">+ New Order</a>
+</div>
+
+<div class="filter-tabs">
+  <a href="{% url 'sales:order_list' %}{% if q %}?q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
+  {% for val, label in status_choices %}
+  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<form class="search-bar" method="get">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name or phone...">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q or status_filter %}<a href="{% url 'sales:order_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order</th>
+          <th>Customer</th>
+          <th>Bike Model</th>
+          <th>Executive</th>
+          <th>Total Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td style="font-family:monospace; font-weight:600;">
+            <a href="{% url 'sales:order_detail' order.pk %}" style="color:#2563EB; text-decoration:none;">ORD-{{ order.pk }}</a>
+          </td>
+          <td>
+            <div style="font-weight:500;">{{ order.customer.full_name }}</div>
+            <div style="font-size:12px; color:#6B7280;">{{ order.customer.phone }}</div>
+          </td>
+          <td>{{ order.vehicle.bike_model }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ order.sales_executive|default:"—" }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ order.total_amount }}</td>
+          <td>
+            {% with s=order.sales_status %}
+            {% if s == 'booked' %}<span class="badge badge-blue">{{ order.get_sales_status_display }}</span>
+            {% elif s == 'invoiced' %}<span class="badge badge-green">{{ order.get_sales_status_display }}</span>
+            {% elif s == 'delivered' %}<span class="badge badge-green">{{ order.get_sales_status_display }}</span>
+            {% elif s == 'cancelled' %}<span class="badge badge-red">{{ order.get_sales_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ order.get_sales_status_display }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td style="color:#6B7280; font-size:13px;">{{ order.created_at|date:"d M Y" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'sales:order_detail' order.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'sales:order_update' order.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty-state">No orders found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

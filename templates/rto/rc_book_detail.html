@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}RC-{{ rc.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}RC Book{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'rto:rc_book_list' %}">RC Books</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">RC-{{ rc.pk }}</span>
+</nav>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">&#x1F4D8; RC Book #{{ rc.pk }}</span></div>
+  <dl class="detail-list" style="padding:18px;">
+    <div class="detail-row"><dt>RC Number</dt><dd><strong>{{ rc.rc_number|default:"—" }}</strong></dd></div>
+    <div class="detail-row"><dt>Status</dt><dd>{{ rc.get_status_display }}</dd></div>
+    <div class="detail-row"><dt>Issue Date</dt><dd>{{ rc.issue_date|date:"d M Y"|default:"—" }}</dd></div>
+    <div class="detail-row"><dt>Issued To</dt><dd>{{ rc.issued_to|default:"—" }}</dd></div>
+    <div class="detail-row"><dt>Customer</dt><dd>{{ rc.rto_registration.sales_order.customer.full_name }}</dd></div>
+    <div class="detail-row"><dt>RTO Registration</dt><dd><a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}">RTO-{{ rc.rto_registration.pk }}</a></dd></div>
+    <div class="detail-row"><dt>Notes</dt><dd>{{ rc.notes|linebreaksbr|default:"—" }}</dd></div>
+  </dl>
+  <div style="padding:0 18px 18px;">
+    <a href="{% url 'rto:rc_book_create' rc.rto_registration.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}" class="btn btn-ghost">Back to RTO</a>
+  </div>
+</div>
+{% endblock %}

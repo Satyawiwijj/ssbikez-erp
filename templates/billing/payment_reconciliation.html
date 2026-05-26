@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}Payment Reconciliation{% endblock %}
+{% block page_title %}Payment Reconciliation{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Payment Reconciliation</h1>
+  <div class="page-subtitle">{{ start|date:"d M Y" }} → {{ end|date:"d M Y" }}</div>
+</div>
+
+<form method="get" class="no-print" style="display:flex;gap:8px;align-items:end;margin-bottom:14px;">
+  <div><label class="form-label">Start</label><input type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="form-control"></div>
+  <div><label class="form-label">End</label><input type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="form-control"></div>
+  <button class="btn btn-primary">Load</button>
+</form>
+
+<div class="stat-grid" style="grid-template-columns:repeat(5,1fr);">
+  {% for m, data in method_totals.items %}
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fas fa-money-bill"></i></div>
+    <div>
+      <div class="stat-value">&#x20B9; {{ data.total|floatformat:0 }}</div>
+      <div class="stat-label">{{ data.label }} ({{ data.count }})</div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="card" style="background:#1d4ed8;color:#fff;padding:14px 20px;font-size:18px;font-weight:700;">
+  Period Total: &#x20B9; {{ grand_total|floatformat:2 }}
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-header"><span class="card-title">&#x26A0; Unreconciled (Pending)</span></div>
+  <form method="post">
+    {% csrf_token %}
+    <div class="table-wrapper">
+      <table class="table">
+        <thead><tr><th><input type="checkbox" onclick="document.querySelectorAll('.pr-chk').forEach(c=>c.checked=this.checked)"></th><th>Date</th><th>Invoice</th><th>Method</th><th>Amount</th><th>Ref</th></tr></thead>
+        <tbody>
+          {% for p in unreconciled %}
+          <tr>
+            <td><input type="checkbox" class="pr-chk" name="payment_ids" value="{{ p.pk }}"></td>
+            <td>{{ p.payment_date|date:"d M Y H:i" }}</td>
+            <td>{{ p.invoice.invoice_number }}</td>
+            <td>{{ p.get_payment_method_display }}</td>
+            <td>&#x20B9; {{ p.amount }}</td>
+            <td>{{ p.transaction_reference|default:"—" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="6"><div class="empty-state"><p>No pending payments.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if unreconciled %}
+    <div style="padding:12px 16px;"><button name="reconcile" value="1" class="btn btn-primary">Mark Selected as Completed</button></div>
+    {% endif %}
+  </form>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-header"><span class="card-title">All Payments</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Invoice</th><th>Method</th><th>Status</th><th>Amount</th></tr></thead>
+      <tbody>
+        {% for p in payments %}
+        <tr>
+          <td>{{ p.payment_date|date:"d M Y H:i" }}</td>
+          <td>{{ p.invoice.invoice_number }}</td>
+          <td>{{ p.get_payment_method_display }}</td>
+          <td><span class="badge">{{ p.get_payment_status_display }}</span></td>
+          <td>&#x20B9; {{ p.amount }}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5"><div class="empty-state"><p>No payments in this range.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

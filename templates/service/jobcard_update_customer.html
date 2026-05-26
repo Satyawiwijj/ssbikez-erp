@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Update Customer — JC-{{ jc.pk }}{% endblock %}
+{% block page_title %}Update Customer Info for JC-{{ jc.pk }}{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a>
+  <span class="bc-sep">/</span><span class="bc-current">Update Customer</span>
+</nav>
+<div class="card form-card">
+  <div class="card-header"><span class="card-title">&#x270E; Customer #{{ customer.pk }} — {{ customer.full_name }}</span></div>
+  <div style="padding:20px;">
+    <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin-bottom:16px;font-size:13px;">
+      Update customer master record. Changes apply across all their vehicles and job cards.
+    </div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+        <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

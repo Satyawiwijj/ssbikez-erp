@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Delivery — ORD-{{ delivery.sales_order.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Vehicle Delivery{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Vehicle Delivery</h1>
+    <p class="page-subtitle">ORD-{{ delivery.sales_order.pk }} — {{ delivery.sales_order.customer.full_name }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}" class="btn btn-ghost">&#8592; Back to Order</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Delivery Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Sales Order</dt><dd>
+        <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}">ORD-{{ delivery.sales_order.pk }}</a>
+      </dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd>{{ delivery.sales_order.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Vehicle</dt><dd>{{ delivery.sales_order.vehicle.bike_model }}</dd></div>
+      <div class="detail-row"><dt>Delivery Date</dt><dd style="font-weight:600;">{{ delivery.delivery_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Delivered By</dt><dd>{{ delivery.delivered_by|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Remarks</dt><dd>{{ delivery.remarks|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ delivery.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

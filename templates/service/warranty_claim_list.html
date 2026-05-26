@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Warranty Claims — SSBikez ERP{% endblock %}
+{% block page_title %}Warranty Claims{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+  <h1 class="page-title">Warranty Claims</h1>
+  <a href="{% url 'service:warranty_claim_create' %}" class="btn btn-primary">+ New Claim</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Claim #</th><th>Job Card</th><th>Customer</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for c in claims %}
+        <tr>
+          <td><strong>{{ c.claim_number }}</strong></td>
+          <td><a href="{% url 'service:jobcard_detail' c.job_card_id %}">JC-{{ c.job_card_id }}</a></td>
+          <td>{{ c.job_card.customer_vehicle.customer.full_name }}</td>
+          <td>{{ c.claim_date|date:"d M Y" }}</td>
+          <td>&#x20B9; {{ c.claimed_amount }}</td>
+          <td>&#x20B9; {{ c.approved_amount }}</td>
+          <td>
+            {% if c.status == 'approved' %}<span class="badge badge-green">{{ c.get_status_display }}</span>
+            {% elif c.status == 'settled' %}<span class="badge badge-blue">{{ c.get_status_display }}</span>
+            {% elif c.status == 'rejected' %}<span class="badge badge-red">{{ c.get_status_display }}</span>
+            {% else %}<span class="badge badge-yellow">{{ c.get_status_display }}</span>{% endif %}
+          </td>
+          <td><a href="{% url 'service:warranty_claim_detail' c.pk %}" class="btn btn-sm btn-ghost">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="8"><div class="empty-state"><i class="fas fa-shield-alt"></i><p>No warranty claims yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

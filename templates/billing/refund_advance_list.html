@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Refunds & Advances{% endblock %}
+{% block page_title %}Refunds & Advances{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
+  <h1 class="page-title">Refunds &amp; Advances</h1>
+  <a href="{% url 'billing:refund_advance_create' %}" class="btn btn-primary">+ New</a>
+</div>
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Type</th><th>Customer</th><th>Amount</th><th>Method</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for r in items %}
+        <tr>
+          <td>{{ r.created_at|date:"d M Y" }}</td>
+          <td><span class="badge">{{ r.get_transaction_type_display }}</span></td>
+          <td>{{ r.customer }}</td>
+          <td>&#x20B9; {{ r.amount }}</td>
+          <td>{{ r.payment_method|default:"—" }}</td>
+          <td>{{ r.get_status_display }}</td>
+          <td><a href="{% url 'billing:refund_advance_detail' r.pk %}" class="btn btn-sm btn-secondary">View</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7"><div class="empty-state"><p>No entries.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

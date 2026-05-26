@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — SSBikez ERP{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Good day, {{ user.get_full_name|default:user.username }}</h1>
+    <p class="page-subtitle">Here's a live overview — {{ user.branch|default:"All Branches" }}</p>
+  </div>
+</div>
+
+<!-- ══ CRE INSURANCE EXPIRY ALERTS ══ -->
+{% if is_cre %}
+<div class="grid-3col" style="margin-bottom:20px;">
+  <!-- Already Expired -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
+    <div class="card-header" style="background:#FEF2F2;">
+      <span class="card-title" style="color:#991B1B;">&#x1F6A8; {{ already_expired|length }} Vehicle{{ already_expired|length|pluralize }} — Insurance EXPIRED</span>
+    </div>
+    {% if already_expired %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Reg No</th><th>Expired</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in already_expired|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td style="font-family:monospace;font-size:12px;">{{ cv.registration_no|default:"—" }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#FEE2E2;color:#991B1B;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if already_expired|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ already_expired|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">No expired insurance.</p>{% endif %}
+  </div>
+
+  <!-- Expiring in 30 days -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
+    <div class="card-header" style="background:#FFFBEB;">
+      <span class="card-title" style="color:#92400E;">&#x26A0;&#xFE0F; {{ expiring_30|length }} Expiring Within 30 Days</span>
+    </div>
+    {% if expiring_30 %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Expiry</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in expiring_30|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#FEF3C7;color:#92400E;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if expiring_30|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ expiring_30|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">None expiring in 30 days.</p>{% endif %}
+  </div>
+
+  <!-- Expiring in 31–60 days -->
+  <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
+    <div class="card-header" style="background:#EFF6FF;">
+      <span class="card-title" style="color:#1E40AF;">&#x1F6E1;&#xFE0F; {{ expiring_60|length }} Expiring in 31–60 Days</span>
+    </div>
+    {% if expiring_60 %}
+    <div class="table-wrapper">
+      <table class="table" style="margin-bottom:0;">
+        <thead><tr><th>Customer</th><th>Vehicle</th><th>Expiry</th><th></th></tr></thead>
+        <tbody>
+          {% for cv in expiring_60|slice:":5" %}
+          <tr>
+            <td><div style="font-weight:500;">{{ cv.customer.full_name }}</div><div style="font-size:11px;color:#9CA3AF;">{{ cv.customer.phone }}</div></td>
+            <td style="font-size:13px;">{{ cv.vehicle.bike_model }}</td>
+            <td><span style="font-size:12px;padding:2px 8px;border-radius:4px;background:#DBEAFE;color:#1E40AF;font-weight:500;">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
+            <td>
+              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% if expiring_60|length > 5 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'accounts:insurance_expiry_list' %}">See all {{ expiring_60|length }} →</a></div>{% endif %}
+    {% else %}<p class="empty-state" style="padding:12px 0;">None expiring in 31–60 days.</p>{% endif %}
+  </div>
+</div>
+{% else %}
+{% if expiring_insurance_count %}
+<div class="alert alert-warning d-flex align-items-center mb-3" role="alert">
+  <i class="fas fa-shield-alt me-2"></i>
+  <strong>{{ expiring_insurance_count }} vehicle{{ expiring_insurance_count|pluralize }}</strong>&nbsp;
+  have insurance expiring within 30 days.
+  <a href="{% url 'accounts:insurance_expiry_list' %}" class="ms-2 alert-link">View →</a>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- ══ FOLLOW-UP BOARD (Sales Executive) ══ -->
+{% if todays_followups or overdue_followups or upcoming_followups %}
+<div style="margin-bottom:24px;">
+  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+    <h2 style="font-size:16px; font-weight:700; color:#1E293B; margin:0;">&#x1F4DE; My Follow-Up Board</h2>
+    <a href="{% url 'sales:follow_up_list' %}" class="btn btn-ghost btn-sm">View All →</a>
+  </div>
+  <div class="grid-3col">
+    <!-- OVERDUE -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
+      <div class="card-header" style="background:#FEF2F2;">
+        <span class="card-title" style="color:#991B1B;">&#x1F534; Overdue ({{ overdue_followups|length }})</span>
+      </div>
+      {% if overdue_followups %}
+      {% for fb in overdue_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call {{ enq.customer.phone }}">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call {{ enq.prospect.phone }}">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#DC2626; margin-top:4px;">Due {{ fb.next_followup_date|date:"d M" }} — {{ today|timesince:fb.next_followup_date }} overdue</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if overdue_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=overdue">+{{ overdue_followups|length|add:"-4" }} more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No overdue follow-ups. &#x2705;</p>{% endif %}
+    </div>
+
+    <!-- TODAY -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
+      <div class="card-header" style="background:#FFFBEB;">
+        <span class="card-title" style="color:#92400E;">&#x1F7E1; Due Today ({{ todays_followups|length }})</span>
+      </div>
+      {% if todays_followups %}
+      {% for fb in todays_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#D97706; margin-top:4px; font-weight:600;">DUE TODAY</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if todays_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=today">+more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No follow-ups due today.</p>{% endif %}
+    </div>
+
+    <!-- THIS WEEK -->
+    <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
+      <div class="card-header" style="background:#EFF6FF;">
+        <span class="card-title" style="color:#1E40AF;">&#x1F535; This Week ({{ upcoming_followups|length }})</span>
+      </div>
+      {% if upcoming_followups %}
+      {% for fb in upcoming_followups|slice:":4" %}
+      {% with enq=fb.enquiry %}
+      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <div style="font-weight:600; font-size:13px;">
+              {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
+            </div>
+            <div style="font-size:11px; color:#9CA3AF;">{{ enq.bike_model|default:"—" }}</div>
+          </div>
+          <div style="display:flex; gap:4px;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="Call">&#x1F4DE;</a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="font-size:11px;">+FB</a>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#2563EB; margin-top:4px;">{{ fb.next_followup_date|date:"d M Y" }}</div>
+        {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px;">{{ fb.feedback_notes|truncatechars:50 }}</div>{% endif %}
+      </div>
+      {% endwith %}
+      {% endfor %}
+      {% if upcoming_followups|length > 4 %}<div style="padding:8px 16px;font-size:12px;color:#9CA3AF;"><a href="{% url 'sales:follow_up_list' %}?period=upcoming">+more →</a></div>{% endif %}
+      {% else %}<p style="padding:12px 16px; color:#9CA3AF; font-size:13px; margin:0;">No upcoming follow-ups this week.</p>{% endif %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- STAT CARDS -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
+    <div>
+      <div class="stat-value">{{ enquiries_today|default:0 }}</div>
+      <div class="stat-label">Enquiries Today</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green">&#x1F4E6;</div>
+    <div>
+      <div class="stat-value">{{ open_orders|default:0 }}</div>
+      <div class="stat-label">Open Orders</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange">&#x1F527;</div>
+    <div>
+      <div class="stat-value">{{ active_job_cards|default:0 }}</div>
+      <div class="stat-label">Active Job Cards</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-red">&#x26A0;&#xFE0F;</div>
+    <div>
+      <div class="stat-value">{{ low_stock_count|default:0 }}</div>
+      <div class="stat-label">Low Stock Parts</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple">&#x1F4C5;</div>
+    <div>
+      <div class="stat-value">{{ pending_appointments|default:0 }}</div>
+      <div class="stat-label">Today's Appointments</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green">&#x20B9;</div>
+    <div>
+      <div class="stat-value" style="font-size:18px;">
+        {% if monthly_revenue >= 100000 %}
+          {{ monthly_revenue|floatformat:0 }}
+        {% else %}
+          {{ monthly_revenue }}
+        {% endif %}
+      </div>
+      <div class="stat-label">Revenue This Month</div>
+    </div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS + RECENT ACTIVITY -->
+<div class="grid-2col" style="margin-bottom:20px;">
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F4CB; Quick Actions — Sales</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <a href="{% url 'sales:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Enquiry</a>
+      <a href="{% url 'sales:order_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Sales Order</a>
+      <a href="{% url 'customers:customer_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Add Customer</a>
+      <a href="{% url 'sales:delivery_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Record Delivery</a>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:0;">
+    <div class="card-header">
+      <span class="card-title">&#x1F527; Quick Actions — Service</span>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Service Enquiry</a>
+      <a href="{% url 'service:jobcard_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Job Card</a>
+      <a href="{% url 'spares:issue_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Issue Spare Part</a>
+      <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Counter Sale</a>
+    </div>
+  </div>
+</div>
+
+<!-- RECENT ACTIVITY -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">&#x1F4DC; Recent Activity</span>
+  </div>
+  {% if recent_activity %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Action</th>
+          <th>Module</th>
+          <th>Record</th>
+          <th>User</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in recent_activity %}
+        <tr>
+          <td>
+            {% if log.action_name == 'create' %}
+            <span class="badge badge-green">Create</span>
+            {% elif log.action_name == 'update' %}
+            <span class="badge badge-blue">Update</span>
+            {% elif log.action_name == 'delete' %}
+            <span class="badge badge-red">Delete</span>
+            {% else %}
+            <span class="badge badge-gray">{{ log.action_name|capfirst }}</span>
+            {% endif %}
+          </td>
+          <td style="font-weight:500;">{{ log.module_name }}</td>
+          <td style="font-family:monospace; color:#6B7280;">
+            {% if log.record_id %}#{{ log.record_id }}{% else %}—{% endif %}
+          </td>
+          <td>{{ log.user|default:"System" }}</td>
+          <td style="font-size:12px; color:#9CA3AF;">{{ log.created_at|date:"d M H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px; padding:12px 0;">No activity recorded yet.</p>
+  {% endif %}
+</div>
+
+<!-- PROFILE CARD -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">My Profile</span>
+    <div style="display:flex; gap:8px;">
+      <a href="{% url 'accounts:profile' %}" class="btn btn-ghost btn-sm">View Profile</a>
+      <a href="{% url 'accounts:user_list' %}" class="btn btn-ghost btn-sm">Manage Users</a>
+    </div>
+  </div>
+  <div class="grid-2col" style="gap:0;">
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Email</dt><dd>{{ user.email|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Role</dt><dd>{{ user.role|default:"—" }}</dd></div>
+    </dl>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Branch</dt><dd>{{ user.branch|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd>{{ user.get_status_display|default:"Active" }}</dd></div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

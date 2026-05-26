@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ policy.policy_number }} — SSBikez ERP{% endblock %}
+{% block page_title %}Insurance Policy{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ policy.policy_number }}</h1>
+    <p class="page-subtitle">{{ policy.provider_name }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'billing:insurance_policy_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Policy Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Policy Number</dt><dd style="font-family:monospace; font-weight:600;">{{ policy.policy_number }}</dd></div>
+      <div class="detail-row"><dt>Provider</dt><dd>{{ policy.provider_name }}</dd></div>
+      <div class="detail-row"><dt>Sales Order</dt><dd>
+        <a href="{% url 'sales:order_detail' policy.sales_order.pk %}">ORD-{{ policy.sales_order.pk }} — {{ policy.sales_order.customer.full_name }}</a>
+      </dd></div>
+      <div class="detail-row"><dt>Premium Amount</dt><dd style="font-weight:700; color:#2563EB;">&#x20B9;{{ policy.premium_amount }}</dd></div>
+      <div class="detail-row"><dt>Start Date</dt><dd>{{ policy.start_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>End Date</dt><dd>{{ policy.end_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Created</dt><dd>{{ policy.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+</div>
+{% endblock %}

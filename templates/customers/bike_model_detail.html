@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}{{ bike_model }} — SSBikez ERP{% endblock %}
+{% block page_title %}Bike Model Detail{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ bike_model }}</h1>
+    <p class="page-subtitle">{{ bike_model.brand }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'customers:bike_model_update' bike_model.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'customers:bike_model_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Model Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Brand</dt><dd>{{ bike_model.brand }}</dd></div>
+      <div class="detail-row"><dt>Model Name</dt><dd>{{ bike_model.model_name }}</dd></div>
+      <div class="detail-row"><dt>Variant</dt><dd>{{ bike_model.variant|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Fuel Type</dt><dd><span class="badge badge-blue">{{ bike_model.get_fuel_type_display }}</span></dd></div>
+      <div class="detail-row"><dt>Available Colors</dt><dd>{{ bike_model.available_colors|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Ex-Showroom Price</dt><dd style="font-weight:600; color:#2563EB;">&#x20B9; {{ bike_model.ex_showroom_price }}</dd></div>
+      <div class="detail-row"><dt>Added On</dt><dd>{{ bike_model.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title">Stock Summary</span>
+      <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm">+ Add Stock</a>
+    </div>
+    <p style="font-size:14px; color:#6B7280;">{{ stock|length }} unit{{ stock|length|pluralize }} in stock</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Stock Units</span>
+    <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm">+ Add Unit</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Chassis No</th>
+          <th>Engine No</th>
+          <th>Color</th>
+          <th>Status</th>
+          <th>Branch</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for unit in stock %}
+        <tr>
+          <td style="font-family:monospace; font-size:13px;">{{ unit.chassis_no|default:"—" }}</td>
+          <td style="font-family:monospace; font-size:13px;">{{ unit.engine_no|default:"—" }}</td>
+          <td>{{ unit.color|default:"—" }}</td>
+          <td>
+            {% if unit.stock_status == 'available' %}<span class="badge badge-green">Available</span>
+            {% elif unit.stock_status == 'reserved' %}<span class="badge badge-purple">Reserved</span>
+            {% else %}<span class="badge badge-gray">Sold</span>
+            {% endif %}
+          </td>
+          <td style="color:#6B7280;">{{ unit.branch|default:"—" }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}" class="btn btn-secondary btn-sm">View</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No stock units for this model yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

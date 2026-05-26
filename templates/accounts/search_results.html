@@ -1,0 +1,170 @@
+{% extends 'base.html' %}
+{% block title %}Search: {{ q }} — SSBikez ERP{% endblock %}
+{% block page_title %}Search Results{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Search Results</h1>
+    <p class="page-subtitle">
+      {% if q %}
+        {{ total }} result{{ total|pluralize }} for "{{ q }}"
+      {% else %}
+        Enter a search term above
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+{% if not q %}
+<div class="card">
+  <p style="color:#9CA3AF; font-size:14px; padding:8px 0;">
+    Use the search bar in the top navigation to search across the entire system.
+  </p>
+</div>
+{% elif total == 0 %}
+<div class="card">
+  <p style="color:#9CA3AF; font-size:14px; padding:8px 0;">
+    No results found for "<strong>{{ q }}</strong>". Try a different search term.
+  </p>
+</div>
+{% else %}
+
+{% if results.customers %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F465; Customers ({{ results.customers|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+      <tbody>
+        {% for c in results.customers %}
+        <tr>
+          <td style="font-weight:500;">{{ c.full_name }}</td>
+          <td>{{ c.phone|default:"—" }}</td>
+          <td>{{ c.email|default:"—" }}</td>
+          <td><a href="{% url 'customers:customer_detail' c.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if results.vehicle_stock %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F3CD;&#xFE0F; Vehicle Stock ({{ results.vehicle_stock|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Model</th><th>Chassis No</th><th>Engine No</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for v in results.vehicle_stock %}
+        <tr>
+          <td style="font-weight:500;">{{ v.bike_model }}</td>
+          <td style="font-family:monospace;">{{ v.chassis_no|default:"—" }}</td>
+          <td style="font-family:monospace;">{{ v.engine_no|default:"—" }}</td>
+          <td><span class="badge badge-gray">{{ v.stock_status }}</span></td>
+          <td><a href="{% url 'customers:vehicle_stock_detail' v.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if results.enquiries %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F4CB; Sales Enquiries ({{ results.enquiries|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>ENQ #</th><th>Customer</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for e in results.enquiries %}
+        <tr>
+          <td style="font-family:monospace;">ENQ-{{ e.pk }}</td>
+          <td style="font-weight:500;">{{ e.customer.full_name }}</td>
+          <td><span class="badge badge-blue">{{ e.get_status_display }}</span></td>
+          <td><a href="{% url 'sales:enquiry_detail' e.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if results.orders %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F4E6; Sales Orders ({{ results.orders|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>ORD #</th><th>Customer</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for o in results.orders %}
+        <tr>
+          <td style="font-family:monospace;">ORD-{{ o.pk }}</td>
+          <td style="font-weight:500;">{{ o.customer.full_name }}</td>
+          <td>&#x20B9; {{ o.total_amount }}</td>
+          <td><span class="badge badge-blue">{{ o.get_sales_status_display }}</span></td>
+          <td><a href="{% url 'sales:order_detail' o.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if results.job_cards %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F527; Job Cards ({{ results.job_cards|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>JC #</th><th>Customer</th><th>Vehicle</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for jc in results.job_cards %}
+        <tr>
+          <td style="font-family:monospace;">JC-{{ jc.pk }}</td>
+          <td style="font-weight:500;">{{ jc.customer_vehicle.customer.full_name }}</td>
+          <td>{{ jc.customer_vehicle.vehicle.bike_model }}</td>
+          <td><span class="badge badge-orange">{{ jc.get_service_status_display }}</span></td>
+          <td><a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if results.spare_parts %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F529; Spare Parts ({{ results.spare_parts|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Part Name</th><th>Part No.</th><th>Stock</th><th>MRP</th><th></th></tr></thead>
+      <tbody>
+        {% for p in results.spare_parts %}
+        <tr>
+          <td style="font-weight:500;">{{ p.part_name }}</td>
+          <td style="font-family:monospace; color:#6B7280;">{{ p.part_number|default:"—" }}</td>
+          <td>
+            {% if p.stock_quantity < 5 %}
+            <span class="badge badge-red">{{ p.stock_quantity }}</span>
+            {% else %}
+            {{ p.stock_quantity }}
+            {% endif %}
+          </td>
+          <td>{% if p.mrp %}&#x20B9; {{ p.mrp }}{% else %}—{% endif %}</td>
+          <td><a href="{% url 'spares:item_detail' p.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

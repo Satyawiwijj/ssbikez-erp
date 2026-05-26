@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page Not Found | SSBikez ERP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #F9FAFB; color: #111827;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
+    }
+    .error-card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      padding: 56px 48px;
+      text-align: center;
+      max-width: 480px;
+      width: 100%;
+    }
+    .error-code {
+      font-size: 80px; font-weight: 800; color: #2563EB;
+      line-height: 1; margin-bottom: 16px;
+    }
+    .error-title {
+      font-size: 22px; font-weight: 600; color: #111827;
+      margin-bottom: 10px;
+    }
+    .error-desc {
+      font-size: 14px; color: #6B7280; margin-bottom: 32px; line-height: 1.6;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: #2563EB; color: #fff;
+      border-radius: 8px; padding: 10px 20px;
+      font-size: 14px; font-weight: 500; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #1D4ED8; }
+    .btn-ghost {
+      background: transparent; color: #6B7280;
+      border: 1px solid #E5E7EB; margin-left: 8px;
+    }
+    .btn-ghost:hover { background: #F3F4F6; color: #374151; }
+  </style>
+</head>
+<body>
+  <div class="error-card">
+    <div class="error-code">404</div>
+    <h1 class="error-title">Page Not Found</h1>
+    <p class="error-desc">
+      The page you're looking for doesn't exist or has been moved.<br>
+      Check the URL or navigate back to the dashboard.
+    </p>
+    <a href="/accounts/dashboard/" class="btn">&#x1F3E0; Go to Dashboard</a>
+    <a href="javascript:history.back()" class="btn btn-ghost">&#8592; Go Back</a>
+  </div>
+</body>
+</html>

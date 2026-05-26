@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Finance Loans — SSBikez ERP{% endblock %}
+{% block page_title %}Finance Loans{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'billing:loan_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Loan</a>
+{% endblock %}
+
+{% block content %}
+<form method="get" class="d-flex gap-2 mb-3">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search customer or bank…" class="form-control" style="max-width:320px;">
+  <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+  {% if q %}<a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+</form>
+<div class="card">
+  <div class="card-header">
+    <h6 class="card-title mb-0">All Loans <span class="badge bg-secondary ms-2">{{ loans|length }}</span></h6>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>#</th><th>Customer</th><th>Bank</th><th>Loan Amount</th><th>EMI</th><th>Tenure</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for loan in loans %}
+          <tr>
+            <td>LOAN-{{ loan.pk }}</td>
+            <td>{{ loan.sales_order.customer.full_name }}</td>
+            <td>{{ loan.bank_name }}</td>
+            <td>Rs. {{ loan.loan_amount }}</td>
+            <td>{% if loan.emi_amount %}Rs. {{ loan.emi_amount }}{% else %}—{% endif %}</td>
+            <td>{% if loan.tenure_months %}{{ loan.tenure_months }} mo{% else %}—{% endif %}</td>
+            <td>
+              <span class="badge badge-soft-{% if loan.loan_status == 'active' %}success{% elif loan.loan_status == 'rejected' %}danger{% else %}gray{% endif %}">
+                {{ loan.get_loan_status_display }}
+              </span>
+            </td>
+            <td>
+              <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" class="text-center text-muted py-4"><i class="fas fa-landmark fa-2x mb-2 d-block"></i>No loans found.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}SIA-{{ alteration.pk|stringformat:"05d" }}{% endblock %}
+{% block page_title %}SIA-{{ alteration.pk|stringformat:"05d" }} | {{ alteration.job_card }}{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card border-0 shadow-sm mb-3">
+      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Spares Items</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead class="table-light">
+            <tr><th>Item</th><th>Qty</th><th>Rate</th><th>Disc%</th><th>Total</th></tr>
+          </thead>
+          <tbody>
+            {% for i in items %}
+            <tr>
+              <td>{{ i.item.item_name }}</td>
+              <td>{{ i.quantity }}</td>
+              <td>&#8377;{{ i.rate }}</td>
+              <td>{{ i.discount_percent }}%</td>
+              <td>&#8377;{{ i.total }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center text-muted">No items.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-lg-4">
+    <div class="card border-0 shadow-sm">
+      <div class="card-body">
+        <dl class="row mb-0">
+          <dt class="col-7">Job Card</dt><dd class="col-5">{{ alteration.job_card }}</dd>
+          <dt class="col-7">Date</dt><dd class="col-5">{{ alteration.date }}</dd>
+          <dt class="col-7">Job Type</dt><dd class="col-5">{{ alteration.get_job_type_display }}</dd>
+          <dt class="col-7">Godown</dt><dd class="col-5">{{ alteration.godown.name }}</dd>
+          <dt class="col-7">Spares Total</dt><dd class="col-5">&#8377;{{ alteration.spares_total }}</dd>
+          <dt class="col-7">Labour Total</dt><dd class="col-5">&#8377;{{ alteration.labour_total }}</dd>
+          <dt class="col-7">Outwork Total</dt><dd class="col-5">&#8377;{{ alteration.outwork_total }}</dd>
+          <dt class="col-7">Total</dt><dd class="col-5">&#8377;{{ alteration.total }}</dd>
+          <dt class="col-7">Discount</dt><dd class="col-5">&#8377;{{ alteration.discount }}</dd>
+          <dt class="col-7 fw-bold">Updated Total</dt><dd class="col-5 fw-bold">&#8377;{{ alteration.updated_total }}</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

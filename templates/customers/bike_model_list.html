@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Bike Models — SSBikez ERP{% endblock %}
+{% block page_title %}Bike Models{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Bike Models</h1>
+    <p class="page-subtitle">All motorcycle models in the catalogue</p>
+  </div>
+  <a href="{% url 'customers:bike_model_create' %}" class="btn btn-primary">+ Add Bike Model</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Brand</th>
+          <th>Model</th>
+          <th>Variant</th>
+          <th>Fuel Type</th>
+          <th>Ex-Showroom Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bm in bike_models %}
+        <tr>
+          <td style="color:#6B7280; font-size:13px;">{{ bm.brand }}</td>
+          <td>
+            <a href="{% url 'customers:bike_model_detail' bm.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">
+              {{ bm.model_name }}
+            </a>
+          </td>
+          <td style="color:#6B7280;">{{ bm.variant|default:"—" }}</td>
+          <td><span class="badge badge-blue">{{ bm.get_fuel_type_display }}</span></td>
+          <td style="font-weight:500;">&#x20B9; {{ bm.ex_showroom_price }}</td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'customers:bike_model_detail' bm.pk %}" class="btn btn-secondary btn-sm">View</a>
+              <a href="{% url 'customers:bike_model_update' bm.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No bike models found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

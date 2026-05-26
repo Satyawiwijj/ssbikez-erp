@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}{{ wc.claim_number }} — SSBikez ERP{% endblock %}
+{% block page_title %}Warranty Claim {{ wc.claim_number }}{% endblock %}
+
+{% block content %}
+<div class="card">
+  <div class="card-header"><span class="card-title">&#x1F4DD; {{ wc.claim_number }}</span></div>
+  <dl class="detail-list" style="padding:18px;">
+    <div class="detail-row"><dt>Job Card</dt><dd><a href="{% url 'service:jobcard_detail' wc.job_card_id %}">JC-{{ wc.job_card_id }}</a></dd></div>
+    <div class="detail-row"><dt>Customer</dt><dd>{{ wc.job_card.customer_vehicle.customer.full_name }}</dd></div>
+    <div class="detail-row"><dt>Claim Date</dt><dd>{{ wc.claim_date|date:"d M Y" }}</dd></div>
+    <div class="detail-row"><dt>Status</dt><dd>{{ wc.get_status_display }}</dd></div>
+    <div class="detail-row"><dt>Description</dt><dd>{{ wc.description|linebreaksbr }}</dd></div>
+    <div class="detail-row"><dt>Claimed Amount</dt><dd>&#x20B9; {{ wc.claimed_amount }}</dd></div>
+    <div class="detail-row"><dt>Approved Amount</dt><dd>&#x20B9; {{ wc.approved_amount }}</dd></div>
+    <div class="detail-row"><dt>Notes</dt><dd>{{ wc.notes|linebreaksbr|default:"—" }}</dd></div>
+  </dl>
+  <div style="padding:0 18px 18px;">
+    <a href="{% url 'service:warranty_claim_update' wc.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'service:warranty_claim_list' %}" class="btn btn-ghost">Back to List</a>
+  </div>
+</div>
+{% endblock %}

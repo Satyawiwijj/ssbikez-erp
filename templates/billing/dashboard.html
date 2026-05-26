@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}Billing Dashboard — SSBikez ERP{% endblock %}
+{% block page_title %}Billing Dashboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'billing:invoice_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Invoice</a>
+{% endblock %}
+
+{% block content %}
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-blue"><i class="fas fa-file-invoice" style="color:#1d4ed8"></i></div>
+    <div>
+      <div class="stat-value">{{ total_invoices }}</div>
+      <div class="stat-label">Total Invoices</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-green"><i class="fas fa-rupee-sign" style="color:#065f46"></i></div>
+    <div>
+      <div class="stat-value">₹{{ total_revenue|floatformat:0 }}</div>
+      <div class="stat-label">Total Revenue</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-orange"><i class="fas fa-landmark" style="color:#92400e"></i></div>
+    <div>
+      <div class="stat-value">{{ total_loans }}</div>
+      <div class="stat-label">Finance Loans</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon stat-icon-purple"><i class="fas fa-shield-alt" style="color:#5b21b6"></i></div>
+    <div>
+      <div class="stat-value">{{ total_policies }}</div>
+      <div class="stat-label">Insurance Policies</div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h6 class="card-title mb-0">Recent Invoices</h6>
+    <a href="{% url 'billing:invoice_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0">
+        <thead>
+          <tr><th>Invoice No</th><th>Customer</th><th>Amount</th><th>Date</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          {% for inv in recent_invoices %}
+          <tr>
+            <td><a href="{% url 'billing:invoice_detail' inv.pk %}">{{ inv.invoice_number }}</a></td>
+            <td>{{ inv.sales_order.customer.full_name }}</td>
+            <td>Rs. {{ inv.final_amount }}</td>
+            <td>{{ inv.invoice_date }}</td>
+            <td><a href="{% url 'billing:invoice_detail' inv.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No invoices yet.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block title %}{{ invoice.invoice_number }} — SSBikez ERP{% endblock %}
+{% block page_title %}Invoice{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'billing:invoice_list' %}">Invoices</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ invoice.invoice_number }}</span>
+</nav>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ invoice.invoice_number }}</h1>
+    <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }}</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank">&#x1F4E5; Download PDF</a>
+    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">&#8592; Back</a>
+  </div>
+</div>
+
+<div class="detail-grid">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Invoice Details</span></div>
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number }}</dd></div>
+      <div class="detail-row"><dt>Sales Order</dt><dd>
+        <a href="{% url 'sales:order_detail' invoice.sales_order.pk %}">ORD-{{ invoice.sales_order.pk }}</a>
+      </dd></div>
+      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ invoice.sales_order.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+    </dl>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Amount Breakdown</span></div>
+    <div class="amount-row">
+      <span class="label">Subtotal</span>
+      <span class="value">&#x20B9; {{ invoice.subtotal }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">GST Amount</span>
+      <span class="value">&#x20B9; {{ invoice.gst_amount }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">Discount</span>
+      <span class="value">— &#x20B9; {{ invoice.discount_amount }}</span>
+    </div>
+    <div class="amount-row total">
+      <span class="label">Final Amount</span>
+      <span class="value" style="color:#2563EB;">&#x20B9; {{ invoice.final_amount }}</span>
+    </div>
+    <div class="amount-row">
+      <span class="label">Total Paid</span>
+      <span class="value" style="color:#065F46;">&#x20B9; {{ total_paid }}</span>
+    </div>
+    <div class="amount-row balance">
+      <span class="label">Balance Remaining</span>
+      <span class="value">&#x20B9; {{ balance }}</span>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENTS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Payments</span>
+    <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-primary btn-sm">+ Add Payment</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>PAY #</th>
+          <th>Method</th>
+          <th>Reference</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pay in payments %}
+        <tr>
+          <td style="font-family:monospace; font-size:13px;">PAY-{{ pay.pk }}</td>
+          <td>{{ pay.get_payment_method_display|default:"—" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ pay.transaction_reference|default:"—" }}</td>
+          <td style="font-weight:500;">&#x20B9; {{ pay.amount }}</td>
+          <td>
+            {% if pay.payment_status == 'completed' %}
+            <span class="badge badge-green">{{ pay.get_payment_status_display }}</span>
+            {% elif pay.payment_status == 'pending' %}
+            <span class="badge badge-yellow">{{ pay.get_payment_status_display }}</span>
+            {% elif pay.payment_status == 'failed' %}
+            <span class="badge badge-red">{{ pay.get_payment_status_display }}</span>
+            {% else %}
+            <span class="badge badge-gray">{{ pay.get_payment_status_display }}</span>
+            {% endif %}
+          </td>
+          <td style="font-size:13px; color:#6B7280;">{{ pay.payment_date|date:"d M Y H:i"|default:"—" }}</td>
+          <td>
+            <a href="{% url 'billing:payment_update' pay.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            <a href="{% url 'billing:payment_receipt_pdf' pay.pk %}" class="btn btn-secondary btn-sm" target="_blank">&#x1F5A8; Receipt</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No payments recorded yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

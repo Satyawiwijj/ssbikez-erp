@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}New Journal Entry{% endblock %}
+{% block page_title %}New Journal Entry{% endblock %}
+{% block content %}
+<div class="card form-card">
+  <div style="padding:20px;">
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <a href="{% url 'billing:journal_entry_list' %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

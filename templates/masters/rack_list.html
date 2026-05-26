@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Racks — Masters{% endblock %}
+{% block page_title %}Racks{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'masters:rack_create' %}" class="btn btn-primary btn-sm">
+  <i class="fas fa-plus me-1"></i>New Rack
+</a>
+{% endblock %}
+{% block content %}
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span class="card-title">All Racks</span>
+    <span class="badge bg-secondary">{{ racks|length }}</span>
+  </div>
+  <div class="card-body p-0">
+    {% if racks %}
+    <table class="table table-hover mb-0">
+      <thead>
+        <tr><th>Rack Name</th><th>Warehouse</th><th>Created</th><th class="text-end">Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for rack in racks %}
+        <tr>
+          <td class="fw-semibold">{{ rack.name }}</td>
+          <td>{{ rack.warehouse.name }}</td>
+          <td>{{ rack.created_at|date:"d M Y" }}</td>
+          <td class="text-end">
+            <a href="{% url 'masters:rack_update' rack.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-edit"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <i class="fas fa-th-large text-muted"></i>
+      <p class="mt-2">No racks yet. <a href="{% url 'masters:rack_create' %}">Add one</a>.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

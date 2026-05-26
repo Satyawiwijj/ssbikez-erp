@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Users — SSBikez ERP{% endblock %}
+{% block page_title %}Users{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Users</h1>
+    <p class="page-subtitle">Manage system users and access</p>
+  </div>
+  <a href="{% url 'accounts:user_create' %}" class="btn btn-primary">+ Create User</a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Branch</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr>
+          <td style="font-weight:500;">{{ u.get_full_name|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ u.username }}</td>
+          <td>{{ u.email|default:"—" }}</td>
+          <td>{{ u.role|default:"—" }}</td>
+          <td>{{ u.branch|default:"—" }}</td>
+          <td>
+            {% if u.get_status_display == "Active" %}
+            <span class="badge badge-green">{{ u.get_status_display }}</span>
+            {% else %}
+            <span class="badge badge-gray">{{ u.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'accounts:user_update' u.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" class="empty-state">No users found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

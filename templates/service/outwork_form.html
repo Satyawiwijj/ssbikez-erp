@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">{{ title }}</h1>
+    <p class="page-subtitle">Send vehicle work to external vendor</p>
+  </div>
+  <a href="{% url 'service:jobcard_list' %}" class="btn btn-ghost">&#8592; Back</a>
+</div>
+
+<div class="form-card card">
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="message error" style="margin-bottom:16px;">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label" for="{{ form.job_card.id_for_label }}">Job Card</label>
+        {{ form.job_card }}
+        {% if form.job_card.errors %}<div class="form-error">{{ form.job_card.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.vendor_name.id_for_label }}">Vendor Name</label>
+        {{ form.vendor_name }}
+        {% if form.vendor_name.errors %}<div class="form-error">{{ form.vendor_name.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="form-group span-2">
+        <label class="form-label" for="{{ form.work_description.id_for_label }}">Work Description</label>
+        {{ form.work_description }}
+        {% if form.work_description.errors %}<div class="form-error">{{ form.work_description.errors|join:", " }}</div>{% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="{{ form.cost.id_for_label }}">Estimated Cost (&#x20B9;)</label>
+        {{ form.cost }}
+        {% if form.cost.errors %}<div class="form-error">{{ form.cost.errors|join:", " }}</div>{% endif %}
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary">{{ title }}</button>
+      <a href="javascript:history.back()" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

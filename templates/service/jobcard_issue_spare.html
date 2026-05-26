@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+{% block title %}Issue Spare — JC-{{ jc.pk }}{% endblock %}
+{% block page_title %}Issue Spare to JC-{{ jc.pk }}{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'service:jobcard_list' %}">Job Cards</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Issue Spare</span>
+</nav>
+
+<div class="card form-card">
+  <div class="card-header"><span class="card-title">&#x1F527; Issue Spare to JC-{{ jc.pk }}</span></div>
+  <div style="padding:20px;">
+    <div style="background:#f9fafb;padding:12px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+      <strong>Vehicle:</strong> {{ jc.customer_vehicle }}<br>
+      <strong>Customer:</strong> {{ jc.customer_vehicle.customer.full_name }} &middot;
+      <strong>Status:</strong> {{ jc.get_service_status_display }}
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <input type="hidden" name="job_card" value="{{ jc.pk }}">
+
+      <div class="form-group">
+        <label class="form-label">Spare Item</label>
+        <select name="item" id="itemSelect" class="form-select" required>
+          <option value="">— Select item —</option>
+          {% for it in items %}
+          <option value="{{ it.pk }}"
+                  data-rate="{{ it.standard_selling_rate }}"
+                  data-uom="{{ it.uom }}">
+            {{ it.item_code }} · {{ it.item_name }}{% if it.part_number %} ({{ it.part_number }}){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Quantity</label>
+          <input type="number" step="0.001" min="0.001" name="quantity" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rate / UOM</label>
+          <input type="text" id="rateUom" class="form-control" placeholder="—" readonly>
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Rack (optional)</label>
+          <select name="rack" class="form-select">
+            <option value="">—</option>
+            {% for r in racks %}<option value="{{ r.pk }}">{{ r }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bin (optional)</label>
+          <select name="bin" class="form-select">
+            <option value="">—</option>
+            {% for b in bins %}<option value="{{ b.pk }}">{{ b }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Issue &amp; Return to Job Card</button>
+        <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:600px) { .form-grid { grid-template-columns:1fr; } }
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('itemSelect').addEventListener('change', function () {
+  var opt = this.selectedOptions[0];
+  var rate = opt.getAttribute('data-rate') || '';
+  var uom  = opt.getAttribute('data-uom')  || '';
+  document.getElementById('rateUom').value = rate ? ('₹ ' + rate + ' / ' + uom) : '';
+});
+</script>
+{% endblock %}

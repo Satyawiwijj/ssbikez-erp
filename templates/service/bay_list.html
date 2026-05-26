@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Service Bays — SSBikez ERP{% endblock %}
+{% block page_title %}Service Bays{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Service Bays</h1>
+    <p class="page-subtitle">Workshop bay configuration</p>
+  </div>
+  <a href="{% url 'service:bay_create' %}" class="btn btn-primary">+ Add Bay</a>
+</div>
+
+<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
+  {% for bay in bays %}
+  <div class="card" style="padding:20px; text-align:center; cursor:default;">
+    <div style="font-size:32px; margin-bottom:12px;">&#x1F3D7;&#xFE0F;</div>
+    <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:8px;">{{ bay.bay_name }}</div>
+    {% if bay.status == 'available' %}
+    <span class="badge badge-green">{{ bay.get_status_display }}</span>
+    {% elif bay.status == 'occupied' %}
+    <span class="badge badge-red">{{ bay.get_status_display }}</span>
+    {% else %}
+    <span class="badge badge-gray">{{ bay.get_status_display }}</span>
+    {% endif %}
+    <div style="margin-top:14px;">
+      <a href="{% url 'service:bay_update' bay.pk %}" class="btn btn-secondary btn-sm">Edit</a>
+    </div>
+  </div>
+  {% empty %}
+  <div style="grid-column:1/-1; text-align:center; padding:40px; color:#9CA3AF;">
+    No bays configured yet. <a href="{% url 'service:bay_create' %}" style="color:#2563EB;">Add a bay</a>.
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
