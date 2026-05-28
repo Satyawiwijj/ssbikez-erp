@@ -95,6 +95,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'accounts.context_processors.user_permissions',
                 'accounts.context_processors.company_context',
+                'accounts.context_processors.low_stock_alert',
             ],
         },
     },
@@ -167,11 +168,16 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 # Email
 # ---------------------------------------------------------------------------
 
-EMAIL_BACKEND    = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
-EMAIL_HOST       = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT       = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS    = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER  = os.environ.get('EMAIL_HOST_USER', '')
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+else:
+    EMAIL_BACKEND = os.environ.get(
+        'EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend'
+    )
+EMAIL_HOST          = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT          = int(os.environ.get('EMAIL_PORT', 587))
+EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', 'SSBikez ERP <noreply@ssbikez.com>')
 

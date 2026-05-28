@@ -79,6 +79,24 @@
 {% block extra_js %}
 <script>
 (function() {
+  // ── Supplier auto-fill ──
+  var supplierSel = document.getElementById('id_supplier');
+  function loadSupplierDetails(supplierId) {
+    if (!supplierId) return;
+    fetch('{% url "spares:ajax_supplier_details" %}?supplier_id=' + supplierId)
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        if (data.gstin       !== undefined) { var f = document.getElementById('id_supplier_gstin');    if(f) f.value = data.gstin; }
+        if (data.gst_category !== undefined){ var f = document.getElementById('id_gst_category');      if(f) f.value = data.gst_category; }
+        if (data.place_of_supply !== undefined){ var f = document.getElementById('id_place_of_supply'); if(f) f.value = data.place_of_supply; }
+      });
+  }
+  if (supplierSel) {
+    supplierSel.addEventListener('change', function(){ loadSupplierDetails(this.value); });
+    if (supplierSel.value) loadSupplierDetails(supplierSel.value);
+  }
+
+  // ── Formset add/remove ──
   const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
   const tbody = document.getElementById('formset-body');
   const firstRow = tbody.querySelector('.formset-row');

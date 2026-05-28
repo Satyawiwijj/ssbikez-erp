@@ -66,4 +66,8 @@ urlpatterns = [
 
     # Company Settings
     path('settings/', views.company_settings, name='company_settings'),
+
+    # Notifications
+    path('notifications/',       views.notification_list,  name='notification_list'),
+    path('notifications/count/', views.notification_count, name='notification_count'),
 ]

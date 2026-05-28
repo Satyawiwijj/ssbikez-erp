@@ -327,19 +327,24 @@
   <a href="{% url 'accounts:home' %}" class="sidebar-link" data-href="/accounts/home/"><i class="nav-icon fas fa-home"></i> Home</a>
   <a href="{% url 'accounts:dashboard' %}" class="sidebar-link" data-href="/accounts/dashboard/"><i class="nav-icon fas fa-chart-line"></i> Dashboard</a>
 
+  {% if '*' in allowed_apps or 'sales' in allowed_apps %}
   <div class="sidebar-section">Sales</div>
   <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="nav-icon fas fa-clipboard-list"></i> Enquiries</a>
   <a href="{% url 'sales:follow_up_list' %}" class="sidebar-link" data-href="/sales/follow-ups/"><i class="nav-icon fas fa-phone-alt"></i> Follow-Ups</a>
   <a href="{% url 'sales:all_appointments' %}" class="sidebar-link" data-href="/sales/all-appointments/"><i class="nav-icon fas fa-calendar-check"></i> Appointments</a>
   <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="nav-icon fas fa-shopping-cart"></i> Orders</a>
   <a href="{% url 'sales:delivery_list' %}" class="sidebar-link" data-href="/sales/delivery-list/"><i class="nav-icon fas fa-truck"></i> Deliveries</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'customers' in allowed_apps %}
   <div class="sidebar-section">Customers</div>
   <a href="{% url 'customers:customer_list' %}" class="sidebar-link" data-href="/customers/"><i class="nav-icon fas fa-users"></i> Customers</a>
   <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="sidebar-link" data-href="/customer-vehicles/"><i class="nav-icon fas fa-key"></i> Customer Vehicles</a>
   <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="nav-icon fas fa-list"></i> Bike Models</a>
   <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Stock</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'billing' in allowed_apps %}
   <div class="sidebar-section">Finance</div>
   <a href="{% url 'billing:invoice_list' %}" class="sidebar-link" data-href="/billing/invoices/"><i class="nav-icon fas fa-file-invoice"></i> Invoices</a>
   <a href="{% url 'billing:loan_list' %}" class="sidebar-link" data-href="/billing/loans/"><i class="nav-icon fas fa-landmark"></i> Loans</a>
@@ -349,12 +354,16 @@
   <a href="{% url 'billing:refund_advance_list' %}" class="sidebar-link" data-href="/billing/refunds-advances/"><i class="nav-icon fas fa-exchange-alt"></i> Refunds &amp; Advances</a>
   <a href="{% url 'billing:journal_entry_list' %}" class="sidebar-link" data-href="/billing/journal/"><i class="nav-icon fas fa-book"></i> Journal Entries</a>
   <a href="{% url 'billing:general_ledger' %}" class="sidebar-link" data-href="/billing/ledger/"><i class="nav-icon fas fa-list"></i> General Ledger</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'rto' in allowed_apps %}
   <div class="sidebar-section">RTO</div>
   <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-id-card"></i> Registrations</a>
   <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="nav-icon fas fa-hashtag"></i> Number Plates</a>
   <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'service' in allowed_apps %}
   <div class="sidebar-section">Service</div>
   <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Enquiries</a>
   <a href="{% url 'service:enquiry_bulk_import' %}" class="sidebar-link" data-href="/service/bulk-import/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
@@ -364,8 +373,15 @@
   <a href="{% url 'service:call_list' %}" class="sidebar-link" data-href="/service/calls/"><i class="nav-icon fas fa-phone"></i> Customer Calls</a>
   <a href="{% url 'service:warranty_claim_list' %}" class="sidebar-link" data-href="/service/warranty-claims/"><i class="nav-icon fas fa-shield-alt"></i> Warranty Claims</a>
   <a href="{% url 'service:insurance_claim_list' %}" class="sidebar-link" data-href="/service/insurance-claims/"><i class="nav-icon fas fa-file-medical"></i> Insurance Claims</a>
+  {% endif %}
 
-  <div class="sidebar-section">Spares</div>
+  {% if '*' in allowed_apps or 'spares' in allowed_apps %}
+  <div class="sidebar-section">
+    Spares
+    {% if low_stock_count > 0 %}
+    <span style="background:#ef4444; color:#fff; border-radius:10px; font-size:10px; padding:1px 6px; margin-left:6px;">{{ low_stock_count }}</span>
+    {% endif %}
+  </div>
   <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="nav-icon fas fa-boxes"></i> Items</a>
   <a href="{% url 'spares:order_list' %}" class="sidebar-link" data-href="/spares/orders/"><i class="nav-icon fas fa-shopping-bag"></i> Purchase Orders</a>
   <a href="{% url 'spares:invoice_list' %}" class="sidebar-link" data-href="/spares/invoices/"><i class="nav-icon fas fa-file-invoice-dollar"></i> Purchase Invoices</a>
@@ -375,27 +391,36 @@
   <a href="{% url 'spares:stock_report' %}" class="sidebar-link" data-href="/spares/stock/"><i class="nav-icon fas fa-chart-bar"></i> Stock Report</a>
   <a href="{% url 'spares:bulk_insert' %}" class="sidebar-link" data-href="/spares/bulk-insert/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
   <a href="{% url 'spares:po_used_qty_report' %}" class="sidebar-link" data-href="/spares/reports/po-used-qty/"><i class="nav-icon fas fa-chart-line"></i> PO Used Qty Report</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'vas' in allowed_apps %}
   <div class="sidebar-section">VAS</div>
   <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>
   <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="nav-icon fas fa-ambulance"></i> RSA Packages</a>
   <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
+  {% endif %}
 
+  {% if '*' in allowed_apps or 'masters' in allowed_apps %}
   <div class="sidebar-section">Masters</div>
   <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="nav-icon fas fa-truck-loading"></i> Suppliers</a>
   <a href="{% url 'masters:warehouse_list' %}" class="sidebar-link" data-href="/masters/warehouses/"><i class="nav-icon fas fa-warehouse"></i> Warehouses</a>
   <a href="{% url 'masters:rack_list' %}" class="sidebar-link" data-href="/masters/racks/"><i class="nav-icon fas fa-th-large"></i> Racks &amp; Bins</a>
   <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="nav-icon fas fa-tags"></i> Categories</a>
+  {% endif %}
 
   <div class="sidebar-section">Admin</div>
+  {% if '*' in allowed_apps or request.user.is_superuser or request.user.role.role_name == 'MD' %}
   <a href="{% url 'accounts:user_list' %}" class="sidebar-link" data-href="/accounts/users/"><i class="nav-icon fas fa-users-cog"></i> Users</a>
   <a href="{% url 'accounts:role_list' %}" class="sidebar-link" data-href="/accounts/roles/"><i class="nav-icon fas fa-user-tag"></i> Roles</a>
   <a href="{% url 'accounts:branch_list' %}" class="sidebar-link" data-href="/accounts/branches/"><i class="nav-icon fas fa-building"></i> Branches</a>
+  {% endif %}
   <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="nav-icon fas fa-gas-pump"></i> Fuel Expenses</a>
   <a href="{% url 'accounts:insurance_expiry_list' %}" class="sidebar-link" data-href="/accounts/insurance-expiry/"><i class="nav-icon fas fa-exclamation-triangle"></i> Insurance Expiry</a>
+  {% if '*' in allowed_apps or request.user.is_superuser or request.user.role.role_name == 'MD' %}
   <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="nav-icon fas fa-chart-bar"></i> Sales Report</a>
   <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="nav-icon fas fa-chart-pie"></i> Spares Report</a>
   <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="nav-icon fas fa-wrench"></i> Service Report</a>
+  {% endif %}
 </nav>
 
 <!-- ═══ TOPBAR ═══ -->
@@ -410,6 +435,34 @@
   </form>
   <div class="topbar-actions">
     {% block topbar_actions %}{% endblock %}
+    <!-- Notification Bell -->
+    {% if request.user.is_authenticated %}
+    <a href="{% url 'accounts:notification_list' %}" class="btn btn-ghost btn-sm" id="notif-bell" title="Notifications" style="position:relative; padding:6px 10px;">
+      <i class="fas fa-bell"></i>
+      <span id="notif-badge" style="display:none; position:absolute; top:2px; right:2px; background:#ef4444; color:#fff; border-radius:50%; font-size:10px; min-width:16px; height:16px; line-height:16px; text-align:center; padding:0 3px;"></span>
+    </a>
+    <script>
+    (function() {
+      function refreshNotifCount() {
+        fetch('{% url "accounts:notification_count" %}')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var badge = document.getElementById('notif-badge');
+            if (!badge) return;
+            if (data.count > 0) {
+              badge.textContent = data.count;
+              badge.style.display = 'inline-block';
+            } else {
+              badge.style.display = 'none';
+            }
+          })
+          .catch(function() {});
+      }
+      refreshNotifCount();
+      setInterval(refreshNotifCount, 60000);
+    })();
+    </script>
+    {% endif %}
     <div class="topbar-user" id="userMenuBtn">
       <div class="user-avatar">
         {{ request.user.get_full_name|default:request.user.username|slice:":1"|upper }}

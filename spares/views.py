@@ -428,6 +428,26 @@ def ajax_item_details(request):
 
 
 @login_required
+def ajax_supplier_details(request):
+    supplier_id = request.GET.get('supplier_id')
+    if not supplier_id:
+        return JsonResponse({'error': 'No supplier_id'}, status=400)
+    try:
+        supplier = Supplier.objects.get(pk=supplier_id)
+        return JsonResponse({
+            'gstin': supplier.gstin,
+            'gst_category': supplier.gst_category,
+            'place_of_supply': supplier.place_of_supply,
+            'address': ', '.join(filter(None, [
+                supplier.address_line1, supplier.address_line2,
+                supplier.city, supplier.state, supplier.pincode
+            ])),
+        })
+    except Supplier.DoesNotExist:
+        return JsonResponse({'error': 'Supplier not found'}, status=404)
+
+
+@login_required
 def ajax_rack_bins(request):
     rack_id = request.GET.get('rack_id')
     if not rack_id:
@@ -558,7 +578,7 @@ def po_used_qty_report(request):
         remaining = (ordered or 0) - consumed
         rows.append({
             'po_no': poi.order.po_no,
-            'supplier': poi.order.supplier.name if poi.order.supplier else '—',
+            'supplier': poi.order.supplier.supplier_name if poi.order.supplier else '—',
             'item': poi.item,
             'ordered': ordered,
             'used_service': used_in_service,

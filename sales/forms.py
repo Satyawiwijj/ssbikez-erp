@@ -179,7 +179,11 @@ class VehicleSalesOrderForm(forms.ModelForm):
 class VehicleDeliveryForm(forms.ModelForm):
     class Meta:
         model  = VehicleDelivery
-        fields = ('sales_order', 'delivery_date', 'delivered_by', 'remarks')
+        fields = (
+            'sales_order', 'delivery_date', 'delivered_by', 'remarks',
+            'checklist_insurance', 'checklist_rc_book', 'checklist_warranty',
+            'checklist_toolkit', 'checklist_accessories',
+        )
         widgets = {
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
             'remarks':       forms.Textarea(attrs={'rows': 3}),

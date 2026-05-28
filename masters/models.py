@@ -17,6 +17,7 @@ class SparesCategory(models.Model):
 
 class Supplier(models.Model):
     supplier_name = models.CharField(max_length=200)
+    supplier_group = models.CharField(max_length=100, blank=True, help_text='Supplier group e.g. OEM, Local, Distributor')
     contact_person = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)

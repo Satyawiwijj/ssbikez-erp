@@ -451,6 +451,19 @@ def service_invoice_create(request):
         invoice.calculate_totals()
         # Advance job card to invoiced
         JobCard.objects.filter(pk=invoice.job_card_id).update(service_status='invoiced')
+        # Increment free_services_used if vehicle is under warranty and has free services
+        try:
+            from .models import JobCard as JC
+            from django.db.models import F
+            from customer_vehicles.models import CustomerVehicle
+            _jc = JC.objects.select_related('customer_vehicle').get(pk=invoice.job_card_id)
+            _cv = _jc.customer_vehicle
+            if _cv and _cv.warranty_active and _cv.free_services_remaining > 0:
+                CustomerVehicle.objects.filter(pk=_cv.pk).update(
+                    free_services_used=F('free_services_used') + 1
+                )
+        except Exception:
+            pass
         log_action(request, 'Service Invoice', 'create', invoice.pk)
         messages.success(request, 'Service invoice created and totals calculated.')
         return redirect('service:service_invoice_detail', pk=invoice.pk)

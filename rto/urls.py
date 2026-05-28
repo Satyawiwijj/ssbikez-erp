@@ -14,6 +14,8 @@ urlpatterns = [
     # RTORegistration
     path('',                              views.registration_list,          name='registration_list'),
     path('create/',                       views.registration_create,        name='registration_create'),
+    # Alias: /rto/registrations/create/ for compatibility
+    path('registrations/create/',         views.registration_create,        name='registrations_create'),
     path('<int:pk>/',                     views.registration_detail,        name='registration_detail'),
     path('<int:pk>/edit/',                views.registration_update,        name='registration_update'),
     path('<int:pk>/status/',              views.registration_status_update, name='registration_status_update'),

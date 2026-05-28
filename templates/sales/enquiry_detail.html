@@ -163,7 +163,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <p class="empty-state">No feedback recorded yet. <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk %}}" style="color:#2563EB;">Add first feedback</a></p>
+  <p class="empty-state">No feedback recorded yet. <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" style="color:#2563EB;">Add first feedback</a></p>
   {% endif %}
 </div>
 

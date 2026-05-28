@@ -169,6 +169,44 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+  // ── Supplier auto-fill ──
+  var supplierSel = document.getElementById('id_supplier');
+  function loadSupplierDetails(supplierId) {
+    if (!supplierId) return;
+    fetch('{% url "spares:ajax_supplier_details" %}?supplier_id=' + supplierId)
+      .then(function(r){ return r.json(); })
+      .then(function(data) {
+        if (data.gstin !== undefined)           { var f = document.getElementById('id_supplier_gstin');    if(f) f.value = data.gstin; }
+        if (data.gst_category !== undefined)    { var f = document.getElementById('id_gst_category');      if(f) f.value = data.gst_category; }
+        if (data.place_of_supply !== undefined) { var f = document.getElementById('id_place_of_supply');   if(f) f.value = data.place_of_supply; }
+      });
+  }
+  if (supplierSel) {
+    supplierSel.addEventListener('change', function(){ loadSupplierDetails(this.value); });
+    if (supplierSel.value) loadSupplierDetails(supplierSel.value);
+  }
+
+  // ── Item rate auto-fill ──
+  document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('item-select')) {
+      var row = e.target.closest('tr');
+      var itemId = e.target.value;
+      if (!itemId || !row) return;
+      fetch('{% url "spares:ajax_item_details" %}?item_id=' + itemId)
+        .then(function(r){ return r.json(); })
+        .then(function(data) {
+          var rateF = row.querySelector('[name$="-rate"]');
+          var sgstF = row.querySelector('[name$="-sgst"]');
+          var cgstF = row.querySelector('[name$="-cgst"]');
+          var uomF  = row.querySelector('[name$="-uom"]');
+          if (rateF && data.rate !== undefined) rateF.value = data.rate;
+          if (sgstF && data.sgst !== undefined) sgstF.value = data.sgst;
+          if (cgstF && data.cgst !== undefined) cgstF.value = data.cgst;
+          if (uomF  && data.uom  !== undefined) uomF.value  = data.uom;
+        });
+    }
+  });
+
   const addBtn = document.getElementById('add-row');
   const formsetBody = document.getElementById('formset-body');
   const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');

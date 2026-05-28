@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — SSBikez ERP{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+
+{% block topbar_actions %}
+<a href="?mark_read=1" class="btn btn-secondary btn-sm">Mark All Read</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notifications</h1>
+    <p class="page-subtitle">System alerts and activity notifications</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Level</th><th>Title</th><th>Message</th><th>Time</th><th>Status</th></tr>
+      </thead>
+      <tbody>
+        {% for n in notifications %}
+        <tr style="{% if not n.is_read %}background:#fffbeb;{% endif %}">
+          <td>
+            {% if n.level == 'warning' %}<span class="badge badge-yellow">Warning</span>
+            {% elif n.level == 'error' %}<span class="badge badge-red">Error</span>
+            {% else %}<span class="badge badge-blue">Info</span>{% endif %}
+          </td>
+          <td style="font-weight:500;">
+            {% if n.link %}<a href="{{ n.link }}">{{ n.title }}</a>{% else %}{{ n.title }}{% endif %}
+          </td>
+          <td style="color:#6B7280; font-size:13px;">{{ n.message }}</td>
+          <td style="color:#9CA3AF; font-size:12px;">{{ n.created_at|date:"d M Y H:i" }}</td>
+          <td>
+            {% if n.is_read %}<span class="badge badge-gray">Read</span>
+            {% else %}<span class="badge badge-green">New</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">No notifications yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

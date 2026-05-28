@@ -84,4 +84,44 @@
     </table>
   </div>
 </div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-header">
+    <span class="card-title">Finance Summary</span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr><th>Order #</th><th>Vehicle</th><th>Status</th><th>Invoice Total</th><th>Loan Amount</th></tr>
+      </thead>
+      <tbody>
+        {% for order in sales_orders %}
+        <tr>
+          <td style="font-family:monospace;">ORD-{{ order.pk }}</td>
+          <td>{{ order.vehicle.bike_model|default:"—" }}</td>
+          <td><span class="badge badge-blue">{{ order.get_sales_status_display }}</span></td>
+          <td>
+            {% with inv=order.invoices.first %}
+              {% if inv %}&#8377; {{ inv.final_amount }}{% else %}—{% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            {% with loan=order.loan %}
+              {% if loan %}&#8377; {{ loan.loan_amount }}{% else %}—{% endif %}
+            {% endwith %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">No sales orders found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if sales_orders %}
+  <div style="padding:12px 16px; display:flex; gap:24px; font-size:13px; color:#374151; border-top:1px solid #f3f4f6;">
+    <span><strong>Total Invoiced:</strong> &#8377; {{ total_invoiced }}</span>
+    <span><strong>Total Loan:</strong> &#8377; {{ total_loan }}</span>
+  </div>
+  {% endif %}
+</div>
 {% endblock %}

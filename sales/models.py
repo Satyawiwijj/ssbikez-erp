@@ -300,6 +300,12 @@ class VehicleDelivery(models.Model):
         related_name='vehicle_deliveries'
     )
     remarks       = models.TextField(blank=True, null=True)
+    # Delivery checklist
+    checklist_insurance   = models.BooleanField(default=False, verbose_name='Insurance Policy Handed Over')
+    checklist_rc_book     = models.BooleanField(default=False, verbose_name='RC Book / Temp Reg Handed Over')
+    checklist_warranty    = models.BooleanField(default=False, verbose_name='Warranty Card Handed Over')
+    checklist_toolkit     = models.BooleanField(default=False, verbose_name='Toolkit & Owner Manual Handed Over')
+    checklist_accessories = models.BooleanField(default=False, verbose_name='Accessories Fitted & Verified')
     created_at    = models.DateTimeField(auto_now_add=True)
 
     class Meta:

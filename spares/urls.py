@@ -58,5 +58,6 @@ urlpatterns = [
 
     # AJAX
     path('ajax/item-details/', views.ajax_item_details, name='ajax_item_details'),
+    path('ajax/supplier-details/', views.ajax_supplier_details, name='ajax_supplier_details'),
     path('ajax/rack-bins/', views.ajax_rack_bins, name='ajax_rack_bins'),
 ]

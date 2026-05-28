@@ -16,7 +16,7 @@ class CustomerVehicleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Only sold units can be linked to a customer vehicle
+        # Allow available or sold units to be linked to a customer vehicle
         self.fields['vehicle'].queryset = VehicleStock.objects.filter(
-            stock_status=VehicleStock.StockStatus.SOLD
-        ).select_related('bike_model')
+            stock_status__in=[VehicleStock.StockStatus.AVAILABLE, VehicleStock.StockStatus.SOLD]
+        ).select_related('bike_model').order_by('stock_status', 'bike_model__model_name')

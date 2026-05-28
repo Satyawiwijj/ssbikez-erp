@@ -44,8 +44,9 @@ urlpatterns = [
     # Delivery list
     path('delivery-list/',                    views.delivery_list,         name='delivery_list'),
 
-    # All appointments
+    # All appointments (alias: /sales/appointments/ for compatibility)
     path('all-appointments/',                 views.all_appointments,      name='all_appointments'),
+    path('appointments/',                     views.all_appointments,      name='appointments'),
 
     # Feedback all
     path('feedback-all/',                     views.feedback_all,          name='feedback_all'),

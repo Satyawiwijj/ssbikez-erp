@@ -48,9 +48,9 @@
 <!-- HEADER -->
 <div class="header">
   <div>
-    <div class="company-name">SSBikez</div>
-    <div class="company-sub">Authorised Motorcycle Dealership</div>
-    <div class="company-sub">{{ job_card.branch|default:"" }}</div>
+    <div class="company-name">{% if company %}{{ company.company_name }}{% else %}SSBikez{% endif %}</div>
+    <div class="company-sub">{% if company %}{{ company.tagline|default:"Authorised Motorcycle Dealership" }}{% else %}Authorised Motorcycle Dealership{% endif %}</div>
+    <div class="company-sub">{{ job_card.branch|default:"" }}{% if company and company.gstin %} &nbsp;|&nbsp; GSTIN: {{ company.gstin }}{% endif %}</div>
   </div>
   <div class="invoice-title">
     <h2>Service Invoice</h2>

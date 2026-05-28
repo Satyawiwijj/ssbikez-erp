@@ -14,6 +14,8 @@ urlpatterns = [
     path('invoices/<int:pk>/',          views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:pk>/edit/',     views.invoice_update, name='invoice_update'),
     path('invoices/<int:pk>/pdf/',      pdf_views.invoice_pdf, name='invoice_pdf'),
+    # Alias: singular form for compatibility
+    path('invoice/<int:pk>/pdf/',       pdf_views.invoice_pdf, name='invoice_pdf_alt'),
 
     # Payment
     path('payments/create/',            views.payment_create, name='payment_create'),

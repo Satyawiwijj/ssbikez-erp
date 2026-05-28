@@ -17,7 +17,7 @@ class SupplierForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         text_fields = [
-            'supplier_name', 'contact_person', 'phone', 'gstin', 'gst_category',
+            'supplier_name', 'supplier_group', 'contact_person', 'phone', 'gstin', 'gst_category',
             'address_line1', 'address_line2', 'city', 'state', 'pincode', 'place_of_supply'
         ]
         for f in text_fields:

@@ -26,8 +26,26 @@ def customer_list(request):
 def customer_detail(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     vehicles = customer.vehicles.select_related('vehicle__bike_model').all()
-    return render(request, 'customers/customer_detail.html',
-                  {'customer': customer, 'vehicles': vehicles})
+
+    # Finance summary
+    from django.db.models import Sum
+    from sales.models import VehicleSalesOrder
+    from billing.models import Invoice, FinanceLoan
+    sales_orders = VehicleSalesOrder.objects.filter(customer=customer).select_related('vehicle__bike_model')
+    invoices     = Invoice.objects.filter(sales_order__customer=customer)
+    total_invoiced = invoices.aggregate(t=Sum('final_amount'))['t'] or 0
+    loans          = FinanceLoan.objects.filter(sales_order__customer=customer)
+    total_loan     = loans.aggregate(t=Sum('loan_amount'))['t'] or 0
+
+    return render(request, 'customers/customer_detail.html', {
+        'customer':       customer,
+        'vehicles':       vehicles,
+        'sales_orders':   sales_orders,
+        'invoices':       invoices,
+        'total_invoiced': total_invoiced,
+        'loans':          loans,
+        'total_loan':     total_loan,
+    })
 
 
 @login_required

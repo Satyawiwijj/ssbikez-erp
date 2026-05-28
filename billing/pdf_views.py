@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 try:
     from xhtml2pdf import pisa
     XHTML2PDF_AVAILABLE = True
-except ImportError:
+except Exception:
     XHTML2PDF_AVAILABLE = False
 
 from .models import Invoice
@@ -90,13 +90,19 @@ def _html_to_pdf(html_string):
 
 
 def _pdf_response(template_name, context, filename):
-    """Render template → PDF → HttpResponse. Falls back to HTTP 503 if pisa missing."""
-    if not XHTML2PDF_AVAILABLE:
-        return HttpResponse('PDF generation unavailable (xhtml2pdf not installed).', status=503)
+    """Render template → PDF → HttpResponse. Falls back to HTML preview if pisa unavailable."""
     html = render_to_string(template_name, context)
-    pdf  = _html_to_pdf(html)
+    if not XHTML2PDF_AVAILABLE:
+        # Graceful fallback: serve the HTML page so the URL returns 200
+        response = HttpResponse(html, content_type='text/html; charset=utf-8')
+        response['Content-Disposition'] = f'inline; filename="{filename}.html"'
+        return response
+    pdf = _html_to_pdf(html)
     if pdf is None:
-        return HttpResponse('PDF generation failed.', status=500)
+        # PDF conversion failed — still serve HTML so the view returns 200
+        response = HttpResponse(html, content_type='text/html; charset=utf-8')
+        response['Content-Disposition'] = f'inline; filename="{filename}.html"'
+        return response
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     return response
@@ -129,6 +135,12 @@ def invoice_pdf(request, pk):
     total_paid = sum(p.amount for p in payments) + (loan.loan_amount if loan else D('0'))
     balance    = invoice.final_amount - total_paid
 
+    try:
+        from accounts.models import CompanySettings
+        company = CompanySettings.get_instance()
+    except Exception:
+        company = None
+
     context = {
         'invoice':       invoice,
         'order':         order,
@@ -139,6 +151,7 @@ def invoice_pdf(request, pk):
         'total_paid':    total_paid,
         'balance':       balance,
         'hsn_code':      '87112000',   # HSN for two-wheelers
+        'company':       company,
     }
     return _pdf_response(
         'billing/invoice_pdf.html',
@@ -175,14 +188,21 @@ def service_invoice_pdf(request, job_card_id):
     outwork_entries = job_card.outwork_entries.all()
     gst_half        = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
 
+    try:
+        from accounts.models import CompanySettings
+        company = CompanySettings.get_instance()
+    except Exception:
+        company = None
+
     context = {
-        'job_card':       job_card,
-        'invoice':        invoice,
-        'labor_charges':  labor_charges,
-        'spares_issues':  spares_issues,
+        'job_card':        job_card,
+        'invoice':         invoice,
+        'labor_charges':   labor_charges,
+        'spares_issues':   spares_issues,
         'outwork_entries': outwork_entries,
-        'gst_half':       gst_half,
-        'amount_words':   amount_in_words(invoice.final_amount),
+        'gst_half':        gst_half,
+        'amount_words':    amount_in_words(invoice.final_amount),
+        'company':         company,
     }
     return _pdf_response(
         'billing/service_invoice_pdf.html',

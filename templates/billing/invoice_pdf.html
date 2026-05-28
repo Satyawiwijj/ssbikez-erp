@@ -82,12 +82,12 @@
 <!-- ╔═══ HEADER ═══╗ -->
 <div class="header-row">
   <div>
-    <div class="company-name">SS BIKEZ</div>
+    <div class="company-name">{% if company %}{{ company.company_name }}{% else %}SS BIKEZ{% endif %}</div>
     <div class="company-sub">
-      Authorised Motorcycle Dealership<br>
+      {% if company %}{{ company.tagline|default:"Authorised Motorcycle Dealership" }}{% else %}Authorised Motorcycle Dealership{% endif %}<br>
       {% if order.branch %}{{ order.branch.address|default:"" }}<br>{% endif %}
       {% if order.branch and order.branch.phone %}Ph: {{ order.branch.phone }}{% endif %}
-      {% if order.branch and order.branch.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ order.branch.gstin }}</strong>{% endif %}
+      {% if order.branch and order.branch.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ order.branch.gstin }}</strong>{% elif company and company.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ company.gstin }}</strong>{% endif %}
     </div>
   </div>
   <div class="invoice-head">

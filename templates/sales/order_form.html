@@ -3,24 +3,98 @@
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'sales:order_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:order_list' %}">Sales Orders</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ title }}</span>
+</nav>
+
+{% if form.errors %}
+<div style="padding:12px 16px; border-radius:8px; background:#FEF2F2; color:#991B1B; margin-bottom:16px; border:1px solid #FCA5A5;">
+  Please correct the errors below.
 </div>
-<div class="card form-card">
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+{% endif %}
+
+<form method="post" novalidate>
+  {% csrf_token %}
+  <div class="detail-grid">
+
+    <div class="card" style="grid-column:1/-1;">
+      <div class="card-header"><span class="card-title">Order Details</span></div>
+      <div style="padding:20px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+          <div>
+            <label class="form-label fw-semibold">Customer *</label>
+            {{ form.customer }}
+            {% if form.customer.errors %}<p style="color:#DC2626;font-size:12px;margin:2px 0 0;">{{ form.customer.errors.0 }}</p>{% endif %}
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Enquiry</label>
+            {{ form.enquiry }}
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Vehicle *</label>
+            {{ form.vehicle }}
+            <small style="color:#6B7280;font-size:12px;">{{ form.vehicle.help_text }}</small>
+            {% if form.vehicle.errors %}<p style="color:#DC2626;font-size:12px;margin:2px 0 0;">{{ form.vehicle.errors.0 }}</p>{% endif %}
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Sales Executive</label>
+            {{ form.sales_executive }}
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Branch</label>
+            {{ form.branch }}
+          </div>
+
+          <div>
+            <label class="form-label fw-semibold">Sales Status</label>
+            {{ form.sales_status }}
+          </div>
+
+        </div>
+      </div>
     </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Order</button>
-      <a href="{% url 'sales:order_list' %}" class="btn btn-secondary">Cancel</a>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Financials</span></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label class="form-label fw-semibold">Total Amount (&#x20B9;) *</label>
+          {{ form.total_amount }}
+          <small style="color:#6B7280;font-size:12px;">{{ form.total_amount.help_text }}</small>
+          {% if form.total_amount.errors %}<p style="color:#DC2626;font-size:12px;margin:2px 0 0;">{{ form.total_amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="form-label fw-semibold">Booking Amount (&#x20B9;)</label>
+          {{ form.booking_amount }}
+          <small style="color:#6B7280;font-size:12px;">{{ form.booking_amount.help_text }}</small>
+          {% if form.booking_amount.errors %}<p style="color:#DC2626;font-size:12px;margin:2px 0 0;">{{ form.booking_amount.errors.0 }}</p>{% endif %}
+        </div>
+        <div>
+          <label class="form-label fw-semibold">Discount Amount (&#x20B9;)</label>
+          {{ form.discount_amount }}
+          <small style="color:#6B7280;font-size:12px;">{{ form.discount_amount.help_text }}</small>
+          {% if form.discount_amount.errors %}<p style="color:#DC2626;font-size:12px;margin:2px 0 0;">{{ form.discount_amount.errors.0 }}</p>{% endif %}
+        </div>
+      </div>
     </div>
-  </form>
-</div>
+
+    <div class="card">
+      <div class="card-header"><span class="card-title">Actions</span></div>
+      <div style="padding:20px;display:flex;flex-direction:column;gap:10px;">
+        <button type="submit" class="btn btn-primary">&#x1F4BE; Save Order</button>
+        <a href="{% url 'sales:order_list' %}" class="btn btn-ghost">&#8592; Back to Orders</a>
+      </div>
+    </div>
+
+  </div>
+</form>
 {% endblock %}

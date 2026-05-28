@@ -192,3 +192,34 @@ class OTPVerification(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+# ---------------------------------------------------------------------------
+# Notification
+# ---------------------------------------------------------------------------
+
+class Notification(models.Model):
+    class Level(models.TextChoices):
+        INFO    = 'info',    'Info'
+        WARNING = 'warning', 'Warning'
+        ERROR   = 'error',   'Error'
+
+    user       = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notifications',
+        null=True, blank=True,
+    )
+    title      = models.CharField(max_length=200)
+    message    = models.TextField(blank=True)
+    level      = models.CharField(max_length=20, choices=Level.choices, default=Level.INFO)
+    is_read    = models.BooleanField(default=False)
+    link       = models.CharField(max_length=500, blank=True, help_text='Optional URL to navigate to')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        return f"[{self.level}] {self.title}"

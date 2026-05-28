@@ -7,6 +7,7 @@ class SparesItem(models.Model):
     item_code = models.CharField(max_length=50, unique=True, editable=False)
     item_name = models.CharField(max_length=200)
     category = models.ForeignKey(SparesCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    item_group = models.CharField(max_length=100, blank=True, help_text='Item group classification (e.g. Engine, Electrical, Body)')
     item_sub_group = models.CharField(max_length=100, blank=True)
     hsn_sac = models.CharField(max_length=20, blank=True)
     uom = models.CharField(max_length=20, default='Nos')
@@ -253,11 +254,24 @@ class PurchaseInvoiceItem(models.Model):
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         self.amount = self.quantity * self.rate
         self.sgst_amount = self.amount * self.sgst / 100
         self.cgst_amount = self.amount * self.cgst / 100
         self.total = self.amount + self.sgst_amount + self.cgst_amount
         super().save(*args, **kwargs)
+        # Auto-update StockLedger when a new item is added to a submitted invoice
+        if is_new and self.invoice.status == 'submitted':
+            from django.db.models import F as _F
+            sl, created = StockLedger.objects.get_or_create(
+                item=self.item, warehouse=self.warehouse,
+                rack=self.rack, bin=self.bin,
+                defaults={'quantity': self.quantity},
+            )
+            if not created:
+                StockLedger.objects.filter(pk=sl.pk).update(
+                    quantity=_F('quantity') + self.quantity
+                )
 
     def __str__(self):
         return f"{self.invoice.invoice_no} | {self.item.item_code}"

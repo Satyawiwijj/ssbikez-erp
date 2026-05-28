@@ -7,45 +7,58 @@
 {% endblock %}
 
 {% block content %}
-<form method="get" class="d-flex gap-2 mb-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search customer…" class="form-control" style="max-width:320px;">
-  <button type="submit" class="btn btn-secondary btn-sm">Search</button>
-  {% if q %}<a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
-</form>
-<div class="card">
-  <div class="card-header">
-    <h6 class="card-title mb-0">All Appointments <span class="badge bg-secondary ms-2">{{ appointments|length }}</span></h6>
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Sales Appointments</h1>
+    <p class="page-subtitle">All scheduled appointments</p>
   </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr>
-            <th>#</th><th>Customer</th><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for apt in appointments %}
-          <tr>
-            <td>APT-{{ apt.pk }}</td>
-            <td>{{ apt.enquiry.customer.full_name }}</td>
-            <td>{{ apt.appointment_date|date:"d M Y H:i" }}</td>
-            <td>{{ apt.get_purpose_display|default:"—" }}</td>
-            <td>
-              <span class="badge badge-soft-{% if apt.status == 'completed' %}success{% elif apt.status == 'cancelled' %}danger{% elif apt.status == 'no_show' %}warning{% else %}info{% endif %}">
-                {{ apt.get_status_display }}
-              </span>
-            </td>
-            <td>
-              <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-calendar fa-2x mb-2 d-block"></i>No appointments found.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+  <a href="{% url 'sales:appointment_create' %}" class="btn btn-primary">+ New Appointment</a>
+</div>
+
+<form class="search-bar" method="get">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name…">
+  <button type="submit" class="btn btn-secondary">Search</button>
+  {% if q %}<a href="?" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>APT #</th>
+          <th>Customer</th>
+          <th>Date &amp; Time</th>
+          <th>Purpose</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for apt in appointments %}
+        <tr>
+          <td style="font-family:monospace; font-size:13px;">APT-{{ apt.pk }}</td>
+          <td style="font-weight:500;">{{ apt.enquiry.customer.full_name }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ apt.appointment_date|date:"d M Y H:i" }}</td>
+          <td>{{ apt.get_purpose_display|default:"—" }}</td>
+          <td>
+            {% if apt.status == 'completed' %}<span class="badge badge-green">{{ apt.get_status_display }}</span>
+            {% elif apt.status == 'cancelled' %}<span class="badge badge-red">{{ apt.get_status_display }}</span>
+            {% elif apt.status == 'no_show' %}<span class="badge badge-yellow">{{ apt.get_status_display }}</span>
+            {% else %}<span class="badge badge-blue">{{ apt.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No appointments found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}

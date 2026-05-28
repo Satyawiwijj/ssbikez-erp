@@ -704,3 +704,32 @@ def company_settings(request):
         'form':    form,
         'company': instance,
     })
+
+
+# ---------------------------------------------------------------------------
+# Notifications
+# ---------------------------------------------------------------------------
+
+from django.http import JsonResponse
+
+
+@login_required
+def notification_list(request):
+    from .models import Notification
+    from .notifications import generate_notifications
+    generate_notifications(request.user)
+    notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:50]
+    # Mark all as read if ?mark_read=1
+    if request.GET.get('mark_read'):
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return redirect('accounts:notification_list')
+    return render(request, 'accounts/notification_list.html', {
+        'notifications': notifications,
+    })
+
+
+@login_required
+def notification_count(request):
+    from .models import Notification
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return JsonResponse({'count': count})
