@@ -22,6 +22,12 @@ class PaymentForm(forms.ModelForm):
             'payment_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        self._invoice = kwargs.pop('invoice', None)
+        super().__init__(*args, **kwargs)
+        if self._invoice:
+            self.fields['invoice'].initial = self._invoice
+
     def clean_amount(self):
         from decimal import Decimal
         amount = self.cleaned_data.get('amount')
@@ -33,9 +39,13 @@ class PaymentForm(forms.ModelForm):
 
     def clean_payment_date(self):
         from django.utils import timezone
+        import datetime
         date = self.cleaned_data.get('payment_date')
-        if date and date > timezone.now().date():
-            raise forms.ValidationError('Payment date cannot be in the future.')
+        if date:
+            now = timezone.now()
+            cmp = date.date() if isinstance(date, datetime.datetime) else date
+            if cmp > now.date():
+                raise forms.ValidationError('Payment date cannot be in the future.')
         return date
 
     def clean(self):

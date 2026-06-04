@@ -147,3 +147,40 @@ def vehicle_stock_update(request, pk):
         return redirect('customers:vehicle_stock_detail', pk=stock.pk)
     return render(request, 'customers/vehicle_stock_form.html',
                   {'form': form, 'title': 'Edit Vehicle Stock'})
+
+
+# ============================================================
+# FEATURE 2 — Vehicle Stock Aging Page
+# ============================================================
+
+@login_required
+def stock_aging(request):
+    from datetime import date, timedelta
+    today = date.today()
+    aging_30 = VehicleStock.objects.filter(
+        stock_status='available',
+        purchase_date__lte=today - timedelta(days=30),
+        purchase_date__gt=today - timedelta(days=60)
+    ).select_related('bike_model', 'branch')
+    aging_60 = VehicleStock.objects.filter(
+        stock_status='available',
+        purchase_date__lte=today - timedelta(days=60),
+        purchase_date__gt=today - timedelta(days=90)
+    ).select_related('bike_model', 'branch')
+    aging_90 = VehicleStock.objects.filter(
+        stock_status='available',
+        purchase_date__lte=today - timedelta(days=90)
+    ).select_related('bike_model', 'branch')
+
+    def days_in_stock(stock):
+        if stock.purchase_date:
+            return (today - stock.purchase_date).days
+        return 0
+
+    aging_90_list = [{'stock': s, 'days': days_in_stock(s)} for s in aging_90]
+    return render(request, 'customers/stock_aging.html', {
+        'today': today,
+        'aging_30': aging_30, 'aging_30_count': aging_30.count(),
+        'aging_60': aging_60, 'aging_60_count': aging_60.count(),
+        'aging_90_list': aging_90_list, 'aging_90_count': aging_90.count(),
+    })

@@ -567,3 +567,74 @@ from service._gap_views import (
 # GAP 14-31 views imported from sub-module
 from service._gap14_31_views import *  # noqa: E402,F401,F403
 
+
+
+# ============================================================
+# FEATURE 4 — Service Reminders
+# ============================================================
+from .models import ServiceReminder
+from .forms import ServiceReminderForm
+
+
+@login_required
+def reminder_list(request):
+    reminders = ServiceReminder.objects.select_related(
+        'customer_vehicle__customer',
+        'customer_vehicle__vehicle__bike_model',
+        'assigned_to'
+    )
+    rtype = request.GET.get('type', '')
+    if rtype:
+        reminders = reminders.filter(reminder_type=rtype)
+    from datetime import date
+    today = date.today()
+    return render(request, 'service/reminder_list.html', {
+        'reminders': reminders, 'today': today, 'filter_type': rtype,
+    })
+
+
+@login_required
+def reminder_update(request, pk):
+    reminder = get_object_or_404(ServiceReminder, pk=pk)
+    if request.method == 'POST':
+        new_status = request.POST.get('status')
+        notes = request.POST.get('notes', '')
+        if new_status in dict(ServiceReminder.Status.choices):
+            reminder.status = new_status
+            if notes:
+                reminder.notes = notes
+            reminder.save()
+            from django.contrib import messages as _msg
+            _msg.success(request, 'Reminder updated.')
+        return redirect('service:reminder_list')
+    return render(request, 'service/reminder_update.html', {'reminder': reminder})
+
+
+# ============================================================
+# FEATURE 7 — Technician Productivity Report
+# ============================================================
+
+@login_required
+def technician_report(request):
+    from datetime import date
+    from django.db.models import Count, Sum
+    import calendar as _cal
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year  = int(request.GET.get('year',  today.year))
+
+    from accounts.models import User as _User
+    technicians = _User.objects.filter(
+        bay_assignments__job_card__created_at__month=month,
+        bay_assignments__job_card__created_at__year=year
+    ).annotate(
+        job_cards_count=Count('bay_assignments__job_card', distinct=True),
+        total_labour=Sum('bay_assignments__job_card__labor_charges__labor_cost')
+    ).distinct().order_by('-job_cards_count')
+
+    context = {
+        'month': month, 'year': year,
+        'month_name': _cal.month_name[month],
+        'technicians': technicians,
+    }
+    return render(request, 'service/technician_report.html', context)

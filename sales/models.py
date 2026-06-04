@@ -406,6 +406,203 @@ class VehicleFitting(models.Model):
 
 
 # ---------------------------------------------------------------------------
+# FEATURE 1 — Sales Target Tracking
+# ---------------------------------------------------------------------------
+
+class SalesTarget(models.Model):
+    sales_executive  = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE,
+        related_name='sales_targets'
+    )
+    month            = models.IntegerField()
+    year             = models.IntegerField()
+    target_enquiries  = models.IntegerField(default=0)
+    target_test_rides = models.IntegerField(default=0)
+    target_conversions = models.IntegerField(default=0)
+    target_revenue   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    created_by       = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='targets_created'
+    )
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ['sales_executive', 'month', 'year']
+        ordering = ['-year', '-month']
+
+    def __str__(self):
+        return f"{self.sales_executive.get_full_name()} — {self.month}/{self.year}"
+
+    @property
+    def actual_enquiries(self):
+        return SalesEnquiry.objects.filter(
+            sales_executive=self.sales_executive,
+            created_at__month=self.month,
+            created_at__year=self.year
+        ).count()
+
+    @property
+    def actual_conversions(self):
+        return VehicleSalesOrder.objects.filter(
+            sales_executive=self.sales_executive,
+            created_at__month=self.month,
+            created_at__year=self.year
+        ).count()
+
+    @property
+    def actual_revenue(self):
+        from django.db.models import Sum
+        result = VehicleSalesOrder.objects.filter(
+            sales_executive=self.sales_executive,
+            created_at__month=self.month,
+            created_at__year=self.year
+        ).aggregate(total=Sum('total_amount'))['total']
+        return result or 0
+
+    @property
+    def conversion_percent(self):
+        if self.actual_enquiries == 0:
+            return 0.0
+        return round(self.actual_conversions / self.actual_enquiries * 100, 1)
+
+
+# ---------------------------------------------------------------------------
+# FEATURE 3 — Test Ride Log
+# ---------------------------------------------------------------------------
+
+class TestRideLog(models.Model):
+    class Status(models.TextChoices):
+        OUT       = 'out',       'Vehicle Out'
+        RETURNED  = 'returned',  'Vehicle Returned'
+        CANCELLED = 'cancelled', 'Cancelled'
+
+    enquiry          = models.ForeignKey(
+        SalesEnquiry, on_delete=models.CASCADE, related_name='test_rides'
+    )
+    vehicle          = models.ForeignKey(
+        'customers.VehicleStock', on_delete=models.PROTECT, related_name='test_rides'
+    )
+    rider_name       = models.CharField(max_length=200)
+    rider_phone      = models.CharField(max_length=15)
+    license_number   = models.CharField(max_length=50)
+    accompanied_by   = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='test_rides_accompanied'
+    )
+    start_time       = models.DateTimeField()
+    end_time         = models.DateTimeField(null=True, blank=True)
+    start_odometer   = models.IntegerField(default=0)
+    end_odometer     = models.IntegerField(null=True, blank=True)
+    status           = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.OUT
+    )
+    feedback_after_ride = models.TextField(blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+    created_by       = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True,
+        related_name='test_rides_created'
+    )
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"TR-{self.pk} | {self.rider_name} | {self.vehicle}"
+
+    @property
+    def duration_minutes(self):
+        if self.end_time and self.start_time:
+            delta = self.end_time - self.start_time
+            return int(delta.total_seconds() / 60)
+        return None
+
+
+# ---------------------------------------------------------------------------
+# FEATURE 5 — PDI Checklist (Pre-Delivery Inspection)
+# ---------------------------------------------------------------------------
+
+class PDIChecklist(models.Model):
+    sales_order     = models.OneToOneField(
+        VehicleSalesOrder, on_delete=models.CASCADE, related_name='pdi_checklist'
+    )
+    inspected_by    = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    inspection_date = models.DateField(auto_now_add=True)
+
+    # Engine and Mechanical
+    engine_oil_level    = models.BooleanField(default=False)
+    coolant_level       = models.BooleanField(default=False)
+    brake_fluid_level   = models.BooleanField(default=False)
+    chain_tension       = models.BooleanField(default=False)
+    chain_lubrication   = models.BooleanField(default=False)
+    tyre_pressure_front = models.BooleanField(default=False)
+    tyre_pressure_rear  = models.BooleanField(default=False)
+    brake_front_working = models.BooleanField(default=False)
+    brake_rear_working  = models.BooleanField(default=False)
+    clutch_adjustment   = models.BooleanField(default=False)
+    throttle_smooth     = models.BooleanField(default=False)
+
+    # Electrical
+    battery_voltage      = models.BooleanField(default=False)
+    headlight_working    = models.BooleanField(default=False)
+    taillight_working    = models.BooleanField(default=False)
+    indicators_working   = models.BooleanField(default=False)
+    horn_working         = models.BooleanField(default=False)
+    speedometer_working  = models.BooleanField(default=False)
+    kill_switch_working  = models.BooleanField(default=False)
+
+    # Body and Aesthetics
+    paint_no_scratches   = models.BooleanField(default=False)
+    all_panels_fitted    = models.BooleanField(default=False)
+    mirrors_adjusted     = models.BooleanField(default=False)
+    seat_firm            = models.BooleanField(default=False)
+    toolkit_present      = models.BooleanField(default=False)
+    owners_manual_present = models.BooleanField(default=False)
+
+    # Documents
+    invoice_ready        = models.BooleanField(default=False)
+    insurance_done       = models.BooleanField(default=False)
+    form20_submitted     = models.BooleanField(default=False)
+    temporary_registration = models.BooleanField(default=False)
+
+    overall_remarks = models.TextField(blank=True)
+    is_approved     = models.BooleanField(default=False)
+    approved_by     = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='pdi_approvals'
+    )
+
+    class Meta:
+        verbose_name = 'PDI Checklist'
+
+    def __str__(self):
+        return f"PDI-{self.pk} | Order {self.sales_order_id}"
+
+    @property
+    def mechanical_score(self):
+        fields = ['engine_oil_level','coolant_level','brake_fluid_level','chain_tension',
+                  'chain_lubrication','tyre_pressure_front','tyre_pressure_rear',
+                  'brake_front_working','brake_rear_working','clutch_adjustment','throttle_smooth']
+        passed = sum(1 for f in fields if getattr(self, f))
+        return f"{passed}/{len(fields)}"
+
+    @property
+    def electrical_score(self):
+        fields = ['battery_voltage','headlight_working','taillight_working','indicators_working',
+                  'horn_working','speedometer_working','kill_switch_working']
+        passed = sum(1 for f in fields if getattr(self, f))
+        return f"{passed}/{len(fields)}"
+
+    @property
+    def all_critical_passed(self):
+        critical = ['engine_oil_level','brake_front_working','brake_rear_working',
+                    'tyre_pressure_front','tyre_pressure_rear','headlight_working',
+                    'invoice_ready','insurance_done']
+        return all(getattr(self, f) for f in critical)
+
+
+# ---------------------------------------------------------------------------
 # FIX 3 — Signals: auto-create CustomerVehicle on delivery
 # ---------------------------------------------------------------------------
 

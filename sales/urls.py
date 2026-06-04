@@ -43,6 +43,7 @@ urlpatterns = [
 
     # Delivery list
     path('delivery-list/',                    views.delivery_list,         name='delivery_list'),
+    path('delivery/',                         views.delivery_list),         # alias
 
     # All appointments (alias: /sales/appointments/ for compatibility)
     path('all-appointments/',                 views.all_appointments,      name='all_appointments'),
@@ -60,4 +61,23 @@ urlpatterns = [
     # Vehicle Fittings (per order)
     path('orders/<int:order_pk>/fittings/add/', views.fitting_create,      name='fitting_create'),
     path('fittings/<int:pk>/delete/',         views.fitting_delete,        name='fitting_delete'),
+
+    # FEATURE 1 — Sales Targets & Leaderboard
+    path('targets/',                          views.target_list,           name='target_list'),
+    path('targets/create/',                   views.target_create,         name='target_create'),
+    path('targets/<int:pk>/',                 views.target_detail,         name='target_detail'),
+    path('leaderboard/',                      views.leaderboard,           name='leaderboard'),
+
+    # FEATURE 3 — Test Ride Log
+    path('test-rides/',                       views.test_ride_list,        name='test_ride_list'),
+    path('test-rides/create/',                views.test_ride_create,      name='test_ride_create'),
+    path('test-rides/<int:pk>/return/',       views.test_ride_return,      name='test_ride_return'),
+
+    # FEATURE 5 — PDI Checklist
+    path('orders/<int:pk>/pdi/',              views.pdi_create,            name='pdi_create'),
+    path('pdi/<int:pk>/',                     views.pdi_detail,            name='pdi_detail'),
+    path('pdi/<int:pk>/approve/',             views.pdi_approve,           name='pdi_approve'),
+
+    # FEATURE 9 — Profit Report
+    path('profit-report/',                    views.sale_profit_report,    name='profit_report'),
 ]

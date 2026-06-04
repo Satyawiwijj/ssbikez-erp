@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Sales Leaderboard — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Leaderboard{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Leaderboard — {{ month }}/{{ year }}</h1>
+  <a href="{% url 'sales:target_list' %}" class="btn btn-ghost">&#8592; Targets</a>
+</div>
+{% if leaderboard %}
+<div class="card">
+  <table class="table">
+    <thead><tr><th>Rank</th><th>Executive</th><th>Enquiries</th><th>Conversions</th><th>Revenue</th><th>Conv%</th></tr></thead>
+    <tbody>
+    {% for row in leaderboard %}
+    <tr>
+      <td>
+        {% if row.rank == 1 %}<span style="font-size:20px;">🥇</span>
+        {% elif row.rank == 2 %}<span style="font-size:20px;">🥈</span>
+        {% elif row.rank == 3 %}<span style="font-size:20px;">🥉</span>
+        {% else %}<span style="color:#64748b;">#{{ row.rank }}</span>
+        {% endif %}
+      </td>
+      <td><strong>{{ row.user.get_full_name }}</strong></td>
+      <td>{{ row.month_enquiries }}</td>
+      <td>{{ row.month_conversions }}</td>
+      <td>₹{{ row.month_revenue|default:0|floatformat:0 }}</td>
+      <td>
+        {% if row.month_enquiries %}
+          {{ row.month_conversions|floatformat:0 }}%
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p style="padding:20px;color:#64748b;">No sales executives found.</p></div>
+{% endif %}
+{% endblock %}

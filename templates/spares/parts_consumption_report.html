@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Parts Consumption — SSBikez ERP{% endblock %}
+{% block page_title %}Parts Consumption Report{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Parts Consumption — {{ month_name }} {{ year }}</h1>
+  <form method="get" style="display:flex;gap:8px;align-items:center;">
+    <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:80px;">
+    <input type="number" name="year"  value="{{ year }}"  min="2024" class="form-control" style="width:100px;">
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+  <div class="card">
+    <div class="card-header"><span class="card-title">Service Usage</span></div>
+    <table class="table">
+      <thead><tr><th>Part</th><th>Category</th><th>Qty</th><th>Value</th></tr></thead>
+      <tbody>
+      {% for row in service_consumption %}
+      <tr {% if forloop.counter <= 10 %}style="background:#eff6ff;"{% endif %}>
+        <td>{{ row.item__item_name }}<br><small style="color:#64748b;">{{ row.item__item_code }}</small></td>
+        <td>{{ row.item__category__name|default:"—" }}</td>
+        <td>{{ row.total_qty|floatformat:2 }}</td>
+        <td>₹{{ row.total_value|floatformat:0 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px;">No data.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card">
+    <div class="card-header"><span class="card-title">Counter Sales</span></div>
+    <table class="table">
+      <thead><tr><th>Part</th><th>Category</th><th>Qty</th><th>Value</th></tr></thead>
+      <tbody>
+      {% for row in counter_consumption %}
+      <tr {% if forloop.counter <= 10 %}style="background:#f0fdf4;"{% endif %}>
+        <td>{{ row.item__item_name }}<br><small style="color:#64748b;">{{ row.item__item_code }}</small></td>
+        <td>{{ row.item__category__name|default:"—" }}</td>
+        <td>{{ row.total_qty|floatformat:2 }}</td>
+        <td>₹{{ row.total_value|floatformat:0 }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align:center;color:#64748b;padding:20px;">No data.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

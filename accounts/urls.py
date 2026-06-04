@@ -37,8 +37,15 @@ urlpatterns = [
 
     # Password change (requires login)
     path('password/change/', views.password_change, name='password_change'),
+    path('password-change/', views.password_change),  # alias
 
     # Password reset (no login required)
+    path('password-reset/', auth_views.PasswordResetView.as_view(
+        template_name='accounts/password_reset.html',
+        email_template_name='accounts/password_reset_email.html',
+        subject_template_name='accounts/password_reset_subject.txt',
+        success_url='/accounts/password/reset/done/',
+    )),  # alias
     path('password/reset/', auth_views.PasswordResetView.as_view(
         template_name='accounts/password_reset.html',
         email_template_name='accounts/password_reset_email.html',
@@ -70,4 +77,7 @@ urlpatterns = [
     # Notifications
     path('notifications/',       views.notification_list,  name='notification_list'),
     path('notifications/count/', views.notification_count, name='notification_count'),
+
+    # FEATURE 6 — GST Report
+    path('gst-report/',          views.gst_report,         name='gst_report'),
 ]

@@ -186,3 +186,21 @@ class AdditionalWorkApprovalForm(forms.ModelForm):
         model = AdditionalWorkApproval
         fields = ('description', 'estimated_labour', 'estimated_spares')
         widgets = {'description': forms.Textarea(attrs={'rows': 3})}
+
+
+# ---------------------------------------------------------------------------
+# FEATURE 4 — Service Reminder Form
+# ---------------------------------------------------------------------------
+
+from .models import ServiceReminder
+
+
+class ServiceReminderForm(forms.ModelForm):
+    class Meta:
+        model = ServiceReminder
+        fields = ('customer_vehicle', 'reminder_date', 'reminder_type',
+                  'due_km', 'notes', 'status', 'assigned_to')
+        widgets = {
+            'reminder_date': forms.DateInput(attrs={'type': 'date'}),
+            'notes': forms.Textarea(attrs={'rows': 2}),
+        }

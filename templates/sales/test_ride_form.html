@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Log Test Ride — SSBikez ERP{% endblock %}
+{% block page_title %}Log Test Ride{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">{{ title }}</h1>
+  <a href="{% url 'sales:test_ride_list' %}" class="btn btn-ghost">&#8592; Back</a>
+</div>
+<div class="card" style="max-width:640px;">
+  <form method="post">{% csrf_token %}
+    {% for field in form %}
+    <div class="form-group">
+      <label class="form-label">{{ field.label }}</label>
+      {{ field }}
+      {% if field.errors %}<div class="text-danger" style="font-size:12px;">{{ field.errors }}</div>{% endif %}
+    </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-primary">Log Test Ride</button>
+  </form>
+</div>
+{% endblock %}

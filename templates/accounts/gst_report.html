@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}GST Report — SSBikez ERP{% endblock %}
+{% block page_title %}GST Report{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">GSTR-1 Format — {{ month_name }} {{ year }}</h1>
+  <div style="display:flex;gap:8px;align-items:center;">
+    <form method="get" style="display:flex;gap:8px;">
+      <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:80px;">
+      <input type="number" name="year"  value="{{ year }}"  min="2024" class="form-control" style="width:100px;">
+      <button type="submit" class="btn btn-secondary">Filter</button>
+    </form>
+    <button onclick="window.print()" class="btn btn-ghost">Print</button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><span class="card-title">Vehicle Sales Invoices (B2C)</span></div>
+  <table class="table">
+    <thead><tr><th>Invoice#</th><th>Date</th><th>Customer</th><th>Taxable</th><th>CGST</th><th>SGST</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for inv in vehicle_invoices %}
+    <tr>
+      <td>{{ inv.invoice_number }}</td>
+      <td>{{ inv.invoice_date }}</td>
+      <td>{% if inv.sales_order %}{{ inv.sales_order.customer.full_name }}{% else %}—{% endif %}</td>
+      <td>₹{{ inv.subtotal|floatformat:2 }}</td>
+      <td>₹{% widthratio inv.gst_amount 2 1 %}</td>
+      <td>₹{% widthratio inv.gst_amount 2 1 %}</td>
+      <td>₹{{ inv.final_amount|floatformat:2 }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" style="text-align:center;color:#64748b;padding:20px;">No invoices.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-header"><span class="card-title">Service Invoices (B2C)</span></div>
+  <table class="table">
+    <thead><tr><th>Invoice#</th><th>Date</th><th>Customer</th><th>Taxable</th><th>GST</th><th>Total</th></tr></thead>
+    <tbody>
+    {% for si in service_invoices %}
+    <tr>
+      <td>{{ si.invoice_number|default:"-" }}</td>
+      <td>{{ si.invoice_date }}</td>
+      <td>{{ si.job_card.customer_vehicle.customer.full_name }}</td>
+      <td>₹{{ si.subtotal|floatformat:2 }}</td>
+      <td>₹{{ si.gst_amount|floatformat:2 }}</td>
+      <td>₹{{ si.final_amount|floatformat:2 }}</td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="6" style="text-align:center;color:#64748b;padding:20px;">No service invoices.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card" style="margin-top:16px;">
+  <div class="card-header"><span class="card-title">GST Summary</span></div>
+  <dl class="detail-list" style="padding:0 16px;">
+    <div class="detail-row"><dt>Vehicle Sales Taxable</dt><dd>₹{{ vehicle_taxable|floatformat:2 }}</dd></div>
+    <div class="detail-row"><dt>Vehicle GST (CGST+SGST)</dt><dd>₹{{ vehicle_gst|floatformat:2 }}</dd></div>
+    <div class="detail-row"><dt>GSTIN</dt><dd>{{ company.gstin }}</dd></div>
+    <div class="detail-row"><dt>Period</dt><dd>{{ month_name }} {{ year }}</dd></div>
+  </dl>
+</div>
+
+<style>@media print { .sidebar, .topbar, .page-header-actions { display:none !important; } }</style>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Service Reminders — SSBikez ERP{% endblock %}
+{% block page_title %}Service Reminders{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Service Reminders</h1>
+  <div style="display:flex;gap:8px;">
+    <a href="?type=" class="btn btn-ghost btn-sm {% if not filter_type %}active{% endif %}">All</a>
+    <a href="?type=free_service" class="btn btn-ghost btn-sm">Free Service</a>
+    <a href="?type=insurance_expiry" class="btn btn-ghost btn-sm">Insurance</a>
+    <a href="?type=amc_renewal" class="btn btn-ghost btn-sm">AMC</a>
+    <a href="?type=warranty_expiry" class="btn btn-ghost btn-sm">Warranty</a>
+  </div>
+</div>
+<div class="card">
+  <table class="table">
+    <thead><tr>
+      <th>Customer</th><th>Vehicle</th><th>Reg No</th><th>Type</th>
+      <th>Due Date</th><th>Days Left</th><th>Status</th><th>Action</th>
+    </tr></thead>
+    <tbody>
+    {% for r in reminders %}
+    {% with days_left=r.reminder_date|timeuntil:today %}
+    <tr style="{% if r.reminder_date == today %}background:#fef2f2;{% elif r.reminder_date <= today %}background:#fff7ed;{% endif %}">
+      <td>{{ r.customer_vehicle.customer.full_name }}<br>
+        <small style="color:#64748b;">{{ r.customer_vehicle.customer.phone }}</small></td>
+      <td>{{ r.customer_vehicle.vehicle.bike_model }}</td>
+      <td>{{ r.customer_vehicle.registration_no }}</td>
+      <td>{{ r.get_reminder_type_display }}</td>
+      <td>{{ r.reminder_date }}</td>
+      <td>
+        {% if r.reminder_date == today %}<span style="color:#dc2626;font-weight:600;">Today</span>
+        {% elif r.reminder_date < today %}<span style="color:#dc2626;">Overdue</span>
+        {% else %}{{ r.reminder_date|timeuntil }}{% endif %}
+      </td>
+      <td>
+        {% if r.status == 'pending' %}<span class="badge badge-yellow">Pending</span>
+        {% elif r.status == 'called' %}<span class="badge badge-blue">Called</span>
+        {% elif r.status == 'booked' %}<span class="badge badge-green">Booked</span>
+        {% else %}<span class="badge badge-gray">{{ r.get_status_display }}</span>{% endif %}
+      </td>
+      <td>
+        <form method="post" action="{% url 'service:reminder_update' r.pk %}" style="display:flex;gap:4px;">
+          {% csrf_token %}
+          <select name="status" style="font-size:12px;padding:4px;">
+            {% for val, label in r.Status.choices %}
+            <option value="{{ val }}" {% if r.status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-sm btn-secondary">Save</button>
+        </form>
+      </td>
+    </tr>
+    {% endwith %}
+    {% empty %}
+    <tr><td colspan="8" style="text-align:center;color:#64748b;padding:30px;">No reminders found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

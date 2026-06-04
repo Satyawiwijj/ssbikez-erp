@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Test Rides — SSBikez ERP{% endblock %}
+{% block page_title %}Test Rides{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Test Ride Log</h1>
+  <a href="{% url 'sales:test_ride_create' %}" class="btn btn-primary">+ Log Test Ride</a>
+</div>
+<div class="card">
+  <table class="table">
+    <thead><tr><th>TR#</th><th>Rider</th><th>Vehicle</th><th>Start</th><th>Duration</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for ride in rides %}
+    <tr style="{% if ride.status == 'out' %}background:#fef2f2;{% endif %}">
+      <td>TR-{{ ride.pk }}</td>
+      <td>{{ ride.rider_name }}<br><small style="color:#64748b;">{{ ride.rider_phone }}</small></td>
+      <td>{{ ride.vehicle.bike_model }}</td>
+      <td>{{ ride.start_time|date:"d M H:i" }}</td>
+      <td>{% if ride.duration_minutes %}{{ ride.duration_minutes }} min{% else %}—{% endif %}</td>
+      <td>
+        {% if ride.status == 'out' %}<span class="badge badge-red">Out</span>
+        {% elif ride.status == 'returned' %}<span class="badge badge-green">Returned</span>
+        {% else %}<span class="badge badge-gray">Cancelled</span>{% endif %}
+      </td>
+      <td>
+        {% if ride.status == 'out' %}
+        <form method="post" action="{% url 'sales:test_ride_return' ride.pk %}" style="display:inline;">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-primary">Return</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">No test rides logged.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -14,6 +14,7 @@ urlpatterns = [
 
     # Stock
     path('stock/', views.stock_report, name='stock_report'),
+    path('stock-report/', views.stock_report),  # alias
 
     # Supplier Quotes
     path('quotes/', views.quote_list, name='quote_list'),
@@ -55,6 +56,9 @@ urlpatterns = [
 
     # GAP 21: PO Used Qty Report
     path('reports/po-used-qty/', views.po_used_qty_report, name='po_used_qty_report'),
+
+    # FEATURE 8 — Parts Consumption Report
+    path('reports/parts-consumption/', views.parts_consumption_report, name='parts_consumption_report'),
 
     # AJAX
     path('ajax/item-details/', views.ajax_item_details, name='ajax_item_details'),

@@ -17,6 +17,7 @@ ROLE_PERMISSIONS = {
     'CRE Telecaller':    ['service', 'customer_vehicles', 'accounts'],
     'Supervisor':        ['service', 'accounts'],
     'Floor Supervisor':  ['service', 'spares', 'accounts'],
+    'Service Advisor':   ['service', 'spares', 'customer_vehicles', 'accounts'],
     'Service Billing':   ['service', 'billing', 'spares', 'accounts'],
     'Service Manager':   ['service', 'spares', 'customer_vehicles', 'accounts'],
 }

@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Sales Targets — SSBikez ERP{% endblock %}
+{% block page_title %}Sales Targets{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Sales Targets — {{ month }}/{{ year }}</h1>
+  <div class="page-header-actions">
+    <a href="{% url 'sales:target_create' %}" class="btn btn-primary">+ Set Target</a>
+    <a href="{% url 'sales:leaderboard' %}" class="btn btn-secondary">Leaderboard</a>
+  </div>
+</div>
+{% if targets %}
+<div class="card">
+  <table class="table">
+    <thead><tr>
+      <th>Executive</th><th>Enquiries</th><th>Conversions</th><th>Revenue</th><th>Conv%</th>
+    </tr></thead>
+    <tbody>
+    {% for t in targets %}
+    <tr>
+      <td><strong>{{ t.sales_executive.get_full_name }}</strong></td>
+      <td>{{ t.actual_enquiries }}/{{ t.target_enquiries }}</td>
+      <td>{{ t.actual_conversions }}/{{ t.target_conversions }}</td>
+      <td>₹{{ t.actual_revenue|floatformat:0 }}/₹{{ t.target_revenue|floatformat:0 }}</td>
+      <td>{{ t.conversion_percent }}%</td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p style="padding:20px;color:#64748b;">No targets set for this month. <a href="{% url 'sales:target_create' %}">Set targets now.</a></p></div>
+{% endif %}
+{% endblock %}

@@ -593,3 +593,47 @@ class AdditionalWorkApproval(models.Model):
 
     def __str__(self):
         return f"AWA-{self.pk} | JC-{self.job_card_id} — {self.status}"
+
+
+# ---------------------------------------------------------------------------
+# FEATURE 4 — Service Reminder Auto-Generation
+# ---------------------------------------------------------------------------
+
+class ServiceReminder(models.Model):
+    class Status(models.TextChoices):
+        PENDING        = 'pending',        'Pending Call'
+        CALLED         = 'called',         'Called'
+        BOOKED         = 'booked',         'Appointment Booked'
+        NOT_INTERESTED = 'not_interested', 'Not Interested'
+        NO_ANSWER      = 'no_answer',      'No Answer'
+
+    REMINDER_TYPE_CHOICES = [
+        ('free_service',    'Free Service Due'),
+        ('paid_service',    'Paid Service Due'),
+        ('insurance_expiry','Insurance Expiry'),
+        ('amc_renewal',     'AMC Renewal'),
+        ('warranty_expiry', 'Warranty Expiry'),
+    ]
+
+    customer_vehicle = models.ForeignKey(
+        'customer_vehicles.CustomerVehicle',
+        on_delete=models.CASCADE, related_name='service_reminders'
+    )
+    reminder_date    = models.DateField()
+    reminder_type    = models.CharField(max_length=50, choices=REMINDER_TYPE_CHOICES)
+    due_km           = models.IntegerField(null=True, blank=True)
+    notes            = models.TextField(blank=True)
+    status           = models.CharField(
+        max_length=20, choices=Status.choices, default=Status.PENDING
+    )
+    assigned_to      = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='service_reminders'
+    )
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['reminder_date']
+
+    def __str__(self):
+        return f"SR-{self.pk} | {self.customer_vehicle} | {self.reminder_type}"

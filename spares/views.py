@@ -586,3 +586,44 @@ def po_used_qty_report(request):
             'remaining': remaining,
         })
     return render(request, 'spares/po_used_qty_report.html', {'rows': rows})
+
+
+# ============================================================
+# FEATURE 8 — Parts Consumption Report
+# ============================================================
+
+@login_required
+def parts_consumption_report(request):
+    from django.db.models import Sum
+    from datetime import date
+    import calendar as _cal
+    today = date.today()
+    month = int(request.GET.get('month', today.month))
+    year  = int(request.GET.get('year',  today.year))
+
+    service_consumption = SparesIssueAlterationItem.objects.filter(
+        alteration__date__month=month,
+        alteration__date__year=year
+    ).values(
+        'item__item_name', 'item__item_code', 'item__category__name'
+    ).annotate(
+        total_qty=Sum('quantity'), total_value=Sum('total')
+    ).order_by('-total_qty')
+
+    counter_consumption = CounterSaleItem.objects.filter(
+        sale__date__month=month,
+        sale__date__year=year,
+        sale__status='submitted'
+    ).values(
+        'item__item_name', 'item__item_code', 'item__category__name'
+    ).annotate(
+        total_qty=Sum('quantity'), total_value=Sum('total')
+    ).order_by('-total_qty')
+
+    context = {
+        'month': month, 'year': year,
+        'month_name': _cal.month_name[month],
+        'service_consumption': service_consumption,
+        'counter_consumption': counter_consumption,
+    }
+    return render(request, 'spares/parts_consumption_report.html', context)

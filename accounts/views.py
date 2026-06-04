@@ -214,6 +214,61 @@ def dashboard(request):
         'cre' in request.user.role.role_name.lower()
     ) if hasattr(request.user, 'role') and request.user.role else False
 
+    # ── FEATURE 10: Enhanced dashboard additions ──────────────────────────
+    from customers.models import VehicleStock
+
+    try:
+        from sales.models import TestRideLog as _TRL, SalesTarget as _ST
+        todays_test_rides = _TRL.objects.filter(
+            start_time__date=today, status='out'
+        ).count()
+        target_this_month = _ST.objects.filter(
+            month=today.month, year=today.year,
+            sales_executive=request.user
+        ).first()
+    except Exception:
+        todays_test_rides = 0
+        target_this_month = None
+
+    try:
+        from sales.models import PDIChecklist as _PDI, VehicleSalesOrder as _VSO
+        pending_pdi = _VSO.objects.filter(
+            sales_status='booked'
+        ).exclude(pdi_checklist__isnull=False).count()
+    except Exception:
+        pending_pdi = 0
+
+    try:
+        vehicles_aging_90 = VehicleStock.objects.filter(
+            stock_status='available',
+            purchase_date__lte=today - datetime.timedelta(days=90)
+        ).count()
+        aging_30_count = VehicleStock.objects.filter(
+            stock_status='available',
+            purchase_date__lte=today - datetime.timedelta(days=30),
+            purchase_date__gt=today - datetime.timedelta(days=60)
+        ).count()
+        aging_60_count = VehicleStock.objects.filter(
+            stock_status='available',
+            purchase_date__lte=today - datetime.timedelta(days=60),
+            purchase_date__gt=today - datetime.timedelta(days=90)
+        ).count()
+        aging_90_plus = VehicleStock.objects.filter(
+            stock_status='available',
+            purchase_date__lte=today - datetime.timedelta(days=90)
+        ).select_related('bike_model', 'branch')
+    except Exception:
+        vehicles_aging_90 = aging_30_count = aging_60_count = 0
+        aging_90_plus = []
+
+    try:
+        from service.models import ServiceReminder as _SR
+        pending_reminders = _SR.objects.filter(
+            reminder_date=today, status='pending'
+        ).count()
+    except Exception:
+        pending_reminders = 0
+
     return render(request, 'accounts/dashboard.html', {
         'user':                        request.user,
         'enquiries_today':             today_enquiries,
@@ -237,6 +292,16 @@ def dashboard(request):
         'overdue_followups':           overdue_followups,
         'upcoming_followups':          upcoming_followups,
         'today':                       today,
+        # Feature 10 extras
+        'todays_test_rides':           todays_test_rides,
+        'pending_pdi':                 pending_pdi,
+        'vehicles_aging_90':           vehicles_aging_90,
+        'aging_30_count':              aging_30_count,
+        'aging_60_count':              aging_60_count,
+        'aging_90_plus':               aging_90_plus,
+        'aging_90_count':              vehicles_aging_90,
+        'pending_reminders':           pending_reminders,
+        'target_this_month':           target_this_month,
     })
 
 
@@ -733,3 +798,49 @@ def notification_count(request):
     from .models import Notification
     count = Notification.objects.filter(user=request.user, is_read=False).count()
     return JsonResponse({'count': count})
+
+
+# ============================================================
+# FEATURE 6 — GST Return Report
+# ============================================================
+
+@login_required
+def gst_report(request):
+    from billing.models import Invoice, Payment
+    from service.models import ServiceInvoice
+    from spares.models import CounterSale
+    from django.db.models import Sum
+    import calendar as _cal
+    from django.utils import timezone as _tz
+    today = _tz.now().date()
+
+    month = int(request.GET.get('month', today.month))
+    year  = int(request.GET.get('year',  today.year))
+
+    vehicle_invoices = Invoice.objects.filter(
+        invoice_date__month=month, invoice_date__year=year
+    ).select_related('sales_order__customer', 'sales_order__vehicle__bike_model')
+
+    service_invoices = ServiceInvoice.objects.filter(
+        created_at__month=month, created_at__year=year
+    ).select_related('job_card__customer_vehicle__customer')
+
+    counter_sales = CounterSale.objects.filter(
+        date__month=month, date__year=year, status='submitted'
+    )
+
+    vehicle_taxable = vehicle_invoices.aggregate(t=Sum('subtotal'))['t'] or 0
+    vehicle_gst     = vehicle_invoices.aggregate(t=Sum('gst_amount'))['t'] or 0
+
+    from accounts.models import CompanySettings as _CS
+    context = {
+        'month': month, 'year': year,
+        'month_name': _cal.month_name[month],
+        'vehicle_invoices': vehicle_invoices,
+        'service_invoices': service_invoices,
+        'counter_sales': counter_sales,
+        'vehicle_taxable': vehicle_taxable,
+        'vehicle_gst': vehicle_gst,
+        'company': _CS.get_instance(),
+    }
+    return render(request, 'accounts/gst_report.html', context)

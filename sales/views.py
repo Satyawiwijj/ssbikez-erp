@@ -649,3 +649,221 @@ def fitting_delete(request, pk):
         log_action(request, 'Vehicle Fitting', 'delete', pk)
         messages.success(request, 'Fitting removed.')
     return redirect('sales:order_detail', pk=order_id)
+
+
+# ============================================================
+# FEATURE 1 — Sales Target Tracking
+# ============================================================
+from .models import SalesTarget, TestRideLog, PDIChecklist
+from .forms import SalesTargetForm, TestRideLogForm, PDIChecklistForm
+
+
+@login_required
+def target_list(request):
+    from django.utils import timezone as _tz
+    today = _tz.now().date()
+    targets = SalesTarget.objects.filter(
+        month=today.month, year=today.year
+    ).select_related('sales_executive')
+    return render(request, 'sales/target_list.html', {
+        'targets': targets, 'month': today.month, 'year': today.year,
+    })
+
+
+@login_required
+def target_create(request):
+    from django.utils import timezone as _tz
+    today = _tz.now().date()
+    if request.method == 'POST':
+        form = SalesTargetForm(request.POST)
+        if form.is_valid():
+            target = form.save(commit=False)
+            target.created_by = request.user
+            target.save()
+            messages.success(request, 'Sales target set successfully.')
+            return redirect('sales:target_list')
+    else:
+        form = SalesTargetForm(initial={'month': today.month, 'year': today.year})
+    return render(request, 'sales/target_form.html', {'form': form, 'title': 'Set Sales Target'})
+
+
+@login_required
+def target_detail(request, pk):
+    target = get_object_or_404(SalesTarget, pk=pk)
+    return render(request, 'sales/target_detail.html', {'target': target})
+
+
+@login_required
+def leaderboard(request):
+    from django.utils import timezone as _tz
+    from django.db.models import Count, Sum
+    today = _tz.now().date()
+    from accounts.models import User as _AuthUser
+    execs = _AuthUser.objects.filter(
+        role__role_name='Sales Executive'
+    ).annotate(
+        month_enquiries=Count(
+            'enquiries_handled',
+            filter=Q(enquiries_handled__created_at__month=today.month,
+                     enquiries_handled__created_at__year=today.year)
+        ),
+        month_conversions=Count(
+            'sales_orders',
+            filter=Q(sales_orders__created_at__month=today.month,
+                     sales_orders__created_at__year=today.year)
+        ),
+        month_revenue=Sum(
+            'sales_orders__total_amount',
+            filter=Q(sales_orders__created_at__month=today.month,
+                     sales_orders__created_at__year=today.year)
+        )
+    ).order_by('-month_conversions', '-month_revenue')
+
+    leaderboard_data = []
+    for i, exec_user in enumerate(execs, 1):
+        target = SalesTarget.objects.filter(
+            sales_executive=exec_user, month=today.month, year=today.year
+        ).first()
+        leaderboard_data.append({
+            'rank': i, 'user': exec_user, 'target': target,
+            'month_enquiries': exec_user.month_enquiries or 0,
+            'month_conversions': exec_user.month_conversions or 0,
+            'month_revenue': exec_user.month_revenue or 0,
+        })
+    return render(request, 'sales/leaderboard.html', {
+        'leaderboard': leaderboard_data, 'month': today.month, 'year': today.year,
+    })
+
+
+# ============================================================
+# FEATURE 3 — Test Ride Log
+# ============================================================
+
+@login_required
+def test_ride_list(request):
+    rides = TestRideLog.objects.select_related(
+        'enquiry', 'vehicle__bike_model', 'accompanied_by'
+    ).order_by('-created_at')
+    return render(request, 'sales/test_ride_list.html', {'rides': rides})
+
+
+@login_required
+def test_ride_create(request):
+    enquiry_id = request.GET.get('enquiry')
+    initial = {}
+    if enquiry_id:
+        enq = get_object_or_404(SalesEnquiry, pk=enquiry_id)
+        initial['enquiry'] = enq
+    if request.method == 'POST':
+        form = TestRideLogForm(request.POST)
+        if form.is_valid():
+            ride = form.save(commit=False)
+            ride.created_by = request.user
+            ride.save()
+            messages.success(request, f'Test ride TR-{ride.pk} logged.')
+            return redirect('sales:test_ride_list')
+    else:
+        form = TestRideLogForm(initial=initial)
+    return render(request, 'sales/test_ride_form.html', {'form': form, 'title': 'Log Test Ride'})
+
+
+@login_required
+@require_POST
+def test_ride_return(request, pk):
+    from django.utils import timezone as _tz
+    ride = get_object_or_404(TestRideLog, pk=pk)
+    ride.end_time = _tz.now()
+    ride.status = 'returned'
+    end_odo = request.POST.get('end_odometer')
+    if end_odo:
+        try:
+            ride.end_odometer = int(end_odo)
+        except ValueError:
+            pass
+    ride.save()
+    messages.success(request, f'Vehicle returned for TR-{ride.pk}.')
+    return redirect('sales:test_ride_list')
+
+
+# ============================================================
+# FEATURE 5 — PDI Checklist
+# ============================================================
+
+@login_required
+def pdi_create(request, pk):
+    order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if hasattr(order, 'pdi_checklist'):
+        return redirect('sales:pdi_detail', pk=order.pdi_checklist.pk)
+    if request.method == 'POST':
+        form = PDIChecklistForm(request.POST)
+        if form.is_valid():
+            pdi = form.save(commit=False)
+            pdi.sales_order = order
+            pdi.inspected_by = request.user
+            pdi.save()
+            messages.success(request, 'PDI checklist saved.')
+            return redirect('sales:pdi_detail', pk=pdi.pk)
+    else:
+        form = PDIChecklistForm()
+    return render(request, 'sales/pdi_form.html', {
+        'form': form, 'order': order, 'title': f'PDI - Order {order.pk}'
+    })
+
+
+@login_required
+def pdi_detail(request, pk):
+    pdi = get_object_or_404(PDIChecklist, pk=pk)
+    return render(request, 'sales/pdi_detail.html', {'pdi': pdi})
+
+
+@login_required
+@require_POST
+def pdi_approve(request, pk):
+    pdi = get_object_or_404(PDIChecklist, pk=pk)
+    pdi.is_approved = True
+    pdi.approved_by = request.user
+    pdi.save()
+    messages.success(request, 'PDI approved.')
+    return redirect('sales:pdi_detail', pk=pdi.pk)
+
+
+# ============================================================
+# FEATURE 9 — Profit Per Vehicle Sale
+# ============================================================
+
+@login_required
+def sale_profit_report(request):
+    from django.utils import timezone as _tz
+    from django.db.models import Sum
+    today = _tz.now().date()
+    month = int(request.GET.get('month', today.month))
+    year  = int(request.GET.get('year',  today.year))
+
+    orders = VehicleSalesOrder.objects.filter(
+        created_at__month=month, created_at__year=year
+    ).select_related('customer', 'vehicle__bike_model', 'sales_executive')
+
+    profit_data = []
+    for order in orders:
+        cost_price = 0
+        if order.vehicle and order.vehicle.bike_model:
+            cost_price = order.vehicle.bike_model.ex_showroom_price or 0
+        selling_price = order.total_amount or 0
+        discount      = order.discount_amount or 0
+        fittings_rev  = order.fittings.aggregate(t=Sum('cost'))['t'] or 0
+        gross_profit  = selling_price - cost_price - discount
+        margin_pct    = round(float(gross_profit) / float(selling_price) * 100, 1) if selling_price else 0
+        profit_data.append({
+            'order': order, 'cost_price': cost_price,
+            'selling_price': selling_price, 'discount': discount,
+            'fittings_revenue': fittings_rev,
+            'gross_profit': gross_profit, 'margin_pct': margin_pct,
+        })
+
+    context = {
+        'month': month, 'year': year,
+        'profit_data': profit_data,
+        'total_revenue': sum(d['selling_price'] for d in profit_data),
+        'total_profit':  sum(d['gross_profit']  for d in profit_data),
+    }
+    return render(request, 'sales/profit_report.html', context)

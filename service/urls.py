@@ -16,6 +16,7 @@ urlpatterns = [
 
     # ServiceEnquiry
     path('',                                    views.enquiry_list,           name='enquiry_list'),
+    path('enquiries/',                          views.enquiry_list),           # alias
     path('enquiries/create/',                   views.enquiry_create,         name='enquiry_create'),
     path('enquiries/<int:pk>/',                 views.enquiry_detail,         name='enquiry_detail'),
     path('enquiries/<int:pk>/edit/',            views.enquiry_update,         name='enquiry_update'),
@@ -112,4 +113,11 @@ urlpatterns = [
     path('additional-work/<int:pk>/send/',      views.additional_work_send,   name='additional_work_send'),
     path('additional-work/<int:pk>/approve/',   views.additional_work_approve, name='additional_work_approve'),
     path('additional-work/<int:pk>/reject/',    views.additional_work_reject, name='additional_work_reject'),
+
+    # FEATURE 4 — Service Reminders
+    path('reminders/',                          views.reminder_list,          name='reminder_list'),
+    path('reminders/<int:pk>/update/',          views.reminder_update,        name='reminder_update'),
+
+    # FEATURE 7 — Technician Report
+    path('technician-report/',                  views.technician_report,      name='technician_report'),
 ]

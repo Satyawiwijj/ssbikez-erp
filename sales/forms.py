@@ -258,3 +258,41 @@ class VehicleFittingForm(forms.ModelForm):
         if cost is None or cost < Decimal('0'):
             raise forms.ValidationError('Cost cannot be negative.')
         return cost
+
+
+# ---------------------------------------------------------------------------
+# FEATURE 1 — Sales Target Form
+# ---------------------------------------------------------------------------
+
+from .models import SalesTarget, TestRideLog, PDIChecklist
+
+
+class SalesTargetForm(forms.ModelForm):
+    class Meta:
+        model = SalesTarget
+        fields = ('sales_executive', 'month', 'year', 'target_enquiries',
+                  'target_test_rides', 'target_conversions', 'target_revenue')
+        widgets = {
+            'month': forms.NumberInput(attrs={'min': 1, 'max': 12}),
+            'year':  forms.NumberInput(attrs={'min': 2024, 'max': 2035}),
+        }
+
+
+class TestRideLogForm(forms.ModelForm):
+    class Meta:
+        model = TestRideLog
+        fields = ('enquiry', 'vehicle', 'rider_name', 'rider_phone',
+                  'license_number', 'accompanied_by', 'start_time',
+                  'start_odometer', 'feedback_after_ride')
+        widgets = {
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
+            'feedback_after_ride': forms.Textarea(attrs={'rows': 2}),
+        }
+
+
+class PDIChecklistForm(forms.ModelForm):
+    class Meta:
+        model = PDIChecklist
+        exclude = ('sales_order', 'inspected_by', 'inspection_date',
+                   'is_approved', 'approved_by')
+        widgets = {'overall_remarks': forms.Textarea(attrs={'rows': 3})}

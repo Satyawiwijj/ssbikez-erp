@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Technician Report — SSBikez ERP{% endblock %}
+{% block page_title %}Technician Productivity Report{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Technician Report — {{ month_name }} {{ year }}</h1>
+  <form method="get" style="display:flex;gap:8px;align-items:center;">
+    <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:80px;">
+    <input type="number" name="year"  value="{{ year }}"  min="2024" class="form-control" style="width:100px;">
+    <button type="submit" class="btn btn-secondary">Filter</button>
+  </form>
+</div>
+<div class="card">
+  <table class="table">
+    <thead><tr>
+      <th>Rank</th><th>Technician</th><th>Job Cards</th><th>Labour Revenue</th><th>Avg/JC</th>
+    </tr></thead>
+    <tbody>
+    {% for tech in technicians %}
+    <tr>
+      <td>#{{ forloop.counter }}</td>
+      <td>{{ tech.get_full_name }}</td>
+      <td>{{ tech.job_cards_count }}</td>
+      <td>₹{{ tech.total_labour|default:0|floatformat:0 }}</td>
+      <td>
+        {% if tech.job_cards_count %}
+          ₹{% widthratio tech.total_labour|default:0 tech.job_cards_count 1 %}
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5" style="text-align:center;color:#64748b;padding:30px;">No data for this period.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
