@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}{{ customer.full_name }} — SSBikez ERP{% endblock %}
-{% block page_title %}Customer Detail{% endblock %}
+{% block page_title %}Customer{% endblock %}
 
 {% block content %}
 <nav class="breadcrumb-bar">
@@ -10,118 +10,184 @@
   <span class="bc-sep">/</span>
   <span class="bc-current">{{ customer.full_name }}</span>
 </nav>
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{{ customer.full_name }}</h1>
-    <p class="page-subtitle">Customer profile and vehicle history</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'customers:customer_update' customer.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'customers:customer_list' %}" class="btn btn-ghost">&#8592; Back</a>
+
+<!-- CUSTOMER PROFILE HEADER -->
+<div class="card" style="margin-bottom:16px;">
+  <div style="padding:24px;">
+    <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+      <div style="width:64px;height:64px;border-radius:16px;background:linear-gradient(135deg,#2563EB,#7c3aed);display:flex;align-items:center;justify-content:center;color:white;font-size:24px;font-weight:800;flex-shrink:0;">
+        {{ customer.full_name|slice:":1"|upper }}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <h1 style="font-size:20px;font-weight:800;color:var(--text-primary);margin:0 0 4px;letter-spacing:-.3px;">{{ customer.full_name }}</h1>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+          <a href="tel:{{ customer.phone }}" class="tel-link" style="font-size:14px;"><i class="fas fa-phone" style="font-size:12px;margin-right:4px;"></i>{{ customer.phone }}</a>
+          {% if customer.email %}<span style="font-size:13px;color:var(--text-muted);"><i class="fas fa-envelope" style="font-size:11px;margin-right:4px;"></i>{{ customer.email }}</span>{% endif %}
+          {% if customer.address %}<span style="font-size:12px;color:var(--text-muted);"><i class="fas fa-map-marker-alt" style="font-size:11px;margin-right:4px;"></i>{{ customer.address|truncatechars:50 }}</span>{% endif %}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="{% url 'sales:enquiry_create' %}?customer={{ customer.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-clipboard-list"></i> New Enquiry</a>
+        <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary btn-sm"><i class="fas fa-wrench"></i> Service</a>
+        <a href="{% url 'customers:customer_update' customer.pk %}" class="btn btn-secondary btn-sm"><i class="fas fa-pen"></i> Edit</a>
+        <a href="{% url 'customers:customer_list' %}" class="btn btn-ghost btn-sm"><i class="fas fa-arrow-left"></i> Back</a>
+      </div>
+    </div>
   </div>
 </div>
 
-<div class="detail-grid">
+<!-- TABS -->
+<div class="tab-nav tab-container" id="customerTabContainer">
+  <button class="tab-btn active" data-tab="ctab-profile"><i class="fas fa-user" style="margin-right:5px;"></i>Profile</button>
+  <button class="tab-btn" data-tab="ctab-vehicles"><i class="fas fa-motorcycle" style="margin-right:5px;"></i>Vehicles ({{ vehicles|length }})</button>
+  <button class="tab-btn" data-tab="ctab-finance"><i class="fas fa-file-invoice" style="margin-right:5px;"></i>Orders &amp; Finance</button>
+  <button class="tab-btn" data-tab="ctab-actions"><i class="fas fa-bolt" style="margin-right:5px;"></i>Quick Actions</button>
+</div>
+
+<!-- TAB: PROFILE -->
+<div class="tab-content active" id="ctab-profile">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-address-card" style="margin-right:6px;"></i>Contact Details</span></div>
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Phone</dt><dd><a href="tel:{{ customer.phone }}" class="tel-link">{{ customer.phone }}</a></dd></div>
+        <div class="detail-row"><dt>Email</dt><dd>{{ customer.email|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Address</dt><dd style="text-align:left;max-width:260px;line-height:1.5;">{{ customer.address|default:"—" }}</dd></div>
+      </dl>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-id-card" style="margin-right:6px;"></i>Identity</span></div>
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Aadhaar No</dt><dd style="font-family:monospace;">{{ customer.aadhaar_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>PAN No</dt><dd style="font-family:monospace;">{{ customer.pan_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Joined</dt><dd>{{ customer.created_at|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Last Updated</dt><dd>{{ customer.updated_at|date:"d M Y" }}</dd></div>
+      </dl>
+    </div>
+  </div>
+</div>
+
+<!-- TAB: VEHICLES -->
+<div class="tab-content" id="ctab-vehicles">
   <div class="card">
     <div class="card-header">
-      <span class="card-title">Profile</span>
+      <span class="card-title"><i class="fas fa-motorcycle" style="margin-right:6px;"></i>Registered Vehicles</span>
+      <a href="{% url 'customer_vehicles:customervehicle_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Vehicle</a>
     </div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Phone</dt><dd>{{ customer.phone }}</dd></div>
-      <div class="detail-row"><dt>Email</dt><dd>{{ customer.email|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Address</dt><dd>{{ customer.address|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Aadhaar No</dt><dd>{{ customer.aadhaar_no|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>PAN No</dt><dd>{{ customer.pan_no|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Joined</dt><dd>{{ customer.created_at|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Last Updated</dt><dd>{{ customer.updated_at|date:"d M Y" }}</dd></div>
-    </dl>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Bike Model</th>
+            <th>Registration No</th>
+            <th>Purchase Date</th>
+            <th>Insurance Expiry</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cv in vehicles %}
+          <tr>
+            <td style="font-weight:600;">{{ cv.vehicle.bike_model }}</td>
+            <td>
+              {% if cv.registration_no %}
+              <span class="badge badge-green" style="font-family:monospace;">{{ cv.registration_no }}</span>
+              {% else %}
+              <span class="badge badge-gray">Unregistered</span>
+              {% endif %}
+            </td>
+            <td style="font-size:13px;color:var(--text-muted);">{{ cv.purchase_date|date:"d M Y"|default:"—" }}</td>
+            <td>
+              {% if cv.insurance_expiry %}
+              <span style="font-size:13px;color:var(--text-secondary);">{{ cv.insurance_expiry|date:"d M Y" }}</span>
+              {% else %}
+              <span style="color:var(--text-muted);">—</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4">
+              <div class="empty-state" style="padding:36px 20px;">
+                <div class="empty-state-icon"><i class="fas fa-motorcycle"></i></div>
+                <div class="empty-state-title">No vehicles linked</div>
+                <div class="empty-state-text">Add a vehicle to this customer profile.</div>
+                <a href="{% url 'customer_vehicles:customervehicle_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Vehicle</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
+</div>
 
+<!-- TAB: ORDERS & FINANCE -->
+<div class="tab-content" id="ctab-finance">
   <div class="card">
     <div class="card-header">
-      <span class="card-title">Quick Actions</span>
+      <span class="card-title"><i class="fas fa-shopping-cart" style="margin-right:6px;"></i>Sales Orders</span>
     </div>
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      <a href="{% url 'sales:enquiry_create' %}?customer={{ customer.pk }}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F4CB; New Sales Enquiry</a>
-      <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F527; New Service Enquiry</a>
-      <a href="{% url 'customer_vehicles:customervehicle_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">&#x1F511; Add Vehicle</a>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr><th>Order #</th><th>Vehicle</th><th>Status</th><th>Invoice Total</th><th>Loan Amount</th></tr>
+        </thead>
+        <tbody>
+          {% for order in sales_orders %}
+          <tr>
+            <td>
+              <a href="{% url 'sales:order_detail' order.pk %}" style="font-family:monospace;font-weight:700;color:var(--primary);text-decoration:none;">ORD-{{ order.pk }}</a>
+            </td>
+            <td style="font-weight:500;">{{ order.vehicle.bike_model|default:"—" }}</td>
+            <td><span class="badge badge-blue">{{ order.get_sales_status_display }}</span></td>
+            <td style="font-weight:600;">
+              {% with inv=order.invoices.first %}
+                {% if inv %}&#8377; {{ inv.final_amount }}{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+              {% endwith %}
+            </td>
+            <td>
+              {% with loan=order.loan %}
+                {% if loan %}&#8377; {{ loan.loan_amount }}{% else %}<span style="color:var(--text-muted);">—</span>{% endif %}
+              {% endwith %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5"><div class="empty-state" style="padding:36px 20px;"><div class="empty-state-icon"><i class="fas fa-shopping-cart"></i></div><div class="empty-state-title">No sales orders</div></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
     </div>
+    {% if sales_orders %}
+    <div style="padding:14px 20px;display:flex;gap:24px;flex-wrap:wrap;border-top:1px solid var(--border-light);background:#f8fafc;">
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Total Invoiced</div>
+        <div style="font-size:18px;font-weight:800;color:var(--primary);">&#8377; {{ total_invoiced }}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Total Loan</div>
+        <div style="font-size:18px;font-weight:800;color:var(--purple);">&#8377; {{ total_loan }}</div>
+      </div>
+    </div>
+    {% endif %}
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">Vehicles</span>
+<!-- TAB: QUICK ACTIONS -->
+<div class="tab-content" id="ctab-actions">
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;">
+    <a href="{% url 'sales:enquiry_create' %}?customer={{ customer.pk }}" class="card" style="padding:20px;text-decoration:none;margin-bottom:0;display:flex;align-items:center;gap:14px;transition:var(--transition);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="width:42px;height:42px;border-radius:var(--radius);background:var(--primary-light);display:flex;align-items:center;justify-content:center;color:var(--primary);font-size:18px;flex-shrink:0;"><i class="fas fa-clipboard-list"></i></div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">New Sales Enquiry</div><div style="font-size:11px;color:var(--text-muted);">Create enquiry for this customer</div></div>
+    </a>
+    <a href="{% url 'service:enquiry_create' %}" class="card" style="padding:20px;text-decoration:none;margin-bottom:0;display:flex;align-items:center;gap:14px;transition:var(--transition);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="width:42px;height:42px;border-radius:var(--radius);background:var(--orange-light);display:flex;align-items:center;justify-content:center;color:var(--orange);font-size:18px;flex-shrink:0;"><i class="fas fa-wrench"></i></div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">New Service Enquiry</div><div style="font-size:11px;color:var(--text-muted);">Log a service request</div></div>
+    </a>
+    <a href="{% url 'customer_vehicles:customervehicle_create' %}" class="card" style="padding:20px;text-decoration:none;margin-bottom:0;display:flex;align-items:center;gap:14px;transition:var(--transition);" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+      <div style="width:42px;height:42px;border-radius:var(--radius);background:var(--success-light);display:flex;align-items:center;justify-content:center;color:var(--success);font-size:18px;flex-shrink:0;"><i class="fas fa-key"></i></div>
+      <div><div style="font-size:13px;font-weight:600;color:var(--text-primary);">Add Vehicle</div><div style="font-size:11px;color:var(--text-muted);">Link a new vehicle</div></div>
+    </a>
   </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Bike Model</th>
-          <th>Registration No</th>
-          <th>Purchase Date</th>
-          <th>Insurance Expiry</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for cv in vehicles %}
-        <tr>
-          <td style="font-weight:500;">{{ cv.vehicle.bike_model }}</td>
-          <td>
-            {% if cv.registration_no %}
-            <span class="badge badge-green">{{ cv.registration_no }}</span>
-            {% else %}
-            <span class="badge badge-gray">Unregistered</span>
-            {% endif %}
-          </td>
-          <td style="color:#6B7280; font-size:13px;">{{ cv.purchase_date|date:"d M Y"|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ cv.insurance_expiry|date:"d M Y"|default:"—" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4" class="empty-state">No vehicles linked to this customer yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<div class="card" style="margin-top:16px;">
-  <div class="card-header">
-    <span class="card-title">Finance Summary</span>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr><th>Order #</th><th>Vehicle</th><th>Status</th><th>Invoice Total</th><th>Loan Amount</th></tr>
-      </thead>
-      <tbody>
-        {% for order in sales_orders %}
-        <tr>
-          <td style="font-family:monospace;">ORD-{{ order.pk }}</td>
-          <td>{{ order.vehicle.bike_model|default:"—" }}</td>
-          <td><span class="badge badge-blue">{{ order.get_sales_status_display }}</span></td>
-          <td>
-            {% with inv=order.invoices.first %}
-              {% if inv %}&#8377; {{ inv.final_amount }}{% else %}—{% endif %}
-            {% endwith %}
-          </td>
-          <td>
-            {% with loan=order.loan %}
-              {% if loan %}&#8377; {{ loan.loan_amount }}{% else %}—{% endif %}
-            {% endwith %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="empty-state">No sales orders found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% if sales_orders %}
-  <div style="padding:12px 16px; display:flex; gap:24px; font-size:13px; color:#374151; border-top:1px solid #f3f4f6;">
-    <span><strong>Total Invoiced:</strong> &#8377; {{ total_invoiced }}</span>
-    <span><strong>Total Loan:</strong> &#8377; {{ total_loan }}</span>
-  </div>
-  {% endif %}
 </div>
 {% endblock %}

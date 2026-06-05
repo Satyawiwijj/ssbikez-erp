@@ -10,33 +10,61 @@
   <span class="bc-sep">/</span>
   <span class="bc-current">{{ invoice.invoice_number }}</span>
 </nav>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">{{ invoice.invoice_number }}</h1>
-    <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }}</p>
+    <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }} &nbsp;·&nbsp; {{ invoice.sales_order.customer.full_name }}</p>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank">&#x1F4E5; Download PDF</a>
-    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank"><i class="fas fa-download"></i> Download PDF</a>
+    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary"><i class="fas fa-pen"></i> Edit</a>
+    <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back</a>
   </div>
 </div>
 
-<div class="detail-grid">
+<!-- PAYMENT PROGRESS BAR -->
+{% if invoice.final_amount %}
+<div class="card" style="margin-bottom:16px;">
+  <div style="padding:20px 24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Payment Progress</div>
+        <div style="font-size:24px;font-weight:800;color:var(--primary);">&#x20B9; {{ total_paid }}</div>
+        <div style="font-size:12px;color:var(--text-muted);">of &#x20B9; {{ invoice.final_amount }} total</div>
+      </div>
+      <div style="text-align:right;">
+        {% if balance == 0 or balance == '0' %}
+        <span class="badge badge-green" style="font-size:13px;padding:6px 14px;"><i class="fas fa-check-circle" style="margin-right:5px;"></i>Fully Paid</span>
+        {% else %}
+        <div style="font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px;">Balance Due</div>
+        <div style="font-size:22px;font-weight:800;color:var(--danger);">&#x20B9; {{ balance }}</div>
+        {% endif %}
+      </div>
+    </div>
+    <div style="background:var(--content-bg);border-radius:var(--radius-full);height:8px;overflow:hidden;">
+      <div style="height:100%;border-radius:var(--radius-full);background:linear-gradient(90deg,var(--success),#34d399);transition:width .8s ease;" id="payProgress"></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- INVOICE DETAILS + AMOUNTS -->
+<div class="detail-grid" style="margin-bottom:16px;">
   <div class="card">
-    <div class="card-header"><span class="card-title">Invoice Details</span></div>
+    <div class="card-header"><span class="card-title"><i class="fas fa-file-invoice" style="margin-right:6px;"></i>Invoice Details</span></div>
     <dl class="detail-list">
-      <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number }}</dd></div>
-      <div class="detail-row"><dt>Sales Order</dt><dd>
-        <a href="{% url 'sales:order_detail' invoice.sales_order.pk %}">ORD-{{ invoice.sales_order.pk }}</a>
-      </dd></div>
-      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ invoice.sales_order.customer.full_name }}</dd></div>
+      <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace;font-weight:700;">{{ invoice.invoice_number }}</dd></div>
+      <div class="detail-row"><dt>Sales Order</dt>
+        <dd><a href="{% url 'sales:order_detail' invoice.sales_order.pk %}" style="color:var(--primary);font-weight:600;">ORD-{{ invoice.sales_order.pk }}</a></dd>
+      </div>
+      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:600;">{{ invoice.sales_order.customer.full_name }}</dd></div>
       <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
     </dl>
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title">Amount Breakdown</span></div>
+    <div class="card-header"><span class="card-title"><i class="fas fa-calculator" style="margin-right:6px;"></i>Amount Breakdown</span></div>
     <div class="amount-row">
       <span class="label">Subtotal</span>
       <span class="value">&#x20B9; {{ invoice.subtotal }}</span>
@@ -51,11 +79,11 @@
     </div>
     <div class="amount-row total">
       <span class="label">Final Amount</span>
-      <span class="value" style="color:#2563EB;">&#x20B9; {{ invoice.final_amount }}</span>
+      <span class="value">&#x20B9; {{ invoice.final_amount }}</span>
     </div>
     <div class="amount-row">
       <span class="label">Total Paid</span>
-      <span class="value" style="color:#065F46;">&#x20B9; {{ total_paid }}</span>
+      <span class="value" style="color:var(--success);font-weight:700;">&#x20B9; {{ total_paid }}</span>
     </div>
     <div class="amount-row balance">
       <span class="label">Balance Remaining</span>
@@ -64,11 +92,11 @@
   </div>
 </div>
 
-<!-- PAYMENTS -->
+<!-- PAYMENTS TABLE -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">Payments</span>
-    <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-primary btn-sm">+ Add Payment</a>
+    <span class="card-title"><i class="fas fa-credit-card" style="margin-right:6px;"></i>Payment History</span>
+    <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Payment</a>
   </div>
   <div class="table-wrapper">
     <table class="table">
@@ -80,38 +108,59 @@
           <th>Amount</th>
           <th>Status</th>
           <th>Date</th>
-          <th>Actions</th>
+          <th style="text-align:right;">Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for pay in payments %}
         <tr>
-          <td style="font-family:monospace; font-size:13px;">PAY-{{ pay.pk }}</td>
-          <td>{{ pay.get_payment_method_display|default:"—" }}</td>
-          <td style="font-size:13px; color:#6B7280;">{{ pay.transaction_reference|default:"—" }}</td>
-          <td style="font-weight:500;">&#x20B9; {{ pay.amount }}</td>
+          <td style="font-family:monospace;font-weight:600;color:var(--primary);">PAY-{{ pay.pk }}</td>
           <td>
-            {% if pay.payment_status == 'completed' %}
-            <span class="badge badge-green">{{ pay.get_payment_status_display }}</span>
-            {% elif pay.payment_status == 'pending' %}
-            <span class="badge badge-yellow">{{ pay.get_payment_status_display }}</span>
-            {% elif pay.payment_status == 'failed' %}
-            <span class="badge badge-red">{{ pay.get_payment_status_display }}</span>
-            {% else %}
-            <span class="badge badge-gray">{{ pay.get_payment_status_display }}</span>
+            <span class="badge badge-gray">{{ pay.get_payment_method_display|default:"—" }}</span>
+          </td>
+          <td style="font-size:12px;color:var(--text-muted);font-family:monospace;">{{ pay.transaction_reference|default:"—" }}</td>
+          <td style="font-weight:700;font-size:14px;">&#x20B9; {{ pay.amount }}</td>
+          <td>
+            {% if pay.payment_status == 'completed' %}<span class="badge badge-green">{{ pay.get_payment_status_display }}</span>
+            {% elif pay.payment_status == 'pending' %}<span class="badge badge-amber">{{ pay.get_payment_status_display }}</span>
+            {% elif pay.payment_status == 'failed' %}<span class="badge badge-red">{{ pay.get_payment_status_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ pay.get_payment_status_display }}</span>
             {% endif %}
           </td>
-          <td style="font-size:13px; color:#6B7280;">{{ pay.payment_date|date:"d M Y H:i"|default:"—" }}</td>
+          <td style="font-size:12px;color:var(--text-muted);">{{ pay.payment_date|date:"d M Y H:i"|default:"—" }}</td>
           <td>
-            <a href="{% url 'billing:payment_update' pay.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-            <a href="{% url 'billing:payment_receipt_pdf' pay.pk %}" class="btn btn-secondary btn-sm" target="_blank">&#x1F5A8; Receipt</a>
+            <div class="table-actions">
+              <a href="{% url 'billing:payment_update' pay.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              <a href="{% url 'billing:payment_receipt_pdf' pay.pk %}" class="btn btn-secondary btn-sm" target="_blank"><i class="fas fa-print" style="font-size:11px;"></i> Receipt</a>
+            </div>
           </td>
         </tr>
         {% empty %}
-        <tr><td colspan="7" class="empty-state">No payments recorded yet.</td></tr>
+        <tr>
+          <td colspan="7">
+            <div class="empty-state" style="padding:36px 20px;">
+              <div class="empty-state-icon"><i class="fas fa-credit-card"></i></div>
+              <div class="empty-state-title">No payments recorded</div>
+              <div class="empty-state-text">Add the first payment for this invoice.</div>
+              <a href="{% url 'billing:payment_create' %}?invoice={{ invoice.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Payment</a>
+            </div>
+          </td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>
 </div>
+
+{% block extra_js %}
+<script>
+(function() {
+  var total = parseFloat("{{ invoice.final_amount|default:0 }}".replace(/,/g,'')) || 0;
+  var paid = parseFloat("{{ total_paid|default:0 }}".replace(/,/g,'')) || 0;
+  var pct = total > 0 ? Math.min((paid / total) * 100, 100) : 0;
+  var bar = document.getElementById('payProgress');
+  if (bar) setTimeout(function() { bar.style.width = pct + '%'; }, 200);
+})();
+</script>
+{% endblock %}
 {% endblock %}

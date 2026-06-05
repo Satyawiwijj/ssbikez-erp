@@ -4,85 +4,131 @@
 
 {% block content %}
 <div class="page-header">
-  <div>
+  <div class="page-header-left">
     <h1 class="page-title">Sales Enquiries</h1>
     <p class="page-subtitle">Track and manage customer enquiries</p>
   </div>
-  <a href="{% url 'sales:enquiry_create' %}" class="btn btn-primary">+ New Enquiry</a>
+  <a href="{% url 'sales:enquiry_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Enquiry</a>
 </div>
 
-<div class="filter-tabs">
-  <a href="{% url 'sales:enquiry_list' %}{% if q %}?q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
+<!-- SEARCH BAR -->
+<form method="get" style="margin-bottom:16px;">
+  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+  <div style="display:flex;gap:8px;align-items:center;">
+    <div style="flex:1;position:relative;">
+      <i class="fas fa-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name, phone, bike model…"
+             style="padding-left:36px;border-radius:var(--radius-full);height:40px;font-size:13px;">
+    </div>
+    <button type="submit" class="btn btn-secondary">Search</button>
+    {% if q or status_filter %}<a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+  </div>
+</form>
+
+<!-- STATUS FILTER TABS -->
+<div class="filter-tabs" style="margin-bottom:20px;">
+  <a href="{% url 'sales:enquiry_list' %}{% if q %}?q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">
+    <i class="fas fa-list" style="font-size:11px;margin-right:4px;"></i>All
+  </a>
   {% for val, label in status_choices %}
-  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
+  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">
+    {% if val == 'open' %}<i class="fas fa-circle" style="font-size:8px;color:#2563EB;margin-right:4px;vertical-align:1px;"></i>
+    {% elif val == 'follow_up' %}<i class="fas fa-circle" style="font-size:8px;color:#d97706;margin-right:4px;vertical-align:1px;"></i>
+    {% elif val == 'converted' %}<i class="fas fa-circle" style="font-size:8px;color:#059669;margin-right:4px;vertical-align:1px;"></i>
+    {% elif val == 'lost' %}<i class="fas fa-circle" style="font-size:8px;color:#dc2626;margin-right:4px;vertical-align:1px;"></i>
+    {% else %}<i class="fas fa-circle" style="font-size:8px;color:#94a3b8;margin-right:4px;vertical-align:1px;"></i>{% endif %}
+    {{ label }}
+  </a>
   {% endfor %}
 </div>
 
-<form class="search-bar" method="get">
-  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by name, phone...">
-  <button type="submit" class="btn btn-secondary">Search</button>
-  {% if q or status_filter %}<a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
-</form>
-
-<div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Lead</th>
-          <th>Bike Model</th>
-          <th>Source</th>
-          <th>Executive</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for enq in enquiries %}
-        <tr>
-          <td>
-            {% if enq.customer %}
-            <div style="font-weight:500;">{{ enq.customer.full_name }}</div>
-            <div style="font-size:12px; color:#6B7280;">{{ enq.customer.phone }}</div>
-            {% elif enq.prospect %}
-            <div style="font-weight:500;">
-              {{ enq.prospect.full_name }}
-              <span class="badge badge-gray" style="font-size:10px; margin-left:4px;">Prospect</span>
+<!-- ENQUIRIES TABLE -->
+<div class="table-wrapper" style="border-radius:var(--radius-lg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Customer / Prospect</th>
+        <th>Bike Interest</th>
+        <th>Source</th>
+        <th>Executive</th>
+        <th>Status</th>
+        <th>Date</th>
+        <th style="text-align:right;">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for enq in enquiries %}
+      <tr {% if enq.status == 'follow_up' %}style="border-left:3px solid var(--warning);"{% endif %}>
+        <td>
+          {% if enq.customer %}
+          <div style="font-weight:600;font-size:13px;">{{ enq.customer.full_name }}</div>
+          <a href="tel:{{ enq.customer.phone }}" class="tel-link" style="font-size:12px;">{{ enq.customer.phone }}</a>
+          {% elif enq.prospect %}
+          <div style="font-weight:600;font-size:13px;">
+            {{ enq.prospect.full_name }}
+            <span class="badge badge-gray" style="font-size:10px;margin-left:4px;">Prospect</span>
+          </div>
+          <a href="tel:{{ enq.prospect.phone }}" class="tel-link" style="font-size:12px;">{{ enq.prospect.phone }}</a>
+          {% else %}
+          <span style="color:var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="font-weight:500;font-size:13px;">{{ enq.bike_model|default:"—" }}</div>
+        </td>
+        <td>
+          <span class="badge badge-gray">{{ enq.get_enquiry_source_display|default:"—" }}</span>
+        </td>
+        <td>
+          {% if enq.sales_executive %}
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="width:26px;height:26px;border-radius:6px;background:linear-gradient(135deg,var(--primary),var(--purple));display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;flex-shrink:0;">
+              {{ enq.sales_executive|slice:":1"|upper }}
             </div>
-            <div style="font-size:12px; color:#6B7280;">{{ enq.prospect.phone }}</div>
-            {% else %}
-            <div style="color:#9CA3AF;">—</div>
-            {% endif %}
-          </td>
-          <td>{{ enq.bike_model|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ enq.get_enquiry_source_display|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ enq.sales_executive|default:"—" }}</td>
-          <td>
-            {% with s=enq.status %}
-            {% if s == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
-            {% elif s == 'follow_up' %}<span class="badge badge-yellow">{{ enq.get_status_display }}</span>
-            {% elif s == 'converted' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
-            {% elif s == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
-            {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>
-            {% endif %}
-            {% endwith %}
-          </td>
-          <td style="color:#6B7280; font-size:13px;">{{ enq.created_at|date:"d M Y" }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'sales:enquiry_update' enq.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            <span style="font-size:13px;color:var(--text-secondary);">{{ enq.sales_executive }}</span>
+          </div>
+          {% else %}
+          <span style="color:var(--text-muted);">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {% with s=enq.status %}
+          {% if s == 'open' %}<span class="badge badge-blue">{{ enq.get_status_display }}</span>
+          {% elif s == 'follow_up' %}<span class="badge badge-amber">{{ enq.get_status_display }}</span>
+          {% elif s == 'converted' %}<span class="badge badge-green">{{ enq.get_status_display }}</span>
+          {% elif s == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
+          {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>
+          {% endif %}
+          {% endwith %}
+        </td>
+        <td style="font-size:12px;color:var(--text-muted);">{{ enq.created_at|date:"d M Y" }}</td>
+        <td>
+          <div class="table-actions">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-secondary btn-sm">View</a>
+            <a href="{% url 'sales:enquiry_update' enq.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-ghost btn-sm" title="Add Feedback"><i class="fas fa-comment" style="font-size:11px;"></i></a>
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="7">
+          <div class="empty-state" style="padding:48px 20px;">
+            <div class="empty-state-icon"><i class="fas fa-clipboard-list"></i></div>
+            <div class="empty-state-title">No enquiries found</div>
+            <div class="empty-state-text">
+              {% if q or status_filter %}Try adjusting your search or filter.{% else %}Start by creating your first enquiry.{% endif %}
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7" class="empty-state">No enquiries found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+            {% if not q and not status_filter %}
+            <a href="{% url 'sales:enquiry_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Enquiry</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+
 {% include 'partials/pagination.html' %}
 {% endblock %}

@@ -10,202 +10,256 @@
   <span class="bc-sep">/</span>
   <span class="bc-current">ORD-{{ order.pk }}</span>
 </nav>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">ORD-{{ order.pk }}</h1>
-    <span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ order.get_sales_status_display }}</span>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+      <span class="badge badge-blue" style="font-size:12px;padding:4px 10px;">{{ order.get_sales_status_display }}</span>
+      <span style="font-size:13px;color:var(--text-muted);">{{ order.customer.full_name }}</span>
+    </div>
   </div>
   <div class="page-header-actions">
     {% if not invoice %}
-      <a href="{% url 'billing:invoice_create' %}?order={{ order.pk }}" class="btn btn-primary">Generate Invoice</a>
+    <a href="{% url 'billing:invoice_create' %}?order={{ order.pk }}" class="btn btn-primary"><i class="fas fa-file-invoice"></i> Generate Invoice</a>
     {% endif %}
     {% if not delivery %}
-      <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-primary">Deliver Vehicle</a>
+    <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-success"><i class="fas fa-truck"></i> Deliver Vehicle</a>
     {% endif %}
-    <a href="{% url 'sales:order_update' order.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'sales:order_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'sales:order_update' order.pk %}" class="btn btn-secondary"><i class="fas fa-pen"></i> Edit</a>
+    <a href="{% url 'sales:order_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back</a>
   </div>
 </div>
 
-<div class="detail-grid">
+<!-- ORDER PROGRESS WORKFLOW -->
+<div class="workflow-bar" style="margin-bottom:16px;">
+  <div class="workflow-step done" id="wf-booked">
+    <div class="workflow-dot"><i class="fas fa-check" style="font-size:10px;"></i></div>
+    <div class="workflow-label">Booked</div>
+  </div>
+  <div class="workflow-step {% if invoice %}done{% elif not invoice %}current{% endif %}" id="wf-invoice">
+    <div class="workflow-dot">2</div>
+    <div class="workflow-label">Invoice</div>
+  </div>
+  <div class="workflow-step {% if rto and invoice %}done{% elif invoice and not rto %}current{% endif %}" id="wf-rto">
+    <div class="workflow-dot">3</div>
+    <div class="workflow-label">RTO</div>
+  </div>
+  <div class="workflow-step {% if delivery %}done{% elif rto and not delivery %}current{% endif %}" id="wf-delivery">
+    <div class="workflow-dot">4</div>
+    <div class="workflow-label">Delivered</div>
+  </div>
+</div>
+
+<!-- TAB NAVIGATION -->
+<div class="tab-nav tab-container" id="orderTabContainer">
+  <button class="tab-btn active" data-tab="tab-details"><i class="fas fa-info-circle" style="margin-right:5px;"></i>Details</button>
+  <button class="tab-btn" data-tab="tab-finance"><i class="fas fa-landmark" style="margin-right:5px;"></i>Finance</button>
+  <button class="tab-btn" data-tab="tab-documents"><i class="fas fa-folder" style="margin-right:5px;"></i>Documents &amp; RTO</button>
+  <button class="tab-btn" data-tab="tab-policies"><i class="fas fa-shield-alt" style="margin-right:5px;"></i>Insurance</button>
+</div>
+
+<!-- TAB: DETAILS -->
+<div class="tab-content active" id="tab-details">
+  <div class="detail-grid">
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-shopping-cart" style="margin-right:6px;"></i>Order Info</span></div>
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Customer</dt>
+          <dd><span style="font-weight:600;">{{ order.customer.full_name }}</span> <span style="color:var(--text-muted);font-size:12px;">({{ order.customer.phone }})</span></dd>
+        </div>
+        <div class="detail-row"><dt>Vehicle</dt>
+          <dd>{{ order.vehicle.bike_model }} <span style="font-family:monospace;font-size:12px;color:var(--text-muted);">{{ order.vehicle.chassis_no|default:"" }}</span></dd>
+        </div>
+        <div class="detail-row"><dt>Sales Executive</dt><dd>{{ order.sales_executive|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Branch</dt><dd>{{ order.branch|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Enquiry</dt>
+          <dd>{% if order.enquiry %}<a href="{% url 'sales:enquiry_detail' order.enquiry.pk %}" style="color:var(--primary);font-weight:600;">ENQ-{{ order.enquiry.pk }}</a>{% else %}—{% endif %}</dd>
+        </div>
+        <div class="detail-row"><dt>Created</dt><dd style="font-size:12px;">{{ order.created_at|date:"d M Y H:i" }}</dd></div>
+      </dl>
+    </div>
+    <div class="card">
+      <div class="card-header"><span class="card-title"><i class="fas fa-indian-rupee-sign" style="margin-right:6px;"></i>Financials</span></div>
+      <dl class="detail-list">
+        <div class="detail-row"><dt>Booking Amount</dt><dd>&#x20B9; {{ order.booking_amount }}</dd></div>
+        <div class="detail-row"><dt>Discount</dt><dd>&#x20B9; {{ order.discount_amount }}</dd></div>
+        <div class="detail-row"><dt>Total Amount</dt>
+          <dd style="font-size:18px;font-weight:800;color:var(--primary);">&#x20B9; {{ order.total_amount }}</dd>
+        </div>
+      </dl>
+      <!-- INVOICE QUICK LINK -->
+      {% if invoice %}
+      <div style="padding:12px 20px;background:#f8fafc;border-top:1px solid var(--border-light);">
+        <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Invoice</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-family:monospace;font-weight:600;color:var(--primary);">{{ invoice.invoice_number }}</span>
+          <div style="display:flex;gap:6px;">
+            <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View</a>
+            <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <!-- DELIVERY QUICK LINK -->
+      {% if delivery %}
+      <div style="padding:12px 20px;background:#f0fdf4;border-top:1px solid var(--border-light);">
+        <div style="font-size:11px;color:var(--success);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><i class="fas fa-check-circle"></i> Delivered</div>
+        <div style="font-size:13px;color:var(--text-secondary);">{{ delivery.delivery_date|date:"d M Y" }} &nbsp;·&nbsp; {{ delivery.delivered_by|default:"—" }}</div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- TAB: FINANCE -->
+<div class="tab-content" id="tab-finance">
+  <!-- EXCHANGE -->
   <div class="card">
-    <div class="card-header"><span class="card-title">Order Info</span></div>
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-exchange-alt" style="margin-right:6px;"></i>Exchange Vehicle</span>
+      {% if not exchange %}
+      <a href="{% url 'sales:exchange_create' %}?sales_order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Exchange</a>
+      {% endif %}
+    </div>
+    {% if exchange %}
     <dl class="detail-list">
-      <div class="detail-row"><dt>Customer</dt><dd>{{ order.customer.full_name }} <span style="color:#6B7280;">({{ order.customer.phone }})</span></dd></div>
-      <div class="detail-row"><dt>Vehicle</dt><dd>{{ order.vehicle.bike_model }} — <span style="font-family:monospace; font-size:13px;">{{ order.vehicle.chassis_no|default:"No chassis" }}</span></dd></div>
-      <div class="detail-row"><dt>Sales Executive</dt><dd>{{ order.sales_executive|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Branch</dt><dd>{{ order.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Enquiry</dt><dd>
-        {% if order.enquiry %}
-        <a href="{% url 'sales:enquiry_detail' order.enquiry.pk %}">ENQ-{{ order.enquiry.pk }}</a>
-        {% else %}—{% endif %}
-      </dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ order.created_at|date:"d M Y H:i" }}</dd></div>
+      <div class="detail-row"><dt>Old Model</dt><dd>{{ exchange.old_vehicle_model|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Reg No</dt><dd style="font-family:monospace;font-weight:600;">{{ exchange.registration_no|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Valuation</dt><dd style="font-weight:700;color:var(--primary);">&#x20B9; {{ exchange.valuation_amount|default:"—" }}</dd></div>
     </dl>
+    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
+      <a href="{% url 'sales:exchange_update' exchange.pk %}" class="btn btn-secondary btn-sm">Edit Exchange</a>
+    </div>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No exchange vehicle added.</div>
+    {% endif %}
   </div>
+
+  <!-- LOAN -->
   <div class="card">
-    <div class="card-header"><span class="card-title">Financials</span></div>
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-landmark" style="margin-right:6px;"></i>Finance / Loan</span>
+      {% if not loan %}
+      <a href="{% url 'billing:loan_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Loan</a>
+      {% endif %}
+    </div>
+    {% if loan %}
     <dl class="detail-list">
-      <div class="detail-row"><dt>Booking Amount</dt><dd>&#x20B9; {{ order.booking_amount }}</dd></div>
-      <div class="detail-row"><dt>Discount</dt><dd>&#x20B9; {{ order.discount_amount }}</dd></div>
-      <div class="detail-row"><dt>Total Amount</dt><dd style="font-size:16px; font-weight:700; color:#2563EB;">&#x20B9; {{ order.total_amount }}</dd></div>
+      <div class="detail-row"><dt>Bank</dt><dd style="font-weight:600;">{{ loan.bank_name }}</dd></div>
+      <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:700;font-size:15px;color:var(--primary);">&#x20B9; {{ loan.loan_amount }}</dd></div>
+      <div class="detail-row"><dt>Interest Rate</dt><dd>{{ loan.interest_rate|default:"—" }}%</dd></div>
+      <div class="detail-row"><dt>Tenure</dt><dd>{{ loan.tenure_months|default:"—" }} months</dd></div>
+      <div class="detail-row"><dt>EMI</dt><dd style="font-weight:600;">&#x20B9; {{ loan.emi_amount|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></dd></div>
     </dl>
-  </div>
-</div>
-
-<!-- EXCHANGE VEHICLE -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F4B1; Exchange Vehicle</span>
-    {% if not exchange %}
-    <a href="{% url 'sales:exchange_create' %}?sales_order={{ order.pk }}" class="btn btn-primary btn-sm">+ Add Exchange</a>
+    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
+      <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-secondary btn-sm">View Loan Details</a>
+    </div>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No loan added. Add from the Billing module.</div>
     {% endif %}
   </div>
-  {% if exchange %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Old Model</dt><dd>{{ exchange.old_vehicle_model|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Reg No</dt><dd>{{ exchange.registration_no|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Valuation</dt><dd style="font-weight:500;">&#x20B9; {{ exchange.valuation_amount|default:"—" }}</dd></div>
-  </dl>
-  <div style="margin-top:12px;">
-    <a href="{% url 'sales:exchange_update' exchange.pk %}" class="btn btn-secondary btn-sm">Edit Exchange</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">No exchange vehicle added.</p>
-  {% endif %}
 </div>
 
-<!-- FINANCE / LOAN -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F3E6; Finance / Loan</span>
-    {% if not loan %}
-    <a href="{% url 'billing:loan_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Add Loan</a>
+<!-- TAB: DOCUMENTS -->
+<div class="tab-content" id="tab-documents">
+  <!-- RTO -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-id-card" style="margin-right:6px;"></i>RTO Registration</span>
+      {% if not rto %}
+      <a href="{% url 'rto:registration_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add RTO</a>
+      {% endif %}
+    </div>
+    {% if rto %}
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Form 20 No</dt><dd>{{ rto.form20_number|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Reg Number</dt><dd style="font-weight:700;font-size:15px;">{{ rto.registration_number|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>RTO Charges</dt><dd>&#x20B9; {{ rto.rto_charges }}</dd></div>
+      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ rto.get_registration_status_display }}</span></dd></div>
+    </dl>
+    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
+      <a href="{% url 'rto:registration_detail' rto.pk %}" class="btn btn-secondary btn-sm">View Registration</a>
+    </div>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No RTO registration added yet.</div>
     {% endif %}
   </div>
-  {% if loan %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Bank</dt><dd>{{ loan.bank_name }}</dd></div>
-    <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:500;">&#x20B9; {{ loan.loan_amount }}</dd></div>
-    <div class="detail-row"><dt>Interest Rate</dt><dd>{{ loan.interest_rate|default:"—" }}%</dd></div>
-    <div class="detail-row"><dt>Tenure</dt><dd>{{ loan.tenure_months|default:"—" }} months</dd></div>
-    <div class="detail-row"><dt>EMI</dt><dd>&#x20B9; {{ loan.emi_amount|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></dd></div>
-  </dl>
-  <div style="margin-top:12px;">
-    <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-secondary btn-sm">View Loan</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">No loan added. <em>Add from Billing app.</em></p>
-  {% endif %}
-</div>
 
-<!-- INVOICE -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F9FE; Invoice</span>
-    {% if not invoice %}
-    <a href="{% url 'billing:invoice_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
+  <!-- DELIVERY -->
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-truck" style="margin-right:6px;"></i>Vehicle Delivery</span>
+      {% if not delivery %}
+      <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Record Delivery</a>
+      {% endif %}
+    </div>
+    {% if delivery %}
+    <dl class="detail-list">
+      <div class="detail-row"><dt>Delivery Date</dt><dd style="font-weight:600;">{{ delivery.delivery_date|date:"d M Y" }}</dd></div>
+      <div class="detail-row"><dt>Delivered By</dt><dd>{{ delivery.delivered_by|default:"—" }}</dd></div>
+      <div class="detail-row"><dt>Remarks</dt><dd>{{ delivery.remarks|default:"—" }}</dd></div>
+    </dl>
+    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
+      <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-secondary btn-sm">Edit Delivery</a>
+    </div>
+    {% else %}
+    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">Delivery not recorded yet.</div>
     {% endif %}
   </div>
-  {% if invoice %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace;">{{ invoice.invoice_number }}</dd></div>
-    <div class="detail-row"><dt>Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
-    <div class="detail-row"><dt>Subtotal</dt><dd>&#x20B9; {{ invoice.subtotal }}</dd></div>
-    <div class="detail-row"><dt>GST</dt><dd>&#x20B9; {{ invoice.gst_amount }}</dd></div>
-    <div class="detail-row"><dt>Discount</dt><dd>&#x20B9; {{ invoice.discount_amount }}</dd></div>
-    <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:16px; color:#2563EB;">&#x20B9; {{ invoice.final_amount }}</dd></div>
-  </dl>
-  <div style="margin-top:12px;">
-    <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
-    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">No invoice created yet.</p>
-  {% endif %}
 </div>
 
-<!-- RTO -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F4DD; RTO Registration</span>
-    {% if not rto %}
-    <a href="{% url 'rto:registration_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Add RTO</a>
-    {% endif %}
-  </div>
-  {% if rto %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Form 20 No</dt><dd>{{ rto.form20_number|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Reg Number</dt><dd style="font-weight:600;">{{ rto.registration_number|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>RTO Charges</dt><dd>&#x20B9; {{ rto.rto_charges }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ rto.get_registration_status_display }}</span></dd></div>
-  </dl>
-  <div style="margin-top:12px;">
-    <a href="{% url 'rto:registration_detail' rto.pk %}" class="btn btn-secondary btn-sm">View Registration</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">No RTO registration added yet.</p>
-  {% endif %}
-</div>
-
-<!-- VEHICLE DELIVERY -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F697; Vehicle Delivery</span>
-    {% if not delivery %}
-    <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Record Delivery</a>
-    {% endif %}
-  </div>
-  {% if delivery %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Delivery Date</dt><dd>{{ delivery.delivery_date|date:"d M Y" }}</dd></div>
-    <div class="detail-row"><dt>Delivered By</dt><dd>{{ delivery.delivered_by|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Remarks</dt><dd>{{ delivery.remarks|default:"—" }}</dd></div>
-  </dl>
-  <div style="margin-top:12px;">
-    <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-secondary btn-sm">Edit Delivery</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">Delivery not recorded yet.</p>
-  {% endif %}
-</div>
-
-<!-- INSURANCE POLICIES -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x1F6E1;&#xFE0F; Insurance Policies</span>
-    <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Add Policy</a>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Policy Number</th>
-          <th>Provider</th>
-          <th>Premium</th>
-          <th>Start</th>
-          <th>End</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for policy in policies %}
-        <tr>
-          <td style="font-family:monospace; font-size:13px;">
-            <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" style="color:#2563EB; text-decoration:none;">{{ policy.policy_number }}</a>
-          </td>
-          <td>{{ policy.provider_name }}</td>
-          <td style="font-weight:500;">&#x20B9;{{ policy.premium_amount }}</td>
-          <td style="font-size:13px; color:#6B7280;">{{ policy.start_date|date:"d M Y" }}</td>
-          <td style="font-size:13px; color:#6B7280;">{{ policy.end_date|date:"d M Y" }}</td>
-          <td><a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-ghost btn-sm">Edit</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty-state">No policies added yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<!-- TAB: INSURANCE POLICIES -->
+<div class="tab-content" id="tab-policies">
+  <div class="card">
+    <div class="card-header">
+      <span class="card-title"><i class="fas fa-shield-alt" style="margin-right:6px;"></i>Insurance Policies</span>
+      <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Policy</a>
+    </div>
+    <div class="table-wrapper">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Policy Number</th>
+            <th>Provider</th>
+            <th>Premium</th>
+            <th>Start</th>
+            <th>End</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for policy in policies %}
+          <tr>
+            <td>
+              <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" style="font-family:monospace;color:var(--primary);font-weight:600;text-decoration:none;">{{ policy.policy_number }}</a>
+            </td>
+            <td style="font-weight:500;">{{ policy.provider_name }}</td>
+            <td style="font-weight:700;">&#x20B9;{{ policy.premium_amount }}</td>
+            <td style="font-size:12px;color:var(--text-muted);">{{ policy.start_date|date:"d M Y" }}</td>
+            <td style="font-size:12px;color:var(--text-muted);">{{ policy.end_date|date:"d M Y" }}</td>
+            <td>
+              <div class="table-actions">
+                <a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6">
+              <div class="empty-state" style="padding:36px 20px;">
+                <div class="empty-state-icon"><i class="fas fa-shield-alt"></i></div>
+                <div class="empty-state-title">No policies added</div>
+                <div class="empty-state-text">Add an insurance policy for this order.</div>
+                <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Policy</a>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}
