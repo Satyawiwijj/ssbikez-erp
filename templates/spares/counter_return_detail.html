@@ -1,52 +1,182 @@
 {% extends 'base.html' %}
-{% block title %}{{ ret.return_no }}{% endblock %}
-{% block page_title %}{{ ret.return_no }}{% endblock %}
+
+{% block title %}{{ ret.return_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Counter Sale Return{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:counter_return_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+<a href="{% url 'spares:counter_return_list' %}"
+   class="btn btn-secondary btn-sm">
+    Back
+</a>
 {% endblock %}
+
 {% block content %}
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Return Items</h6></div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="table-light">
-            <tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
-          </thead>
-          <tbody>
-            {% for i in items %}
-            <tr>
-              <td>{{ i.item.item_name }}</td>
-              <td>{{ i.quantity }}</td>
-              <td>&#8377;{{ i.rate }}</td>
-              <td>&#8377;{{ i.amount }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="4" class="text-center text-muted">No items.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ ret.return_no }}</h1>
+        <p class="page-subtitle">
+            Return against
+            {% if ret.original_sale %}
+                {{ ret.original_sale.sale_no }}
+            {% else %}
+                Counter Sale
+            {% endif %}
+        </p>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-7">Original Sale</dt><dd class="col-5">{{ ret.original_sale.sale_no }}</dd>
-          <dt class="col-7">Return Date</dt><dd class="col-5">{{ ret.return_date }}</dd>
-          <dt class="col-7">Stock Returned</dt><dd class="col-5">{{ ret.stock_return_done|yesno:"Yes,No" }}</dd>
-          <dt class="col-7">Amount Refunded</dt><dd class="col-5">{{ ret.amount_refund_done|yesno:"Yes,No" }}</dd>
-          <dt class="col-7 fw-bold">Total Amount</dt><dd class="col-5 fw-bold">&#8377;{{ ret.total_amount }}</dd>
-        </dl>
-        {% if ret.reason %}
-        <hr>
-        <small class="text-muted">Reason</small>
-        <p class="mb-0">{{ ret.reason }}</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
 </div>
+
+<div class="detail-grid" >
+
+    <!-- Return Details -->
+    <div class="card form-card">
+
+        <div class="card-header">
+                Return Details
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Return Number</dt>
+                <dd>{{ ret.return_no }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Original Sale</dt>
+                <dd>
+                    {% if ret.original_sale %}
+                        {{ ret.original_sale.sale_no }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Return Date</dt>
+                <dd>{{ ret.return_date|date:"d M Y" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Stock Returned</dt>
+                <dd>
+                    {% if ret.stock_return_done %}
+                        <span class="badge badge-green">
+                            Completed
+                        </span>
+                    {% else %}
+                        <span class="badge badge-yellow">
+                            Pending
+                        </span>
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Amount Refunded</dt>
+                <dd>
+                    {% if ret.amount_refund_done %}
+                        <span class="badge badge-green">
+                            Completed
+                        </span>
+                    {% else %}
+                        <span class="badge badge-yellow">
+                            Pending
+                        </span>
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Total Amount</dt>
+                <dd>
+                    <strong>₹ {{ ret.total_amount }}</strong>
+                </dd>
+            </div>
+
+            {% if ret.reason %}
+            <div class="detail-row">
+                <dt>Reason</dt>
+                <dd>{{ ret.reason }}</dd>
+            </div>
+            {% endif %}
+
+        </dl>
+
+    </div>
+
+</div>
+
+<!-- Returned Items -->
+
+<div class="card form-card">
+
+    <div class="card-header">
+            Returned Items
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for i in items %}
+
+                <tr>
+
+                    <td>
+                        {{ i.item.item_name }}
+                    </td>
+
+                    <td>
+                        {{ i.quantity }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.rate }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.amount }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="4">
+
+                        <div class="empty-state">
+                            <p>
+                                No return items found.
+                            </p>
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

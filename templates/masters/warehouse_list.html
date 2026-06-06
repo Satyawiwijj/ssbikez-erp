@@ -1,53 +1,142 @@
 {% extends 'base.html' %}
+
 {% block title %}Warehouses — Masters{% endblock %}
 {% block page_title %}Warehouses{% endblock %}
-{% block topbar_actions %}
-<a href="{% url 'masters:warehouse_create' %}" class="btn btn-primary btn-sm">
-  <i class="fas fa-plus me-1"></i>New Warehouse
-</a>
+
+{% block topbar_actions %} <a href="{% url 'masters:warehouse_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
+New Warehouse </a>
 {% endblock %}
+
 {% block content %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Warehouses
+</span>
+
+</nav>
+
 <div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between">
-    <span class="card-title">All Warehouses</span>
-    <span class="badge bg-secondary">{{ warehouses|length }}</span>
-  </div>
-  <div class="card-body p-0">
-    {% if warehouses %}
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Type</th>
-          <th>City</th>
-          <th>Status</th>
-          <th class="text-end">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for w in warehouses %}
-        <tr>
-          <td class="fw-semibold">{{ w.name }}</td>
-          <td>{{ w.get_warehouse_type_display|default:"—" }}</td>
-          <td>{{ w.city|default:"—" }}</td>
-          <td>
-            {% if w.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
-          </td>
-          <td class="text-end">
-            <a href="{% url 'masters:warehouse_update' w.pk %}" class="btn btn-sm btn-outline-secondary">
-              <i class="fas fa-edit"></i>
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <i class="fas fa-warehouse text-muted"></i>
-      <p class="mt-2">No warehouses yet. <a href="{% url 'masters:warehouse_create' %}">Add one</a>.</p>
-    </div>
-    {% endif %}
-  </div>
+
+<div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+
+    <span class="card-title">
+
+        <i class="fas fa-warehouse me-2"></i>
+        Warehouses
+
+    </span>
+
+    <span class="badge badge-blue">
+
+        {{ warehouses|length }}
+
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    {% if warehouses %}
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Warehouse ID</th>
+                <th>Warehouse Name</th>
+                <th>Type</th>
+                <th>City</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for w in warehouses %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+                    WH-{{ w.pk }}
+                </td>
+
+                <td style="font-weight:600;">
+                    {{ w.name }}
+                </td>
+
+                <td>
+                    {{ w.get_warehouse_type_display|default:"—" }}
+                </td>
+
+                <td>
+                    {{ w.city|default:"—" }}
+                </td>
+
+                <td>
+
+                    {% if w.is_active %}
+                    <span class="badge badge-green">
+
+                        Active
+
+                    </span>
+                    {% else %}
+                    <span class="badge badge-gray">
+
+                        Inactive
+
+                    </span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'masters:warehouse_update' w.pk %}"
+                           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="fas fa-warehouse mb-2"></i>
+
+        <div>
+            No warehouses found.
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</div>
+
 {% endblock %}

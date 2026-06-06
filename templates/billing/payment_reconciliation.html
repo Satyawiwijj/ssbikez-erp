@@ -11,6 +11,7 @@
   <div><label class="form-label">Start</label><input type="date" name="start" value="{{ start|date:'Y-m-d' }}" class="form-control"></div>
   <div><label class="form-label">End</label><input type="date" name="end" value="{{ end|date:'Y-m-d' }}" class="form-control"></div>
   <button class="btn btn-primary">Load</button>
+  <a href="{% url 'billing:payment_reconciliation' %}" class="btn btn-secondary">Clear</a>
 </form>
 
 <div class="stat-grid" style="grid-template-columns:repeat(5,1fr);">
@@ -25,12 +26,38 @@
   {% endfor %}
 </div>
 
-<div class="card" style="background:#1d4ed8;color:#fff;padding:14px 20px;font-size:18px;font-weight:700;">
-  Period Total: &#x20B9; {{ grand_total|floatformat:2 }}
+<div class="card" style="margin-top:16px;">
+    <div class="card-body"
+         style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+            <div style="font-size:12px;color:#64748B;">
+                TOTAL COLLECTION
+            </div>
+            <div style="font-size:28px;font-weight:700;color:#2563EB;">
+                ₹ {{ grand_total|floatformat:2 }}
+            </div>
+        </div>
+
+        <div style="
+            width:60px;
+            height:60px;
+            border-radius:12px;
+            background:#DBEAFE;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        ">
+            <i class="fas fa-wallet"
+               style="font-size:24px;color:#2563EB;"></i>
+        </div>
+    </div>
 </div>
 
 <div class="card" style="margin-top:16px;">
-  <div class="card-header"><span class="card-title">&#x26A0; Unreconciled (Pending)</span></div>
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <span class="card-title"><i class="fas fa-exclamation-triangle me-2 text-warning"></i>Pending Reconciliation</span>
+    <span class="badge bg-warning text-dark">{{ unreconciled|length }}</span>
+  </div>
   <form method="post">
     {% csrf_token %}
     <div class="table-wrapper">
@@ -47,19 +74,33 @@
             <td>{{ p.transaction_reference|default:"—" }}</td>
           </tr>
           {% empty %}
-          <tr><td colspan="6"><div class="empty-state"><p>No pending payments.</p></div></td></tr>
+          <tr><td colspan="6">
+            <div class="empty-state">
+              <i class="fas fa-check-circle text-success"
+                style="font-size:32px;"></i>
+
+              <p class="mt-2">
+                  No pending payments to reconcile.
+              </p>
+          </div>
+          </td></tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     {% if unreconciled %}
-    <div style="padding:12px 16px;"><button name="reconcile" value="1" class="btn btn-primary">Mark Selected as Completed</button></div>
+    <div style="padding:12px 16px;">
+      <button name="reconcile" value="1" class="btn btn-primary">
+        <i class="fas fa-check-circle me-1"></i>
+        Mark Selected as Reconciled
+      </button>
+    </div>
     {% endif %}
   </form>
 </div>
 
 <div class="card" style="margin-top:16px;">
-  <div class="card-header"><span class="card-title">All Payments</span></div>
+  <div class="card-header"><span class="card-title"><i class="fas fa-money-check-alt me-2"></i>All Payments</span></div>
   <div class="table-wrapper">
     <table class="table">
       <thead><tr><th>Date</th><th>Invoice</th><th>Method</th><th>Status</th><th>Amount</th></tr></thead>
@@ -69,11 +110,36 @@
           <td>{{ p.payment_date|date:"d M Y H:i" }}</td>
           <td>{{ p.invoice.invoice_number }}</td>
           <td>{{ p.get_payment_method_display }}</td>
-          <td><span class="badge">{{ p.get_payment_status_display }}</span></td>
+          <td>
+          {% if p.payment_status == 'completed' %}
+              <span class="badge badge-green">
+                  {{ p.get_payment_status_display }}
+              </span>
+
+          {% elif p.payment_status == 'pending' %}
+              <span class="badge badge-yellow">
+                  {{ p.get_payment_status_display }}
+              </span>
+
+          {% else %}
+              <span class="badge badge-red">
+                  {{ p.get_payment_status_display }}
+              </span>
+          {% endif %}
+          </td>
           <td>&#x20B9; {{ p.amount }}</td>
         </tr>
         {% empty %}
-        <tr><td colspan="5"><div class="empty-state"><p>No payments in this range.</p></div></td></tr>
+        <tr><td colspan="5">
+          <div class="empty-state">
+              <i class="fas fa-wallet text-muted"
+                style="font-size:32px;"></i>
+
+              <p class="mt-2">
+                  No payments found for this period.
+              </p>
+          </div>
+        </td></tr>
         {% endfor %}
       </tbody>
     </table>

@@ -1,28 +1,277 @@
 {% extends 'base.html' %}
+
 {% block title %}RC-{{ rc.pk }} — SSBikez ERP{% endblock %}
-{% block page_title %}RC Book{% endblock %}
+{% block page_title %}RC Book Detail{% endblock %}
 
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'rto:rc_book_list' %}">RC Books</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">RC-{{ rc.pk }}</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'rto:dashboard' %}">RTO</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'rto:rc_book_list' %}">RC Books</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        RC-{{ rc.pk }}
+    </span>
 </nav>
 
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F4D8; RC Book #{{ rc.pk }}</span></div>
-  <dl class="detail-list" style="padding:18px;">
-    <div class="detail-row"><dt>RC Number</dt><dd><strong>{{ rc.rc_number|default:"—" }}</strong></dd></div>
-    <div class="detail-row"><dt>Status</dt><dd>{{ rc.get_status_display }}</dd></div>
-    <div class="detail-row"><dt>Issue Date</dt><dd>{{ rc.issue_date|date:"d M Y"|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Issued To</dt><dd>{{ rc.issued_to|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Customer</dt><dd>{{ rc.rto_registration.sales_order.customer.full_name }}</dd></div>
-    <div class="detail-row"><dt>RTO Registration</dt><dd><a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}">RTO-{{ rc.rto_registration.pk }}</a></dd></div>
-    <div class="detail-row"><dt>Notes</dt><dd>{{ rc.notes|linebreaksbr|default:"—" }}</dd></div>
-  </dl>
-  <div style="padding:0 18px 18px;">
-    <a href="{% url 'rto:rc_book_create' rc.rto_registration.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}" class="btn btn-ghost">Back to RTO</a>
-  </div>
+<div class="card mb-4">
+
+    <div class="card-body" style="padding:18px 22px;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
+
+            <div style="display:flex;align-items:center;gap:14px;">
+
+                <div style="
+                    width:52px;
+                    height:52px;
+                    border-radius:14px;
+                    background:#EEF2FF;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                ">
+                    <i class="fas fa-book"
+                       style="color:#4F46E5;font-size:22px;"></i>
+                </div>
+
+                <div>
+
+                    <div style="
+                        font-size:12px;
+                        color:#64748B;
+                        text-transform:uppercase;
+                        font-weight:600;
+                    ">
+                        RC Book
+                    </div>
+
+                    <div style="
+                        font-size:22px;
+                        font-weight:700;
+                        color:#0F172A;
+                    ">
+                        RC-{{ rc.pk }}
+                    </div>
+
+                    <div style="
+                        font-size:13px;
+                        color:#64748B;
+                    ">
+                        {{ rc.rto_registration.sales_order.customer.full_name }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div>
+
+                {% if rc.status == 'issued' %}
+                <span class="badge badge-green">
+                    {{ rc.get_status_display }}
+                </span>
+
+                {% elif rc.status == 'created' %}
+                <span class="badge badge-blue">
+                    {{ rc.get_status_display }}
+                </span>
+
+                {% else %}
+                <span class="badge badge-yellow">
+                    {{ rc.get_status_display }}
+                </span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+<div class="detail-grid">
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <span class="card-title">
+
+                <i class="fas fa-book-open me-2"></i>
+                RC Book Information
+
+            </span>
+
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>RC Number</dt>
+                <dd style="font-weight:600;">
+                    {{ rc.rc_number|default:"—" }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>{{ rc.get_status_display }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Issue Date</dt>
+                <dd>{{ rc.issue_date|date:"d M Y"|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Issued To</dt>
+                <dd>{{ rc.issued_to|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>HP Endorsed</dt>
+                <dd>
+                    {% if rc.hp_endorsed %}
+                        Yes
+                    {% else %}
+                        No
+                    {% endif %}
+                </dd>
+            </div>
+
+            {% if rc.hp_endorsed %}
+
+            <div class="detail-row">
+                <dt>HP Bank</dt>
+                <dd>{{ rc.hp_bank_name|default:"—" }}</dd>
+            </div>
+
+            {% endif %}
+
+        </dl>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <span class="card-title">
+
+                <i class="fas fa-user me-2"></i>
+                Registration Details
+
+            </span>
+
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Customer</dt>
+                <dd style="font-weight:600;">
+                    {{ rc.rto_registration.sales_order.customer.full_name }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Phone</dt>
+                <dd>
+                    {{ rc.rto_registration.sales_order.customer.phone|default:"—" }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Vehicle</dt>
+                <dd>
+                    {{ rc.rto_registration.sales_order.vehicle.bike_model }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>RTO Registration</dt>
+                <dd>
+
+                    <a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}">
+
+                        RTO-{{ rc.rto_registration.pk }}
+
+                    </a>
+
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Created</dt>
+                <dd>
+                    {{ rc.created_at|date:"d M Y" }}
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+</div>
+
+{% if rc.notes %}
+
+<div class="card mt-3">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-sticky-note me-2"></i>
+            Notes
+
+        </span>
+
+    </div>
+
+    <div style="padding:18px;">
+
+        {{ rc.notes|linebreaksbr }}
+
+    </div>
+
+</div>
+
+{% endif %}
+
+<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+
+    <a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}"
+       class="btn btn-primary">
+
+        <i class="fas fa-id-card me-1"></i>
+        View Registration
+
+    </a>
+
+    <a href="{% url 'rto:rc_book_create' rc.rto_registration.pk %}"
+       class="btn btn-secondary">
+
+        <i class="fas fa-edit me-1"></i>
+        Edit RC Book
+
+    </a>
+
+    <a href="{% url 'rto:rc_book_list' %}"
+       class="btn btn-ghost">
+
+        Back to RC Books
+
+    </a>
+
+</div>
+
 {% endblock %}

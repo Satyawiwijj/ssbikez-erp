@@ -1,246 +1,411 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'spares:invoice_list' %}" class="btn btn-outline-secondary btn-sm">
-  <i class="fas fa-arrow-left me-1"></i>Back
-</a>
-{% endblock %}
-
 {% block content %}
-<form method="post" novalidate>
-  {% csrf_token %}
-  {{ formset.management_form }}
 
-  <div class="row g-3 mb-3">
-    <div class="col-md-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0 fw-semibold">Invoice Details</h6>
-        </div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label class="form-label">Supplier *</label>
-              {{ form.supplier }}
-              {% if form.supplier.errors %}<div class="text-danger small">{{ form.supplier.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Purchase Order (optional)</label>
-              {{ form.purchase_order }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Date *</label>
-              {{ form.date }}
-              {% if form.date.errors %}<div class="text-danger small">{{ form.date.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Due Date</label>
-              {{ form.due_date }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Status</label>
-              {{ form.status }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Payment Status</label>
-              {{ form.payment_status }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Supplier GSTIN</label>
-              {{ form.supplier_gstin }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">GST Category</label>
-              {{ form.gst_category }}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Place of Supply</label>
-              {{ form.place_of_supply }}
-            </div>
-            <div class="col-sm-6 d-flex align-items-center pt-4">
-              <div class="form-check">
-                {{ form.is_reverse_charge }}
-                <label class="form-check-label">Reverse Charge</label>
-              </div>
-            </div>
-            <div class="col-12">
-              <label class="form-label">Remarks</label>
-              {{ form.remarks }}
-            </div>
-          </div>
-        </div>
-      </div>
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
 
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Items</h6>
-          <button type="button" id="add-row" class="btn btn-sm btn-outline-primary">
-            <i class="fas fa-plus me-1"></i>Add Row
-          </button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table align-middle mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>Item</th>
-                  <th>Warehouse</th>
-                  <th>Rack</th>
-                  <th>Bin</th>
-                  <th>Qty</th>
-                  <th>UOM</th>
-                  <th>Rate</th>
-                  <th>SGST%</th>
-                  <th>CGST%</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for inline_form in formset %}
-                <tr class="formset-row">
-                  {% for hidden in inline_form.hidden_fields %}{{ hidden }}{% endfor %}
-                  <td style="min-width:160px;">{{ inline_form.item }}</td>
-                  <td style="min-width:130px;">{{ inline_form.warehouse }}</td>
-                  <td style="min-width:110px;">{{ inline_form.rack }}</td>
-                  <td style="min-width:110px;">{{ inline_form.bin }}</td>
-                  <td style="min-width:90px;">{{ inline_form.quantity }}</td>
-                  <td style="min-width:70px;">{{ inline_form.uom }}</td>
-                  <td style="min-width:100px;">{{ inline_form.rate }}</td>
-                  <td style="min-width:80px;">{{ inline_form.sgst }}</td>
-                  <td style="min-width:80px;">{{ inline_form.cgst }}</td>
-                  <td>
-                    {% if inline_form.instance.pk %}
-                    <div class="form-check d-none">{{ inline_form.DELETE }}</div>
-                    {% endif %}
-                    <button type="button" class="btn btn-sm btn-outline-danger remove-row">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
+    <a href="{% url 'spares:dashboard' %}">Spares</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:invoice_list' %}">Purchase Invoices</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">
+            Create and manage supplier purchase invoices
+        </p>
+    </div>
+
+    <a href="{% url 'spares:invoice_list' %}"
+       class="btn btn-secondary">
+        Back to List
+    </a>
+</div>
+
+{% if form.errors or formset.errors %}
+<div class="alert alert-danger" style="margin-bottom:18px;">
+    <strong>Please correct the errors below:</strong>
+
+    <ul style="margin-top:8px;margin-bottom:0;">
+
+        {% for field in form %}
+            {% for error in field.errors %}
+            <li>{{ field.label }} — {{ error }}</li>
+            {% endfor %}
+        {% endfor %}
+
+        {% for row in formset %}
+            {% for field in row %}
+                {% for error in field.errors %}
+                <li>
+                    Item Row {{ forloop.parentloop.counter }}
+                    — {{ field.label }}
+                    — {{ error }}
+                </li>
                 {% endfor %}
-              </tbody>
+            {% endfor %}
+        {% endfor %}
+
+    </ul>
+</div>
+{% endif %}
+
+<form method="post" novalidate>
+
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    <div class="detail-grid">
+
+        <!-- Main Form -->
+
+        <div>
+
+            <div class="card form-card">
+
+                <div class="card-header">
+                        Invoice Details
+                </div>
+
+                <div style="padding:20px;">
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Supplier *
+                            </label>
+                            {{ form.supplier }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Purchase Order
+                            </label>
+                            {{ form.purchase_order }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Invoice Date *
+                            </label>
+                            {{ form.date }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Due Date
+                            </label>
+                            {{ form.due_date }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Status
+                            </label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Payment Status
+                            </label>
+                            {{ form.payment_status }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Supplier GSTIN
+                            </label>
+                            {{ form.supplier_gstin }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                GST Category
+                            </label>
+                            {{ form.gst_category }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Place of Supply
+                            </label>
+                            {{ form.place_of_supply }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">
+                                Reverse Charge
+                            </label>
+                            <div>
+                                {{ form.is_reverse_charge }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-group" style="margin-top:16px;">
+                        <label class="form-label">
+                            Remarks
+                        </label>
+                        {{ form.remarks }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+
+        <div>
+
+            <div class="card">
+
+                <div class="card-header">
+                    <span class="card-title">
+                        Invoice Summary
+                    </span>
+                </div>
+
+                <div style="padding:18px;">
+
+                    <div class="detail-row">
+                        <dt>Module</dt>
+                        <dd>Spares Management</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Purpose</dt>
+                        <dd>Supplier Purchase Invoice</dd>
+                    </div>
+
+                    {% if object %}
+
+                    <div class="detail-row">
+                        <dt>Total Amount</dt>
+                        <dd>₹ {{ object.total_amount }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>SGST</dt>
+                        <dd>₹ {{ object.total_sgst }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>CGST</dt>
+                        <dd>₹ {{ object.total_cgst }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Grand Total</dt>
+                        <dd style="font-weight:700;color:#2563EB;">
+                            ₹ {{ object.grand_total }}
+                        </dd>
+                    </div>
+
+                    {% else %}
+
+                    <p style="font-size:13px;color:#6B7280;">
+                        Totals will be calculated automatically
+                        when the invoice is saved.
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Invoice Items -->
+
+    <div class="card" style="margin-top:20px;">
+
+        <div class="card-header"
+             style="display:flex;justify-content:space-between;align-items:center;">
+
+            <span class="card-title">
+                Invoice Items
+            </span>
+
+            <button type="button"
+                    id="add-row"
+                    class="btn btn-primary btn-sm">
+                Add Item
+            </button>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="table">
+
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Warehouse</th>
+                        <th>Rack</th>
+                        <th>Bin</th>
+                        <th>Qty</th>
+                        <th>UOM</th>
+                        <th>Rate</th>
+                        <th>SGST %</th>
+                        <th>CGST %</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="formset-body">
+
+                    {% for inline_form in formset %}
+
+                    <tr class="formset-row">
+
+                        {% for hidden in inline_form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+
+                        <td>{{ inline_form.item }}</td>
+                        <td>{{ inline_form.warehouse }}</td>
+                        <td>{{ inline_form.rack }}</td>
+                        <td>{{ inline_form.bin }}</td>
+                        <td>{{ inline_form.quantity }}</td>
+                        <td>{{ inline_form.uom }}</td>
+                        <td>{{ inline_form.rate }}</td>
+                        <td>{{ inline_form.sgst }}</td>
+                        <td>{{ inline_form.cgst }}</td>
+
+                        <td>
+
+                            {% if inline_form.instance.pk %}
+                                <div style="display:none;">
+                                    {{ inline_form.DELETE }}
+                                </div>
+                            {% endif %}
+
+                            <button type="button"
+                                    class="btn btn-sm btn-ghost remove-row">
+                                Remove
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+
+                </tbody>
+
             </table>
-          </div>
+
         </div>
-      </div>
+
     </div>
 
-    <div class="col-md-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-bottom">
-          <h6 class="mb-0 fw-semibold">Summary</h6>
-        </div>
-        <div class="card-body">
-          <p class="text-muted small">Totals are calculated automatically when the invoice is saved.</p>
-          {% if object %}
-          <ul class="list-unstyled small">
-            <li class="d-flex justify-content-between py-1 border-bottom">
-              <span class="text-muted">Total Amount</span>
-              <span class="fw-medium">₹{{ object.total_amount }}</span>
-            </li>
-            <li class="d-flex justify-content-between py-1 border-bottom">
-              <span class="text-muted">SGST</span>
-              <span>₹{{ object.total_sgst }}</span>
-            </li>
-            <li class="d-flex justify-content-between py-1 border-bottom">
-              <span class="text-muted">CGST</span>
-              <span>₹{{ object.total_cgst }}</span>
-            </li>
-            <li class="d-flex justify-content-between py-1">
-              <span class="text-muted fw-semibold">Grand Total</span>
-              <span class="fw-bold text-primary">₹{{ object.grand_total }}</span>
-            </li>
-          </ul>
-          {% endif %}
-        </div>
-      </div>
-    </div>
-  </div>
+    <div class="form-actions">
 
-  <div class="mt-1">
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-save me-1"></i>{% if object %}Update{% else %}Create{% endif %} Invoice
-    </button>
-    <a href="{% url 'spares:invoice_list' %}" class="btn btn-outline-secondary ms-2">Cancel</a>
-  </div>
+        <button type="submit"
+                class="btn btn-primary">
+
+            {% if object %}
+                Update Invoice
+            {% else %}
+                Create Invoice
+            {% endif %}
+
+        </button>
+
+        <a href="{% url 'spares:invoice_list' %}"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </div>
+
 </form>
 
+{% endblock %}
+
+{% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  // ── Supplier auto-fill ──
-  var supplierSel = document.getElementById('id_supplier');
-  function loadSupplierDetails(supplierId) {
-    if (!supplierId) return;
-    fetch('{% url "spares:ajax_supplier_details" %}?supplier_id=' + supplierId)
-      .then(function(r){ return r.json(); })
-      .then(function(data) {
-        if (data.gstin !== undefined)           { var f = document.getElementById('id_supplier_gstin');    if(f) f.value = data.gstin; }
-        if (data.gst_category !== undefined)    { var f = document.getElementById('id_gst_category');      if(f) f.value = data.gst_category; }
-        if (data.place_of_supply !== undefined) { var f = document.getElementById('id_place_of_supply');   if(f) f.value = data.place_of_supply; }
-      });
-  }
-  if (supplierSel) {
-    supplierSel.addEventListener('change', function(){ loadSupplierDetails(this.value); });
-    if (supplierSel.value) loadSupplierDetails(supplierSel.value);
-  }
+(function () {
 
-  // ── Item rate auto-fill ──
-  document.addEventListener('change', function(e) {
-    if (e.target.classList.contains('item-select')) {
-      var row = e.target.closest('tr');
-      var itemId = e.target.value;
-      if (!itemId || !row) return;
-      fetch('{% url "spares:ajax_item_details" %}?item_id=' + itemId)
-        .then(function(r){ return r.json(); })
-        .then(function(data) {
-          var rateF = row.querySelector('[name$="-rate"]');
-          var sgstF = row.querySelector('[name$="-sgst"]');
-          var cgstF = row.querySelector('[name$="-cgst"]');
-          var uomF  = row.querySelector('[name$="-uom"]');
-          if (rateF && data.rate !== undefined) rateF.value = data.rate;
-          if (sgstF && data.sgst !== undefined) sgstF.value = data.sgst;
-          if (cgstF && data.cgst !== undefined) cgstF.value = data.cgst;
-          if (uomF  && data.uom  !== undefined) uomF.value  = data.uom;
-        });
-    }
-  });
+    const totalForms =
+        document.querySelector('[name$="-TOTAL_FORMS"]');
 
-  const addBtn = document.getElementById('add-row');
-  const formsetBody = document.getElementById('formset-body');
-  const totalForms = document.querySelector('[name$="-TOTAL_FORMS"]');
+    const tbody =
+        document.getElementById('formset-body');
 
-  if (addBtn) {
-    addBtn.addEventListener('click', function() {
-      const formCount = parseInt(totalForms.value);
-      const rows = formsetBody.querySelectorAll('.formset-row');
-      if (!rows.length) return;
-      const template = rows[rows.length - 1];
-      const newRow = template.cloneNode(true);
-      newRow.querySelectorAll('input, select, textarea').forEach(el => {
-        el.name = el.name.replace(/-\d+-/, `-${formCount}-`);
-        if (el.id) el.id = el.id.replace(/-\d+-/, `-${formCount}-`);
-        if (el.type !== 'checkbox') el.value = '';
-        if (el.type === 'checkbox') el.checked = false;
-      });
-      formsetBody.appendChild(newRow);
-      totalForms.value = formCount + 1;
+    const addBtn =
+        document.getElementById('add-row');
+
+    if (!tbody || !addBtn || !totalForms) return;
+
+    addBtn.addEventListener('click', function () {
+
+        const rows = tbody.querySelectorAll('.formset-row');
+
+        if (!rows.length) return;
+
+        const newIndex = parseInt(totalForms.value);
+
+        const clone = rows[rows.length - 1].cloneNode(true);
+
+        clone.querySelectorAll('input, select, textarea')
+            .forEach(function (el) {
+
+                if (el.name)
+                    el.name = el.name.replace(/-\d+-/, '-' + newIndex + '-');
+
+                if (el.id)
+                    el.id = el.id.replace(/-\d+-/, '-' + newIndex + '-');
+
+                if (el.type === 'checkbox')
+                    el.checked = false;
+                else
+                    el.value = '';
+            });
+
+        tbody.appendChild(clone);
+
+        totalForms.value = newIndex + 1;
     });
-  }
 
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.remove-row')) {
-      const row = e.target.closest('.formset-row');
-      const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
-      if (deleteCheckbox) {
-        deleteCheckbox.checked = true;
-        row.style.display = 'none';
-      } else {
-        row.remove();
-      }
-    }
-  });
-});
+    document.addEventListener('click', function (e) {
+
+        const btn = e.target.closest('.remove-row');
+
+        if (!btn) return;
+
+        const row = btn.closest('.formset-row');
+
+        const del =
+            row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+
+        if (del) {
+            del.checked = true;
+            row.style.display = 'none';
+        } else {
+            row.remove();
+        }
+    });
+
+})();
 </script>
 {% endblock %}

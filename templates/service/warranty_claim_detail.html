@@ -1,23 +1,188 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ wc.claim_number }} — SSBikez ERP{% endblock %}
-{% block page_title %}Warranty Claim {{ wc.claim_number }}{% endblock %}
+{% block page_title %}Warranty Claim{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F4DD; {{ wc.claim_number }}</span></div>
-  <dl class="detail-list" style="padding:18px;">
-    <div class="detail-row"><dt>Job Card</dt><dd><a href="{% url 'service:jobcard_detail' wc.job_card_id %}">JC-{{ wc.job_card_id }}</a></dd></div>
-    <div class="detail-row"><dt>Customer</dt><dd>{{ wc.job_card.customer_vehicle.customer.full_name }}</dd></div>
-    <div class="detail-row"><dt>Claim Date</dt><dd>{{ wc.claim_date|date:"d M Y" }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd>{{ wc.get_status_display }}</dd></div>
-    <div class="detail-row"><dt>Description</dt><dd>{{ wc.description|linebreaksbr }}</dd></div>
-    <div class="detail-row"><dt>Claimed Amount</dt><dd>&#x20B9; {{ wc.claimed_amount }}</dd></div>
-    <div class="detail-row"><dt>Approved Amount</dt><dd>&#x20B9; {{ wc.approved_amount }}</dd></div>
-    <div class="detail-row"><dt>Notes</dt><dd>{{ wc.notes|linebreaksbr|default:"—" }}</dd></div>
-  </dl>
-  <div style="padding:0 18px 18px;">
-    <a href="{% url 'service:warranty_claim_update' wc.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'service:warranty_claim_list' %}" class="btn btn-ghost">Back to List</a>
-  </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'service:dashboard' %}">Service</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'service:warranty_claim_list' %}">
+        Warranty Claims
+    </a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        {{ wc.claim_number }}
+    </span>
+</nav>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">
+            {{ wc.claim_number }}
+        </h1>
+
+        <p class="page-subtitle">
+            Warranty claim submitted against Job Card
+            JC-{{ wc.job_card.pk }}
+        </p>
+
+        {% if wc.status == 'approved' %}
+            <span class="badge badge-green">
+                {{ wc.get_status_display }}
+            </span>
+
+        {% elif wc.status == 'settled' %}
+            <span class="badge badge-blue">
+                {{ wc.get_status_display }}
+            </span>
+
+        {% elif wc.status == 'rejected' %}
+            <span class="badge badge-red">
+                {{ wc.get_status_display }}
+            </span>
+
+        {% else %}
+            <span class="badge badge-yellow">
+                {{ wc.get_status_display }}
+            </span>
+        {% endif %}
+    </div>
+
+    <div class="page-header-actions">
+
+        <a href="{% url 'service:warranty_claim_update' wc.pk %}"
+           class="btn btn-secondary">
+            <i class="fas fa-edit me-1"></i>
+            Edit
+        </a>
+
+        <a href="{% url 'service:warranty_claim_list' %}"
+           class="btn btn-ghost">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
 </div>
+
+<div class="detail-grid">
+
+    <!-- LEFT -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-shield-alt me-2"></i>
+                Claim Details
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Claim Number</dt>
+                <dd>{{ wc.claim_number }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Job Card</dt>
+                <dd>
+                    <a href="{% url 'service:jobcard_detail' wc.job_card.pk %}">
+                        JC-{{ wc.job_card.pk }}
+                    </a>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Customer</dt>
+                <dd>
+                    {{ wc.job_card.customer_vehicle.customer.full_name }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Vehicle</dt>
+                <dd>
+                    {{ wc.job_card.customer_vehicle.vehicle.bike_model }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Registration No</dt>
+                <dd>
+                    {{ wc.job_card.customer_vehicle.registration_no }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Claim Date</dt>
+                <dd>
+                    {{ wc.claim_date|date:"d M Y" }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+                    {{ wc.get_status_display }}
+                </dd>
+            </div>
+
+        </dl>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+        <!-- Description -->
+        <div class="card" style="margin-bottom:16px;">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-file-alt me-2"></i>
+                    Claim Description
+                </span>
+            </div>
+
+            <div style="padding:20px;line-height:1.8;">
+                {% if wc.description %}
+                    {{ wc.description|linebreaksbr }}
+                {% else %}
+                    <span style="color:#9CA3AF;">
+                        No description provided.
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-sticky-note me-2"></i>
+                    Notes
+                </span>
+            </div>
+
+            <div style="padding:20px;line-height:1.8;">
+                {% if wc.notes %}
+                    {{ wc.notes|linebreaksbr }}
+                {% else %}
+                    <span style="color:#9CA3AF;">
+                        No notes available.
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}

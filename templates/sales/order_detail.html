@@ -31,235 +31,551 @@
   </div>
 </div>
 
-<!-- ORDER PROGRESS WORKFLOW -->
-<div class="workflow-bar" style="margin-bottom:16px;">
-  <div class="workflow-step done" id="wf-booked">
-    <div class="workflow-dot"><i class="fas fa-check" style="font-size:10px;"></i></div>
-    <div class="workflow-label">Booked</div>
-  </div>
-  <div class="workflow-step {% if invoice %}done{% elif not invoice %}current{% endif %}" id="wf-invoice">
-    <div class="workflow-dot">2</div>
-    <div class="workflow-label">Invoice</div>
-  </div>
-  <div class="workflow-step {% if rto and invoice %}done{% elif invoice and not rto %}current{% endif %}" id="wf-rto">
-    <div class="workflow-dot">3</div>
-    <div class="workflow-label">RTO</div>
-  </div>
-  <div class="workflow-step {% if delivery %}done{% elif rto and not delivery %}current{% endif %}" id="wf-delivery">
-    <div class="workflow-dot">4</div>
-    <div class="workflow-label">Delivered</div>
-  </div>
-</div>
+<div class="card mb-4">
+    <div class="card-body py-3">
 
-<!-- TAB NAVIGATION -->
-<div class="tab-nav tab-container" id="orderTabContainer">
-  <button class="tab-btn active" data-tab="tab-details"><i class="fas fa-info-circle" style="margin-right:5px;"></i>Details</button>
-  <button class="tab-btn" data-tab="tab-finance"><i class="fas fa-landmark" style="margin-right:5px;"></i>Finance</button>
-  <button class="tab-btn" data-tab="tab-documents"><i class="fas fa-folder" style="margin-right:5px;"></i>Documents &amp; RTO</button>
-  <button class="tab-btn" data-tab="tab-policies"><i class="fas fa-shield-alt" style="margin-right:5px;"></i>Insurance</button>
-</div>
+        <div class="row text-center align-items-center">
 
-<!-- TAB: DETAILS -->
-<div class="tab-content active" id="tab-details">
-  <div class="detail-grid">
-    <div class="card">
-      <div class="card-header"><span class="card-title"><i class="fas fa-shopping-cart" style="margin-right:6px;"></i>Order Info</span></div>
-      <dl class="detail-list">
-        <div class="detail-row"><dt>Customer</dt>
-          <dd><span style="font-weight:600;">{{ order.customer.full_name }}</span> <span style="color:var(--text-muted);font-size:12px;">({{ order.customer.phone }})</span></dd>
+            <div class="col-md-3 border-end">
+
+                <div class="text-muted small fw-semibold">
+                    <i class="fas fa-flag me-1"></i>
+                    Status
+                </div>
+
+                <span class="badge badge-blue mt-1">
+                    {{ order.get_sales_status_display }}
+                </span>
+
+            </div>
+
+            <div class="col-md-3 border-end">
+
+                <div class="text-muted small fw-semibold">
+                    <i class="fas fa-motorcycle me-1"></i>
+                    Vehicle
+                </div>
+
+                <div class="fw-medium">
+                    {{ order.vehicle.bike_model }}
+                </div>
+
+            </div>
+
+            <div class="col-md-3 border-end">
+
+                <div class="text-muted small fw-semibold">
+                    <i class="fas fa-user me-1"></i>
+                    Customer
+                </div>
+
+                <div class="fw-medium">
+                    {{ order.customer.full_name }}
+                </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+                <div class="text-muted small fw-semibold">
+                    <i class="fas fa-indian-rupee-sign me-1"></i>
+                    Amount
+                </div>
+
+                <div class="fw-bold text-primary">
+                    ₹ {{ order.total_amount }}
+                </div>
+
+            </div>
+
         </div>
-        <div class="detail-row"><dt>Vehicle</dt>
-          <dd>{{ order.vehicle.bike_model }} <span style="font-family:monospace;font-size:12px;color:var(--text-muted);">{{ order.vehicle.chassis_no|default:"" }}</span></dd>
-        </div>
-        <div class="detail-row"><dt>Sales Executive</dt><dd>{{ order.sales_executive|default:"—" }}</dd></div>
-        <div class="detail-row"><dt>Branch</dt><dd>{{ order.branch|default:"—" }}</dd></div>
-        <div class="detail-row"><dt>Enquiry</dt>
-          <dd>{% if order.enquiry %}<a href="{% url 'sales:enquiry_detail' order.enquiry.pk %}" style="color:var(--primary);font-weight:600;">ENQ-{{ order.enquiry.pk }}</a>{% else %}—{% endif %}</dd>
-        </div>
-        <div class="detail-row"><dt>Created</dt><dd style="font-size:12px;">{{ order.created_at|date:"d M Y H:i" }}</dd></div>
-      </dl>
+
     </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title"><i class="fas fa-indian-rupee-sign" style="margin-right:6px;"></i>Financials</span></div>
-      <dl class="detail-list">
-        <div class="detail-row"><dt>Booking Amount</dt><dd>&#x20B9; {{ order.booking_amount }}</dd></div>
-        <div class="detail-row"><dt>Discount</dt><dd>&#x20B9; {{ order.discount_amount }}</dd></div>
-        <div class="detail-row"><dt>Total Amount</dt>
-          <dd style="font-size:18px;font-weight:800;color:var(--primary);">&#x20B9; {{ order.total_amount }}</dd>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-shopping-cart me-2"></i>
+                    Order Information
+                </span>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>Customer</th>
+                            <td>
+                                {{ order.customer.full_name }}
+                                <span class="text-muted">
+                                    ({{ order.customer.phone }})
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Vehicle</th>
+                            <td>
+                                {{ order.vehicle.bike_model }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Chassis No</th>
+                            <td>
+                                <span style="font-family:monospace;">
+                                    {{ order.vehicle.chassis_no|default:"No chassis" }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Sales Executive</th>
+                            <td>
+                                {{ order.sales_executive|default:"—" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Branch</th>
+                            <td>
+                                {{ order.branch|default:"—" }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Enquiry</th>
+                            <td>
+                                {% if order.enquiry %}
+                                <a href="{% url 'sales:enquiry_detail' order.enquiry.pk %}"
+                                   class="text-decoration-none fw-semibold text-primary">
+
+                                    ENQ-{{ order.enquiry.pk }}
+                                </a>
+                                {% else %}
+                                —
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Created On</th>
+                            <td>
+                                {{ order.created_at|date:"d M Y H:i" }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
-      </dl>
-      <!-- INVOICE QUICK LINK -->
-      {% if invoice %}
-      <div style="padding:12px 20px;background:#f8fafc;border-top:1px solid var(--border-light);">
-        <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Invoice</div>
-        <div style="display:flex;align-items:center;justify-content:space-between;">
-          <span style="font-family:monospace;font-weight:600;color:var(--primary);">{{ invoice.invoice_number }}</span>
-          <div style="display:flex;gap:6px;">
-            <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View</a>
-            <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-          </div>
-        </div>
-      </div>
-      {% endif %}
-      <!-- DELIVERY QUICK LINK -->
-      {% if delivery %}
-      <div style="padding:12px 20px;background:#f0fdf4;border-top:1px solid var(--border-light);">
-        <div style="font-size:11px;color:var(--success);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;display:flex;align-items:center;gap:5px;"><i class="fas fa-check-circle"></i> Delivered</div>
-        <div style="font-size:13px;color:var(--text-secondary);">{{ delivery.delivery_date|date:"d M Y" }} &nbsp;·&nbsp; {{ delivery.delivered_by|default:"—" }}</div>
-      </div>
-      {% endif %}
     </div>
-  </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-indian-rupee-sign me-2"></i>
+                    Financial Summary
+                </span>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>Booking Amount</th>
+                            <td>
+                                ₹ {{ order.booking_amount }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Discount</th>
+                            <td>
+                                ₹ {{ order.discount_amount }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Total Amount</th>
+                            <td class="fw-bold text-primary">
+                                ₹ {{ order.total_amount }}
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- TAB: FINANCE -->
-<div class="tab-content" id="tab-finance">
-  <!-- EXCHANGE -->
-  <div class="card">
+<div class="row g-4">
+
+    <div class="col-lg-6">
+
+        <!-- Vehicle Allotment Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-motorcycle me-2"></i>
+                    Vehicle Allotment
+                </span>
+
+                <a href="{% url 'sales:allotment_create' order.pk %}"
+                class="btn btn-primary btn-sm">
+
+                    <i class="fas fa-plus me-1"></i>
+                    Allot Vehicle
+
+                </a>
+            </div>
+
+            <div class="empty-state">
+
+                <p class="mb-2">
+                    No vehicle allotted yet.
+                </p>
+
+                <small class="text-muted">
+                    Assign a stock vehicle to this order before delivery.
+                </small>
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-6">
+
+        <!-- Vehicle Fittings Card -->
+        <div class="card">
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-tools me-2"></i>
+                    Vehicle Fittings
+                </span>
+
+                <a href="{% url 'sales:fitting_create' order.pk %}"
+                class="btn btn-primary btn-sm">
+
+                    <i class="fas fa-plus me-1"></i>
+                    Add Fitting
+
+                </a>
+            </div>
+
+            <div class="empty-state">
+
+                <p class="mb-2">
+                    No fittings added yet.
+                </p>
+
+                <small class="text-muted">
+                    Add accessories and additional fittings for this vehicle.
+                </small>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- EXCHANGE VEHICLE -->
+<div class="card">
     <div class="card-header">
-      <span class="card-title"><i class="fas fa-exchange-alt" style="margin-right:6px;"></i>Exchange Vehicle</span>
-      {% if not exchange %}
-      <a href="{% url 'sales:exchange_create' %}?sales_order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Exchange</a>
-      {% endif %}
+        <span class="card-title">
+            <i class="fas fa-exchange-alt me-2"></i>
+            Exchange Vehicle
+        </span>
+        {% if not exchange %}
+        <a href="{% url 'sales:exchange_create' %}?sales_order={{ order.pk }}"
+           class="btn btn-primary btn-sm">
+            + Add Exchange
+        </a>
+        {% endif %}
     </div>
     {% if exchange %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Old Model</dt><dd>{{ exchange.old_vehicle_model|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Reg No</dt><dd style="font-family:monospace;font-weight:600;">{{ exchange.registration_no|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Valuation</dt><dd style="font-weight:700;color:var(--primary);">&#x20B9; {{ exchange.valuation_amount|default:"—" }}</dd></div>
-    </dl>
-    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
-      <a href="{% url 'sales:exchange_update' exchange.pk %}" class="btn btn-secondary btn-sm">Edit Exchange</a>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Old Model</th>
+                    <th>Registration No</th>
+                    <th>Valuation</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ exchange.old_vehicle_model|default:"—" }}</td>
+                    <td>{{ exchange.registration_no|default:"—" }}</td>
+                    <td>₹ {{ exchange.valuation_amount|default:"—" }}</td>
+                    <td><a href="{% url 'sales:exchange_update' exchange.pk %}" class="btn btn-outline-primary btn-sm">Edit</a></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
     {% else %}
-    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No exchange vehicle added.</div>
+    <div class="empty-state">No exchange vehicle added.</div>
     {% endif %}
-  </div>
+</div>
 
-  <!-- LOAN -->
-  <div class="card">
+<!-- FINANCE / LOAN -->
+<div class="card">
     <div class="card-header">
-      <span class="card-title"><i class="fas fa-landmark" style="margin-right:6px;"></i>Finance / Loan</span>
-      {% if not loan %}
-      <a href="{% url 'billing:loan_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Loan</a>
-      {% endif %}
+        <span class="card-title">
+            <i class="fas fa-university me-2"></i>
+            Finance / Loan
+        </span>
+        {% if not loan %}
+        <a href="{% url 'billing:loan_create' %}?order={{ order.pk }}"
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>
+            Add Loan
+        </a>
+        {% endif %}
     </div>
     {% if loan %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Bank</dt><dd style="font-weight:600;">{{ loan.bank_name }}</dd></div>
-      <div class="detail-row"><dt>Loan Amount</dt><dd style="font-weight:700;font-size:15px;color:var(--primary);">&#x20B9; {{ loan.loan_amount }}</dd></div>
-      <div class="detail-row"><dt>Interest Rate</dt><dd>{{ loan.interest_rate|default:"—" }}%</dd></div>
-      <div class="detail-row"><dt>Tenure</dt><dd>{{ loan.tenure_months|default:"—" }} months</dd></div>
-      <div class="detail-row"><dt>EMI</dt><dd style="font-weight:600;">&#x20B9; {{ loan.emi_amount|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></dd></div>
-    </dl>
-    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
-      <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-secondary btn-sm">View Loan Details</a>
-    </div>
-    {% else %}
-    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No loan added. Add from the Billing module.</div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- TAB: DOCUMENTS -->
-<div class="tab-content" id="tab-documents">
-  <!-- RTO -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title"><i class="fas fa-id-card" style="margin-right:6px;"></i>RTO Registration</span>
-      {% if not rto %}
-      <a href="{% url 'rto:registration_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add RTO</a>
-      {% endif %}
-    </div>
-    {% if rto %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Form 20 No</dt><dd>{{ rto.form20_number|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Reg Number</dt><dd style="font-weight:700;font-size:15px;">{{ rto.registration_number|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>RTO Charges</dt><dd>&#x20B9; {{ rto.rto_charges }}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-blue">{{ rto.get_registration_status_display }}</span></dd></div>
-    </dl>
-    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
-      <a href="{% url 'rto:registration_detail' rto.pk %}" class="btn btn-secondary btn-sm">View Registration</a>
-    </div>
-    {% else %}
-    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">No RTO registration added yet.</div>
-    {% endif %}
-  </div>
-
-  <!-- DELIVERY -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title"><i class="fas fa-truck" style="margin-right:6px;"></i>Vehicle Delivery</span>
-      {% if not delivery %}
-      <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Record Delivery</a>
-      {% endif %}
-    </div>
-    {% if delivery %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Delivery Date</dt><dd style="font-weight:600;">{{ delivery.delivery_date|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Delivered By</dt><dd>{{ delivery.delivered_by|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Remarks</dt><dd>{{ delivery.remarks|default:"—" }}</dd></div>
-    </dl>
-    <div style="padding:12px 20px;border-top:1px solid var(--border-light);">
-      <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-secondary btn-sm">Edit Delivery</a>
-    </div>
-    {% else %}
-    <div style="padding:16px 20px;color:var(--text-muted);font-size:13px;">Delivery not recorded yet.</div>
-    {% endif %}
-  </div>
-</div>
-
-<!-- TAB: INSURANCE POLICIES -->
-<div class="tab-content" id="tab-policies">
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title"><i class="fas fa-shield-alt" style="margin-right:6px;"></i>Insurance Policies</span>
-      <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Policy</a>
-    </div>
     <div class="table-wrapper">
-      <table class="table">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Bank</th>
+                    <th>Loan Amount</th>
+                    <th>Interest Rate</th>
+                    <th>Tenure</th>
+                    <th>EMI</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>{{ loan.bank_name }}</td>
+                    <td class="fw-semibold">₹ {{ loan.loan_amount }}</td>
+                    <td>{{ loan.interest_rate|default:"—" }}%</td>
+                    <td>{{ loan.tenure_months|default:"—" }} Months</td>
+                    <td>₹ {{ loan.emi_amount|default:"—" }}</td>
+                    <td><span class="badge badge-blue">{{ loan.get_loan_status_display }}</span></td>
+                    <td>
+                        <div class="table-actions"><a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye me-1"></i>View</a>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <p class="mb-2">No loan added yet.</p>
+        <small class="text-muted">Add finance details from the Billing module.</small>
+    </div>
+    {% endif %}
+</div>
+
+<!-- INVOICE -->
+<div class="card">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-file-invoice me-2"></i>
+        Invoice
+    </span>
+    {% if not invoice %}
+    <a href="{% url 'billing:invoice_create' %}?order={{ order.pk }}"
+       class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i>
+        Create Invoice
+    </a>
+    {% endif %}
+</div>
+{% if invoice %}
+<div class="table-wrapper">
+    <table class="table">
         <thead>
-          <tr>
-            <th>Policy Number</th>
-            <th>Provider</th>
-            <th>Premium</th>
-            <th>Start</th>
-            <th>End</th>
-            <th style="text-align:right;">Actions</th>
-          </tr>
+            <tr>
+                <th>Invoice No</th>
+                <th>Date</th>
+                <th>Subtotal</th>
+                <th>GST</th>
+                <th>Discount</th>
+                <th>Final Amount</th>
+                <th>Actions</th>
+            </tr>
         </thead>
         <tbody>
-          {% for policy in policies %}
-          <tr>
-            <td>
-              <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" style="font-family:monospace;color:var(--primary);font-weight:600;text-decoration:none;">{{ policy.policy_number }}</a>
-            </td>
-            <td style="font-weight:500;">{{ policy.provider_name }}</td>
-            <td style="font-weight:700;">&#x20B9;{{ policy.premium_amount }}</td>
-            <td style="font-size:12px;color:var(--text-muted);">{{ policy.start_date|date:"d M Y" }}</td>
-            <td style="font-size:12px;color:var(--text-muted);">{{ policy.end_date|date:"d M Y" }}</td>
-            <td>
-              <div class="table-actions">
-                <a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-              </div>
-            </td>
-          </tr>
-          {% empty %}
-          <tr>
-            <td colspan="6">
-              <div class="empty-state" style="padding:36px 20px;">
-                <div class="empty-state-icon"><i class="fas fa-shield-alt"></i></div>
-                <div class="empty-state-title">No policies added</div>
-                <div class="empty-state-text">Add an insurance policy for this order.</div>
-                <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Add Policy</a>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
+            <tr>
+                <td style="font-family:monospace;">{{ invoice.invoice_number }}</td>
+                <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
+                <td>₹ {{ invoice.subtotal }}</td>
+                <td>₹ {{ invoice.gst_amount }}</td>
+                <td>₹ {{ invoice.discount_amount }}</td>
+                <td class="fw-bold text-primary">₹ {{ invoice.final_amount }}</td>
+                <td>
+                    <div class="table-actions">
+                        <a href="{% url 'billing:invoice_detail' invoice.pk %}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-eye me-1"></i>
+                            View
+                        </a>
+                        <a href="{% url 'billing:invoice_update' invoice.pk %}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-edit me-1"></i>
+                            Edit
+                        </a>
+                    </div>
+                </td>
+            </tr>
         </tbody>
-      </table>
-    </div>
+    </table>
+</div>
+{% else %}
+<div class="empty-state">
+    <p class="mb-2">No invoice created yet.</p>
+    <small class="text-muted">Generate an invoice to proceed with billing.</small>
+</div>
+{% endif %}
+</div>
+
+
+<!-- RTO -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-id-card me-2"></i>
+      RTO Registration
+    </span>
+    {% if not rto %}
+    <a href="{% url 'rto:registration_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>
+      Add RTO
+    </a>
+    {% endif %}
+  </div>
+
+  {% if rto %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Form 20 No</th>
+          <th>Registration No</th>
+          <th>RTO Charges</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ rto.form20_number|default:"—" }}</td>
+          <td class="fw-semibold">{{ rto.registration_number|default:"—" }}</td>
+          <td>₹ {{ rto.rto_charges }}</td>
+          <td>
+            <span class="badge badge-blue">
+              {{ rto.get_registration_status_display }}
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'rto:registration_detail' rto.pk %}" class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-eye me-1"></i>
+              View
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p class="mb-2">No RTO registration added yet.</p>
+    <small class="text-muted">
+      Add registration details to track RTO processing.
+    </small>
+  </div>
+  {% endif %}
+</div>
+
+<!-- VEHICLE DELIVERY -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-truck me-2"></i>
+      Vehicle Delivery
+    </span>
+    {% if not delivery %}
+    <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>
+      Record Delivery
+    </a>
+    {% endif %}
+  </div>
+
+  {% if delivery %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Delivery Date</th>
+          <th>Delivered By</th>
+          <th>Remarks</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{ delivery.delivery_date|date:"d M Y" }}</td>
+          <td>{{ delivery.delivered_by|default:"—" }}</td>
+          <td>{{ delivery.remarks|default:"—" }}</td>
+          <td>
+            <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="fas fa-edit me-1"></i>
+              Edit
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p class="mb-2">Delivery not recorded yet.</p>
+    <small class="text-muted">
+      Record delivery details once the vehicle is handed over.
+    </small>
+  </div>
+  {% endif %}
+</div>
+
+<!-- INSURANCE POLICIES -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-shield-alt me-2"></i>
+        Insurance Policies
+    </span>
+    <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-primary btn-sm">+ Add Policy</a>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Policy Number</th>
+          <th>Provider</th>
+          <th>Premium</th>
+          <th>Start</th>
+          <th>End</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for policy in policies %}
+        <tr>
+          <td style="font-family:monospace; font-size:13px;">
+            <a href="{% url 'billing:insurance_policy_detail' policy.pk %}" style="color:#2563EB; text-decoration:none;">{{ policy.policy_number }}</a>
+          </td>
+          <td>{{ policy.provider_name }}</td>
+          <td style="font-weight:500;">&#x20B9;{{ policy.premium_amount }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ policy.start_date|date:"d M Y" }}</td>
+          <td style="font-size:13px; color:#6B7280;">{{ policy.end_date|date:"d M Y" }}</td>
+          <td><a href="{% url 'billing:insurance_policy_update' policy.pk %}" class="btn btn-outline-primary btn-sm">Edit</a></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="empty-state">No policies added yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
 </div>
 {% endblock %}

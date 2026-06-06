@@ -2,6 +2,26 @@
 {% block title %}ENQ-{{ enquiry.pk }} — SSBikez ERP{% endblock %}
 {% block page_title %}Sales Enquiry{% endblock %}
 
+{% block topbar_actions %}
+<form method="post"
+      action="{% url 'sales:enquiry_status_update' enquiry.pk %}"
+      style="display:flex;gap:6px;align-items:center;">
+    {% csrf_token %}
+    <select name="status"
+            style="width:auto;padding:7px 10px;font-size:13px;">
+        {% for val, label in enquiry.Status.choices %}
+        <option value="{{ val }}"
+                {% if enquiry.status == val %}selected{% endif %}>
+            {{ label }}
+        </option>
+        {% endfor %}
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary"> Update</button>
+</form>
+<a href="{% url 'sales:enquiry_update' enquiry.pk %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'sales:enquiry_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
 {% block content %}
 <nav class="breadcrumb-bar">
   <a href="{% url 'accounts:dashboard' %}">Home</a>
@@ -37,19 +57,6 @@
       {% endif %}
     </div>
   </div>
-  <div class="page-header-actions">
-    <form method="post" action="{% url 'sales:enquiry_status_update' enquiry.pk %}" style="display:flex; gap:6px; align-items:center;">
-      {% csrf_token %}
-      <select name="status" style="width:auto; padding:7px 10px; font-size:13px;">
-        {% for val, label in enquiry.Status.choices %}
-        <option value="{{ val }}" {% if enquiry.status == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn btn-primary btn-sm">Update</button>
-    </form>
-    <a href="{% url 'sales:enquiry_update' enquiry.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
 </div>
 
 <!-- QUICK ACTIONS -->
@@ -65,76 +72,195 @@
 
 <div class="detail-grid">
   <!-- LEAD INFO (Prospect or Customer) -->
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">
-        {% if enquiry.customer %}&#x1F464; Customer{% else %}&#x1F464; Prospect{% endif %}
-      </span>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-user me-2"></i>
       {% if enquiry.customer %}
-      <a href="{% url 'customers:customer_detail' enquiry.customer.pk %}" class="btn btn-ghost btn-sm">View Profile</a>
+      Customer
+      {% else %}
+      Prospect
       {% endif %}
-    </div>
+    </span>
     {% if enquiry.customer %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Name</dt><dd style="font-weight:600;">{{ enquiry.customer.full_name }}</dd></div>
-      <div class="detail-row"><dt>Phone</dt><dd><a href="tel:{{ enquiry.customer.phone }}" style="color:#2563EB;">{{ enquiry.customer.phone }}</a></dd></div>
-      <div class="detail-row"><dt>Email</dt><dd>{{ enquiry.customer.email|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Aadhaar</dt><dd>{{ enquiry.customer.aadhaar_no|default:"—" }}</dd></div>
-    </dl>
-    {% elif enquiry.prospect %}
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Name</dt><dd style="font-weight:600;">{{ enquiry.prospect.full_name }}</dd></div>
-      <div class="detail-row"><dt>Phone</dt><dd><a href="tel:{{ enquiry.prospect.phone }}" style="color:#2563EB;">{{ enquiry.prospect.phone }}</a></dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-gray">Not yet a Customer</span></dd></div>
-    </dl>
+    <a href="{% url 'customers:customer_detail' enquiry.customer.pk %}"
+       class="btn btn-sm btn-outline-secondary">
+
+      <i class="fas fa-eye me-1"></i>
+      View Profile
+    </a>
     {% endif %}
   </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <tbody>
+        {% if enquiry.customer %}
+        <tr>
+          <th>Name</th>
+          <td>{{ enquiry.customer.full_name }}</td>
+        </tr>
+        <tr>
+          <th>Phone</th>
+          <td>{{ enquiry.customer.phone }}</td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>{{ enquiry.customer.email|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Aadhaar</th>
+          <td>{{ enquiry.customer.aadhaar_no|default:"—" }}</td>
+        </tr>
+        {% elif enquiry.prospect %}
+        <tr>
+          <th>Name</th>
+          <td>{{ enquiry.prospect.full_name }}</td>
+        </tr>
+        <tr>
+          <th>Phone</th>
+          <td>{{ enquiry.prospect.phone }}</td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td><span class="badge badge-gray">Not yet a Customer</span></td>
+        </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
   <!-- ENQUIRY INFO -->
-  <div class="card">
-    <div class="card-header"><span class="card-title">&#x1F50D; Enquiry Info</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Vehicle of Interest</dt><dd style="font-weight:600;">{{ enquiry.bike_model|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Source</dt><dd>{{ enquiry.get_enquiry_source_display|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Sales Executive</dt><dd>{{ enquiry.sales_executive|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Branch</dt><dd>{{ enquiry.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Remarks</dt><dd>{{ enquiry.remarks|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ enquiry.created_at|date:"d M Y H:i" }}</dd></div>
-    </dl>
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-search me-2"></i>
+      Enquiry Information
+    </span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>Vehicle of Interest</th>
+          <td>{{ enquiry.bike_model|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Source</th>
+          <td>{{ enquiry.get_enquiry_source_display|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Sales Executive</th>
+          <td>{{ enquiry.sales_executive|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Branch</th>
+          <td>{{ enquiry.branch|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Remarks</th>
+          <td>{{ enquiry.remarks|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Created On</th>
+          <td>{{ enquiry.created_at|date:"d M Y H:i" }}</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>
 
 <!-- SALES ORDER -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">Sales Order</span>
+    <span class="card-title">
+      <i class="fas fa-shopping-cart me-2"></i>
+      Sales Order
+    </span>
     {% if not order and enquiry.status != 'lost' %}
-    <a href="{% url 'sales:order_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Create Order</a>
+    <a href="{% url 'sales:order_create' %}?enquiry={{ enquiry.pk }}"
+       class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>
+      Create Order
+    </a>
     {% endif %}
   </div>
   {% if order %}
-  <div style="display:flex; align-items:center; gap:16px; padding:8px 0;">
-    <a href="{% url 'sales:order_detail' order.pk %}" style="font-weight:600; color:#2563EB; text-decoration:none; font-size:16px;">ORD-{{ order.pk }}</a>
-    {% with s=order.sales_status %}
-    {% if s == 'delivered' %}<span class="badge badge-green">{{ order.get_sales_status_display }}</span>
-    {% elif s == 'invoiced' %}<span class="badge badge-blue">{{ order.get_sales_status_display }}</span>
-    {% elif s == 'booked' %}<span class="badge badge-yellow">{{ order.get_sales_status_display }}</span>
-    {% else %}<span class="badge badge-red">{{ order.get_sales_status_display }}</span>
-    {% endif %}
-    {% endwith %}
-    <span style="color:#374151; font-weight:500;">&#x20B9; {{ order.total_amount }}</span>
-    {% if order.vehicle %}<span style="color:#6B7280; font-size:13px;">{{ order.vehicle.bike_model }}</span>{% endif %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order No</th>
+          <th>Vehicle</th>
+          <th>Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="{% url 'sales:order_detail' order.pk %}"
+               class="text-decoration-none fw-semibold text-primary">
+              ORD-{{ order.pk }}
+            </a>
+          </td>
+          <td>{{ order.vehicle.bike_model|default:"—" }}</td>
+          <td class="fw-semibold">₹ {{ order.total_amount }}</td>
+          <td>
+            {% with s=order.sales_status %}
+            {% if s == 'delivered' %}
+            <span class="badge badge-green">
+              {{ order.get_sales_status_display }}
+            </span>
+            {% elif s == 'invoiced' %}
+            <span class="badge badge-blue">
+              {{ order.get_sales_status_display }}
+            </span>
+            {% elif s == 'booked' %}
+            <span class="badge badge-yellow">
+              {{ order.get_sales_status_display }}
+            </span>
+            {% else %}
+            <span class="badge badge-red">
+              {{ order.get_sales_status_display }}
+            </span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <a href="{% url 'sales:order_detail' order.pk %}"
+               class="btn btn-sm btn-outline-secondary">
+              <i class="fas fa-eye me-1"></i>
+              View
+            </a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
   {% else %}
-  <p class="empty-state" style="padding:8px 0;">No order created yet.</p>
+  <div class="empty-state">
+    <p class="mb-2">No order created yet.</p>
+    {% if enquiry.status != 'lost' %}
+    <small class="text-muted">Create an order when the enquiry is ready for conversion.</small>
+    {% endif %}
+  </div>
   {% endif %}
 </div>
 
 <!-- FEEDBACK TIMELINE -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">&#x1F4AC; Feedback & Follow-ups</span>
-    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Add Feedback</a>
+    <span class="card-title">
+      <i class="fas fa-comments me-2"></i>
+      Feedback & Follow-ups
+    </span>
+    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}"
+       class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>
+      Add Feedback
+    </a>
   </div>
   {% if feedback_list %}
   <div style="position:relative; padding-left:24px;">
@@ -142,73 +268,186 @@
     <div style="position:relative; margin-bottom:20px; padding-left:16px; border-left:2px solid #E5E7EB;">
       <div style="position:absolute; left:-7px; top:4px; width:12px; height:12px; border-radius:50%; background:#2563EB; border:2px solid #fff;"></div>
       <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:4px;">
-        <div style="font-weight:500; font-size:14px;">{{ fb.feedback_notes|default:"(No notes)" }}</div>
-        <div style="font-size:12px; color:#9CA3AF;">{{ fb.created_at|date:"d M Y H:i" }} by {{ fb.created_by|default:"—" }}</div>
+        <div class="fw-semibold">
+          {{ fb.feedback_notes|default:"(No notes)" }}
+        </div>
+        <small class="text-muted">
+          {{ fb.created_at|date:"d M Y H:i" }}
+          by
+          {{ fb.created_by|default:"—" }}
+        </small>
       </div>
       {% if fb.next_followup_date %}
       <div style="margin-top:6px;">
-        {% with delta=fb.next_followup_date|timeuntil:today %}
-        <span style="font-size:12px; padding:2px 8px; border-radius:4px;
-          {% if fb.next_followup_date < today %}background:#FEE2E2; color:#991B1B;
-          {% elif fb.next_followup_date == today %}background:#FEF3C7; color:#92400E;
-          {% else %}background:#DBEAFE; color:#1E40AF;{% endif %}">
-          &#x1F4C5; Follow-up: {{ fb.next_followup_date|date:"d M Y" }}
-          {% if fb.next_followup_date < today %}(overdue)
-          {% elif fb.next_followup_date == today %}(TODAY){% endif %}
+        <span class="badge {% if fb.next_followup_date < today %}badge-red{% elif fb.next_followup_date == today %}badge-yellow{% else %}badge-blue{% endif %}">
+          Follow-up:
+          {{ fb.next_followup_date|date:"d M Y" }}
+          {% if fb.next_followup_date < today %}
+          (Overdue)
+          {% elif fb.next_followup_date == today %}
+          (Today)
+          {% endif %}
         </span>
-        {% endwith %}
       </div>
       {% endif %}
     </div>
     {% endfor %}
   </div>
   {% else %}
-  <p class="empty-state">No feedback recorded yet. <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}" style="color:#2563EB;">Add first feedback</a></p>
+  <div class="empty-state">
+    <p class="mb-2">No feedback recorded yet.</p>
+    <a href="{% url 'sales:feedback_create' %}?enquiry={{ enquiry.pk }}"
+       class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>
+      Add First Feedback
+    </a>
+  </div>
   {% endif %}
 </div>
 
 <!-- APPOINTMENTS -->
 <div class="card">
+
   <div class="card-header">
-    <span class="card-title">&#x1F4C5; Appointments</span>
-    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}" class="btn btn-primary btn-sm">+ Add</a>
+
+    <span class="card-title">
+
+      <i class="fas fa-calendar-alt me-2"></i>
+      Appointments
+
+    </span>
+
+    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}"
+       class="btn btn-primary btn-sm">
+
+      <i class="fas fa-plus me-1"></i>
+      Add Appointment
+
+    </a>
+
   </div>
+
   {% if appointments %}
+
   <div class="table-wrapper">
+
     <table class="table">
+
       <thead>
-        <tr><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for apt in appointments %}
+
         <tr>
-          <td style="font-weight:500;">{{ apt.appointment_date|date:"d M Y H:i" }}</td>
-          <td>{{ apt.get_purpose_display|default:"—" }}</td>
-          <td>
-            {% if apt.status == 'scheduled' %}<span class="badge badge-blue">{{ apt.get_status_display }}</span>
-            {% elif apt.status == 'completed' %}<span class="badge badge-green">{{ apt.get_status_display }}</span>
-            {% elif apt.status == 'cancelled' %}<span class="badge badge-red">{{ apt.get_status_display }}</span>
-            {% else %}<span class="badge badge-gray">{{ apt.get_status_display }}</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-              {% if apt.status == 'scheduled' %}
-              <form method="post" action="{% url 'sales:appointment_cancel' apt.pk %}" class="inline-form">
-                {% csrf_token %}
-                <button type="submit">Cancel</button>
-              </form>
-              {% endif %}
-            </div>
-          </td>
+          <th>Date</th>
+          <th>Purpose</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% for apt in appointments %}
+
+        <tr>
+
+          <td class="fw-semibold">
+            {{ apt.appointment_date|date:"d M Y H:i" }}
+          </td>
+
+          <td>
+            {{ apt.get_purpose_display|default:"—" }}
+          </td>
+
+          <td>
+
+            {% if apt.status == 'scheduled' %}
+            <span class="badge badge-blue">
+              {{ apt.get_status_display }}
+            </span>
+
+            {% elif apt.status == 'completed' %}
+            <span class="badge badge-green">
+              {{ apt.get_status_display }}
+            </span>
+
+            {% elif apt.status == 'cancelled' %}
+            <span class="badge badge-red">
+              {{ apt.get_status_display }}
+            </span>
+
+            {% else %}
+            <span class="badge badge-gray">
+              {{ apt.get_status_display }}
+            </span>
+            {% endif %}
+
+          </td>
+
+          <td>
+
+            <div class="table-actions">
+
+              <a href="{% url 'sales:appointment_update' apt.pk %}"
+                 class="btn btn-sm btn-outline-primary">
+
+                <i class="fas fa-edit me-1"></i>
+                Edit
+
+              </a>
+
+              {% if apt.status == 'scheduled' %}
+
+              <form method="post"
+                    action="{% url 'sales:appointment_cancel' apt.pk %}"
+                    class="inline-form">
+
+                {% csrf_token %}
+
+                <button type="submit"
+                        class="btn btn-sm btn-outline-secondary">
+
+                  <i class="fas fa-times me-1"></i>
+                  Cancel
+
+                </button>
+
+              </form>
+
+              {% endif %}
+
+            </div>
+
+          </td>
+
+        </tr>
+
         {% endfor %}
+
       </tbody>
+
     </table>
+
   </div>
+
   {% else %}
-  <p class="empty-state">No appointments yet.</p>
+
+  <div class="empty-state">
+
+    <p class="mb-2">
+      No appointments scheduled yet.
+    </p>
+
+    <a href="{% url 'sales:appointment_create' %}?enquiry={{ enquiry.pk }}"
+       class="btn btn-primary btn-sm">
+
+      <i class="fas fa-plus me-1"></i>
+      Add First Appointment
+
+    </a>
+
+  </div>
+
   {% endif %}
+
 </div>
 {% endblock %}

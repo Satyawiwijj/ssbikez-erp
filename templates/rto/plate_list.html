@@ -2,50 +2,214 @@
 {% block title %}Number Plates — SSBikez ERP{% endblock %}
 {% block page_title %}Number Plate Orders{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'rto:plate_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Plate Order</a>
-{% endblock %}
-
 {% block content %}
-<form method="get" class="d-flex gap-2 mb-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search customer, plate or vendor…" class="form-control" style="max-width:320px;">
-  <button type="submit" class="btn btn-secondary btn-sm">Search</button>
-  {% if q %}<a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Number Plates</span>
+</nav>
+
+<form class="search-bar" method="get">
+
+<input type="text"
+       name="q"
+       value="{{ q }}"
+       placeholder="Search customer, plate number or vendor">
+
+<button type="submit"
+        class="btn btn-secondary">
+
+    Search
+
+</button>
+
+{% if q %}
+<a href="?"
+   class="btn btn-ghost">
+
+    Clear
+
+</a>
+{% endif %}
+
 </form>
+
 <div class="card">
-  <div class="card-header">
-    <h6 class="card-title mb-0">All Number Plate Orders <span class="badge bg-secondary ms-2">{{ plates|length }}</span></h6>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr><th>#</th><th>Customer</th><th>Plate Number</th><th>Vendor</th><th>Status</th><th>Issue Date</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {% for plate in plates %}
-          <tr>
-            <td>PLATE-{{ plate.pk }}</td>
-            <td>{{ plate.rto.sales_order.customer.full_name }}</td>
-            <td>{{ plate.plate_number|default:"Unassigned" }}</td>
-            <td>{{ plate.vendor_name|default:"—" }}</td>
-            <td>
-              <span class="badge badge-soft-{% if plate.status == 'issued' %}success{% elif plate.status == 'ordered' %}info{% else %}warning{% endif %}">
-                {{ plate.get_status_display }}
-              </span>
-            </td>
-            <td>{{ plate.issue_date|default:"—" }}</td>
-            <td>
-              <a href="{% url 'rto:registration_detail' plate.rto.pk %}" class="btn btn-sm btn-outline-secondary">RTO</a>
-              <a href="{% url 'rto:plate_update' plate.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-hashtag fa-2x mb-2 d-block"></i>No plate orders.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+<div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+
+    <span class="card-title">
+
+        <i class="fas fa-hashtag me-2"></i>
+        Number Plate Orders
+
+    </span>
+
+    <div style="display:flex;align-items:center;gap:10px;">
+
+        <span class="badge badge-blue">
+
+            {{ plates|length }}
+
+        </span>
+
+        <a href="{% url 'rto:plate_create' %}"
+           class="btn btn-primary btn-sm">
+
+            <i class="fas fa-plus me-1"></i>
+            New Plate Order
+
+        </a>
+
     </div>
-  </div>
+
 </div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Plate ID</th>
+                <th>Customer</th>
+                <th>Plate Number</th>
+                <th>Vendor</th>
+                <th>Status</th>
+                <th>Issue Date</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for plate in plates %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+                    PLATE-{{ plate.pk }}
+                </td>
+
+                <td>
+
+                    <div style="font-weight:600;">
+                        {{ plate.rto.sales_order.customer.full_name }}
+                    </div>
+
+                    {% if plate.rto.sales_order.customer.phone %}
+                    <div style="font-size:12px;color:#6B7280;">
+                        {{ plate.rto.sales_order.customer.phone }}
+                    </div>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    {% if plate.plate_number %}
+
+                    <span style="
+                        font-family:monospace;
+                        font-weight:700;
+                        color:#0F172A;
+                    ">
+                        {{ plate.plate_number }}
+                    </span>
+
+                    {% else %}
+
+                    <span style="color:#94A3B8;">
+                        Unassigned
+                    </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+                    {{ plate.vendor_name|default:"—" }}
+                </td>
+
+                <td>
+
+                    {% if plate.status == 'issued' %}
+                    <span class="badge badge-green">
+
+                    {% elif plate.status == 'ordered' %}
+                    <span class="badge badge-blue">
+
+                    {% else %}
+                    <span class="badge badge-yellow">
+
+                    {% endif %}
+
+                        {{ plate.get_status_display }}
+
+                    </span>
+
+                </td>
+
+                <td>
+                    {{ plate.issue_date|default:"—" }}
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'rto:registration_detail' plate.rto.pk %}"
+                           class="btn btn-secondary btn-sm">
+
+                            <i class="fas fa-id-card me-1"></i>
+                            RTO
+
+                        </a>
+
+                        <a href="{% url 'rto:plate_update' plate.pk %}"
+                           class="btn btn-ghost btn-sm">
+
+                            <i class="fas fa-edit me-1"></i>
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-state">
+
+                    <i class="fas fa-hashtag mb-2"></i>
+
+                    <div>
+                        No number plate orders found.
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endblock %}

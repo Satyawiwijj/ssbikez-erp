@@ -1,35 +1,177 @@
 {% extends 'base.html' %}
-{% block title %}General Ledger{% endblock %}
+
+{% block title %}General Ledger — SSBikez ERP{% endblock %}
 {% block page_title %}General Ledger{% endblock %}
+
 {% block content %}
-{% for account in accounts %}
-<div class="card" style="margin-bottom:16px;">
-  <div class="card-header">
-    <span class="card-title">{{ account.name }}</span>
-    <span style="float:right;font-size:13px;">
-      Debit: <strong>&#x20B9; {{ account.debit }}</strong> &middot;
-      Credit: <strong>&#x20B9; {{ account.credit }}</strong> &middot;
-      Balance: <strong style="color:{% if account.balance >= 0 %}#16a34a{% else %}#dc2626{% endif %};">&#x20B9; {{ account.balance }}</strong>
-    </span>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Date</th><th>Type</th><th>Amount</th><th>Description</th><th>Ref</th></tr></thead>
-      <tbody>
-        {% for e in account.entries %}
-        <tr>
-          <td>{{ e.entry_date|date:"d M Y" }}</td>
-          <td>{{ e.get_entry_type_display }}</td>
-          <td>&#x20B9; {{ e.amount }}</td>
-          <td>{{ e.description }}</td>
-          <td>{{ e.reference|default:"—" }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">General Ledger</h1>
+        <p class="page-subtitle">
+            Account-wise ledger balances and transaction history
+        </p>
+    </div>
 </div>
+
+{% for account in accounts %}
+
+<div class="card" style="margin-bottom:20px;">
+
+    <div class="card-header d-flex justify-content-between align-items-center flex-wrap">
+
+        <div>
+            <span class="card-title">
+                <i class="fas fa-book me-2"></i>
+                {{ account.name }}
+            </span>
+        </div>
+
+        <div style="
+            display:flex;
+            gap:16px;
+            flex-wrap:wrap;
+            font-size:13px;
+        ">
+
+            <span>
+                Debit:
+                <strong style="color:#2563EB;">
+                    ₹ {{ account.debit }}
+                </strong>
+            </span>
+
+            <span>
+                Credit:
+                <strong style="color:#16A34A;">
+                    ₹ {{ account.credit }}
+                </strong>
+            </span>
+
+            <span>
+                Balance:
+                <strong
+                    style="
+                        color:{% if account.balance >= 0 %}#16A34A{% else %}#DC2626{% endif %};
+                    ">
+                    ₹ {{ account.balance }}
+                </strong>
+            </span>
+
+        </div>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for e in account.entries %}
+
+                <tr>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ e.entry_date|date:"d M Y" }}
+                    </td>
+
+                    <td>
+
+                        {% if e.entry_type == 'debit' %}
+                            <span class="badge badge-blue">
+                                {{ e.get_entry_type_display }}
+                            </span>
+                        {% else %}
+                            <span class="badge badge-green">
+                                {{ e.get_entry_type_display }}
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ e.amount }}
+                    </td>
+
+                    <td>
+                        {{ e.description|default:"—" }}
+                    </td>
+
+                    <td style="color:#6B7280;">
+                        {{ e.reference|default:"—" }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="5">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-book text-muted"
+                               style="font-size:28px;"></i>
+
+                            <p class="mt-2">
+                                No entries available for this account.
+                            </p>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% empty %}
-<div class="empty-state"><p>No ledger entries yet. Create journal entries first.</p></div>
+
+<div class="card">
+
+    <div class="empty-state" style="padding:40px;">
+
+        <i class="fas fa-book-open text-muted"
+           style="font-size:42px;"></i>
+
+        <h4 style="margin-top:12px;">
+            No Ledger Data Available
+        </h4>
+
+        <p style="color:#6B7280;">
+            Create journal entries first to generate ledger balances and account history.
+        </p>
+
+        <a href="{% url 'billing:journal_entry_create' %}"
+           class="btn btn-primary">
+
+            <i class="fas fa-plus me-1"></i>
+            Create Journal Entry
+
+        </a>
+
+    </div>
+
+</div>
+
 {% endfor %}
+
 {% endblock %}

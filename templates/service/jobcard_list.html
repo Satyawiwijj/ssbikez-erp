@@ -2,110 +2,217 @@
 {% block title %}Job Cards — SSBikez ERP{% endblock %}
 {% block page_title %}Job Cards{% endblock %}
 
+{% block topbar_actions %} <a href="{% url 'service:jobcard_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
+New Job Card </a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-title">Job Cards</h1>
-    <p class="page-subtitle">Active and completed service job cards</p>
-  </div>
-  <a href="{% url 'service:jobcard_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job Card</a>
+    <div>
+        <h1 class="page-title">Job Cards</h1>
+        <p class="page-subtitle">
+            Manage active, completed and invoiced service jobs
+        </p>
+    </div>
 </div>
 
-<!-- SEARCH -->
-<form method="get" style="margin-bottom:16px;">
-  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-  <div style="display:flex;gap:8px;align-items:center;">
-    <div style="flex:1;position:relative;">
-      <i class="fas fa-search" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:13px;pointer-events:none;"></i>
-      <input type="text" name="q" value="{{ q }}" placeholder="Search customer name or reg. number…"
-             style="padding-left:36px;border-radius:var(--radius-full);height:40px;font-size:13px;">
-    </div>
-    <button type="submit" class="btn btn-secondary">Search</button>
-    {% if q %}<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}" class="btn btn-ghost">Clear</a>{% endif %}
-  </div>
+<div class="filter-tabs">
+    <a href="?{% if q %}q={{ q }}{% endif %}"
+       class="filter-tab {% if not status_filter %}active{% endif %}">
+        All
+    </a>
+
+{% for val, label in status_choices %}
+<a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}"
+   class="filter-tab {% if status_filter == val %}active{% endif %}">
+    {{ label }}
+</a>
+{% endfor %}
+
+</div>
+
+<form method="get" class="search-bar">
+
+{% if status_filter %}
+<input type="hidden"
+       name="status"
+       value="{{ status_filter }}">
+{% endif %}
+
+<input type="text"
+       name="q"
+       value="{{ q }}"
+       placeholder="Search customer name, registration number or job card">
+
+<button type="submit" class="btn btn-secondary">
+    <i class="fas fa-search me-1"></i>
+    Search
+</button>
+
+{% if q %}
+<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}"
+   class="btn btn-ghost">
+    Clear
+</a>
+{% endif %}
+
 </form>
 
-<!-- STATUS FILTER TABS -->
-<div class="filter-tabs" style="margin-bottom:20px;">
-  <a href="?{% if q %}q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">
-    <i class="fas fa-list" style="font-size:11px;margin-right:4px;"></i>All
-  </a>
-  {% for val, label in status_choices %}
-  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">
-    {% if val == 'pending' %}<i class="fas fa-circle" style="font-size:8px;color:#d97706;margin-right:4px;vertical-align:1px;"></i>
-    {% elif val == 'in_progress' or val == 'in_bay' %}<i class="fas fa-circle" style="font-size:8px;color:#2563EB;margin-right:4px;vertical-align:1px;"></i>
-    {% elif val == 'ready' %}<i class="fas fa-circle" style="font-size:8px;color:#7c3aed;margin-right:4px;vertical-align:1px;"></i>
-    {% elif val == 'invoiced' %}<i class="fas fa-circle" style="font-size:8px;color:#059669;margin-right:4px;vertical-align:1px;"></i>
-    {% else %}<i class="fas fa-circle" style="font-size:8px;color:#94a3b8;margin-right:4px;vertical-align:1px;"></i>{% endif %}
-    {{ label }}
-  </a>
-  {% endfor %}
+<div class="card">
+
+<div class="card-header d-flex justify-content-between align-items-center">
+
+    <span class="card-title">
+        <i class="fas fa-file-alt me-2"></i>
+        All Job Cards
+    </span>
+
+    <span class="badge badge-gray">
+        {{ job_cards|length }} Records
+    </span>
+
 </div>
 
-<!-- JOB CARDS TABLE -->
-<div class="table-wrapper" style="border-radius:var(--radius-lg);border:1px solid var(--card-border);box-shadow:var(--card-shadow);">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>JC No.</th>
-        <th>Customer</th>
-        <th>Vehicle</th>
-        <th>Reg. No.</th>
-        <th>Advisor</th>
-        <th>Status</th>
-        <th>Date</th>
-        <th style="text-align:right;">Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for jc in job_cards %}
-      <tr>
-        <td>
-          <a href="{% url 'service:jobcard_detail' jc.pk %}" style="font-family:monospace;font-weight:700;color:var(--primary);text-decoration:none;font-size:13px;">JC-{{ jc.pk }}</a>
-        </td>
-        <td style="font-weight:600;">{{ jc.customer_vehicle.customer.full_name }}</td>
-        <td style="font-size:13px;">{{ jc.customer_vehicle.vehicle.bike_model }}</td>
-        <td><span class="badge badge-gray" style="font-family:monospace;">{{ jc.customer_vehicle.registration_no }}</span></td>
-        <td style="color:var(--text-secondary);font-size:13px;">{{ jc.service_advisor|default:"—" }}</td>
-        <td>
-          {% with s=jc.service_status %}
-          {% if s == 'pending' %}<span class="badge badge-amber">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'water_wash' %}<span class="badge badge-teal">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'in_bay' %}<span class="badge badge-blue">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'in_progress' %}<span class="badge badge-blue">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'outwork' %}<span class="badge badge-orange">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'final_inspection' %}<span class="badge badge-purple">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'ready' %}<span class="badge badge-purple">{{ jc.get_service_status_display }}</span>
-          {% elif s == 'invoiced' %}<span class="badge badge-green">{{ jc.get_service_status_display }}</span>
-          {% else %}<span class="badge badge-gray">{{ jc.get_service_status_display }}</span>
-          {% endif %}
-          {% endwith %}
-        </td>
-        <td style="font-size:12px;color:var(--text-muted);">{{ jc.created_at|date:"d M Y" }}</td>
-        <td>
-          <div class="table-actions">
-            <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary btn-sm">View</a>
-            <a href="{% url 'service:jobcard_update' jc.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-          </div>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td colspan="8">
-          <div class="empty-state" style="padding:48px 20px;">
-            <div class="empty-state-icon"><i class="fas fa-file-alt"></i></div>
-            <div class="empty-state-title">No job cards found</div>
-            <div class="empty-state-text">
-              {% if q or status_filter %}Try adjusting your search or filter.{% else %}Create the first job card to get started.{% endif %}
-            </div>
-            {% if not q and not status_filter %}
-            <a href="{% url 'service:jobcard_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Job Card</a>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>JC No.</th>
+                <th>Customer</th>
+                <th>Registration No.</th>
+                <th>Bike Model</th>
+                <th>Service Advisor</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th width="140">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for jc in job_cards %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:700;">
+
+                    <a href="{% url 'service:jobcard_detail' jc.pk %}"
+                       style="color:#2563EB;text-decoration:none;">
+
+                        JC-{{ jc.pk }}
+
+                    </a>
+
+                </td>
+
+                <td style="font-weight:500;">
+                    {{ jc.customer_vehicle.customer.full_name }}
+                </td>
+
+                <td>
+                    <span class="badge badge-gray">
+                        {{ jc.customer_vehicle.registration_no }}
+                    </span>
+                </td>
+
+                <td>
+                    {{ jc.customer_vehicle.vehicle.bike_model }}
+                </td>
+
+                <td style="font-size:13px;color:#6B7280;">
+                    {{ jc.service_advisor|default:"—" }}
+                </td>
+
+                <td>
+
+                    {% with s=jc.service_status %}
+
+                        {% if s == 'pending' %}
+                            <span class="badge badge-yellow">
+                                {{ jc.get_service_status_display }}
+                            </span>
+
+                        {% elif s == 'in_progress' %}
+                            <span class="badge badge-blue">
+                                {{ jc.get_service_status_display }}
+                            </span>
+
+                        {% elif s == 'ready' %}
+                            <span class="badge badge-purple">
+                                {{ jc.get_service_status_display }}
+                            </span>
+
+                        {% elif s == 'invoiced' %}
+                            <span class="badge badge-green">
+                                {{ jc.get_service_status_display }}
+                            </span>
+
+                        {% else %}
+                            <span class="badge badge-gray">
+                                {{ jc.get_service_status_display }}
+                            </span>
+
+                        {% endif %}
+
+                    {% endwith %}
+
+                </td>
+
+                <td style="font-size:13px;color:#6B7280;">
+                    {{ jc.created_at|date:"d M Y" }}
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'service:jobcard_detail' jc.pk %}"
+                           class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye me-1"></i>
+                            View
+                        </a>
+
+                        <a href="{% url 'service:jobcard_update' jc.pk %}"
+                           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+                            Edit
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="8">
+
+                    <div class="empty-state">
+
+                        <i class="fas fa-file-alt fa-2x mb-3 d-block"></i>
+
+                        <p>
+                            No job cards found.
+                        </p>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
 </div>
+
+</div>
+
 {% endblock %}

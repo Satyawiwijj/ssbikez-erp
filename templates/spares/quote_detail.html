@@ -1,53 +1,265 @@
 {% extends 'base.html' %}
-{% block title %}{{ quote.quote_no }}{% endblock %}
-{% block page_title %}{{ quote.quote_no }}{% endblock %}
+
+{% block title %}{{ quote.quote_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Supplier Quote{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'spares:quote_update' quote.pk %}" class="btn btn-primary btn-sm"><i class="fa fa-edit me-1"></i>Edit</a>
-<a href="{% url 'spares:quote_list' %}" class="btn btn-outline-secondary btn-sm ms-2"><i class="fa fa-arrow-left me-1"></i>Back</a>
+
+<a href="{% url 'spares:quote_update' quote.pk %}"
+   class="btn btn-primary btn-sm">
+    <i class="fas fa-edit me-1"></i>
+    Edit
+</a>
+
+<a href="{% url 'spares:quote_list' %}"
+   class="btn btn-outline-secondary btn-sm ms-2">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+
 {% endblock %}
 
 {% block content %}
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="table-light">
-            <tr><th>Item</th><th>Qty</th><th>UOM</th><th>Rate</th><th>Amount</th></tr>
-          </thead>
-          <tbody>
-            {% for i in items %}
-            <tr>
-              <td>{{ i.item.item_name }}</td>
-              <td>{{ i.quantity }}</td>
-              <td>{{ i.uom }}</td>
-              <td>&#8377;{{ i.rate }}</td>
-              <td>&#8377;{{ i.amount }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="5" class="text-center text-muted">No items.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            {{ quote.quote_no }}
+        </h1>
+
+        <p class="page-subtitle">
+            Supplier Quote Details
+        </p>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6">Supplier</dt><dd class="col-6">{{ quote.supplier }}</dd>
-          <dt class="col-6">Date</dt><dd class="col-6">{{ quote.date }}</dd>
-          <dt class="col-6">Status</dt><dd class="col-6">{{ quote.get_status_display }}</dd>
-          <dt class="col-6">Total Qty</dt><dd class="col-6">{{ quote.total_quantity }}</dd>
-          <dt class="col-6">Total Amount</dt><dd class="col-6">&#8377;{{ quote.total_amount }}</dd>
-          <dt class="col-6">Discount</dt><dd class="col-6">&#8377;{{ quote.additional_discount_amount }}</dd>
-          <dt class="col-6 fw-bold">Grand Total</dt><dd class="col-6 fw-bold">&#8377;{{ quote.grand_total }}</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
 </div>
+
+<div class="detail-grid">
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                Quote Information
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Quote Number</dt>
+                <dd>{{ quote.quote_no }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Supplier</dt>
+                <dd>{{ quote.supplier }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Date</dt>
+                <dd>{{ quote.date|date:"d M Y" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Valid Till</dt>
+                <dd>{{ quote.valid_till|date:"d M Y"|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+
+                    {% if quote.status == 'draft' %}
+                        <span class="badge badge-gray">
+                            Draft
+                        </span>
+
+                    {% elif quote.status == 'submitted' %}
+                        <span class="badge badge-blue">
+                            Submitted
+                        </span>
+
+                    {% elif quote.status == 'ordered' %}
+                        <span class="badge badge-green">
+                            Ordered
+                        </span>
+
+                    {% elif quote.status == 'cancelled' %}
+                        <span class="badge badge-red">
+                            Cancelled
+                        </span>
+
+                    {% else %}
+                        <span class="badge badge-gray">
+                            {{ quote.get_status_display }}
+                        </span>
+                    {% endif %}
+
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Quotation Number</dt>
+                <dd>{{ quote.quotation_number|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Reverse Charge</dt>
+                <dd>{{ quote.is_reverse_charge|yesno:"Yes,No" }}</dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                Quote Summary
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Total Quantity</dt>
+                <dd>{{ quote.total_quantity }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Total Amount</dt>
+                <dd>₹ {{ quote.total_amount }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Discount %</dt>
+                <dd>{{ quote.additional_discount_percent|default:"0" }}%</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Discount Amount</dt>
+                <dd>₹ {{ quote.additional_discount_amount|default:"0.00" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt><strong>Grand Total</strong></dt>
+                <dd>
+                    <strong style="color:#2563EB;">
+                        ₹ {{ quote.grand_total }}
+                    </strong>
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Quote Items
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>UOM</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for i in items %}
+
+                <tr>
+
+                    <td>
+                        {{ i.item.item_name }}
+                    </td>
+
+                    <td>
+                        {{ i.quantity }}
+                    </td>
+
+                    <td>
+                        {{ i.uom }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.rate }}
+                    </td>
+
+                    <td style="font-weight:500;">
+                        ₹ {{ i.amount }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="5">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-box-open"
+                               style="
+                                    font-size:32px;
+                                    color:#CBD5E1;
+                                    margin-bottom:10px;
+                                    display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No quote items found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+{% if quote.terms_and_conditions %}
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Terms & Conditions
+        </span>
+    </div>
+
+    <div style="padding:18px;">
+        {{ quote.terms_and_conditions|linebreaks }}
+    </div>
+
+</div>
+
+{% endif %}
+
 {% endblock %}

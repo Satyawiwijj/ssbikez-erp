@@ -1,145 +1,161 @@
 {% extends 'base.html' %}
+
 {% block title %}Spares Dashboard — SSBikez ERP{% endblock %}
-{% block page_title %}Spares{% endblock %}
+{% block page_title %}Spares Dashboard{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'spares:item_create' %}" class="btn btn-secondary btn-sm"><i class="fas fa-plus"></i> New Item</a>
-<a href="{% url 'spares:counter_sale_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-cash-register"></i> Counter Sale</a>
+Add Item
+Counter Sale
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div class="page-header-left">
-    <h1 class="page-title">Spares Dashboard</h1>
-    <p class="page-subtitle">Parts inventory, counter sales and purchasing</p>
-  </div>
-</div>
 
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Spares Dashboard</h1>
+        <p class="page-subtitle">
+            Inventory, purchasing and counter sales overview
+        </p>
+    </div>
+</div>
 <!-- KPI CARDS -->
-<div class="grid-2col" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px;">
-  <div class="kpi-card blue">
-    <div class="kpi-icon blue"><i class="fas fa-boxes"></i></div>
-    <div class="kpi-number">{{ total_items }}</div>
-    <div class="kpi-label">Active Items</div>
-  </div>
-  <div class="kpi-card red">
-    <div class="kpi-icon red"><i class="fas fa-triangle-exclamation"></i></div>
-    <div class="kpi-number">{{ low_stock }}</div>
-    <div class="kpi-label">Low Stock Items</div>
-    {% if low_stock > 0 %}
-    <div class="kpi-trend down"><i class="fas fa-arrow-down"></i> Needs reorder</div>
-    {% endif %}
-  </div>
-  <div class="kpi-card green">
-    <div class="kpi-icon green"><i class="fas fa-cash-register"></i></div>
-    <div class="kpi-number">{{ counter_sales_today }}</div>
-    <div class="kpi-label">Counter Sales Today</div>
-  </div>
-  <div class="kpi-card amber">
-    <div class="kpi-icon amber"><i class="fas fa-file-invoice"></i></div>
-    <div class="kpi-number">{{ pending_pos }}</div>
-    <div class="kpi-label">Pending POs</div>
-  </div>
+<div class="stat-grid">
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="fas fa-boxes" style="color:#1D4ED8"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_items }}</div>
+            <div class="stat-label">Active Items</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-exclamation-triangle" style="color:#D97706"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ low_stock }}</div>
+            <div class="stat-label">Low Stock Items</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-cash-register" style="color:#059669"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ counter_sales_today }}</div>
+            <div class="stat-label">Counter Sales Today</div>
+        </div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="fas fa-file-invoice" style="color:#7C3AED"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ pending_pos }}</div>
+            <div class="stat-label">Pending Purchase Orders</div>
+        </div>
+    </div>
+
 </div>
 
 <!-- QUICK ACTIONS -->
-<div class="grid-2col" style="margin-bottom:24px;">
-  <div class="card" style="margin-bottom:0;">
+<div class="detail-grid">
+<div class="card">
     <div class="card-header">
-      <span class="card-title"><i class="fas fa-shopping-bag" style="margin-right:6px;"></i>Purchasing</span>
+        <span class="card-title">Purchasing</span>
     </div>
-    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
-      <a href="{% url 'spares:quote_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">
-        <i class="fas fa-quote-right" style="width:16px;"></i> New Supplier Quote
-      </a>
-      <a href="{% url 'spares:order_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">
-        <i class="fas fa-shopping-bag" style="width:16px;"></i> New Purchase Order
-      </a>
-      <a href="{% url 'spares:invoice_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">
-        <i class="fas fa-file-invoice-dollar" style="width:16px;"></i> New Purchase Invoice
-      </a>
-      <a href="{% url 'spares:order_list' %}" class="btn btn-ghost" style="justify-content:flex-start;">
-        <i class="fas fa-list" style="width:16px;"></i> View All POs →
-      </a>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:20px;">
+        <a href="{% url 'spares:quote_create' %}"
+           class="btn btn-secondary">
+            New Supplier Quote
+        </a>
+        <a href="{% url 'spares:order_create' %}"
+           class="btn btn-secondary">
+            New Purchase Order
+        </a>
+        <a href="{% url 'spares:invoice_create' %}"
+           class="btn btn-secondary">
+            New Purchase Invoice
+        </a>
     </div>
-  </div>
-
-  <div class="card" style="margin-bottom:0;">
+</div>
+<div class="card">
     <div class="card-header">
-      <span class="card-title"><i class="fas fa-cash-register" style="margin-right:6px;"></i>Sales &amp; Stock</span>
+        <span class="card-title">Sales & Stock</span>
     </div>
-    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;">
-      <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-primary" style="justify-content:flex-start;">
-        <i class="fas fa-cash-register" style="width:16px;"></i> Counter Sale
-      </a>
-      <a href="{% url 'spares:issue_alteration_create' %}" class="btn btn-secondary" style="justify-content:flex-start;">
-        <i class="fas fa-tools" style="width:16px;"></i> Issue / Alteration
-      </a>
-      <a href="{% url 'spares:stock_report' %}" class="btn btn-secondary" style="justify-content:flex-start;">
-        <i class="fas fa-chart-bar" style="width:16px;"></i> Stock Report
-      </a>
-      <a href="{% url 'spares:item_list' %}" class="btn btn-ghost" style="justify-content:flex-start;">
-        <i class="fas fa-list" style="width:16px;"></i> Browse All Items →
-      </a>
+    <div style="padding:18px;display:flex;flex-direction:column;gap:20px;">
+        <a href="{% url 'spares:counter_sale_create' %}"
+           class="btn btn-secondary">
+            Counter Sale
+        </a>
+        <a href="{% url 'spares:issue_alteration_create' %}"
+           class="btn btn-secondary">
+            Issue / Alteration
+        </a>
+        <a href="{% url 'spares:stock_report' %}"
+           class="btn btn-secondary">
+            Stock Report
+        </a>
     </div>
-  </div>
+</div>
 </div>
 
 <!-- RECENT COUNTER SALES -->
 {% if recent_sales %}
-<div class="card">
-  <div class="card-header">
-    <span class="card-title"><i class="fas fa-receipt" style="margin-right:6px;"></i>Recent Counter Sales</span>
-    <a href="{% url 'spares:counter_sale_list' %}" class="btn btn-ghost btn-sm">View All →</a>
-  </div>
-  <div class="table-wrapper">
+
+<div class="card" style="margin-top:20px;">
+<div class="card-header">
+    <span class="card-title">
+        Recent Counter Sales
+    </span>
+</div>
+<div class="table-wrapper">
     <table class="table">
-      <thead>
-        <tr>
-          <th>Sale No</th>
-          <th>Customer</th>
-          <th>Date</th>
-          <th>Godown</th>
-          <th>Status</th>
-          <th>Amount</th>
-          <th style="text-align:right;">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for s in recent_sales %}
-        <tr>
-          <td>
-            <a href="{% url 'spares:counter_sale_detail' s.pk %}" style="font-family:monospace;font-weight:700;color:var(--primary);text-decoration:none;">{{ s.sale_no }}</a>
-          </td>
-          <td style="font-weight:500;">{{ s.customer }}</td>
-          <td style="font-size:12px;color:var(--text-muted);">{{ s.date }}</td>
-          <td style="font-size:13px;">{{ s.godown.name }}</td>
-          <td>
-            {% if s.status == 'submitted' %}<span class="badge badge-green">Submitted</span>
-            {% elif s.status == 'cancelled' %}<span class="badge badge-red">Cancelled</span>
-            {% else %}<span class="badge badge-gray">Draft</span>{% endif %}
-          </td>
-          <td style="font-weight:700;">&#8377;{{ s.total_amount }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'spares:counter_sale_detail' s.pk %}" class="btn btn-ghost btn-sm">View</a>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
+        <thead>
+            <tr>
+                <th>Sale No</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Godown</th>
+                <th>Status</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in recent_sales %}
+            <tr>
+                <td>
+                    <a href="{% url 'spares:counter_sale_detail' s.pk %}">
+                        {{ s.sale_no }}
+                    </a>
+                </td>
+                <td>{{ s.customer }}</td>
+                <td>{{ s.date|date:"d M Y" }}</td>
+                <td>{{ s.godown.name }}</td>
+                <td>
+                    {% if s.status == 'submitted' %}
+                        <span class="badge badge-green">Submitted</span>
+                    {% elif s.status == 'cancelled' %}
+                        <span class="badge badge-red">Cancelled</span>
+                    {% else %}
+                        <span class="badge badge-gray">Draft</span>
+                    {% endif %}
+                </td>
+                <td>
+                    ₹ {{ s.total_amount }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
-  </div>
 </div>
-{% else %}
-<div class="card">
-  <div class="card-header"><span class="card-title"><i class="fas fa-receipt" style="margin-right:6px;"></i>Recent Counter Sales</span></div>
-  <div class="empty-state" style="padding:48px 20px;">
-    <div class="empty-state-icon"><i class="fas fa-cash-register"></i></div>
-    <div class="empty-state-title">No counter sales yet</div>
-    <div class="empty-state-text">Record your first counter sale to see it here.</div>
-    <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-primary"><i class="fas fa-plus"></i> New Counter Sale</a>
-  </div>
 </div>
+
 {% endif %}
+
 {% endblock %}

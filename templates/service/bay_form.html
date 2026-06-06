@@ -1,26 +1,149 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<button form="bay-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Bay
+</button>
+
+<a href="{% url 'service:bay_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'service:bay_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
-</div>
-<div class="card form-card">
-  <form method="post" novalidate>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'service:dashboard' %}">Service</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'service:bay_list' %}">Service Bays</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post"
+      id="bay-form"
+      novalidate>
+
     {% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+
+    <div class="row g-3">
+
+        <!-- Main Form -->
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+                    <i class="fas fa-tools me-2"></i>
+                    {{ title }}
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <small class="text-muted">
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+
+                        </div>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Sidebar Info -->
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Bay Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Service Management
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Service Bays
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Purpose</strong>
+                        <div class="text-muted small">
+                            Service bays represent workshop locations where
+                            vehicles are assigned for repair, maintenance,
+                            inspection, and servicing activities.
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Tips</strong>
+                        <div class="text-muted small">
+                            Use clear bay names such as
+                            Bay 1, Bay 2, Express Bay,
+                            Inspection Bay, or Washing Bay.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save</button>
-      <a href="{% url 'service:bay_list' %}" class="btn btn-secondary">Cancel</a>
-    </div>
-  </form>
-</div>
+
+</form>
+
 {% endblock %}

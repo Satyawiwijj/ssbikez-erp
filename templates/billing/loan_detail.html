@@ -22,15 +22,15 @@
     </div>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'billing:loan_update' loan.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'sales:order_detail' loan.sales_order.pk %}" class="btn btn-ghost">&#8592; Back to Order</a>
+    <a href="{% url 'sales:order_detail' loan.sales_order.pk %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Order</a>
+     <a href="{% url 'billing:loan_list' %}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Loans</a>
   </div>
 </div>
 
 <div class="detail-grid">
   <!-- LOAN CORE DETAILS -->
   <div class="card">
-    <div class="card-header"><span class="card-title">&#x1F3E6; Loan Details</span></div>
+    <div class="card-header"><span class="card-title"> <i class="fas fa-landmark me-2"></i>Loan Details</span></div>
     <dl class="detail-list">
       <div class="detail-row">
         <dt>Sales Order</dt>
@@ -73,7 +73,7 @@
 
   <!-- DATES + REPAYMENT ESTIMATE -->
   <div class="card">
-    <div class="card-header"><span class="card-title">&#x1F4C5; Loan Timeline</span></div>
+    <div class="card-header"><span class="card-title"><i class="fas fa-calendar-alt me-2"></i> Loan Timeline</span></div>
     <dl class="detail-list">
       <div class="detail-row">
         <dt>Sanctioned Date</dt>
@@ -137,11 +137,33 @@
 
 <!-- QUICK LINKS -->
 <div class="card">
-  <div class="card-header"><span class="card-title">Quick Links</span></div>
-  <div style="display:flex; gap:12px; flex-wrap:wrap; padding:8px 0;">
-    <a href="{% url 'sales:order_detail' loan.sales_order.pk %}" class="btn btn-secondary">&#x1F4CB; View Sales Order</a>
-    <a href="{% url 'customers:customer_detail' loan.sales_order.customer.pk %}" class="btn btn-ghost">&#x1F464; View Customer</a>
-    <a href="{% url 'billing:loan_update' loan.pk %}" class="btn btn-ghost">&#x270F;&#xFE0F; Edit Loan</a>
-  </div>
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-link me-2"></i>
+            Quick Links
+        </span>
+    </div>
+    <div style="
+        display:flex;
+        gap:12px;
+        flex-wrap:wrap;
+        padding:16px;
+    ">
+        <a href="{% url 'sales:order_detail' loan.sales_order.pk %}"
+           class="btn btn-secondary">
+            <i class="fas fa-clipboard-list me-2"></i>
+            View Sales Order
+        </a>
+        <a href="{% url 'customers:customer_detail' loan.sales_order.customer.pk %}"
+           class="btn btn-secondary">
+            <i class="fas fa-user me-2"></i>
+            View Customer
+        </a>
+        <a href="{% url 'billing:loan_update' loan.pk %}"
+           class="btn btn-primary">
+            <i class="fas fa-edit me-2"></i>
+            Edit Loan
+        </a>
+    </div>
 </div>
 {% endblock %}

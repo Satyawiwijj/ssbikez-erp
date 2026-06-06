@@ -1,57 +1,163 @@
 {% extends 'base.html' %}
+
 {% block title %}Customers — SSBikez ERP{% endblock %}
 {% block page_title %}Customers{% endblock %}
 
+{% block topbar_actions %} <a href="{% url 'customers:customer_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
+New Customer </a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Customers</h1>
-    <p class="page-subtitle">All registered customers</p>
-  </div>
-  <a href="{% url 'customers:customer_create' %}" class="btn btn-primary">+ Add Customer</a>
-</div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Customers
+</span>
+
+</nav>
 
 <form class="search-bar" method="get">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by name or phone...">
-  <button type="submit" class="btn btn-secondary">Search</button>
-  {% if q %}<a href="{% url 'customers:customer_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+
+<input type="text"
+       name="q"
+       value="{{ q }}"
+       placeholder="Search by name or phone...">
+
+<button type="submit"
+        class="btn btn-secondary">
+
+    Search
+
+</button>
+
+{% if q %}
+<a href="{% url 'customers:customer_list' %}"
+   class="btn btn-ghost">
+
+    Clear
+
+</a>
+{% endif %}
+
 </form>
 
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Phone</th>
-          <th>Email</th>
-          <th>Joined</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for customer in customers %}
-        <tr>
-          <td>
-            <a href="{% url 'customers:customer_detail' customer.pk %}" style="font-weight:500; color:#2563EB; text-decoration:none;">
-              {{ customer.full_name }}
-            </a>
-          </td>
-          <td>{{ customer.phone }}</td>
-          <td style="color:#6B7280;">{{ customer.email|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ customer.created_at|date:"d M Y" }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'customers:customer_detail' customer.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'customers:customer_update' customer.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="5" class="empty-state">No customers found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+
+    <span class="card-title">
+
+        <i class="fas fa-users me-2"></i>
+        Customers
+
+    </span>
+
+    <span class="badge badge-blue">
+
+        {{ customers|length }}
+
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Customer ID</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Joined</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for customer in customers %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+                    CUST-{{ customer.pk }}
+                </td>
+
+                <td>
+
+                    <a href="{% url 'customers:customer_detail' customer.pk %}"
+                       style="font-weight:600;color:#2563EB;text-decoration:none;">
+
+                        {{ customer.full_name }}
+
+                    </a>
+
+                </td>
+
+                <td>
+                    {{ customer.phone }}
+                </td>
+
+                <td style="color:#6B7280;">
+                    {{ customer.email|default:"—" }}
+                </td>
+
+                <td style="color:#6B7280;font-size:13px;">
+                    {{ customer.created_at|date:"d M Y" }}
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'customers:customer_detail' customer.pk %}"
+                           class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye me-1"></i>
+                            View
+                        </a>
+
+                        <a href="{% url 'customers:customer_update' customer.pk %}"
+                           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+                            Edit
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="6" class="empty-state">
+
+                    <i class="fas fa-users mb-2"></i>
+
+                    <div>
+                        No customers found{% if q %} for "{{ q }}"{% endif %}.
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endblock %}

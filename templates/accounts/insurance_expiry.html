@@ -10,42 +10,67 @@
 </nav>
 
 <div class="page-header">
-  <div>
-    <h1 class="page-title">&#x1F6E1;&#xFE0F; Insurance Expiry Dashboard</h1>
-    <p class="page-subtitle">Track vehicle insurance renewals for CRE follow-up calls</p>
-  </div>
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-shield-alt me-2 text-primary"></i>
+            Insurance Expiry Dashboard
+        </h1>
+        <p class="page-subtitle">Monitor vehicle insurance renewals and follow-up opportunities</p>
+    </div>
 </div>
 
 <!-- SUMMARY CARDS -->
 <div class="stat-grid" style="grid-template-columns:repeat(3,1fr);">
-  <div class="stat-card" style="border-left:4px solid #DC2626;">
-    <div class="stat-icon" style="background:#FEE2E2;">&#x1F534;</div>
-    <div>
-      <div class="stat-value" style="color:#DC2626;">{{ already_expired|length }}</div>
-      <div class="stat-label">Already Expired</div>
+    <div class="stat-card" style="border-left:4px solid #DC2626;">
+        <div class="stat-icon" style="background:#FEE2E2;">
+            <i class="fas fa-exclamation-circle" style="color:#DC2626;"></i>
+        </div>
+        <div>
+            <div class="stat-value" style="color:#DC2626;">
+                {{ already_expired|length }}
+            </div>
+            <div class="stat-label">
+                Already Expired
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card" style="border-left:4px solid #D97706;">
-    <div class="stat-icon" style="background:#FEF3C7;">&#x26A0;&#xFE0F;</div>
-    <div>
-      <div class="stat-value" style="color:#D97706;">{{ expiring_30|length }}</div>
-      <div class="stat-label">Expiring in 30 Days</div>
+    <div class="stat-card" style="border-left:4px solid #D97706;">
+        <div class="stat-icon" style="background:#FEF3C7;">
+            <i class="fas fa-clock" style="color:#D97706;"></i>
+        </div>
+        <div>
+            <div class="stat-value" style="color:#D97706;">
+                {{ expiring_30|length }}
+            </div>
+            <div class="stat-label">
+                Expiring in 30 Days
+            </div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card" style="border-left:4px solid #2563EB;">
-    <div class="stat-icon" style="background:#DBEAFE;">&#x1F4C5;</div>
-    <div>
-      <div class="stat-value" style="color:#2563EB;">{{ expiring_60|length }}</div>
-      <div class="stat-label">Expiring in 31–60 Days</div>
+    <div class="stat-card" style="border-left:4px solid #2563EB;">
+        <div class="stat-icon" style="background:#DBEAFE;">
+            <i class="fas fa-calendar-alt" style="color:#2563EB;"></i>
+        </div>
+        <div>
+            <div class="stat-value" style="color:#2563EB;">
+                {{ expiring_60|length }}
+            </div>
+            <div class="stat-label">
+                Expiring in 31-60 Days
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
 <!-- SECTION: ALREADY EXPIRED -->
 <div class="card">
-  <div class="card-header" style="background:#FEF2F2; border-left:4px solid #DC2626;">
-    <span class="card-title" style="color:#991B1B;">&#x1F6A8; Insurance Already Expired ({{ already_expired|length }})</span>
-  </div>
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+            Expired Insurance
+            <span class="badge badge-red ms-2">{{ already_expired|length }}</span>
+        </span>
+    </div>
   {% if already_expired %}
   <div class="table-wrapper">
     <table class="table">
@@ -64,17 +89,35 @@
         {% for cv in already_expired %}
         <tr>
           <td style="font-weight:600;">{{ cv.customer.full_name }}</td>
-          <td><a href="tel:{{ cv.customer.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ cv.customer.phone }}</a></td>
+          <td>
+              <a href="tel:{{ cv.customer.phone }}"
+                style=" color:#2563EB; text-decoration:none; font-weight:600; ">
+                  <i class="fas fa-phone-alt me-1"></i>
+                  {{ cv.customer.phone }}
+              </a>
+          </td>          
           <td>{{ cv.vehicle.bike_model }}</td>
           <td style="font-family:monospace; font-size:12px;">{{ cv.registration_no|default:"—" }}</td>
           <td><span class="badge badge-red">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
           <td style="color:#DC2626; font-weight:600;">{{ today|timesince:cv.insurance_expiry }} ago</td>
           <td>
-            <div class="table-actions">
-              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm">&#x1F4DE; Call</a>
-              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log Enquiry</a>
-              <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}" class="btn btn-ghost btn-sm">View</a>
-            </div>
+              <div class="table-actions">
+                  <a href="tel:{{ cv.customer.phone }}"
+                    class="btn btn-success btn-sm">
+                      <i class="fas fa-phone-alt me-1"></i>
+                      Call
+                  </a>
+                  <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}"
+                    class="btn btn-primary btn-sm">
+                      <i class="fas fa-plus-circle me-1"></i>
+                      Enquiry
+                  </a>
+                  <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}"
+                    class="btn btn-secondary btn-sm">
+                      <i class="fas fa-eye me-1"></i>
+                      View
+                  </a>
+              </div>
           </td>
         </tr>
         {% endfor %}
@@ -82,15 +125,28 @@
     </table>
   </div>
   {% else %}
-  <p class="empty-state">No expired insurance policies. &#x2705;</p>
+  <div class="empty-state">
+      <i class="fas fa-check-circle"
+        style="
+              font-size:32px;
+              color:#CBD5E1;
+              margin-bottom:10px;
+              display:block; ">
+      </i>
+      <p>No records found.</p>
+  </div>
   {% endif %}
 </div>
 
 <!-- SECTION: EXPIRING IN 30 DAYS -->
 <div class="card">
-  <div class="card-header" style="background:#FFFBEB; border-left:4px solid #D97706;">
-    <span class="card-title" style="color:#92400E;">&#x26A0;&#xFE0F; Expiring Within 30 Days ({{ expiring_30|length }})</span>
-  </div>
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-hourglass-half me-2 text-warning"></i>
+            Expiring Within 30 Days
+            <span class="badge badge-yellow ms-2">{{ expiring_30|length }}</span>
+        </span>
+    </div>
   {% if expiring_30 %}
   <div class="table-wrapper">
     <table class="table">
@@ -109,17 +165,34 @@
         {% for cv in expiring_30 %}
         <tr>
           <td style="font-weight:600;">{{ cv.customer.full_name }}</td>
-          <td><a href="tel:{{ cv.customer.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ cv.customer.phone }}</a></td>
-          <td>{{ cv.vehicle.bike_model }}</td>
+          <td>
+              <a href="tel:{{ cv.customer.phone }}"
+                style=" color:#2563EB; text-decoration:none; font-weight:600; ">
+                  <i class="fas fa-phone-alt me-1"></i>
+                  {{ cv.customer.phone }}
+              </a>
+          </td>          <td>{{ cv.vehicle.bike_model }}</td>
           <td style="font-family:monospace; font-size:12px;">{{ cv.registration_no|default:"—" }}</td>
           <td><span class="badge badge-yellow">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
           <td style="color:#D97706; font-weight:600;">{{ cv.insurance_expiry|timeuntil:today }}</td>
           <td>
-            <div class="table-actions">
-              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm">&#x1F4DE; Call</a>
-              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log Enquiry</a>
-              <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}" class="btn btn-ghost btn-sm">View</a>
-            </div>
+              <div class="table-actions">
+                  <a href="tel:{{ cv.customer.phone }}"
+                    class="btn btn-success btn-sm">
+                      <i class="fas fa-phone-alt me-1"></i>
+                      Call
+                  </a>
+                  <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}"
+                    class="btn btn-primary btn-sm">
+                      <i class="fas fa-plus-circle me-1"></i>
+                      Enquiry
+                  </a>
+                  <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}"
+                    class="btn btn-secondary btn-sm">
+                      <i class="fas fa-eye me-1"></i>
+                      View
+                  </a>
+              </div>
           </td>
         </tr>
         {% endfor %}
@@ -127,15 +200,28 @@
     </table>
   </div>
   {% else %}
-  <p class="empty-state">No vehicles expiring in next 30 days.</p>
+  <div class="empty-state">
+      <i class="fas fa-check-circle"
+        style="
+              font-size:32px;
+              color:#CBD5E1;
+              margin-bottom:10px;
+              display:block; ">
+      </i>
+      <p>No records found.</p>
+  </div>
   {% endif %}
 </div>
 
 <!-- SECTION: EXPIRING IN 31–60 DAYS -->
 <div class="card">
-  <div class="card-header" style="background:#EFF6FF; border-left:4px solid #2563EB;">
-    <span class="card-title" style="color:#1E40AF;">&#x1F4C5; Expiring in 31–60 Days ({{ expiring_60|length }})</span>
-  </div>
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-calendar-check me-2 text-primary"></i>
+            Expiring Within 31-60 Days
+            <span class="badge badge-blue ms-2">{{ expiring_60|length }}</span>
+        </span>
+    </div>
   {% if expiring_60 %}
   <div class="table-wrapper">
     <table class="table">
@@ -154,17 +240,35 @@
         {% for cv in expiring_60 %}
         <tr>
           <td style="font-weight:600;">{{ cv.customer.full_name }}</td>
-          <td><a href="tel:{{ cv.customer.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ cv.customer.phone }}</a></td>
+          <td>
+              <a href="tel:{{ cv.customer.phone }}"
+                style=" color:#2563EB; text-decoration:none; font-weight:600; ">
+                  <i class="fas fa-phone-alt me-1"></i>
+                  {{ cv.customer.phone }}
+              </a>
+          </td>
           <td>{{ cv.vehicle.bike_model }}</td>
           <td style="font-family:monospace; font-size:12px;">{{ cv.registration_no|default:"—" }}</td>
           <td><span class="badge badge-blue">{{ cv.insurance_expiry|date:"d M Y" }}</span></td>
           <td style="color:#2563EB; font-weight:600;">{{ cv.insurance_expiry|timeuntil:today }}</td>
           <td>
-            <div class="table-actions">
-              <a href="tel:{{ cv.customer.phone }}" class="btn btn-ghost btn-sm">&#x1F4DE; Call</a>
-              <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}" class="btn btn-primary btn-sm">Log Enquiry</a>
-              <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}" class="btn btn-ghost btn-sm">View</a>
-            </div>
+              <div class="table-actions">
+                  <a href="tel:{{ cv.customer.phone }}"
+                    class="btn btn-success btn-sm">
+                      <i class="fas fa-phone-alt me-1"></i>
+                      Call
+                  </a>
+                  <a href="{% url 'service:enquiry_create' %}?customer_vehicle={{ cv.pk }}"
+                    class="btn btn-primary btn-sm">
+                      <i class="fas fa-plus-circle me-1"></i>
+                      Enquiry
+                  </a>
+                  <a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}"
+                    class="btn btn-secondary btn-sm">
+                      <i class="fas fa-eye me-1"></i>
+                      View
+                  </a>
+              </div>
           </td>
         </tr>
         {% endfor %}
@@ -172,7 +276,16 @@
     </table>
   </div>
   {% else %}
-  <p class="empty-state">No vehicles expiring in 31–60 days.</p>
+  <div class="empty-state">
+      <i class="fas fa-check-circle"
+        style="
+              font-size:32px;
+              color:#CBD5E1;
+              margin-bottom:10px;
+              display:block; ">
+      </i>
+      <p>No records found.</p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

@@ -7,58 +7,58 @@
 {% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Sales Appointments</h1>
-    <p class="page-subtitle">All scheduled appointments</p>
-  </div>
-  <a href="{% url 'sales:appointment_create' %}" class="btn btn-primary">+ New Appointment</a>
-</div>
-
 <form class="search-bar" method="get">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search by customer name…">
-  <button type="submit" class="btn btn-secondary">Search</button>
+  <input type="text" name="q" value="{{ q }}" placeholder="Search customer...">
+  <button type="submit" class="btn btn-secondary ">Search</button>
   {% if q %}<a href="?" class="btn btn-ghost">Clear</a>{% endif %}
 </form>
-
 <div class="card">
+  <div class="card-header">
+    <div class="card-title"><i class="fas fa-calendar-alt me-2"></i>All Appointments <span class="badge badge-blue">{{ appointments|length }}</span></div>
+  </div>
   <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>APT #</th>
-          <th>Customer</th>
-          <th>Date &amp; Time</th>
-          <th>Purpose</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for apt in appointments %}
-        <tr>
-          <td style="font-family:monospace; font-size:13px;">APT-{{ apt.pk }}</td>
-          <td style="font-weight:500;">{{ apt.enquiry.customer.full_name }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ apt.appointment_date|date:"d M Y H:i" }}</td>
-          <td>{{ apt.get_purpose_display|default:"—" }}</td>
-          <td>
-            {% if apt.status == 'completed' %}<span class="badge badge-green">{{ apt.get_status_display }}</span>
-            {% elif apt.status == 'cancelled' %}<span class="badge badge-red">{{ apt.get_status_display }}</span>
-            {% elif apt.status == 'no_show' %}<span class="badge badge-yellow">{{ apt.get_status_display }}</span>
-            {% else %}<span class="badge badge-blue">{{ apt.get_status_display }}</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty-state">No appointments found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>#</th><th>Customer</th><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for apt in appointments %}
+          <tr>
+            <td style="font-family:monospace;font-weight:600;">
+              <a href="{% url 'sales:appointment_update' apt.pk %}" class="text-decoration-none text-primary">APT-{{ apt.pk }}</a>
+            </td>
+            <td>{{ apt.enquiry.customer.full_name }}</td>
+            <td>{{ apt.appointment_date|date:"d M Y H:i" }}</td>
+            <td>{{ apt.get_purpose_display|default:"—" }}</td>
+            <td>
+              {% if apt.status == 'completed' %}
+              <span class="badge badge-green">
+              {% elif apt.status == 'cancelled' %}
+              <span class="badge badge-red">
+              {% elif apt.status == 'no_show' %}
+              <span class="badge badge-yellow">
+              {% else %}
+              <span class="badge badge-blue">
+              {% endif %}
+              {{ apt.get_status_display }}
+              </span>
+            </td>
+            <td>
+            <a href="{% url 'sales:appointment_update' apt.pk %}" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>              
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="empty-state">
+            <i class="fas fa-calendar-times mb-2"></i>
+            <div>No appointments found.</div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
   </div>
 </div>
 {% endblock %}

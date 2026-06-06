@@ -1,51 +1,196 @@
 {% extends 'base.html' %}
+
 {% block title %}Finance Loans — SSBikez ERP{% endblock %}
 {% block page_title %}Finance Loans{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'billing:loan_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Add Loan</a>
+<a href="{% url 'billing:loan_create' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    Add Loan
+</a>
 {% endblock %}
 
 {% block content %}
-<form method="get" class="d-flex gap-2 mb-3">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search customer or bank…" class="form-control" style="max-width:320px;">
-  <button type="submit" class="btn btn-secondary btn-sm">Search</button>
-  {% if q %}<a href="?" class="btn btn-outline-secondary btn-sm">Clear</a>{% endif %}
-</form>
-<div class="card">
-  <div class="card-header">
-    <h6 class="card-title mb-0">All Loans <span class="badge bg-secondary ms-2">{{ loans|length }}</span></h6>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr><th>#</th><th>Customer</th><th>Bank</th><th>Loan Amount</th><th>EMI</th><th>Tenure</th><th>Status</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {% for loan in loans %}
-          <tr>
-            <td>LOAN-{{ loan.pk }}</td>
-            <td>{{ loan.sales_order.customer.full_name }}</td>
-            <td>{{ loan.bank_name }}</td>
-            <td>Rs. {{ loan.loan_amount }}</td>
-            <td>{% if loan.emi_amount %}Rs. {{ loan.emi_amount }}{% else %}—{% endif %}</td>
-            <td>{% if loan.tenure_months %}{{ loan.tenure_months }} mo{% else %}—{% endif %}</td>
-            <td>
-              <span class="badge badge-soft-{% if loan.loan_status == 'active' %}success{% elif loan.loan_status == 'rejected' %}danger{% else %}gray{% endif %}">
-                {{ loan.get_loan_status_display }}
-              </span>
-            </td>
-            <td>
-              <a href="{% url 'billing:loan_detail' loan.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="8" class="text-center text-muted py-4"><i class="fas fa-landmark fa-2x mb-2 d-block"></i>No loans found.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'billing:dashboard' %}">Billing</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Finance Loans</span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Finance Loans</h1>
+        <p class="page-subtitle">
+            Manage customer finance and loan records
+        </p>
     </div>
-  </div>
 </div>
+
+<form method="get" class="search-bar">
+    <input type="text"
+           name="q"
+           value="{{ q }}"
+           placeholder="Search customer or bank...">
+
+    <button type="submit"
+            class="btn btn-secondary">
+        Search
+    </button>
+
+    {% if q %}
+    <a href="{% url 'billing:loan_list' %}"
+       class="btn btn-ghost">
+        Clear
+    </a>
+    {% endif %}
+</form>
+
+<div class="card">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <span class="card-title">
+            <i class="fas fa-landmark me-2"></i>
+            All Loans
+        </span>
+
+        <span class="badge bg-secondary">
+            {{ loans|length }}
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table table-hover">
+
+            <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Customer</th>
+                    <th>Bank / NBFC</th>
+                    <th>Loan Amount</th>
+                    <th>EMI</th>
+                    <th>Tenure</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for loan in loans %}
+                <tr>
+
+                    <td>
+                        <span style="font-family:monospace;font-weight:600;">
+                            LOAN-{{ loan.pk }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ loan.sales_order.customer.full_name }}
+                    </td>
+
+                    <td>
+                        {{ loan.bank_name }}
+                    </td>
+
+                    <td class="fw-semibold">
+                        ₹ {{ loan.loan_amount }}
+                    </td>
+
+                    <td>
+                        {% if loan.emi_amount %}
+                            ₹ {{ loan.emi_amount }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if loan.tenure_months %}
+                            {{ loan.tenure_months }} Months
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                    <td>
+
+                        {% if loan.loan_status == 'active' %}
+                            <span class="badge bg-success">
+                                {{ loan.get_loan_status_display }}
+                            </span>
+
+                        {% elif loan.loan_status == 'rejected' %}
+                            <span class="badge bg-danger">
+                                {{ loan.get_loan_status_display }}
+                            </span>
+
+                        {% elif loan.loan_status == 'closed' %}
+                            <span class="badge bg-secondary">
+                                {{ loan.get_loan_status_display }}
+                            </span>
+
+                        {% else %}
+                            <span class="badge bg-warning text-dark">
+                                {{ loan.get_loan_status_display }}
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td class="text-end">
+
+                        <a href="{% url 'billing:loan_detail' loan.pk %}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-eye"></i>
+                        </a>
+
+                        <a href="{% url 'billing:loan_update' loan.pk %}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-edit"></i>
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="8">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-landmark text-muted"></i>
+
+                            <p class="mt-2">
+                                No loans found{% if q %} for "{{ q }}"{% endif %}.
+                            </p>
+
+                            <a href="{% url 'billing:loan_create' %}"
+                               class="btn btn-primary btn-sm">
+                                Add First Loan
+                            </a>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

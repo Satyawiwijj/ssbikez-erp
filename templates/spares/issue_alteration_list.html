@@ -1,32 +1,142 @@
 {% extends 'base.html' %}
-{% block title %}Issue Alterations{% endblock %}
+
+{% block title %}Issue Alterations — SSBikez ERP{% endblock %}
 {% block page_title %}Issue Alterations{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:issue_alteration_create' %}" class="btn btn-primary btn-sm"><i class="fa fa-plus me-1"></i>New Issue Alteration</a>
+<a href="{% url 'spares:issue_alteration_create' %}"
+   class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    New Issue Alteration
+</a>
 {% endblock %}
+
 {% block content %}
-<div class="card border-0 shadow-sm">
-  <div class="table-responsive">
-    <table class="table table-hover mb-0">
-      <thead class="table-light">
-        <tr><th>SIA No</th><th>Job Card</th><th>Date</th><th>Job Type</th><th>Godown</th><th>Total</th><th>Updated Total</th></tr>
-      </thead>
-      <tbody>
-        {% for a in alterations %}
-        <tr>
-          <td><a href="{% url 'spares:issue_alteration_detail' a.pk %}">SIA-{{ a.pk|stringformat:"05d" }}</a></td>
-          <td>{{ a.job_card }}</td>
-          <td>{{ a.date }}</td>
-          <td>{{ a.get_job_type_display }}</td>
-          <td>{{ a.godown.name }}</td>
-          <td>&#8377;{{ a.total }}</td>
-          <td>&#8377;{{ a.updated_total }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7" class="text-center text-muted py-4">No issue alterations found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Issue Alterations</h1>
+        <p class="page-subtitle">
+            Track spare parts issued against job cards and service work
+        </p>
+    </div>
 </div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Issue Alterations
+            <span class="badge badge-gray ms-2">
+                {{ alterations|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>SIA Number</th>
+                    <th>Job Card</th>
+                    <th>Date</th>
+                    <th>Job Type</th>
+                    <th>Godown</th>
+                    <th>Total Amount</th>
+                    <th>Updated Total</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for a in alterations %}
+
+                <tr>
+
+                    <td>
+                        <a href="{% url 'spares:issue_alteration_detail' a.pk %}"
+                           style="font-weight:600;color:#2563EB;text-decoration:none;">
+                            SIA-{{ a.pk|stringformat:"05d" }}
+                        </a>
+                    </td>
+
+                    <td>
+                        {{ a.job_card }}
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ a.date|date:"d M Y" }}
+                    </td>
+
+                    <td>
+                        {{ a.get_job_type_display }}
+                    </td>
+
+                    <td>
+                        {{ a.godown.name }}
+                    </td>
+
+                    <td>
+                        ₹ {{ a.total }}
+                    </td>
+
+                    <td>
+                        <strong>₹ {{ a.updated_total }}</strong>
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'spares:issue_alteration_detail' a.pk %}"
+                               class="btn btn-secondary btn-sm">
+                                View
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="8">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-tools"
+                               style="
+                                    font-size:32px;
+                                    color:#CBD5E1;
+                                    margin-bottom:10px;
+                                    display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No issue alterations found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

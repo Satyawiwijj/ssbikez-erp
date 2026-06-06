@@ -1,52 +1,191 @@
 {% extends 'base.html' %}
-{% block title %}Spares Items{% endblock %}
-{% block page_title %}Spares Items{% endblock %}
-
-{% block topbar_actions %}
-<a href="{% url 'spares:item_create' %}" class="btn btn-primary btn-sm">
-  <i class="fa fa-plus me-1"></i>New Item
-</a>
-{% endblock %}
+{% block title %}Spare Parts — SSBikez ERP{% endblock %}
+{% block page_title %}Spare Parts{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm">
-  <div class="card-header bg-white border-0 pt-3">
-    <form class="d-flex gap-2" method="get">
-      <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm" placeholder="Search item name, code, part no, HSN..." style="max-width:320px;">
-      <button class="btn btn-outline-secondary btn-sm">Search</button>
-      {% if q %}<a href="{% url 'spares:item_list' %}" class="btn btn-outline-danger btn-sm">Clear</a>{% endif %}
-    </form>
-  </div>
-  <div class="table-responsive">
-    <table class="table table-hover mb-0">
-      <thead class="table-light">
-        <tr>
-          <th>Code</th><th>Name</th><th>Category</th><th>HSN</th><th>UOM</th><th>MRP</th><th>Rate</th><th>Status</th><th></th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in items %}
-        <tr>
-          <td><code>{{ item.item_code }}</code></td>
-          <td><a href="{% url 'spares:item_detail' item.pk %}">{{ item.item_name }}</a></td>
-          <td>{{ item.category|default:"&mdash;" }}</td>
-          <td>{{ item.hsn_sac|default:"&mdash;" }}</td>
-          <td>{{ item.uom }}</td>
-          <td>&#8377;{{ item.mrp }}</td>
-          <td>&#8377;{{ item.standard_selling_rate }}</td>
-          <td>
-            {% if item.is_active %}<span class="badge bg-success">Active</span>
-            {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
-          </td>
-          <td>
-            <a href="{% url 'spares:item_update' item.pk %}" class="btn btn-outline-secondary btn-sm">Edit</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="9" class="text-center text-muted py-4">No items found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Spare Parts</h1>
+        <p class="page-subtitle">
+            Manage spare parts inventory and pricing
+        </p>
+    </div>
+
+    <a href="{% url 'spares:item_create' %}"
+       class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>
+        New Item
+    </a>
 </div>
+
+<form class="search-bar" method="get">
+
+    <input type="text"
+           name="q"
+           value="{{ q }}"
+           placeholder="Search item name, code, part number or HSN...">
+
+    <button type="submit" class="btn btn-secondary">
+        <i class="fas fa-search me-1"></i>
+        Search
+    </button>
+
+    {% if q %}
+    <a href="{% url 'spares:item_list' %}"
+       class="btn btn-ghost">
+        Clear
+    </a>
+    {% endif %}
+
+</form>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Spare Parts
+            <span class="badge badge-gray ms-2">
+                {{ items|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Item Code</th>
+                    <th>Item Name</th>
+                    <th>Category</th>
+                    <th>HSN</th>
+                    <th>UOM</th>
+                    <th>MRP</th>
+                    <th>Selling Rate</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for item in items %}
+
+                <tr>
+
+                    <td>
+                        <span style="
+                            font-family:monospace;
+                            font-weight:600;
+                            color:#374151;
+                        ">
+                            {{ item.item_code }}
+                        </span>
+                    </td>
+
+                    <td style="font-weight:600;">
+                        <a href="{% url 'spares:item_detail' item.pk %}"
+                           style="color:#2563EB;text-decoration:none;">
+                            {{ item.item_name }}
+                        </a>
+                    </td>
+
+                    <td>
+                        {{ item.category|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ item.hsn_sac|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ item.uom }}
+                    </td>
+
+                    <td>
+                        ₹ {{ item.mrp }}
+                    </td>
+
+                    <td>
+                        ₹ {{ item.standard_selling_rate }}
+                    </td>
+
+                    <td>
+
+                        {% if item.is_active %}
+                            <span class="badge badge-green">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="badge badge-gray">
+                                Inactive
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'spares:item_detail' item.pk %}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye me-1"></i>
+                                View
+                            </a>
+
+                            <a href="{% url 'spares:item_update' item.pk %}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit me-1"></i>
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="9">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-box-open"
+                               style="
+                                   font-size:32px;
+                                   color:#CBD5E1;
+                                   margin-bottom:10px;
+                                   display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No spare parts found
+                                {% if q %}
+                                    for "{{ q }}"
+                                {% endif %}
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

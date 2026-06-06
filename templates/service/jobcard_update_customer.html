@@ -1,31 +1,213 @@
 {% extends 'base.html' %}
+
 {% block title %}Update Customer — JC-{{ jc.pk }}{% endblock %}
-{% block page_title %}Update Customer Info for JC-{{ jc.pk }}{% endblock %}
+{% block page_title %}Update Customer Information{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="customer-update-form"
+     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Save Changes </button>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back to Job Card </a>
+
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a>
-  <span class="bc-sep">/</span><span class="bc-current">Update Customer</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:dashboard' %}">
+    Service
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_list' %}">
+    Job Cards
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}">
+    JC-{{ jc.pk }}
+</a>
+
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Update Customer
+</span>
+
 </nav>
-<div class="card form-card">
-  <div class="card-header"><span class="card-title">&#x270E; Customer #{{ customer.pk }} — {{ customer.full_name }}</span></div>
-  <div style="padding:20px;">
-    <div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:12px;margin-bottom:16px;font-size:13px;">
-      Update customer master record. Changes apply across all their vehicles and job cards.
+
+<div class="row g-3">
+
+<!-- Main Form -->
+
+<div class="col-lg-8">
+
+    <!-- Customer Info -->
+
+    <div class="card mb-3">
+
+        <div class="card-header">
+            <i class="fas fa-user me-2"></i>
+            Customer Information
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <strong>Customer ID</strong>
+                    <div class="text-muted">
+                        CUST-{{ customer.pk }}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <strong>Customer Name</strong>
+                    <div class="text-muted">
+                        {{ customer.full_name }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
-      </div>
-      {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Changes</button>
-        <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
-      </div>
+
+    <!-- Warning -->
+
+    <div class="alert alert-warning">
+
+        <i class="fas fa-exclamation-triangle me-2"></i>
+
+        Changes made here will update the customer master record and
+        affect all linked vehicles, service records, enquiries and job cards.
+
+    </div>
+
+    <!-- Form -->
+
+    <form method="post"
+          id="customer-update-form"
+          novalidate>
+
+        {% csrf_token %}
+
+        <div class="card form-card">
+
+            <div class="card-header">
+                <i class="fas fa-edit me-2"></i>
+                Edit Customer Details
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    {% for field in form %}
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <small class="text-muted">
+                            {{ field.help_text }}
+                        </small>
+                        {% endif %}
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
     </form>
-  </div>
+
 </div>
+
+<!-- Sidebar -->
+
+<div class="col-lg-4">
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>
+            Details
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong>Module</strong>
+                <div class="text-muted">
+                    Service Management
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Section</strong>
+                <div class="text-muted">
+                    Customer Master
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Job Card</strong>
+                <div class="text-muted">
+                    JC-{{ jc.pk }}
+                </div>
+            </div>
+
+            <div>
+                <strong>Notes</strong>
+                <div class="text-muted small">
+                    Use this screen to correct customer details such as
+                    name, mobile number, address, email and other master
+                    information associated with service records.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
 {% endblock %}

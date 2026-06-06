@@ -1,89 +1,347 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:counter_return_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+<button form="return-form"
+        class="btn btn-primary btn-sm">
+    <i class="fas fa-save me-1"></i>
+    Save Return
+</button>
+
+<a href="{% url 'spares:counter_return_list' %}"
+   class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
 {% endblock %}
+
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Return Header</h6></div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-sm-6"><label class="form-label">Original Sale *</label>{{ form.original_sale }}</div>
-            <div class="col-sm-6"><label class="form-label">Return Date *</label>{{ form.return_date }}</div>
-            <div class="col-12"><label class="form-label">Reason</label>{{ form.reason }}</div>
-            <div class="col-sm-6 d-flex gap-3">
-              <div class="form-check">{{ form.stock_return_done }}<label class="form-check-label ms-2">Stock Returned</label></div>
-              <div class="form-check">{{ form.amount_refund_done }}<label class="form-check-label ms-2">Amount Refunded</label></div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:dashboard' %}">Spares</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:counter_return_list' %}">Counter Sale Returns</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post"
+      id="return-form"
+      novalidate>
+
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if form.errors or formset.errors %}
+    <div class="alert alert-danger mb-3">
+        <strong>Please correct the errors below before saving.</strong>
+    </div>
+    {% endif %}
+
+    <div class="row g-3">
+
+        <!-- Main Section -->
+        <div class="col-lg-8">
+
+            <!-- Return Header -->
+            <div class="card form-card mb-3">
+
+                <div class="card-header">
+                    Return Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Original Sale
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.original_sale }}
+                            {% if form.original_sale.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.original_sale.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Return Date
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.return_date }}
+                            {% if form.return_date.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.return_date.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                Return Reason
+                            </label>
+                            {{ form.reason }}
+                            {% if form.reason.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.reason.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.stock_return_done }}
+                                <label class="form-check-label ms-2">
+                                    Stock Returned
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                {{ form.amount_refund_done }}
+                                <label class="form-check-label ms-2">
+                                    Amount Refunded
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
             </div>
-          </div>
+
+            <!-- Items -->
+            <div class="card form-card">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+
+                    <span>
+                        Return Items
+                    </span>
+
+                    <button type="button"
+                            id="add-row"
+                            class="btn btn-sm btn-light">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Item
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th style="width:45%;">Item</th>
+                                <th>Quantity</th>
+                                <th>Rate</th>
+                                <th style="width:70px;">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="formset-body">
+
+                            {% for f in formset %}
+
+                            <tr class="formset-row">
+
+                                {{ f.id }}
+
+                                <td>
+                                    {{ f.item }}
+                                    {% if f.item.errors %}
+                                    <div class="text-danger small">
+                                        {{ f.item.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ f.quantity }}
+                                    {% if f.quantity.errors %}
+                                    <div class="text-danger small">
+                                        {{ f.quantity.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ f.rate }}
+                                    {% if f.rate.errors %}
+                                    <div class="text-danger small">
+                                        {{ f.rate.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+
+                                    {% if f.instance.pk %}
+                                    <div style="display:none;">
+                                        {{ f.DELETE }}
+                                    </div>
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger remove-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Items</h6>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row"><i class="fa fa-plus me-1"></i>Add Item</button>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Spares Management
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Counter Sale Returns
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Notes</strong>
+                        <div class="text-muted small">
+                            Record returned items against a counter sale.
+                            Mark stock return and refund status when processed.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-sm mb-0">
-              <thead class="table-light">
-                <tr><th style="width:40%">Item</th><th>Qty</th><th>Rate</th><th></th></tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for f in formset %}
-                <tr class="formset-row">
-                  <td>{{ f.item }}{{ f.id }}</td>
-                  <td>{{ f.quantity }}</td>
-                  <td>{{ f.rate }}</td>
-                  <td>
-                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+
     </div>
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-grid">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Save Return</button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </form>
+
 {% endblock %}
+
 {% block extra_js %}
 <script>
-(function() {
-  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
-  const tbody = document.getElementById('formset-body');
-  const firstRow = tbody.querySelector('.formset-row');
-  document.getElementById('add-row').addEventListener('click', function() {
-    const n = parseInt(totalForms.value);
-    const row = firstRow.cloneNode(true);
-    row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
-    row.querySelectorAll('input,select,textarea').forEach(function(el){el.value='';});
-    tbody.appendChild(row); totalForms.value = n + 1; bindRemove(row);
-  });
-  function bindRemove(row) {
-    var btn = row.querySelector('.remove-row');
-    if (btn) btn.addEventListener('click', function() {
-      var d = row.querySelector('[id$="-DELETE"]');
-      if (d) { d.checked=true; row.style.display='none'; } else row.remove();
+(function () {
+
+    const totalForms =
+        document.querySelector('[name$="-TOTAL_FORMS"]');
+
+    const tbody =
+        document.getElementById('formset-body');
+
+    const addBtn =
+        document.getElementById('add-row');
+
+    addBtn.addEventListener('click', function () {
+
+        const formCount = parseInt(totalForms.value);
+
+        const firstRow =
+            tbody.querySelector('.formset-row');
+
+        const newRow =
+            firstRow.cloneNode(true);
+
+        newRow.innerHTML =
+            newRow.innerHTML.replace(
+                /items-\d+/g,
+                'items-' + formCount
+            );
+
+        newRow.querySelectorAll(
+            'input, select, textarea'
+        ).forEach(function (field) {
+
+            if (field.type !== 'hidden') {
+                field.value = '';
+            }
+
+            if (field.type === 'checkbox') {
+                field.checked = false;
+            }
+        });
+
+        tbody.appendChild(newRow);
+
+        totalForms.value =
+            formCount + 1;
+
+        bindRemove(newRow);
     });
-  }
-  tbody.querySelectorAll('.formset-row').forEach(function(r){bindRemove(r);});
+
+    function bindRemove(row) {
+
+        const btn =
+            row.querySelector('.remove-row');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+
+            const deleteField =
+                row.querySelector('[id$="-DELETE"]');
+
+            if (deleteField) {
+
+                deleteField.checked = true;
+                row.style.display = 'none';
+
+            } else {
+
+                row.remove();
+
+            }
+        });
+    }
+
+    document
+        .querySelectorAll('.formset-row')
+        .forEach(bindRemove);
+
 })();
 </script>
 {% endblock %}

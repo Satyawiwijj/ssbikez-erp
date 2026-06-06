@@ -143,13 +143,19 @@
   <div class="card-header"><span class="card-title">&#x1F529; Spare Parts ({{ results.spare_parts|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Item Name</th><th>Item Code</th><th>Part No.</th><th>MRP</th><th></th></tr></thead>
+      <thead><tr><th>Part Name</th><th>Part No.</th><th>Stock</th><th>MRP</th><th></th></tr></thead>
       <tbody>
         {% for p in results.spare_parts %}
         <tr>
-          <td style="font-weight:500;">{{ p.item_name }}</td>
-          <td style="font-family:monospace; color:#6B7280;">{{ p.item_code|default:"—" }}</td>
+          <td style="font-weight:500;">{{ p.part_name }}</td>
           <td style="font-family:monospace; color:#6B7280;">{{ p.part_number|default:"—" }}</td>
+          <td>
+            {% if p.stock_quantity < 5 %}
+            <span class="badge badge-red">{{ p.stock_quantity }}</span>
+            {% else %}
+            {{ p.stock_quantity }}
+            {% endif %}
+          </td>
           <td>{% if p.mrp %}&#x20B9; {{ p.mrp }}{% else %}—{% endif %}</td>
           <td><a href="{% url 'spares:item_detail' p.pk %}" class="btn btn-ghost btn-sm">View</a></td>
         </tr>

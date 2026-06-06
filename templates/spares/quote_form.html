@@ -1,124 +1,361 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'spares:quote_list' %}" class="btn btn-outline-secondary btn-sm">
-  <i class="fa fa-arrow-left me-1"></i>Back
+<button form="quote-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Quote
+</button>
+
+<a href="{% url 'spares:quote_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
 </a>
 {% endblock %}
 
 {% block content %}
-<form method="post" id="main-form">
-  {% csrf_token %}
-  {{ formset.management_form }}
 
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Quote Header</h6></div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-sm-6"><label class="form-label">Supplier *</label>{{ form.supplier }}</div>
-            <div class="col-sm-6"><label class="form-label">Date *</label>{{ form.date }}</div>
-            <div class="col-sm-6"><label class="form-label">Valid Till</label>{{ form.valid_till }}</div>
-            <div class="col-sm-6"><label class="form-label">Quotation No</label>{{ form.quotation_number }}</div>
-            <div class="col-sm-6"><label class="form-label">Status</label>{{ form.status }}</div>
-            <div class="col-sm-6"><label class="form-label">Additional Discount %</label>{{ form.additional_discount_percent }}</div>
-            <div class="col-sm-6"><label class="form-label">Discount Amount</label>{{ form.additional_discount_amount }}</div>
-            <div class="col-sm-6 d-flex align-items-end">
-              <div class="form-check">{{ form.is_reverse_charge }}<label class="form-check-label ms-2">Reverse Charge</label></div>
-            </div>
-            <div class="col-12"><label class="form-label">Terms &amp; Conditions</label>{{ form.terms_and_conditions }}</div>
-          </div>
-        </div>
-      </div>
+<form method="post"
+      id="quote-form"
+      novalidate>
 
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Items</h6>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row">
-            <i class="fa fa-plus me-1"></i>Add Item
-          </button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-sm mb-0" id="formset-table">
-              <thead class="table-light">
-                <tr>
-                  <th style="width:35%">Item</th>
-                  <th>Qty</th>
-                  <th>UOM</th>
-                  <th>Rate</th>
-                  <th>Req Date</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for f in formset %}
-                <tr class="formset-row">
-                  <td>{{ f.item }}{{ f.id }}</td>
-                  <td>{{ f.quantity }}</td>
-                  <td>{{ f.uom }}</td>
-                  <td>{{ f.rate }}</td>
-                  <td>{{ f.required_date }}</td>
-                  <td>
-                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row">
-                      <i class="fa fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if form.errors or formset.errors %}
+
+    <div class="alert alert-danger mb-3">
+
+        <strong>Please correct the following errors:</strong>
+
+        {% for field in form %}
+            {% for error in field.errors %}
+                <div>{{ field.label }} : {{ error }}</div>
+            {% endfor %}
+        {% endfor %}
+
+        {% for row in formset %}
+            {% for field in row %}
+                {% for error in field.errors %}
+                    <div>{{ field.label }} : {{ error }}</div>
                 {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+            {% endfor %}
+        {% endfor %}
+
     </div>
 
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-grid">
-          <button type="submit" class="btn btn-primary">
-            <i class="fa fa-save me-1"></i>Save Quote
-          </button>
+    {% endif %}
+
+    <div class="row g-3">
+
+        <!-- Main Section -->
+
+        <div class="col-lg-8">
+
+            <div class="card form-card mb-3">
+
+                <div class="card-header">
+                    <i class="fas fa-file-signature me-2"></i>
+                    Quote Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Supplier
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.supplier }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Date
+                                <span class="text-danger">*</span>
+                            </label>
+                            {{ form.date }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Valid Till
+                            </label>
+                            {{ form.valid_till }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Quotation Number
+                            </label>
+                            {{ form.quotation_number }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Status
+                            </label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Additional Discount %
+                            </label>
+                            {{ form.additional_discount_percent }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Discount Amount
+                            </label>
+                            {{ form.additional_discount_amount }}
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-end">
+
+                            <div class="form-check">
+                                {{ form.is_reverse_charge }}
+                                <label class="form-check-label ms-2">
+                                    Reverse Charge
+                                </label>
+                            </div>
+
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                Terms & Conditions
+                            </label>
+                            {{ form.terms_and_conditions }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Items -->
+
+            <div class="card form-card">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <i class="fas fa-boxes me-2"></i>
+                        Supplier Quote Items
+                    </div>
+
+                    <button type="button"
+                            id="add-row"
+                            class="btn btn-sm btn-light">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Item
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+
+                            <tr>
+                                <th style="width:35%">Item</th>
+                                <th>Qty</th>
+                                <th>UOM</th>
+                                <th>Rate</th>
+                                <th>Required Date</th>
+                                <th></th>
+                            </tr>
+
+                        </thead>
+
+                        <tbody id="formset-body">
+
+                            {% for f in formset %}
+
+                            <tr class="formset-row">
+
+                                {% for hidden in f.hidden_fields %}
+                                    {{ hidden }}
+                                {% endfor %}
+
+                                <td>{{ f.item }}</td>
+                                <td>{{ f.quantity }}</td>
+                                <td>{{ f.uom }}</td>
+                                <td>{{ f.rate }}</td>
+                                <td>{{ f.required_date }}</td>
+
+                                <td>
+
+                                    {% if f.instance.pk %}
+                                    <div style="display:none;">
+                                        {{ f.DELETE }}
+                                    </div>
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger remove-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
+
+        <!-- Sidebar -->
+
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Quote Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Spares Management
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Supplier Quotes
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Purpose</strong>
+                        <div class="text-muted small">
+                            Record supplier quotations and compare pricing before creating purchase orders.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </form>
+
 {% endblock %}
 
 {% block extra_js %}
+
 <script>
-(function() {
-  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
-  const tbody = document.getElementById('formset-body');
-  const firstRow = tbody.querySelector('.formset-row');
+(function () {
 
-  document.getElementById('add-row').addEventListener('click', function() {
-    const formCount = parseInt(totalForms.value);
-    const newRow = firstRow.cloneNode(true);
-    newRow.innerHTML = newRow.innerHTML.replace(/items-\d+/g, 'items-' + formCount);
-    newRow.querySelectorAll('input,select,textarea').forEach(function(el) { el.value = ''; });
-    tbody.appendChild(newRow);
-    totalForms.value = formCount + 1;
-    bindRemove(newRow);
-  });
+    const totalForms =
+        document.querySelector('[name$="-TOTAL_FORMS"]');
 
-  function bindRemove(row) {
-    var btn = row.querySelector('.remove-row');
-    if (btn) {
-      btn.addEventListener('click', function() {
-        var del = row.querySelector('[id$="-DELETE"]');
-        if (del) { del.checked = true; row.style.display = 'none'; }
-        else { row.remove(); }
-      });
+    const tbody =
+        document.getElementById('formset-body');
+
+    document
+        .getElementById('add-row')
+        .addEventListener('click', function () {
+
+            const count = parseInt(totalForms.value);
+
+            const lastRow =
+                tbody.querySelector('.formset-row:last-child');
+
+            const newRow =
+                lastRow.cloneNode(true);
+
+            newRow.innerHTML =
+                newRow.innerHTML.replace(
+                    /items-(\d+)-/g,
+                    'items-' + count + '-'
+                );
+
+            newRow.querySelectorAll(
+                'input, select, textarea'
+            ).forEach(function(el){
+
+                if(el.type === 'checkbox'){
+                    el.checked = false;
+                }
+                else{
+                    el.value = '';
+                }
+
+            });
+
+            tbody.appendChild(newRow);
+
+            totalForms.value = count + 1;
+
+            bindRemove(newRow);
+
+        });
+
+    function bindRemove(row){
+
+        const btn =
+            row.querySelector('.remove-row');
+
+        if(btn){
+
+            btn.addEventListener('click', function(){
+
+                const deleteField =
+                    row.querySelector(
+                        '[name$="-DELETE"]'
+                    );
+
+                if(deleteField){
+
+                    deleteField.checked = true;
+                    row.style.display = 'none';
+
+                } else {
+
+                    row.remove();
+
+                }
+
+            });
+
+        }
+
     }
-  }
 
-  tbody.querySelectorAll('.formset-row').forEach(function(row) { bindRemove(row); });
+    document
+        .querySelectorAll('.formset-row')
+        .forEach(bindRemove);
+
 })();
 </script>
+
 {% endblock %}

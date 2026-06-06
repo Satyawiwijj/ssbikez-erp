@@ -3,80 +3,126 @@
 {% block page_title %}{% if invoice %}Edit Service Invoice{% else %}Create Service Invoice{% endif %}{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{% if invoice %}Edit Service Invoice{% else %}New Service Invoice{% endif %}</h1>
-    <p class="page-subtitle">
-      {% if job_card %}
-      Job Card JC-{{ job_card.pk }} — {{ job_card.customer_vehicle.customer.full_name }}
-      {% elif invoice %}
-      Job Card JC-{{ invoice.job_card.pk }} — {{ invoice.job_card.customer_vehicle.customer.full_name }}
-      {% endif %}
-    </p>
-  </div>
-  <div class="page-header-actions">
+
+<nav class="breadcrumb-bar">
     {% if invoice %}
-    <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-ghost">&#8592; Back</a>
+        <a href="{% url 'service:service_invoice_detail' invoice.pk %}">Invoice</a>
     {% elif job_card %}
-    <a href="{% url 'service:jobcard_detail' job_card.pk %}" class="btn btn-ghost">&#8592; Back to Job Card</a>
+        <a href="{% url 'service:jobcard_detail' job_card.pk %}">JC-{{ job_card.pk }}</a>
     {% endif %}
-  </div>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">
+        {% if invoice %}
+            Edit Invoice
+        {% else %}
+            Create Invoice
+        {% endif %}
+    </span>
+</nav>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            {% if invoice %}
+                Edit Service Invoice
+            {% else %}
+                Create Service Invoice
+            {% endif %}
+        </h1>
+    <p class="page-subtitle">
+        {% if job_card %}
+            Job Card JC-{{ job_card.pk }} —
+            {{ job_card.customer_vehicle.customer.full_name }}
+        {% elif invoice %}
+            Job Card JC-{{ invoice.job_card.pk }} —
+            {{ invoice.job_card.customer_vehicle.customer.full_name }}
+        {% endif %}
+    </p>
+</div>
+{% if invoice %}
+    <a href="{% url 'service:service_invoice_detail' invoice.pk %}"
+       class="btn btn-secondary">
+        ← Back
+    </a>
+{% elif job_card %}
+    <a href="{% url 'service:jobcard_detail' job_card.pk %}"
+       class="btn btn-secondary">
+        ← Back to Job Card
+    </a>
+{% endif %}
 </div>
 
 {% if job_card and not invoice %}
-<div class="card" style="background:#EFF6FF; border:1px solid #BFDBFE; margin-bottom:20px;">
-  <div class="card-header" style="margin-bottom:8px;">
-    <span class="card-title" style="color:#1E40AF;">&#x2139;&#xFE0F; Auto-Calculated Totals</span>
-  </div>
-  <p style="font-size:13px; color:#1E40AF;">
-    Labor, parts, and outwork totals are calculated automatically from the job card.
-    Only enter a discount amount (if any) and set the invoice status.
-  </p>
+
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <span class="card-title">Invoice Information</span>
+    </div>
+<div style="padding:18px;">
+    <p style="margin:0;color:#4B5563;">
+        Labour charges, spare parts, GST and outwork costs are calculated
+        automatically from the selected Job Card. You only need to set the
+        invoice status and optionally enter a discount amount.
+    </p>
+</div>
 </div>
 {% endif %}
-
 <div class="card form-card">
-  <div class="card-header">
-    <span class="card-title">Invoice Details</span>
-  </div>
-  <form method="post" novalidate>
+    <div class="card-header">
+        <span class="card-title">Invoice Details</span>
+    </div>
+<form method="post" novalidate style="padding:20px;">
     {% csrf_token %}
-
-    {% if not invoice %}
+    {% if not invoice and job_card %}
     <input type="hidden" name="job_card" value="{{ job_card.pk }}">
     {% endif %}
-
-    <div class="form-grid">
-      <div class="form-group">
-        <label class="form-label">Discount Amount (&#x20B9;) <span style="color:#9CA3AF; font-weight:400;">— optional</span></label>
+    {% if form.non_field_errors %}
+    <div class="form-error" style="margin-bottom:16px;">
+        {{ form.non_field_errors|join:", " }}
+    </div>
+    {% endif %}
+    <div class="form-group">
+        <label class="form-label" for="{{ form.discount_amount.id_for_label }}">
+            Discount Amount (₹)
+        </label>
         {{ form.discount_amount }}
         {% if form.discount_amount.errors %}
-        <div class="form-error">{{ form.discount_amount.errors|join:", " }}</div>
+        <div class="form-error">
+            {{ form.discount_amount.errors|join:", " }}
+        </div>
         {% endif %}
-      </div>
-      <div class="form-group">
-        <label class="form-label">Status</label>
+    </div>
+    <div class="form-group">
+        <label class="form-label" for="{{ form.status.id_for_label }}">
+            Invoice Status
+        </label>
         {{ form.status }}
         {% if form.status.errors %}
-        <div class="form-error">{{ form.status.errors|join:", " }}</div>
+        <div class="form-error">
+            {{ form.status.errors|join:", " }}
+        </div>
         {% endif %}
-      </div>
     </div>
-
-    {% if form.non_field_errors %}
-    <div class="form-error" style="margin-bottom:16px;">{{ form.non_field_errors|join:", " }}</div>
-    {% endif %}
-
     <div class="form-actions">
-      <button type="submit" class="btn btn-primary">
-        {% if invoice %}Save Changes{% else %}Create Invoice{% endif %}
-      </button>
-      {% if invoice %}
-      <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-ghost">Cancel</a>
-      {% elif job_card %}
-      <a href="{% url 'service:jobcard_detail' job_card.pk %}" class="btn btn-ghost">Cancel</a>
-      {% endif %}
+        <button type="submit" class="btn btn-primary">
+            {% if invoice %}
+                Save Changes
+            {% else %}
+                Create Invoice
+            {% endif %}
+        </button>
+        {% if invoice %}
+            <a href="{% url 'service:service_invoice_detail' invoice.pk %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+        {% elif job_card %}
+            <a href="{% url 'service:jobcard_detail' job_card.pk %}"
+               class="btn btn-secondary">
+                Cancel
+            </a>
+        {% endif %}
     </div>
-  </form>
+</form>
 </div>
+
 {% endblock %}

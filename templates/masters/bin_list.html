@@ -1,44 +1,126 @@
 {% extends 'base.html' %}
+
 {% block title %}Bins — Masters{% endblock %}
 {% block page_title %}Bins{% endblock %}
-{% block topbar_actions %}
-<a href="{% url 'masters:bin_create' %}" class="btn btn-primary btn-sm">
-  <i class="fas fa-plus me-1"></i>New Bin
-</a>
+
+{% block topbar_actions %} <a href="{% url 'masters:bin_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
+New Bin </a>
 {% endblock %}
+
 {% block content %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'masters:warehouse_list' %}">Warehouses</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Bins
+</span>
+
+</nav>
+
 <div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between">
-    <span class="card-title">All Bins</span>
-    <span class="badge bg-secondary">{{ bins|length }}</span>
-  </div>
-  <div class="card-body p-0">
-    {% if bins %}
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr><th>Bin Name</th><th>Rack</th><th>Warehouse</th><th class="text-end">Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for bin in bins %}
-        <tr>
-          <td class="fw-semibold">{{ bin.name }}</td>
-          <td>{{ bin.rack.name }}</td>
-          <td>{{ bin.rack.warehouse.name }}</td>
-          <td class="text-end">
-            <a href="{% url 'masters:bin_update' bin.pk %}" class="btn btn-sm btn-outline-secondary">
-              <i class="fas fa-edit"></i>
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <i class="fas fa-box text-muted"></i>
-      <p class="mt-2">No bins yet. <a href="{% url 'masters:bin_create' %}">Add one</a>.</p>
-    </div>
-    {% endif %}
-  </div>
+
+<div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+
+    <span class="card-title">
+
+        <i class="fas fa-box me-2"></i>
+        Storage Bins
+
+    </span>
+
+    <span class="badge badge-blue">
+
+        {{ bins|length }}
+
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    {% if bins %}
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Bin ID</th>
+                <th>Bin Name</th>
+                <th>Rack</th>
+                <th>Warehouse</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for bin in bins %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+                    BIN-{{ bin.pk }}
+                </td>
+
+                <td style="font-weight:600;">
+                    {{ bin.name }}
+                </td>
+
+                <td>
+                    {{ bin.rack.name }}
+                </td>
+
+                <td>
+                    {{ bin.rack.warehouse.name }}
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'masters:bin_update' bin.pk %}"
+                           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="fas fa-box mb-2"></i>
+
+        <div>
+            No bins found.
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</div>
+
 {% endblock %}

@@ -1,44 +1,165 @@
 {% extends 'base.html' %}
+
 {% block title %}RC Books — SSBikez ERP{% endblock %}
 {% block page_title %}RC Books{% endblock %}
 
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'accounts:dashboard' %}">Home</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">RC Books</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'rto:dashboard' %}">RTO</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">RC Books</span>
 </nav>
 
-<div class="page-header">
-  <div><h1 class="page-title">RC Books</h1></div>
+<div class="card">
+
+    <div class="card-header"
+         style="display:flex;justify-content:space-between;align-items:center;">
+
+        <span class="card-title">
+
+            <i class="fas fa-book me-2"></i>
+            RC Books
+
+        </span>
+
+        <span class="badge badge-blue">
+
+            {{ rc_books|length }}
+
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+                    <th>RC ID</th>
+                    <th>RC Number</th>
+                    <th>Customer</th>
+                    <th>RTO Registration</th>
+                    <th>Status</th>
+                    <th>Issue Date</th>
+                    <th>Issued To</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for rc in rc_books %}
+
+                <tr>
+
+                    <td style="font-family:monospace;font-weight:600;">
+                        RC-{{ rc.pk }}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        {{ rc.rc_number|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        <div style="font-weight:600;">
+                            {{ rc.rto_registration.sales_order.customer.full_name }}
+                        </div>
+
+                        {% if rc.rto_registration.sales_order.customer.phone %}
+                        <div style="font-size:12px;color:#6B7280;">
+                            {{ rc.rto_registration.sales_order.customer.phone }}
+                        </div>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}">
+
+                            RTO-{{ rc.rto_registration.pk }}
+
+                        </a>
+
+                    </td>
+
+                    <td>
+
+                        {% if rc.status == 'issued' %}
+                        <span class="badge badge-green">
+
+                        {% elif rc.status == 'created' %}
+                        <span class="badge badge-blue">
+
+                        {% else %}
+                        <span class="badge badge-yellow">
+
+                        {% endif %}
+
+                            {{ rc.get_status_display }}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+                        {{ rc.issue_date|date:"d M Y"|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ rc.issued_to|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'rto:rc_book_detail' rc.pk %}"
+                               class="btn btn-sm btn-outline-secondary">
+                               <i class="fas fa-eye me-1"></i>
+                                View
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="8" class="empty-state">
+
+                        <i class="fas fa-book mb-2"></i>
+
+                        <div>
+                            No RC Books found.
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
 
-<div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr><th>RC No</th><th>Customer</th><th>RTO Reg</th><th>Status</th><th>Issued On</th><th>Issued To</th><th></th></tr>
-      </thead>
-      <tbody>
-        {% for rc in rc_books %}
-        <tr>
-          <td><strong>{{ rc.rc_number|default:"—" }}</strong></td>
-          <td>{{ rc.rto_registration.sales_order.customer.full_name }}</td>
-          <td><a href="{% url 'rto:registration_detail' rc.rto_registration.pk %}">RTO-{{ rc.rto_registration.pk }}</a></td>
-          <td>
-            {% if rc.status == 'issued' %}<span class="badge badge-green">{{ rc.get_status_display }}</span>
-            {% elif rc.status == 'created' %}<span class="badge badge-blue">{{ rc.get_status_display }}</span>
-            {% else %}<span class="badge badge-yellow">{{ rc.get_status_display }}</span>{% endif %}
-          </td>
-          <td>{{ rc.issue_date|date:"d M Y"|default:"—" }}</td>
-          <td>{{ rc.issued_to|default:"—" }}</td>
-          <td><a href="{% url 'rto:rc_book_detail' rc.pk %}" class="btn btn-sm btn-ghost">View</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7"><div class="empty-state"><i class="fas fa-book"></i><p>No RC books yet.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-</div>
 {% endblock %}

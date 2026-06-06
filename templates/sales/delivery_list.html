@@ -1,40 +1,153 @@
 {% extends 'base.html' %}
+
 {% block title %}Deliveries — SSBikez ERP{% endblock %}
 {% block page_title %}Vehicle Deliveries{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'sales:delivery_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Record Delivery</a>
+<a href="{% url 'sales:delivery_create' %}"
+   class="btn btn-primary btn-sm">
+
+    <i class="fas fa-plus me-1"></i>
+    Record Delivery
+
+</a>
 {% endblock %}
 
 {% block content %}
+
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:dashboard' %}">Sales</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Deliveries</span>
+</nav>
+
 <div class="card">
+
   <div class="card-header">
-    <h6 class="card-title mb-0">All Deliveries <span class="badge bg-secondary ms-2">{{ deliveries|length }}</span></h6>
+
+    <span class="card-title">
+
+      <i class="fas fa-truck me-2"></i>
+      All Deliveries
+
+    </span>
+
+    <span class="badge badge-blue">
+
+      {{ deliveries|length }}
+
+    </span>
+
   </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr><th>#</th><th>Customer</th><th>Vehicle</th><th>Delivery Date</th><th>Delivered By</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {% for d in deliveries %}
-          <tr>
-            <td>DELIVERY-{{ d.pk }}</td>
-            <td>{{ d.sales_order.customer.full_name }}</td>
-            <td>{{ d.sales_order.vehicle.bike_model }}</td>
-            <td>{{ d.delivery_date }}</td>
-            <td>{{ d.delivered_by|default:"—" }}</td>
-            <td>
-              <a href="{% url 'sales:delivery_detail' d.pk %}" class="btn btn-sm btn-outline-secondary">View</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-truck fa-2x mb-2 d-block"></i>No deliveries yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
+
+  <div class="table-wrapper">
+
+    <table class="table">
+
+      <thead>
+
+        <tr>
+          <th>Delivery ID</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Delivery Date</th>
+          <th>Delivered By</th>
+          <th>Actions</th>
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        {% for d in deliveries %}
+
+        <tr>
+
+          <td style="font-family:monospace;font-weight:600;">
+
+            <a href="{% url 'sales:delivery_detail' d.pk %}"
+               class="text-decoration-none text-primary">
+
+              DELIVERY-{{ d.pk }}
+
+            </a>
+
+          </td>
+
+          <td>
+
+            <div class="fw-semibold">
+
+              {{ d.sales_order.customer.full_name }}
+
+            </div>
+
+          </td>
+
+          <td>
+
+            {{ d.sales_order.vehicle.bike_model }}
+
+          </td>
+
+          <td style="color:#6B7280;font-size:13px;">
+
+            {{ d.delivery_date|date:"d M Y" }}
+
+          </td>
+
+          <td>
+
+            {{ d.delivered_by|default:"—" }}
+
+          </td>
+
+          <td>
+
+            <div class="table-actions">
+
+              <a href="{% url 'sales:delivery_detail' d.pk %}"
+                 class="btn btn-outline-primary btn-sm">
+
+                <i class="fas fa-eye me-1"></i>
+                View
+
+              </a>
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        {% empty %}
+
+        <tr>
+
+          <td colspan="6" class="empty-state">
+
+            <i class="fas fa-truck mb-2"></i>
+
+            <div>
+
+              No deliveries recorded yet.
+
+            </div>
+
+          </td>
+
+        </tr>
+
+        {% endfor %}
+
+      </tbody>
+
+    </table>
+
   </div>
+
 </div>
+
 {% endblock %}

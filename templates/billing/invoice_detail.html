@@ -17,9 +17,9 @@
     <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }} &nbsp;·&nbsp; {{ invoice.sales_order.customer.full_name }}</p>
   </div>
   <div class="page-header-actions">
-    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank"><i class="fas fa-download"></i> Download PDF</a>
-    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary"><i class="fas fa-pen"></i> Edit</a>
-    <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost"><i class="fas fa-arrow-left"></i> Back</a>
+    <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank"><i class="fas fa-download me-1"></i> Download PDF</a>
+    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
+    <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>
 </div>
 
@@ -64,35 +64,78 @@
   </div>
 
   <div class="card">
-    <div class="card-header"><span class="card-title"><i class="fas fa-calculator" style="margin-right:6px;"></i>Amount Breakdown</span></div>
-    <div class="amount-row">
-      <span class="label">Subtotal</span>
-      <span class="value">&#x20B9; {{ invoice.subtotal }}</span>
-    </div>
-    <div class="amount-row">
-      <span class="label">GST Amount</span>
-      <span class="value">&#x20B9; {{ invoice.gst_amount }}</span>
-    </div>
-    <div class="amount-row">
-      <span class="label">Discount</span>
-      <span class="value">— &#x20B9; {{ invoice.discount_amount }}</span>
-    </div>
-    <div class="amount-row total">
-      <span class="label">Final Amount</span>
-      <span class="value">&#x20B9; {{ invoice.final_amount }}</span>
-    </div>
-    <div class="amount-row">
-      <span class="label">Total Paid</span>
-      <span class="value" style="color:var(--success);font-weight:700;">&#x20B9; {{ total_paid }}</span>
-    </div>
-    <div class="amount-row balance">
-      <span class="label">Balance Remaining</span>
-      <span class="value">&#x20B9; {{ balance }}</span>
-    </div>
+    <div class="card-header"><span class="card-title">Amount Breakdown</span></div>
+      <table class="table mb-0">
+          <tbody>
+              <tr>
+                  <th>Subtotal</th>
+                  <td class="text-end">₹ {{ invoice.subtotal }}</td>
+              </tr>
+
+              <tr>
+                  <th>GST Amount</th>
+                  <td class="text-end">₹ {{ invoice.gst_amount }}</td>
+              </tr>
+
+              <tr>
+                  <th>Discount</th>
+                  <td class="text-end text-danger">
+                      - ₹ {{ invoice.discount_amount }}
+                  </td>
+              </tr>
+
+              <tr class="table-light">
+                  <th>Final Amount</th>
+                  <td class="text-end fw-bold text-primary">
+                      ₹ {{ invoice.final_amount }}
+                  </td>
+              </tr>
+
+              <tr>
+                  <th>Total Paid</th>
+                  <td class="text-end text-success fw-semibold">
+                      ₹ {{ total_paid }}
+                  </td>
+              </tr>
+
+              <tr>
+                  <th>Balance</th>
+                  <td class="text-end text-danger fw-bold">
+                      ₹ {{ balance }}
+                  </td>
+              </tr>
+          </tbody>
+      </table>
   </div>
 </div>
 
-<!-- PAYMENTS TABLE -->
+<!-- PAYMENTS -->
+<div class="card" style="margin-bottom:20px;">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-wallet me-2"></i>Payment Summary</span>
+    </div>
+
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#64748B;">Invoice Amount</div>
+                <div style="font-size:20px;font-weight:700;color:#2563EB;">₹ {{ invoice.final_amount }}</div>
+            </div>
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#64748B;">Paid Amount</div>
+                <div style="font-size:20px;font-weight:700;color:#16A34A;">₹ {{ total_paid }}</div>
+            </div>
+            <div class="col-md-4">
+                <div style="font-size:12px;color:#64748B;">Balance</div>
+                {% if balance > 0 %}
+                <div style="font-size:20px;font-weight:700;color:#DC2626;">₹ {{ balance }}</div>
+                {% else %}
+                <div style="font-size:20px;font-weight:700;color:#16A34A;">Fully Paid</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
 <div class="card">
   <div class="card-header">
     <span class="card-title"><i class="fas fa-credit-card" style="margin-right:6px;"></i>Payment History</span>
@@ -129,10 +172,20 @@
           </td>
           <td style="font-size:12px;color:var(--text-muted);">{{ pay.payment_date|date:"d M Y H:i"|default:"—" }}</td>
           <td>
-            <div class="table-actions">
-              <a href="{% url 'billing:payment_update' pay.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-              <a href="{% url 'billing:payment_receipt_pdf' pay.pk %}" class="btn btn-secondary btn-sm" target="_blank"><i class="fas fa-print" style="font-size:11px;"></i> Receipt</a>
-            </div>
+              <div class="table-actions">
+
+                  <a href="{% url 'billing:payment_update' pay.pk %}"
+                    class="btn btn-ghost btn-sm">
+                      <i class="fas fa-edit me-1"></i>
+                      Edit
+                  </a>
+                  <a href="{% url 'billing:payment_receipt_pdf' pay.pk %}"
+                    class="btn btn-secondary btn-sm"
+                    target="_blank">
+                      <i class="fas fa-file-pdf me-1"></i>
+                      Receipt
+                  </a>
+              </div>
           </td>
         </tr>
         {% empty %}

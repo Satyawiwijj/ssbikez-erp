@@ -4,53 +4,122 @@
 
 {% block content %}
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Spares Report</h1>
-    <p class="page-subtitle">Inventory, issues and purchase order analytics</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'accounts:sales_report' %}" class="btn btn-ghost btn-sm">Sales</a>
-    <a href="{% url 'accounts:service_report' %}" class="btn btn-ghost btn-sm">Service</a>
-  </div>
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-boxes me-2 text-primary"></i>
+            Spares Analytics Dashboard
+        </h1>
+        <p class="page-subtitle">
+            Inventory health, purchase performance and stock movement insights
+        </p>
+    </div>
+
+    <div class="page-header-actions">
+        <a href="{% url 'accounts:sales_report' %}"
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-chart-line me-1"></i>
+            Sales
+        </a>
+        <a href="{% url 'accounts:service_report' %}"
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-tools me-1"></i>
+            Service
+        </a>
+    </div>
 </div>
 
 <!-- KPI STATS -->
 <div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-blue">&#x1F529;</div>
-    <div>
-      <div class="stat-value">{{ total_parts }}</div>
-      <div class="stat-label">Total Parts</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="fas fa-cogs"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_parts }}</div>
+            <div class="stat-label">Total Parts</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-green">&#x20B9;</div>
-    <div>
-      <div class="stat-value">&#x20B9;{{ total_stock_value|floatformat:0 }}</div>
-      <div class="stat-label">Stock Value (MRP)</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-rupee-sign"></i>
+        </div>
+        <div>
+            <div class="stat-value">₹{{ total_stock_value|floatformat:0 }}</div>
+            <div class="stat-label">Stock Value</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-orange">&#x26A0;&#xFE0F;</div>
-    <div>
-      <div class="stat-value">{{ low_stock_count }}</div>
-      <div class="stat-label">Low Stock Parts (&lt;5)</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ low_stock_count }}</div>
+            <div class="stat-label">Low Stock Parts</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-purple">&#x1F3EA;</div>
-    <div>
-      <div class="stat-value">{{ cs_count }}</div>
-      <div class="stat-label">Counter Sales This Month</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="fas fa-cash-register"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ cs_count }}</div>
+            <div class="stat-label">Counter Sales</div>
+        </div>
     </div>
-  </div>
+
 </div>
 
-<div class="grid-2col">
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <h3 class="mb-1 text-primary">
+                    {{ total_parts }}
+                </h3>
+                <small class="text-muted">
+                    Inventory Items
+                </small>
+            </div>
+
+            <div class="col-md-3">
+                <h3 class="mb-1 text-success">
+                    ₹{{ total_stock_value|floatformat:0 }}
+                </h3>
+                <small class="text-muted">
+                    Stock Value
+                </small>
+            </div>
+
+            <div class="col-md-3">
+                <h3 class="mb-1 text-warning">
+                    {{ low_stock_count }}
+                </h3>
+                <small class="text-muted">
+                    Reorder Required
+                </small>
+            </div>
+
+            <div class="col-md-3">
+                <h3 class="mb-1" style="color:#7C3AED;">
+                    {{ cs_count }}
+                </h3>
+                <small class="text-muted">
+                    Counter Sales
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid-2col" style="padding-bottom: 20px;">
   <!-- TOP ISSUED PARTS -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F4E4; Top Issued Parts</span>
+      <span class="card-title"><i class="fas fa-arrow-up-right-from-square me-2"></i>Top Issued Parts</span>
     </div>
     {% if top_issued %}
     <div style="display:flex; flex-direction:column; gap:10px;">
@@ -74,14 +143,19 @@
       });
     </script>
     {% else %}
-    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No issues recorded yet.</p>
+    <div class="empty-state">
+        <i class="fas fa-box-open"
+          style=" font-size:36px; color:#CBD5E1; margin-bottom:12px; display:block; ">
+        </i>
+        <p>No data available.</p>
+    </div>
     {% endif %}
   </div>
 
   <!-- PO SUMMARY -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F6D2; Purchase Orders by Status</span>
+      <span class="card-title"><i class="fas fa-shopping-cart me-2"></i>Purchase Orders by Status</span>
     </div>
     {% if po_summary %}
     <div class="table-wrapper">
@@ -113,54 +187,141 @@
     {% else %}
     <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No purchase orders yet.</p>
     {% endif %}
-
-    <div style="margin-top:16px; padding-top:16px; border-top:1px solid #F3F4F6;">
-      <div class="card-title" style="margin-bottom:12px;">Counter Sales This Month</div>
-      <div style="display:flex; gap:24px;">
-        <div>
-          <div style="font-size:22px; font-weight:700; color:#111827;">{{ cs_count }}</div>
-          <div style="font-size:12px; color:#6B7280;">Transactions</div>
+    <div class="card-body border-top">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h6 class="mb-0 fw-semibold">
+                <i class="fas fa-cash-register me-2 text-primary"></i>
+                Counter Sales This Month
+            </h6>
         </div>
-        <div>
-          <div style="font-size:22px; font-weight:700; color:#2563EB;">&#x20B9;{{ cs_total|floatformat:0 }}</div>
-          <div style="font-size:12px; color:#6B7280;">Total Revenue</div>
+        <div class="row g-3">
+            <div class="col-6">
+                <div class="border rounded-3 p-3 h-100 bg-light">
+                    <div class="text-muted small mb-1">
+                        Transactions
+                    </div>
+                    <div class="fs-3 fw-bold text-dark">
+                        {{ cs_count }}
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="border rounded-3 p-3 h-100 bg-light">
+                    <div class="text-muted small mb-1">
+                        Total Revenue
+                    </div>
+                    <div class="fs-4 fw-bold text-primary">
+                        ₹{{ cs_total|floatformat:0 }}
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
   </div>
 </div>
 
 <!-- LOW STOCK PARTS -->
 {% if low_stock %}
+
 <div class="card">
-  <div class="card-header">
-    <span class="card-title">&#x26A0;&#xFE0F; Low Stock Parts (qty &lt; 5)</span>
-    <span class="badge badge-red">{{ low_stock_count }} parts</span>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr><th>Part Name</th><th>Part No.</th><th>Category</th><th>Stock</th><th>MRP</th></tr>
-      </thead>
-      <tbody>
-        {% for part in low_stock %}
-        <tr>
-          <td style="font-weight:500;">{{ part.part_name }}</td>
-          <td style="font-family:monospace; font-size:13px;">{{ part.part_number|default:"—" }}</td>
-          <td>{{ part.category }}</td>
-          <td>
-            {% if part.stock_quantity == 0 %}
-            <span class="badge badge-red">OUT OF STOCK</span>
-            {% else %}
-            <span class="badge badge-yellow">{{ part.stock_quantity }}</span>
-            {% endif %}
-          </td>
-          <td>{% if part.mrp %}&#x20B9;{{ part.mrp }}{% else %}&mdash;{% endif %}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="card-title">
+            <i class="fas fa-triangle-exclamation me-2 text-warning"></i>
+            Low Stock Parts (Qty &lt; 5)
+        </span>
+
+        <span class="badge badge-red">
+            {{ low_stock_count }} Parts
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Part Name</th>
+                    <th>Part No.</th>
+                    <th>Category</th>
+                    <th>Stock</th>
+                    <th>MRP</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for part in low_stock %}
+                <tr>
+                    <td style="font-weight:500;">
+                        {{ part.part_name }}
+                    </td>
+
+                    <td style="font-family:monospace;font-size:13px;">
+                        {{ part.part_number|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ part.category }}
+                    </td>
+
+                    <td>
+                        {% if part.stock_quantity == 0 %}
+                            <span class="badge badge-red">
+                                OUT OF STOCK
+                            </span>
+                        {% else %}
+                            <span class="badge badge-yellow">
+                                {{ part.stock_quantity }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {% if part.mrp %}
+                            ₹{{ part.mrp }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% else %}
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-boxes me-2"></i>
+            Inventory Status
+        </span>
+    </div>
+
+    <div class="empty-state py-5">
+
+        <i class="fas fa-box-open"
+           style="
+                font-size:40px;
+                color:#CBD5E1;
+                margin-bottom:12px;
+                display:block;
+           ">
+        </i>
+
+        <h6 class="text-muted mb-2">
+            Excellent Stock Health
+        </h6>
+
+        <p class="text-muted mb-0">
+            No low-stock items found.
+        </p>
+
+    </div>
+
 </div>
 {% endif %}
 {% endblock %}

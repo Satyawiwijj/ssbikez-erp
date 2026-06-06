@@ -1,31 +1,186 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+
+<button form="customer-form"
+     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Save Customer </button>
+
+<a href="{% url 'customers:customer_list' %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{{ title }}</h1>
-  </div>
-  <a href="{% url 'customers:customer_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'customers:customer_list' %}">Customers</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    {{ title }}
+</span>
+
+</nav>
+
+<div class="card mb-4">
+
+<div class="card-body" style="padding:18px 22px;">
+
+    <div style="display:flex;align-items:center;gap:14px;">
+
+        <div style="
+            width:48px;
+            height:48px;
+            border-radius:12px;
+            background:#DBEAFE;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        ">
+            <i class="fas fa-user"
+               style="color:#2563EB;font-size:20px;"></i>
+        </div>
+
+        <div>
+
+            <div style="
+                font-size:18px;
+                font-weight:700;
+                color:#0F172A;
+            ">
+                {{ title }}
+            </div>
+
+            <div style="
+                font-size:13px;
+                color:#64748B;
+            ">
+                Create or update customer information
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="card form-card">
-  <form method="post" novalidate>
-    {% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}
-      <div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>
-      {% endif %}
-    </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Customer</button>
-      <a href="{% url 'customers:customer_list' %}" class="btn btn-secondary">Cancel</a>
-    </div>
-  </form>
 </div>
+
+<form method="post" id="customer-form" novalidate>
+
+{% csrf_token %}
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+
+        <div class="card form-card">
+
+            <div class="card-header">
+
+                <i class="fas fa-user me-2"></i>
+                Customer Information
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    {% for field in form %}
+
+                    <div class="col-md-6">
+
+                        <label class="form-label fw-semibold">
+
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+
+                            {% for e in field.errors %}
+                                {{ e }}
+                            {% endfor %}
+
+                        </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <small class="text-muted">
+
+                            {{ field.help_text }}
+
+                        </small>
+                        {% endif %}
+
+                    </div>
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <i class="fas fa-info-circle me-2"></i>
+                Details
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Module</strong>
+                    <div class="text-muted">Customer Management</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Section</strong>
+                    <div class="text-muted">Customer Records</div>
+                </div>
+
+                <div>
+                    <strong>Notes</strong>
+                    <div class="text-muted small">
+                        Maintain customer contact details, communication
+                        information and records used across sales,
+                        service, VAS and RTO modules.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</form>
+
 {% endblock %}

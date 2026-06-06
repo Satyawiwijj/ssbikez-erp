@@ -1,21 +1,250 @@
 {% extends 'base.html' %}
-{% block title %}{{ obj.get_transaction_type_display }} #{{ obj.pk }}{% endblock %}
-{% block page_title %}{{ obj.get_transaction_type_display }} #{{ obj.pk }}{% endblock %}
+
+{% block title %}{{ obj.get_transaction_type_display }} #{{ obj.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Refund / Advance Detail{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'billing:refund_advance_list' %}">Refunds & Advances</a>
-  <span class="bc-sep">/</span><span class="bc-current">#{{ obj.pk }}</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'billing:dashboard' %}">
+        Billing
+    </a>
+
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'billing:refund_advance_list' %}">
+        Refunds &amp; Advances
+    </a>
+
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        #{{ obj.pk }}
+    </span>
 </nav>
-<div class="card">
-  <div style="padding:20px;line-height:1.9;">
-    <div><strong>Customer:</strong> {{ obj.customer }}</div>
-    <div><strong>Type:</strong> {{ obj.get_transaction_type_display }}</div>
-    <div><strong>Amount:</strong> &#x20B9; {{ obj.amount }}</div>
-    <div><strong>Method:</strong> {{ obj.payment_method|default:"—" }}</div>
-    <div><strong>Reference Invoice:</strong> {{ obj.reference_invoice|default:"—" }}</div>
-    <div><strong>Status:</strong> {{ obj.get_status_display }}</div>
-    <div><strong>Processed By:</strong> {{ obj.processed_by|default:"—" }}</div>
-    <div><strong>Reason:</strong><br>{{ obj.reason|linebreaksbr }}</div>
-  </div>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">
+            {{ obj.get_transaction_type_display }} #{{ obj.pk }}
+        </h1>
+
+        <p class="page-subtitle">
+            {{ obj.customer }}
+        </p>
+    </div>
+
+    <div class="page-header-actions">
+
+        <a href="{% url 'billing:refund_advance_list' %}"
+           class="btn btn-secondary">
+
+            <i class="fas fa-arrow-left me-1"></i>
+            Back
+
+        </a>
+
+    </div>
+
 </div>
+
+<!-- Summary Card -->
+<div class="card mb-4">
+
+    <div class="card-body">
+
+        <div style="
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            flex-wrap:wrap;
+            gap:20px;
+        ">
+
+            <div style="display:flex;align-items:center;gap:16px;">
+
+                <div style="
+                    width:60px;
+                    height:60px;
+                    border-radius:12px;
+                    background:#DBEAFE;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                ">
+                    <i class="fas fa-exchange-alt"
+                       style="font-size:26px;color:#2563EB;"></i>
+                </div>
+
+                <div>
+
+                    <div style="font-size:22px;font-weight:700;">
+                        #{{ obj.pk }}
+                    </div>
+
+                    <div style="font-size:13px;color:#64748B;">
+                        {{ obj.customer }}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(3,minmax(120px,1fr));
+                gap:24px;
+            ">
+
+                <div>
+                    <div style="font-size:12px;color:#64748B;">
+                        TYPE
+                    </div>
+
+                    {% if obj.transaction_type == 'advance' %}
+                        <span class="badge badge-blue">
+                            {{ obj.get_transaction_type_display }}
+                        </span>
+                    {% else %}
+                        <span class="badge badge-purple">
+                            {{ obj.get_transaction_type_display }}
+                        </span>
+                    {% endif %}
+                </div>
+
+                <div>
+                    <div style="font-size:12px;color:#64748B;">
+                        AMOUNT
+                    </div>
+
+                    <div style="font-weight:700;color:#2563EB;">
+                        ₹ {{ obj.amount }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-size:12px;color:#64748B;">
+                        STATUS
+                    </div>
+
+                    {% if obj.status == 'completed' %}
+                        <span class="badge badge-green">
+                            {{ obj.get_status_display }}
+                        </span>
+
+                    {% elif obj.status == 'pending' %}
+                        <span class="badge badge-yellow">
+                            {{ obj.get_status_display }}
+                        </span>
+
+                    {% else %}
+                        <span class="badge badge-red">
+                            {{ obj.get_status_display }}
+                        </span>
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="detail-grid" style="grid-template-columns:2fr 1fr;">
+
+    <!-- Transaction Details -->
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-file-invoice-dollar me-2"></i>
+                Transaction Details
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Customer</dt>
+                <dd>{{ obj.customer }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Transaction Type</dt>
+                <dd>{{ obj.get_transaction_type_display }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Amount</dt>
+                <dd style="font-weight:700;color:#2563EB;">
+                    ₹ {{ obj.amount }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Payment Method</dt>
+                <dd>{{ obj.payment_method|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Reference Invoice</dt>
+                <dd>{{ obj.reference_invoice|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Processed By</dt>
+                <dd>{{ obj.processed_by|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>{{ obj.get_status_display }}</dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+    <!-- Remarks -->
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-comment-alt me-2"></i>
+                Remarks / Reason
+            </span>
+        </div>
+
+        <div style="padding:20px;">
+
+            {% if obj.reason %}
+                <div style="
+                    line-height:1.7;
+                    color:#374151;
+                    font-size:14px;
+                ">
+                    {{ obj.reason|linebreaksbr }}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    No remarks provided.
+                </div>
+            {% endif %}
+
+            <hr style="margin:18px 0;">
+
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}

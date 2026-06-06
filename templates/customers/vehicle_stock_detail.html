@@ -1,38 +1,266 @@
 {% extends 'base.html' %}
+
 {% block title %}Stock — {{ stock }} — SSBikez ERP{% endblock %}
 {% block page_title %}Vehicle Stock Detail{% endblock %}
 
+{% block topbar_actions %} <a href="{% url 'customers:vehicle_stock_update' stock.pk %}"
+class="btn btn-primary btn-sm"> <i class="fas fa-edit me-1"></i>
+Edit </a>
+
+<a href="{% url 'customers:vehicle_stock_list' %}"
+class="btn btn-outline-secondary btn-sm"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{{ stock.bike_model }}</h1>
-    <p class="page-subtitle">Stock Unit</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'customers:vehicle_stock_update' stock.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'customers:vehicle_stock_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+  <a href="{% url 'customers:vehicle_stock_list' %}">
+    Vehicle Stock
+</a>
+
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    {{ stock.bike_model }}
+</span>
+
+</nav>
+
+<!-- Summary Card -->
+
+<div class="card mb-4">
+
+<div style="padding:20px;">
+
+    <div style="
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        flex-wrap:wrap;
+        gap:20px;
+    ">
+
+        <div style="display:flex;align-items:center;gap:16px;">
+
+            <div style="
+                width:60px;
+                height:60px;
+                border-radius:12px;
+                background:#EFF6FF;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+            ">
+                <i class="fas fa-motorcycle"
+                   style="font-size:26px;color:#2563EB;"></i>
+            </div>
+
+            <div>
+
+                <div style="font-size:22px;font-weight:700;">
+                    {{ stock.bike_model }}
+                </div>
+
+                <div style="font-size:13px;color:#6B7280;">
+                    Vehicle Stock Unit
+                </div>
+
+            </div>
+
+        </div>
+
+        <div style="display:flex;gap:30px;flex-wrap:wrap;">
+
+            <div>
+                <div style="font-size:12px;color:#6B7280;">
+                    CHASSIS NO
+                </div>
+                <div style="font-family:monospace;font-weight:600;">
+                    {{ stock.chassis_no|default:"—" }}
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size:12px;color:#6B7280;">
+                    COLOR
+                </div>
+                <div style="font-weight:600;">
+                    {{ stock.color|default:"—" }}
+                </div>
+            </div>
+
+            <div>
+                <div style="font-size:12px;color:#6B7280;">
+                    STATUS
+                </div>
+
+                {% if stock.stock_status == 'available' %}
+                    <span class="badge bg-success">Available</span>
+                {% elif stock.stock_status == 'reserved' %}
+                    <span class="badge bg-warning text-dark">Reserved</span>
+                {% else %}
+                    <span class="badge bg-secondary">Sold</span>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Stock Details</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Bike Model</dt><dd>{{ stock.bike_model }}</dd></div>
-      <div class="detail-row"><dt>Chassis No</dt><dd style="font-family:monospace;">{{ stock.chassis_no|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Engine No</dt><dd style="font-family:monospace;">{{ stock.engine_no|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Color</dt><dd>{{ stock.color|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd>
-        {% if stock.stock_status == 'available' %}<span class="badge badge-green">Available</span>
-        {% elif stock.stock_status == 'reserved' %}<span class="badge badge-purple">Reserved</span>
-        {% else %}<span class="badge badge-gray">Sold</span>
-        {% endif %}
-      </dd></div>
-      <div class="detail-row"><dt>Branch</dt><dd>{{ stock.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Warehouse Location</dt><dd>{{ stock.warehouse_location|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Purchase Date</dt><dd>{{ stock.purchase_date|date:"d M Y"|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Added On</dt><dd>{{ stock.created_at|date:"d M Y" }}</dd></div>
-    </dl>
-  </div>
 </div>
+
+<div class="row g-3">
+
+<!-- Stock Details -->
+
+<div class="col-lg-8">
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-boxes me-2"></i>
+                Stock Details
+            </span>
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row">
+                    <dt>Bike Model</dt>
+                    <dd>{{ stock.bike_model }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Chassis Number</dt>
+                    <dd style="font-family:monospace;">
+                        {{ stock.chassis_no|default:"—" }}
+                    </dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Engine Number</dt>
+                    <dd style="font-family:monospace;">
+                        {{ stock.engine_no|default:"—" }}
+                    </dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Color</dt>
+                    <dd>{{ stock.color|default:"—" }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Status</dt>
+
+                    <dd>
+
+                        {% if stock.stock_status == 'available' %}
+                            <span class="badge bg-success">Available</span>
+                        {% elif stock.stock_status == 'reserved' %}
+                            <span class="badge bg-warning text-dark">Reserved</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Sold</span>
+                        {% endif %}
+
+                    </dd>
+
+                </div>
+
+                <div class="detail-row">
+                    <dt>Branch</dt>
+                    <dd>{{ stock.branch|default:"—" }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Warehouse Location</dt>
+                    <dd>{{ stock.warehouse_location|default:"—" }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Purchase Date</dt>
+                    <dd>{{ stock.purchase_date|date:"d M Y"|default:"—" }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Added On</dt>
+                    <dd>{{ stock.created_at|date:"d M Y" }}</dd>
+                </div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Inventory Information -->
+
+<div class="col-lg-4">
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-info-circle me-2"></i>
+                Inventory Information
+            </span>
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong>Stock Status</strong>
+                <div class="text-muted">
+
+                    {% if stock.stock_status == 'available' %}
+                        Ready for Sale
+                    {% elif stock.stock_status == 'reserved' %}
+                        Reserved for Customer
+                    {% else %}
+                        Already Sold
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Branch</strong>
+                <div class="text-muted">
+                    {{ stock.branch|default:"Not Assigned" }}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <strong>Storage Location</strong>
+                <div class="text-muted">
+                    {{ stock.warehouse_location|default:"Not Specified" }}
+                </div>
+            </div>
+
+            <div>
+                <strong>Notes</strong>
+                <div class="text-muted small">
+                    This stock unit can be linked to sales orders, customer vehicles, registration records and service history once sold.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
 {% endblock %}

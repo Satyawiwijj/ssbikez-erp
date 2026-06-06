@@ -48,9 +48,9 @@
 <!-- HEADER -->
 <div class="header">
   <div>
-    <div class="company-name">{% if company %}{{ company.company_name }}{% else %}SSBikez{% endif %}</div>
-    <div class="company-sub">{% if company %}{{ company.tagline|default:"Authorised Motorcycle Dealership" }}{% else %}Authorised Motorcycle Dealership{% endif %}</div>
-    <div class="company-sub">{{ job_card.branch|default:"" }}{% if company and company.gstin %} &nbsp;|&nbsp; GSTIN: {{ company.gstin }}{% endif %}</div>
+    <div class="company-name">SSBikez</div>
+    <div class="company-sub">Authorised Motorcycle Dealership</div>
+    <div class="company-sub">{{ job_card.branch|default:"" }}</div>
   </div>
   <div class="invoice-title">
     <h2>Service Invoice</h2>
@@ -145,6 +145,52 @@
 </table>
 {% endif %}
 
+<!--GST Summary-->\
+<div class="section-title">
+    Tax Summary
+</div>
+
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th class="text-right">Amount</th>
+        </tr>
+    </thead>
+
+    <tbody>
+
+        <tr>
+            <td>Taxable Value</td>
+            <td class="text-right">
+                ₹ {{ invoice.subtotal }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>CGST (9%)</td>
+            <td class="text-right">
+                ₹ {{ gst_half }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>SGST (9%)</td>
+            <td class="text-right">
+                ₹ {{ gst_half }}
+            </td>
+        </tr>
+
+        <tr>
+            <td>Total GST</td>
+            <td class="text-right">
+                ₹ {{ invoice.gst_amount }}
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+
 <!-- TOTALS -->
 <table class="totals-table">
   <tbody>
@@ -162,15 +208,64 @@
     <tr class="total-row"><td>Total Amount</td><td class="text-right">&#x20B9; {{ invoice.final_amount }}</td></tr>
   </tbody>
 </table>
+<div style="
+    margin-top:20px;
+    background:#EFF6FF;
+    border:2px solid #2563EB;
+    padding:18px;
+    text-align:center;
+    border-radius:6px;
+">
+
+    <div style="
+        font-size:11px;
+        color:#6B7280;
+        text-transform:uppercase;
+        letter-spacing:.08em;
+    ">
+        Total Amount Payable
+    </div>
+
+    <div style="
+        font-size:28px;
+        font-weight:700;
+        color:#2563EB;
+        margin-top:4px;
+    ">
+        ₹ {{ invoice.final_amount }}
+    </div>
+
+</div>
 
 <div class="amount-words">
-  <strong>Amount in Words</strong>
-  {{ amount_words }}
+
+    <strong>
+        Amount in Words
+    </strong>
+
+    <div style="
+        margin-top:6px;
+        font-size:11pt;
+        font-weight:600;
+        color:#1E3A8A;
+    ">
+        {{ amount_words }}
+    </div>
+
 </div>
 
 <div class="footer">
-  <div class="sig-box"><div class="sig-line">Customer Signature</div></div>
-  <div class="sig-box"><div class="sig-line">Authorised Signatory — SSBikez</div></div>
+    <div class="sig-box">
+        <div class="sig-line">
+            Customer Signature
+        </div>
+    </div>
+    <div class="sig-box">
+        <div class="sig-line">
+            Authorised Signatory<br>
+            SS BIKEZ
+        </div>
+    </div>
 </div>
 
 <div class="terms">

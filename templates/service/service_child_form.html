@@ -1,27 +1,164 @@
 {% extends 'base.html' %}
+
 {% block title %}Add Sub-Task — JC-{{ jc.pk }}{% endblock %}
 {% block page_title %}Add Sub-Task to JC-{{ jc.pk }}{% endblock %}
+
+{% block topbar_actions %} <button form="subtask-form"
+     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Save Sub-Task </button>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a>
-  <span class="bc-sep">/</span><span class="bc-current">Add Sub-Task</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:dashboard' %}">
+    Service
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_list' %}">
+    Job Cards
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}">
+    JC-{{ jc.pk }}
+</a>
+
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Add Sub-Task
+</span>
+
 </nav>
-<div class="card form-card">
-  <div class="card-header"><span class="card-title">&#x2705; New Sub-Task</span></div>
-  <div style="padding:20px;">
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-      </div>
-      {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Add Task</button>
-        <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
+
+<form method="post"
+      id="subtask-form"
+      novalidate>
+
+{% csrf_token %}
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+
+        <div class="card form-card">
+
+            <div class="card-header">
+                <i class="fas fa-tasks me-2"></i>
+                New Service Sub-Task
+            </div>
+
+            <div class="card-body">
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mb-3">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-3">
+
+                    {% for field in form %}
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if field.help_text %}
+                        <small class="text-muted">
+                            {{ field.help_text }}
+                        </small>
+                        {% endif %}
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Sub-Task Information
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Job Card</strong>
+                    <div class="text-muted">
+                        JC-{{ jc.pk }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Module</strong>
+                    <div class="text-muted">
+                        Service Management
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Purpose</strong>
+                    <div class="text-muted small">
+                        Create smaller service activities under a Job Card to track progress and completion of individual repair or maintenance tasks.
+                    </div>
+                </div>
+
+                <div>
+                    <strong>Examples</strong>
+                    <div class="text-muted small">
+                        • Engine Oil Change<br>
+                        • Brake Inspection<br>
+                        • Chain Adjustment<br>
+                        • Electrical Checkup<br>
+                        • Wheel Alignment
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+</form>
+
 {% endblock %}

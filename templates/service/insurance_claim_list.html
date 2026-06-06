@@ -1,27 +1,155 @@
 {% extends 'base.html' %}
-{% block title %}Insurance Claims{% endblock %}
+
+{% block title %}Insurance Claims — SSBikez ERP{% endblock %}
 {% block page_title %}Insurance Claims{% endblock %}
+
 {% block content %}
-<div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Claim #</th><th>JC</th><th>Insurance Co</th><th>Policy #</th><th>Amount</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        {% for c in claims %}
-        <tr>
-          <td>{{ c.claim_number }}</td>
-          <td><a href="{% url 'service:jobcard_detail' c.job_card_id %}">JC-{{ c.job_card_id }}</a></td>
-          <td>{{ c.insurance_company }}</td>
-          <td>{{ c.policy_number }}</td>
-          <td>&#x20B9; {{ c.claim_amount }}</td>
-          <td><span class="badge">{{ c.get_status_display }}</span></td>
-          <td><a href="{% url 'service:insurance_claim_detail' c.pk %}" class="btn btn-sm btn-secondary">View</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7"><div class="empty-state"><p>No insurance claims yet.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">Insurance Claims</h1>
+        <p class="page-subtitle">
+            Track insurance claim requests and settlements
+        </p>
+    </div>
+
 </div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Insurance Claims
+            <span class="badge badge-gray ms-2">
+                {{ claims|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Claim #</th>
+                    <th>Job Card</th>
+                    <th>Insurance Company</th>
+                    <th>Policy Number</th>
+                    <th>Claim Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in claims %}
+
+                <tr>
+
+                    <td style="font-weight:600;">
+                        <a href="{% url 'service:insurance_claim_detail' c.pk %}"
+                           style="color:#2563EB;text-decoration:none;">
+                            {{ c.claim_number }}
+                        </a>
+                    </td>
+
+                    <td>
+                        <a href="{% url 'service:jobcard_detail' c.job_card_id %}">
+                            JC-{{ c.job_card_id }}
+                        </a>
+                    </td>
+
+                    <td>
+                        {{ c.insurance_company }}
+                    </td>
+
+                    <td style="font-family:monospace;">
+                        {{ c.policy_number }}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ c.claim_amount }}
+                    </td>
+
+                    <td>
+
+                        {% if c.status == 'approved' %}
+                            <span class="badge badge-green">
+                                {{ c.get_status_display }}
+                            </span>
+
+                        {% elif c.status == 'settled' %}
+                            <span class="badge badge-blue">
+                                {{ c.get_status_display }}
+                            </span>
+
+                        {% elif c.status == 'rejected' %}
+                            <span class="badge badge-red">
+                                {{ c.get_status_display }}
+                            </span>
+
+                        {% else %}
+                            <span class="badge badge-yellow">
+                                {{ c.get_status_display }}
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'service:insurance_claim_detail' c.pk %}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye me-1"></i>
+                                View
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="7">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-file-medical"
+                               style="
+                                   font-size:32px;
+                                   color:#CBD5E1;
+                                   margin-bottom:10px;
+                                   display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No insurance claims found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

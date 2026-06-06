@@ -1,67 +1,216 @@
 {% extends 'base.html' %}
+
 {% block title %}VAS Dashboard — SSBikez ERP{% endblock %}
 {% block page_title %}VAS Dashboard{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'vas:amc_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New AMC</a>
-{% endblock %}
+
 
 {% block content %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">VAS Dashboard</span>
+</nav>
+
 <div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-blue"><i class="fas fa-cog" style="color:#1d4ed8"></i></div>
-    <div>
-      <div class="stat-value">{{ total_amc }}</div>
-      <div class="stat-label">AMC Packages</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="fas fa-cog" style="color:#1D4ED8;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_amc }}</div>
+            <div class="stat-label">AMC Packages</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-green"><i class="fas fa-ambulance" style="color:#065f46"></i></div>
-    <div>
-      <div class="stat-value">{{ total_rsa }}</div>
-      <div class="stat-label">RSA Packages</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-ambulance" style="color:#065F46;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_rsa }}</div>
+            <div class="stat-label">RSA Packages</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-orange"><i class="fas fa-shield-alt" style="color:#92400e"></i></div>
-    <div>
-      <div class="stat-value">{{ total_pp }}</div>
-      <div class="stat-label">Protection Plus</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-shield-alt" style="color:#92400E;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_pp }}</div>
+            <div class="stat-label">Protection Plus</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-purple"><i class="fas fa-check-circle" style="color:#5b21b6"></i></div>
-    <div>
-      <div class="stat-value">{{ active_amc }}</div>
-      <div class="stat-label">Active AMC</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="fas fa-check-circle" style="color:#5B21B6;"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ active_amc }}</div>
+            <div class="stat-label">Active AMC</div>
+        </div>
     </div>
-  </div>
+
 </div>
 
-<div class="row g-3">
-  <div class="col-md-4">
-    <div class="card text-center p-4">
-      <i class="fas fa-cog fa-2x text-primary mb-2"></i>
-      <h6>AMC Packages</h6>
-      <p class="text-muted small">Annual Maintenance Contracts</p>
-      <a href="{% url 'vas:amc_list' %}" class="btn btn-outline-primary btn-sm">View All</a>
+<div class="card mb-4">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-bolt me-2"></i>
+            Quick Actions
+
+        </span>
+
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card text-center p-4">
-      <i class="fas fa-ambulance fa-2x text-success mb-2"></i>
-      <h6>RSA Packages</h6>
-      <p class="text-muted small">Roadside Assistance</p>
-      <a href="{% url 'vas:rsa_list' %}" class="btn btn-outline-success btn-sm">View All</a>
+
+    <div class="card-body py-3">
+
+        <div class="row g-2">
+
+            <div class="col-md-4">
+
+                <a href="{% url 'vas:amc_create' %}"
+                   class="btn btn-primary w-100">
+
+                    <i class="fas fa-cog me-2"></i>
+                    Add AMC Package
+
+                </a>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <a href="{% url 'vas:rsa_create' %}"
+                   class="btn btn-success w-100">
+
+                    <i class="fas fa-ambulance me-2"></i>
+                    Add RSA Package
+
+                </a>
+
+            </div>
+
+            <div class="col-md-4">
+
+                <a href="{% url 'vas:pp_create' %}"
+                   class="btn btn-warning w-100">
+
+                    <i class="fas fa-shield-alt me-2"></i>
+                    Add Protection Plus
+
+                </a>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="card text-center p-4">
-      <i class="fas fa-shield-alt fa-2x text-warning mb-2"></i>
-      <h6>Protection Plus</h6>
-      <p class="text-muted small">Extended protection packages</p>
-      <a href="{% url 'vas:pp_list' %}" class="btn btn-outline-warning btn-sm">View All</a>
-    </div>
-  </div>
+
 </div>
+
+<div class="row g-4">
+
+    <div class="col-md-4">
+
+        <div class="card h-100">
+
+            <div class="card-body text-center">
+
+                <div class="mb-3">
+                    <i class="fas fa-cog fa-2x text-primary"></i>
+                </div>
+
+                <h5 class="mb-2">
+                    AMC Packages
+                </h5>
+
+                <p class="text-muted small">
+                    Annual Maintenance Contracts
+                </p>
+
+                <a href="{% url 'vas:amc_list' %}"
+                   class="btn btn-outline-primary btn-sm">
+
+                    View Packages
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card h-100">
+
+            <div class="card-body text-center">
+
+                <div class="mb-3">
+                    <i class="fas fa-ambulance fa-2x text-success"></i>
+                </div>
+
+                <h5 class="mb-2">
+                    RSA Packages
+                </h5>
+
+                <p class="text-muted small">
+                    Roadside Assistance Services
+                </p>
+
+                <a href="{% url 'vas:rsa_list' %}"
+                   class="btn btn-outline-success btn-sm">
+
+                    View Packages
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-md-4">
+
+        <div class="card h-100">
+
+            <div class="card-body text-center">
+
+                <div class="mb-3">
+                    <i class="fas fa-shield-alt fa-2x text-warning"></i>
+                </div>
+
+                <h5 class="mb-2">
+                    Protection Plus
+                </h5>
+
+                <p class="text-muted small">
+                    Extended Protection Packages
+                </p>
+
+                <a href="{% url 'vas:pp_list' %}"
+                   class="btn btn-outline-warning btn-sm">
+
+                    View Packages
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}

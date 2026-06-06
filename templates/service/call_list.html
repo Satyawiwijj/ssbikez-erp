@@ -1,30 +1,150 @@
 {% extends 'base.html' %}
-{% block title %}Customer Calls{% endblock %}
+
+{% block title %}Customer Calls — SSBikez ERP{% endblock %}
 {% block page_title %}Customer Calls{% endblock %}
+
 {% block content %}
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
-  <h1 class="page-title">Customer Call Log</h1>
-  <a href="{% url 'service:call_create' %}" class="btn btn-primary">+ Log Call</a>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Customer Call Log</h1>
+        <p class="page-subtitle">
+            Track customer follow-ups, callbacks and service reminders
+        </p>
+    </div>
+
+    <a href="{% url 'service:call_create' %}"
+       class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>
+        Log Call
+    </a>
 </div>
+
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Date</th><th>Customer / Vehicle</th><th>Purpose</th><th>Outcome</th><th>Called By</th><th>Next</th></tr></thead>
-      <tbody>
-        {% for c in calls %}
-        <tr>
-          <td>{{ c.call_date|date:"d M Y H:i" }}</td>
-          <td>{{ c.customer_vehicle }}</td>
-          <td>{{ c.purpose }}</td>
-          <td><span class="badge">{{ c.get_outcome_display }}</span></td>
-          <td>{{ c.called_by|default:"—" }}</td>
-          <td>{{ c.next_call_date|date:"d M Y"|default:"—" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6"><div class="empty-state"><p>No calls logged yet.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header">
+        <span class="card-title">
+            Customer Calls
+            <span class="badge badge-gray ms-2">
+                {{ calls|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Call Date</th>
+                    <th>Customer / Vehicle</th>
+                    <th>Purpose</th>
+                    <th>Outcome</th>
+                    <th>Called By</th>
+                    <th>Next Call</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for c in calls %}
+                <tr>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ c.call_date|date:"d M Y H:i" }}
+                    </td>
+
+                    <td>
+                        <div style="font-weight:600;">
+                            {{ c.customer_vehicle.customer.full_name }}
+                        </div>
+
+                        <div style="font-size:12px;color:#6B7280;">
+                            {{ c.customer_vehicle.registration_no }}
+                        </div>
+                    </td>
+
+                    <td>
+                        {{ c.purpose }}
+                    </td>
+
+                    <td>
+                        {% if c.outcome == 'interested' %}
+                            <span class="badge badge-green">
+                                {{ c.get_outcome_display }}
+                            </span>
+
+                        {% elif c.outcome == 'callback' %}
+                            <span class="badge badge-blue">
+                                {{ c.get_outcome_display }}
+                            </span>
+
+                        {% elif c.outcome == 'booked' %}
+                            <span class="badge badge-purple">
+                                {{ c.get_outcome_display }}
+                            </span>
+
+                        {% elif c.outcome == 'not_interested' %}
+                            <span class="badge badge-red">
+                                {{ c.get_outcome_display }}
+                            </span>
+
+                        {% else %}
+                            <span class="badge badge-gray">
+                                {{ c.get_outcome_display }}
+                            </span>
+                        {% endif %}
+                    </td>
+
+                    <td>
+                        {{ c.called_by|default:"—" }}
+                    </td>
+
+                    <td>
+                        {% if c.next_call_date %}
+                            {{ c.next_call_date|date:"d M Y" }}
+                        {% else %}
+                            —
+                        {% endif %}
+                    </td>
+
+                </tr>
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-phone-slash"
+                               style="
+                               font-size:32px;
+                               color:#CBD5E1;
+                               margin-bottom:10px;
+                               display:block;
+                            "></i>
+
+                            <p>No customer calls logged yet.</p>
+
+                            <a href="{% url 'service:call_create' %}"
+                               class="btn btn-primary btn-sm">
+                                Log First Call
+                            </a>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

@@ -1,67 +1,264 @@
 {% extends 'base.html' %}
+
 {% block title %}RSA Packages — SSBikez ERP{% endblock %}
 {% block page_title %}RSA Packages{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'vas:rsa_create' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    New RSA Package
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">RSA Packages</h1>
-    <p class="page-subtitle">Roadside Assistance packages</p>
-  </div>
-  <a href="{% url 'vas:rsa_create' %}" class="btn btn-primary">+ New RSA Package</a>
-</div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'vas:dashboard' %}">VAS</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">RSA Packages</span>
+</nav>
 
 <div class="filter-tabs">
-  <a href="?{% if q %}q={{ q }}{% endif %}" class="filter-tab {% if not status_filter %}active{% endif %}">All</a>
-  {% for val, label in status_choices %}
-  <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}" class="filter-tab {% if status_filter == val %}active{% endif %}">{{ label }}</a>
-  {% endfor %}
+
+    <a href="?{% if q %}q={{ q }}{% endif %}"
+       class="filter-tab {% if not status_filter %}active{% endif %}">
+
+        All
+
+    </a>
+
+    {% for val, label in status_choices %}
+
+    <a href="?status={{ val }}{% if q %}&q={{ q }}{% endif %}"
+       class="filter-tab {% if status_filter == val %}active{% endif %}">
+
+        {{ label }}
+
+    </a>
+
+    {% endfor %}
+
 </div>
 
 <form class="search-bar" method="get">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search customer or reg. no...">
-  {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
-  <button type="submit" class="btn btn-secondary">Search</button>
-  {% if q %}<a href="?{% if status_filter %}status={{ status_filter }}{% endif %}" class="btn btn-ghost">Clear</a>{% endif %}
+
+    <input type="text"
+           name="q"
+           value="{{ q }}"
+           placeholder="Search customer or registration number...">
+
+    {% if status_filter %}
+    <input type="hidden" name="status" value="{{ status_filter }}">
+    {% endif %}
+
+    <button type="submit" class="btn btn-secondary">
+        Search
+    </button>
+
+    {% if q %}
+    <a href="?{% if status_filter %}status={{ status_filter }}{% endif %}"
+       class="btn btn-ghost">
+
+        Clear
+
+    </a>
+    {% endif %}
+
 </form>
 
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Customer</th>
-          <th>Reg. No.</th>
-          <th>Provider</th>
-          <th>Start Date</th>
-          <th>End Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for pkg in packages %}
-        <tr>
-          <td style="font-weight:500;">{{ pkg.customer_vehicle.customer.full_name }}</td>
-          <td style="font-family:monospace; font-size:13px;">{{ pkg.customer_vehicle.registration_no|default:"—" }}</td>
-          <td>{{ pkg.provider_name|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ pkg.start_date|date:"d M Y"|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ pkg.end_date|date:"d M Y"|default:"—" }}</td>
-          <td>{% if pkg.amount %}&#x20B9; {{ pkg.amount }}{% else %}—{% endif %}</td>
-          <td><span class="badge badge-blue">{{ pkg.get_status_display }}</span></td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'vas:rsa_detail' pkg.pk %}" class="btn btn-secondary btn-sm">View</a>
-              <a href="{% url 'vas:rsa_update' pkg.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="8" class="empty-state">No RSA packages found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-ambulance me-2"></i>
+            RSA Packages
+
+        </span>
+
+        <span class="badge badge-blue">
+
+            {{ packages|length }}
+
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+                    <th>RSA ID</th>
+                    <th>Customer</th>
+                    <th>Reg. No.</th>
+                    <th>Provider</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for pkg in packages %}
+
+                <tr>
+
+                    <td style="font-family:monospace;font-weight:600;">
+
+                        RSA-{{ pkg.pk }}
+
+                    </td>
+
+                    <td>
+
+                        <div style="font-weight:600;">
+
+                            {{ pkg.customer_vehicle.customer.full_name }}
+
+                        </div>
+
+                        {% if pkg.customer_vehicle.customer.phone %}
+                        <div style="font-size:12px;color:#6B7280;">
+
+                            {{ pkg.customer_vehicle.customer.phone }}
+
+                        </div>
+                        {% endif %}
+
+                    </td>
+
+                    <td style="font-family:monospace;font-size:13px;">
+
+                        {{ pkg.customer_vehicle.registration_no|default:"—" }}
+
+                    </td>
+
+                    <td>
+
+                        {{ pkg.provider_name|default:"—" }}
+
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+
+                        {{ pkg.start_date|date:"d M Y"|default:"—" }}
+
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+
+                        {{ pkg.end_date|date:"d M Y"|default:"—" }}
+
+                    </td>
+
+                    <td>
+
+                        {% if pkg.amount %}
+
+                        <span style="font-weight:600;color:#2563EB;">
+
+                            ₹ {{ pkg.amount }}
+
+                        </span>
+
+                        {% else %}
+
+                        —
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if pkg.status == 'active' %}
+
+                        <span class="badge badge-green">
+                            {{ pkg.get_status_display }}
+                        </span>
+
+                        {% elif pkg.status == 'expired' %}
+
+                        <span class="badge badge-red">
+                            {{ pkg.get_status_display }}
+                        </span>
+
+                        {% elif pkg.status == 'pending' %}
+
+                        <span class="badge badge-yellow">
+                            {{ pkg.get_status_display }}
+                        </span>
+
+                        {% else %}
+
+                        <span class="badge badge-gray">
+                            {{ pkg.get_status_display }}
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'vas:rsa_detail' pkg.pk %}"
+                               class="btn btn-sm btn-outline-secondary">
+
+                                <i class="fas fa-eye me-1"></i>
+                                View
+
+                            </a>
+
+                            <a href="{% url 'vas:rsa_update' pkg.pk %}"
+                               class="btn btn-sm btn-outline-primary">
+
+                                <i class="fas fa-edit me-1"></i>
+                                Edit
+
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="9" class="empty-state">
+
+                        <i class="fas fa-ambulance mb-2"></i>
+
+                        <div>
+                            No RSA packages found.
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

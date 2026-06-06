@@ -1,83 +1,339 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ bike_model }} — SSBikez ERP{% endblock %}
-{% block page_title %}Bike Model Detail{% endblock %}
+{% block page_title %}Bike Model Details{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'customers:bike_model_update' bike_model.pk %}"
+   class="btn btn-primary btn-sm">
+    <i class="fas fa-edit me-1"></i>
+    Edit
+</a>
+
+<a href="{% url 'customers:bike_model_list' %}"
+   class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
 
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">{{ bike_model }}</h1>
-    <p class="page-subtitle">{{ bike_model.brand }}</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'customers:bike_model_update' bike_model.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'customers:bike_model_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
-</div>
 
-<div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Model Details</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Brand</dt><dd>{{ bike_model.brand }}</dd></div>
-      <div class="detail-row"><dt>Model Name</dt><dd>{{ bike_model.model_name }}</dd></div>
-      <div class="detail-row"><dt>Variant</dt><dd>{{ bike_model.variant|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Fuel Type</dt><dd><span class="badge badge-blue">{{ bike_model.get_fuel_type_display }}</span></dd></div>
-      <div class="detail-row"><dt>Available Colors</dt><dd>{{ bike_model.available_colors|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Ex-Showroom Price</dt><dd style="font-weight:600; color:#2563EB;">&#x20B9; {{ bike_model.ex_showroom_price }}</dd></div>
-      <div class="detail-row"><dt>Added On</dt><dd>{{ bike_model.created_at|date:"d M Y" }}</dd></div>
-    </dl>
-  </div>
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'customers:bike_model_list' %}">Bike Models</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ bike_model.model_name }}</span>
+</nav>
 
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Stock Summary</span>
-      <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm">+ Add Stock</a>
+<!-- Summary Card -->
+<div class="card mb-4">
+
+    <div style="padding:20px;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;">
+
+            <div style="display:flex;align-items:center;gap:16px;">
+
+                <div style="
+                    width:60px;
+                    height:60px;
+                    border-radius:14px;
+                    background:#EFF6FF;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                ">
+                    <i class="fas fa-motorcycle"
+                       style="font-size:26px;color:#2563EB;"></i>
+                </div>
+
+                <div>
+
+                    <div style="font-size:22px;font-weight:700;color:#111827;">
+                        {{ bike_model.model_name }}
+                    </div>
+
+                    <div style="font-size:13px;color:#6B7280;">
+                        {{ bike_model.brand }}
+                        {% if bike_model.variant %}
+                        • {{ bike_model.variant }}
+                        {% endif %}
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div style="display:flex;gap:40px;flex-wrap:wrap;">
+
+                <div>
+                    <div style="font-size:12px;color:#6B7280;">FUEL TYPE</div>
+                    <div style="font-weight:600;">
+                        {{ bike_model.get_fuel_type_display }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-size:12px;color:#6B7280;">PRICE</div>
+                    <div style="font-weight:700;color:#2563EB;">
+                        ₹ {{ bike_model.ex_showroom_price }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-size:12px;color:#6B7280;">AVAILABLE COLORS</div>
+                    <div style="font-weight:600;">
+                        {{ bike_model.available_colors|default:"—" }}
+                    </div>
+                </div>
+
+                <div>
+                    <div style="font-size:12px;color:#6B7280;">TOTAL STOCK</div>
+                    <div style="font-weight:700;">
+                        {{ stock|length }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-    <p style="font-size:14px; color:#6B7280;">{{ stock|length }} unit{{ stock|length|pluralize }} in stock</p>
-  </div>
+
 </div>
+
+<!-- Details + Stock Summary -->
+<div class="detail-grid">
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-info-circle me-2"></i>
+                Model Details
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Brand</dt>
+                <dd>{{ bike_model.brand }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Model Name</dt>
+                <dd>{{ bike_model.model_name }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Variant</dt>
+                <dd>{{ bike_model.variant|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Fuel Type</dt>
+                <dd>
+                    <span class="badge badge-blue">
+                        {{ bike_model.get_fuel_type_display }}
+                    </span>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Available Colors</dt>
+                <dd>{{ bike_model.available_colors|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Ex-Showroom Price</dt>
+                <dd style="font-weight:700;color:#2563EB;">
+                    ₹ {{ bike_model.ex_showroom_price }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Added On</dt>
+                <dd>{{ bike_model.created_at|date:"d M Y" }}</dd>
+            </div>
+
+        </dl>
+
+    </div>
 
 <div class="card">
-  <div class="card-header">
-    <span class="card-title">Stock Units</span>
-    <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm">+ Add Unit</a>
-  </div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Chassis No</th>
-          <th>Engine No</th>
-          <th>Color</th>
-          <th>Status</th>
-          <th>Branch</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for unit in stock %}
-        <tr>
-          <td style="font-family:monospace; font-size:13px;">{{ unit.chassis_no|default:"—" }}</td>
-          <td style="font-family:monospace; font-size:13px;">{{ unit.engine_no|default:"—" }}</td>
-          <td>{{ unit.color|default:"—" }}</td>
-          <td>
-            {% if unit.stock_status == 'available' %}<span class="badge badge-green">Available</span>
-            {% elif unit.stock_status == 'reserved' %}<span class="badge badge-purple">Reserved</span>
-            {% else %}<span class="badge badge-gray">Sold</span>
-            {% endif %}
-          </td>
-          <td style="color:#6B7280;">{{ unit.branch|default:"—" }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}" class="btn btn-secondary btn-sm">View</a>
+
+    <div class="card-header"
+         style="display:flex;justify-content:space-between;align-items:center;">
+
+        <span class="card-title">
+            <i class="fas fa-boxes me-2"></i>
+            Inventory Overview
+        </span>
+
+        <a href="{% url 'customers:vehicle_stock_create' %}"
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>
+            Add Stock
+        </a>
+
+    </div>
+
+    <div style="padding:18px;">
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Total Units</dt>
+                <dd>
+                    <strong>{{ stock|length }}</strong>
+                </dd>
             </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty-state">No stock units for this model yet.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+            <div class="detail-row">
+                <dt>Brand</dt>
+                <dd>{{ bike_model.brand }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Variant</dt>
+                <dd>{{ bike_model.variant|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Fuel Type</dt>
+                <dd>{{ bike_model.get_fuel_type_display }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Available Colors</dt>
+                <dd>{{ bike_model.available_colors|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Latest Stock Unit</dt>
+                <dd>
+                    {% if stock %}
+                        {{ stock.0.chassis_no|default:"Vehicle Added" }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
 </div>
+
+</div>
+
+<!-- Stock Units -->
+<div class="card">
+
+    <div class="card-header"
+         style="display:flex;justify-content:space-between;align-items:center;">
+
+        <span class="card-title">
+            <i class="fas fa-warehouse me-2"></i>
+            Stock Units
+        </span>
+
+        <a href="{% url 'customers:vehicle_stock_create' %}"
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>
+            Add Unit
+        </a>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Chassis No</th>
+                    <th>Engine No</th>
+                    <th>Color</th>
+                    <th>Status</th>
+                    <th>Branch</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for unit in stock %}
+                <tr>
+
+                    <td style="font-family:monospace;">
+                        {{ unit.chassis_no|default:"—" }}
+                    </td>
+
+                    <td style="font-family:monospace;">
+                        {{ unit.engine_no|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ unit.color|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        {% if unit.stock_status == 'available' %}
+                        <span class="badge badge-green">Available</span>
+
+                        {% elif unit.stock_status == 'reserved' %}
+                        <span class="badge badge-purple">Reserved</span>
+
+                        {% else %}
+                        <span class="badge badge-gray">Sold</span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+                        {{ unit.branch|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'customers:vehicle_stock_detail' unit.pk %}"
+                               class="btn btn-secondary btn-sm">
+                                View
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">
+                        <div class="empty-state">
+                            <i class="fas fa-warehouse"></i>
+                            <p>No stock units for this model yet.</p>
+                        </div>
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}
