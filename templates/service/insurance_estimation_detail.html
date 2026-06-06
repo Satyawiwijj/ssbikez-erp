@@ -3,24 +3,146 @@
 {% block page_title %}Insurance Estimation IE-{{ ie.pk }}{% endblock %}
 
 {% block content %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F4C4; IE-{{ ie.pk }}</span></div>
-  <dl class="detail-list" style="padding:18px;">
-    <div class="detail-row"><dt>Job Card</dt><dd><a href="{% url 'service:jobcard_detail' ie.job_card_id %}">JC-{{ ie.job_card_id }}</a></dd></div>
-    <div class="detail-row"><dt>Customer</dt><dd>{{ ie.job_card.customer_vehicle.customer.full_name }}</dd></div>
-    <div class="detail-row"><dt>Insurance Co</dt><dd>{{ ie.insurance_company }}</dd></div>
-    <div class="detail-row"><dt>Policy #</dt><dd>{{ ie.policy_number|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Estimation Date</dt><dd>{{ ie.estimation_date|date:"d M Y" }}</dd></div>
-    <div class="detail-row"><dt>Labour</dt><dd>&#x20B9; {{ ie.labour_estimate }}</dd></div>
-    <div class="detail-row"><dt>Spares</dt><dd>&#x20B9; {{ ie.spares_estimate }}</dd></div>
-    <div class="detail-row"><dt>Total Estimate</dt><dd><strong>&#x20B9; {{ ie.total_estimate }}</strong></dd></div>
-    <div class="detail-row"><dt>Approved</dt><dd>&#x20B9; {{ ie.approved_amount }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd>{{ ie.get_status_display }}</dd></div>
-    <div class="detail-row"><dt>Notes</dt><dd>{{ ie.notes|linebreaksbr|default:"—" }}</dd></div>
-  </dl>
-  <div style="padding:0 18px 18px;">
-    <a href="{% url 'service:insurance_estimation_update' ie.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'service:jobcard_detail' ie.job_card_id %}" class="btn btn-ghost">Back to Job Card</a>
-  </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'service:jobcard_detail' ie.job_card_id %}">
+        JC-{{ ie.job_card_id }}
+    </a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">
+        Insurance Estimation
+    </span>
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">
+            Insurance Estimation IE-{{ ie.pk }}
+        </h1>
+        <p class="page-subtitle">
+            {{ ie.job_card.customer_vehicle.customer.full_name }}
+        </p>
+    </div>
+
+<div class="page-header-actions">
+    <a href="{% url 'service:insurance_estimation_update' ie.pk %}"
+       class="btn btn-secondary">
+        Edit
+    </a>
+
+    <a href="{% url 'service:jobcard_detail' ie.job_card_id %}"
+       class="btn btn-ghost">
+        Back to Job Card
+    </a>
 </div>
+
+</div>
+
+<div class="detail-grid">
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Estimation Information</span>
+    </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>Job Card</dt>
+            <dd>
+                <a href="{% url 'service:jobcard_detail' ie.job_card_id %}">
+                    JC-{{ ie.job_card_id }}
+                </a>
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Customer</dt>
+            <dd>{{ ie.job_card.customer_vehicle.customer.full_name }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Insurance Company</dt>
+            <dd>{{ ie.insurance_company }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Policy Number</dt>
+            <dd>{{ ie.policy_number|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Estimation Date</dt>
+            <dd>{{ ie.estimation_date|date:"d M Y" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Status</dt>
+            <dd>
+                {% if ie.status == 'approved' %}
+                    <span class="badge badge-green">{{ ie.get_status_display }}</span>
+                {% elif ie.status == 'rejected' %}
+                    <span class="badge badge-red">{{ ie.get_status_display }}</span>
+                {% elif ie.status == 'sent' %}
+                    <span class="badge badge-blue">{{ ie.get_status_display }}</span>
+                {% else %}
+                    <span class="badge badge-yellow">{{ ie.get_status_display }}</span>
+                {% endif %}
+            </dd>
+        </div>
+
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Amount Breakdown</span>
+    </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>Labour Estimate</dt>
+            <dd>&#x20B9; {{ ie.labour_estimate }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Spares Estimate</dt>
+            <dd>&#x20B9; {{ ie.spares_estimate }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Total Estimate</dt>
+            <dd style="font-weight:700;color:#2563EB;">
+                &#x20B9; {{ ie.total_estimate }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Approved Amount</dt>
+            <dd>
+                &#x20B9; {{ ie.approved_amount }}
+            </dd>
+        </div>
+
+    </dl>
+</div>
+
+</div>
+
+<div class="card" style="margin-top:16px;">
+    <div class="card-header">
+        <span class="card-title">Notes</span>
+    </div>
+
+<div style="padding:18px; line-height:1.8;">
+    {% if ie.notes %}
+        {{ ie.notes|linebreaksbr }}
+    {% else %}
+        <span style="color:#9CA3AF;">No notes available.</span>
+    {% endif %}
+</div>
+
+</div>
+
 {% endblock %}

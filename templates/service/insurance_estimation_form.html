@@ -1,24 +1,116 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+Save Estimation
+{% if jc %}
+Back
+{% else %}
+Back
+{% endif %}
+{% endblock %}
+
 {% block content %}
-<div class="card form-card">
-  <div class="card-header"><span class="card-title">&#x1F4C4; {{ title }}</span></div>
-  <form method="post" novalidate style="padding:20px;">
-    {% csrf_token %}
-    {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}<div class="form-error">{{ field.errors }}</div>{% endif %}
-      </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Estimation</button>
-      {% if jc %}<a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
-      {% else %}<a href="{% url 'service:jobcard_list' %}" class="btn btn-secondary">Cancel</a>{% endif %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+<a href="{% url 'service:dashboard' %}">Service</a>
+<span class="bc-sep">/</span>
+{% if jc %}
+<a href="{% url 'service:jobcard_detail' jc.pk %}">
+    JC-{{ jc.pk }}
+</a>
+<span class="bc-sep">/</span>
+{% endif %}
+<span class="bc-current">{{ title }}</span>
+</nav>
+<form method="post"
+      id="estimation-form"
+      novalidate>
+{% csrf_token %}
+<div class="row g-3">
+    <!-- Main Form -->
+    <div class="col-lg-8">
+        <div class="card form-card">
+            <div class="card-header">
+                Insurance Estimation Details
+            </div>
+            <div class="card-body">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+                <div class="row g-3">
+                    {% for field in form %}
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            {{ field.label }}
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        {% if field.help_text %}
+                        <small class="text-muted">
+                            {{ field.help_text }}
+                        </small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
-  </form>
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                Estimation Information
+            </div>
+            <div class="card-body">
+                {% if jc %}
+                <div class="mb-3">
+                    <strong>Job Card</strong>
+                    <div class="text-muted">
+                        JC-{{ jc.pk }}
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <strong>Customer</strong>
+                    <div class="text-muted">
+                        {{ jc.customer_vehicle.customer.full_name }}
+                    </div>
+                </div>
+                {% endif %}
+                <div class="mb-3">
+                    <strong>Purpose</strong>
+                    <div class="text-muted small">
+                        Prepare and submit insurance repair estimates
+                        for accident-related vehicle service jobs.
+                    </div>
+                </div>
+                <div>
+                    <strong>Notes</strong>
+                    <div class="text-muted small">
+                        Total estimate is calculated automatically
+                        from labour and spare estimates.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+</form>
+
 {% endblock %}

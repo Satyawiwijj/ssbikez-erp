@@ -10,28 +10,43 @@
 <!-- MY PERSONAL STATS (TOP ROW) -->
 <div class="stat-grid">
   <div class="stat-card">
-    <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
+    <div style="width:46px;height:46px;border-radius:10px;background:#85b2fa;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+      </div>
+
     <div>
       <div class="stat-value">{{ my_enquiries_today }}</div>
       <div class="stat-label">My Enquiries Today</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-orange">&#x1F4AC;</div>
+    <div style="width:46px;height:46px;border-radius:10px;background:#f3a771;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    </div>
     <div>
       <div class="stat-value">{{ my_open_enquiries }}</div>
       <div class="stat-label">My Open Enquiries</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-green">&#x2705;</div>
+    <div style="width:46px;height:46px;border-radius:10px;background:#7ac1a9;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <polyline points="20 6 9 17 4 12"/></svg>
+    </div>
     <div>
       <div class="stat-value">{{ my_converted_month }}</div>
       <div class="stat-label">Converted This Month</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-purple">&#x1F6CD;&#xFE0F;</div>
+    <div style="width:46px;height:46px;border-radius:10px;background:#b698fd;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+        <path d="M1 1h4l2.68 13.39a2 2 0 001.95 1.61h9.72a2 2 0 001.95-1.61L23 6H6"/></svg>
+    </div>
     <div>
       <div class="stat-value">{{ my_orders_month }}</div>
       <div class="stat-label">Orders This Month</div>
@@ -42,28 +57,38 @@
 <!-- GLOBAL STATS (SECONDARY ROW) -->
 <div class="stat-grid" style="grid-template-columns:repeat(4,1fr); margin-bottom:24px;">
   <div class="stat-card" style="background:#F8FAFC;">
-    <div class="stat-icon" style="background:#E0F2FE; font-size:18px;">&#x1F4CB;</div>
+    <div style="width:38px;height:38px;border-radius:8px;background:#DBEAFE;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2">
+        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+        <rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+    </div>
     <div>
       <div class="stat-value" style="font-size:18px;">{{ total_enquiries }}</div>
       <div class="stat-label" style="font-size:11px;">Total Enquiries</div>
     </div>
   </div>
   <div class="stat-card" style="background:#F8FAFC;">
-    <div class="stat-icon" style="background:#D1FAE5; font-size:18px;">&#x1F6CD;&#xFE0F;</div>
+    <div style="width:38px;height:38px;border-radius:8px;background:#D1FAE5;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><circle cx="9" cy="21" r="1"/>
+        <circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 001.95 1.61h9.72a2 2 0 001.95-1.61L23 6H6"/></svg></div>
     <div>
       <div class="stat-value" style="font-size:18px;">{{ total_orders }}</div>
       <div class="stat-label" style="font-size:11px;">Total Orders</div>
     </div>
   </div>
   <div class="stat-card" style="background:#F8FAFC;">
-    <div class="stat-icon" style="background:#FEF3C7; font-size:18px;">&#x23F3;</div>
+    <div style="width:38px;height:38px;border-radius:8px;background:#FEF3C7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
     <div>
       <div class="stat-value" style="font-size:18px;">{{ open_orders }}</div>
       <div class="stat-label" style="font-size:11px;">Open Orders</div>
     </div>
   </div>
   <div class="stat-card" style="background:#F8FAFC;">
-    <div class="stat-icon" style="background:#EDE9FE; font-size:18px;">&#x1F69A;</div>
+    <div style="width:38px;height:38px;border-radius:8px;background:#EDE9FE;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/>
+        <circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div>
     <div>
       <div class="stat-value" style="font-size:18px;">{{ total_deliveries }}</div>
       <div class="stat-label" style="font-size:11px;">Total Deliveries</div>
@@ -71,139 +96,141 @@
   </div>
 </div>
 
-<!-- FOLLOW-UP BOARD (MIDDLE ROW) -->
+<!-- FOLLOW-UP BOARD -->
 <div style="margin-bottom:24px;">
-  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-    <h2 style="font-size:16px; font-weight:700; color:#1E293B; margin:0;">&#x1F4DE; My Follow-Up Board</h2>
-    <a href="{% url 'sales:follow_up_list' %}" class="btn btn-ghost btn-sm">View All Follow-Ups →</a>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+    <h2 style="font-size:15px;font-weight:700;color:#1E293B;margin:0;display:flex;align-items:center;gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg>
+      Sales Follow-Up Board
+    </h2>
+    <a href="{% url 'sales:follow_up_list' %}" style="font-size:13px;color:#2563EB;text-decoration:none;font-weight:500;">View All →</a>
   </div>
-  <div class="grid-3col">
-
+ 
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+ 
     <!-- OVERDUE -->
-    <div class="card" style="margin-bottom:0; border-left:4px solid #dc2626;">
-      <div class="card-header" style="background:#FEF2F2;">
-        <span class="card-title" style="color:#991B1B;">&#x1F534; Overdue
-          {% if overdue_followups|length %}<span class="badge badge-red" style="margin-left:6px;">{{ overdue_followups|length }}</span>{% endif %}
+    <div style="background:#fff;border-radius:12px;border:1px solid #FECACA;border-top:3px solid #EF4444;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+      <div style="padding:12px 16px;background:#FEF2F2;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #FECACA;">
+        <span style="font-size:13px;font-weight:600;color:#991B1B;display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block;"></span>Overdue
         </span>
+        {% if overdue_followups|length %}<span style="background:#EF4444;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ overdue_followups|length }}</span>{% endif %}
       </div>
       {% if overdue_followups %}
-      {% for fb in overdue_followups|slice:":5" %}
-      {% with enq=fb.enquiry %}
-      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div style="flex:1; min-width:0;">
-            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+      {% for fb in overdue_followups|slice:":5" %}{% with enq=fb.enquiry %}
+      <div style="padding:11px 16px;border-bottom:1px solid #FEF2F2;{% if forloop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="min-width:0;flex:1;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
-            <div style="font-size:11px; color:#DC2626; margin-top:2px;">{{ today|timesince:fb.next_followup_date }} overdue</div>
-            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#EF4444;margin-top:3px;font-weight:500;">{{ today|timesince:fb.next_followup_date }} overdue</div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
-            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
-            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
-            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="{{ enq.customer.phone }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="{{ enq.prospect.phone }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" style="font-size:11px;background:#2563EB;color:#fff;text-decoration:none;padding:3px 8px;border-radius:5px;font-weight:600;white-space:nowrap;">Log Follow-up</a>
           </div>
         </div>
       </div>
-      {% endwith %}
-      {% endfor %}
+      {% endwith %}{% endfor %}
       {% if overdue_followups|length > 5 %}
-      <div style="padding:8px 16px;">
-        <a href="{% url 'sales:follow_up_list' %}?period=overdue" style="font-size:12px; color:#2563EB;">View all {{ overdue_followups|length }} overdue →</a>
+      <div style="padding:10px 16px;background:#FEF9F9;border-top:1px solid #FEE2E2;">
+        <a href="{% url 'sales:follow_up_list' %}?period=overdue" style="font-size:12px;color:#EF4444;text-decoration:none;font-weight:600;">View all {{ overdue_followups|length }} overdue →</a>
       </div>
       {% endif %}
       {% else %}
-      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">&#x2705; No overdue follow-ups!</p>
+      <div style="padding:24px;text-align:center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" style="display:block;margin:0 auto 8px;"><polyline points="20 6 9 17 4 12"/></svg>
+        <p style="font-size:13px;color:#6B7280;margin:0;">No overdue follow-ups!</p>
+      </div>
       {% endif %}
     </div>
-
+ 
     <!-- TODAY -->
-    <div class="card" style="margin-bottom:0; border-left:4px solid #D97706;">
-      <div class="card-header" style="background:#FFFBEB;">
-        <span class="card-title" style="color:#92400E;">&#x1F7E1; Due Today
-          {% if todays_followups|length %}<span class="badge badge-yellow" style="margin-left:6px;">{{ todays_followups|length }}</span>{% endif %}
+    <div style="background:#fff;border-radius:12px;border:1px solid #FDE68A;border-top:3px solid #F59E0B;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+      <div style="padding:12px 16px;background:#FFFBEB;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #FDE68A;">
+        <span style="font-size:13px;font-weight:600;color:#92400E;display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;"></span>Due Today
         </span>
+        {% if todays_followups|length %}<span style="background:#F59E0B;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ todays_followups|length }}</span>{% endif %}
       </div>
       {% if todays_followups %}
-      {% for fb in todays_followups|slice:":5" %}
-      {% with enq=fb.enquiry %}
-      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div style="flex:1; min-width:0;">
-            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+      {% for fb in todays_followups|slice:":5" %}{% with enq=fb.enquiry %}
+      <div style="padding:11px 16px;border-bottom:1px solid #FFFBEB;{% if forloop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="min-width:0;flex:1;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
-            <div style="font-size:11px; color:#D97706; font-weight:600; margin-top:2px;">TODAY</div>
-            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:600;letter-spacing:.3px;">TODAY</div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
-            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
-            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
-            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="{{ enq.prospect.phone }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" style="font-size:11px;background:#2563EB;color:#fff;text-decoration:none;padding:3px 8px;border-radius:5px;font-weight:600;">Log Follow-up</a>
           </div>
         </div>
       </div>
-      {% endwith %}
-      {% endfor %}
-      {% if todays_followups|length > 5 %}
-      <div style="padding:8px 16px;">
-        <a href="{% url 'sales:follow_up_list' %}?period=today" style="font-size:12px; color:#2563EB;">View all {{ todays_followups|length }} today →</a>
+      {% endwith %}{% endfor %}
+      {% else %}
+      <div style="padding:24px;text-align:center;">
+        <p style="font-size:13px;color:#6B7280;margin:0;">No follow-ups due today.</p>
       </div>
       {% endif %}
-      {% else %}
-      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">No follow-ups due today.</p>
-      {% endif %}
     </div>
-
+ 
     <!-- THIS WEEK -->
-    <div class="card" style="margin-bottom:0; border-left:4px solid #2563EB;">
-      <div class="card-header" style="background:#EFF6FF;">
-        <span class="card-title" style="color:#1E40AF;">&#x1F535; This Week
-          {% if upcoming_followups|length %}<span class="badge badge-blue" style="margin-left:6px;">{{ upcoming_followups|length }}</span>{% endif %}
+    <div style="background:#fff;border-radius:12px;border:1px solid #BFDBFE;border-top:3px solid #3B82F6;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+      <div style="padding:12px 16px;background:#EFF6FF;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #BFDBFE;">
+        <span style="font-size:13px;font-weight:600;color:#1E40AF;display:flex;align-items:center;gap:6px;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#3B82F6;display:inline-block;"></span>This Week
         </span>
+        {% if upcoming_followups|length %}<span style="background:#3B82F6;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ upcoming_followups|length }}</span>{% endif %}
       </div>
       {% if upcoming_followups %}
-      {% for fb in upcoming_followups|slice:":5" %}
-      {% with enq=fb.enquiry %}
-      <div style="padding:10px 16px; border-bottom:1px solid #F3F4F6;">
-        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-          <div style="flex:1; min-width:0;">
-            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600; font-size:13px; color:#111827; text-decoration:none;">
+      {% for fb in upcoming_followups|slice:":5" %}{% with enq=fb.enquiry %}
+      <div style="padding:11px 16px;border-bottom:1px solid #EFF6FF;{% if forloop.last %}border-bottom:none;{% endif %}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
+          <div style="min-width:0;flex:1;">
+            <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px; color:#9CA3AF; margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
-            <div style="font-size:11px; color:#2563EB; margin-top:2px;">{{ fb.next_followup_date|date:"d M Y" }}</div>
-            {% if fb.feedback_notes %}<div style="font-size:11px; color:#6B7280; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:160px;">{{ fb.feedback_notes|truncatechars:45 }}</div>{% endif %}
+            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#3B82F6;margin-top:3px;font-weight:500;">{{ fb.next_followup_date|date:"d M Y" }}</div>
           </div>
-          <div style="display:flex; flex-direction:column; gap:3px; flex-shrink:0; margin-left:8px;">
-            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.customer.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>
-            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" class="btn btn-ghost btn-sm" title="{{ enq.prospect.phone }}" style="padding:3px 7px;">&#x1F4DE;</a>{% endif %}
-            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm" style="padding:3px 7px; font-size:11px;">+Feedback</a>
+          <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+            {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>
+            {% elif enq.prospect %}<a href="tel:{{ enq.prospect.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="{{ enq.prospect.phone }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>{% endif %}
+            <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" style="font-size:11px;background:#2563EB;color:#fff;text-decoration:none;padding:3px 8px;border-radius:5px;font-weight:600;">Log Follow-up</a>
           </div>
         </div>
       </div>
-      {% endwith %}
-      {% endfor %}
+      {% endwith %}{% endfor %}
       {% if upcoming_followups|length > 5 %}
-      <div style="padding:8px 16px;">
-        <a href="{% url 'sales:follow_up_list' %}?period=upcoming" style="font-size:12px; color:#2563EB;">View all {{ upcoming_followups|length }} →</a>
+      <div style="padding:10px 16px;border-top:1px solid #DBEAFE;">
+        <a href="{% url 'sales:follow_up_list' %}?period=upcoming" style="font-size:12px;color:#2563EB;text-decoration:none;font-weight:600;">View all {{ upcoming_followups|length }} →</a>
       </div>
       {% endif %}
       {% else %}
-      <p style="padding:16px; color:#9CA3AF; font-size:13px; margin:0; text-align:center;">No upcoming follow-ups this week.</p>
+      <div style="padding:24px;text-align:center;">
+        <p style="font-size:13px;color:#6B7280;margin:0;">No upcoming follow-ups this week.</p>
+      </div>
       {% endif %}
     </div>
-  </div><!-- /grid-3col -->
+ 
+  </div>
 </div>
+ 
 
 <!-- BOTTOM ROW: RECENT ENQUIRIES + RECENT ORDERS -->
 <div class="grid-2col">
   <!-- Recent Enquiries -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F4CB; Recent Enquiries</span>
+      <span class="card-title">Recent Enquiries</span>
       <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost btn-sm">View All</a>
     </div>
     <div class="table-wrapper">
@@ -240,7 +267,7 @@
   <!-- Recent Orders -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F6CD;&#xFE0F; Recent Orders</span>
+      <span class="card-title">Recent Orders</span>
       <a href="{% url 'sales:order_list' %}" class="btn btn-ghost btn-sm">View All</a>
     </div>
     <div class="table-wrapper">

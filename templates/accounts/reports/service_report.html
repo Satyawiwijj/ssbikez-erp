@@ -4,41 +4,69 @@
 
 {% block content %}
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Service Report</h1>
-    <p class="page-subtitle">Job cards, labor and bay utilization analytics</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'accounts:sales_report' %}" class="btn btn-ghost btn-sm">Sales</a>
-    <a href="{% url 'accounts:spares_report' %}" class="btn btn-ghost btn-sm">Spares</a>
-  </div>
+
+    <div>
+        <h1 class="page-title d-flex align-items-center">
+            <i class="fas fa-tools text-primary me-3"></i>
+            Service Report
+        </h1>
+
+        <p class="page-subtitle">
+            Monitor job cards, bay utilization, labor performance and service operations.
+        </p>
+    </div>
+
+    <div class="page-header-actions d-flex gap-2">
+
+        <a href="{% url 'accounts:sales_report' %}"
+           class="btn btn-outline-primary">
+            <i class="fas fa-chart-line me-1"></i>
+            Sales Report
+        </a>
+
+        <a href="{% url 'accounts:spares_report' %}"
+           class="btn btn-outline-primary">
+            <i class="fas fa-boxes me-1"></i>
+            Spares Report
+        </a>
+
+    </div>
+
 </div>
 
 <!-- KPI STATS -->
 <div class="stat-grid">
   <div class="stat-card">
-    <div class="stat-icon stat-icon-blue">&#x1F527;</div>
+    <div class="stat-icon stat-icon-blue">
+      <i class="fas fa-tools"></i>
+    </div>
     <div>
       <div class="stat-value">{{ total_jc }}</div>
       <div class="stat-label">Total Job Cards</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-orange">&#x23F3;</div>
+    <div class="stat-icon stat-icon-orange">
+      <i class="fas fa-hourglass-half"></i>
+    </div>
     <div>
       <div class="stat-value">{{ active_jc }}</div>
       <div class="stat-label">Active (Not Invoiced)</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-green">&#x1F4C5;</div>
+    <div class="stat-icon stat-icon-green">
+      <i class="fas fa-calendar-check"></i>
+    </div>
     <div>
       <div class="stat-value">{{ this_month_jc }}</div>
       <div class="stat-label">Created This Month</div>
     </div>
   </div>
   <div class="stat-card">
-    <div class="stat-icon stat-icon-purple">&#x1F3D7;&#xFE0F;</div>
+    <div class="stat-icon stat-icon-purple">
+      <i class="fas fa-warehouse"></i>
+    </div>
     <div>
       <div class="stat-value">{{ bay_stats|length }}</div>
       <div class="stat-label">Active Bays This Month</div>
@@ -46,11 +74,11 @@
   </div>
 </div>
 
-<div class="grid-2col">
+<div class="grid-2col" style="padding-bottom: 20px;">
   <!-- JOB CARDS BY STATUS -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F4CA; Job Cards by Status</span>
+      <span class="card-title"><i class="fas fa-chart-pie me-2"></i>Job Cards by Status</span>
     </div>
     {% if status_counts %}
     <div class="table-wrapper">
@@ -95,14 +123,19 @@
       });
     </script>
     {% else %}
-    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No job cards yet.</p>
+   <div class="empty-state py-5">
+      <i class="fas fa-clipboard-list"
+        style="font-size:36px;color:#CBD5E1;margin-bottom:12px;display:block;">
+      </i>
+      <p>No job cards available.</p>
+  </div>
     {% endif %}
   </div>
 
   <!-- BAY UTILIZATION -->
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
-      <span class="card-title">&#x1F3D7;&#xFE0F; Bay Assignments This Month</span>
+      <span class="card-title"><i class="fas fa-warehouse me-2"></i>Bay Assignments This Month</span>
     </div>
     {% if bay_stats %}
     <div style="display:flex; align-items:flex-end; gap:12px; height:180px; padding:8px 0 24px;">
@@ -123,15 +156,20 @@
       });
     </script>
     {% else %}
-    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No bay assignments this month.</p>
-    {% endif %}
+    <div class="empty-state py-5">
+        <i class="fas fa-warehouse"
+          style="font-size:36px;color:#CBD5E1;margin-bottom:12px;display:block;">
+        </i>
+        <p>No bay assignments recorded this month.</p>
+    </div>    
+{% endif %}
   </div>
 </div>
 
 <!-- TOP LABOR CHARGES -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">&#x1F6E0;&#xFE0F; Most Common Labor Services</span>
+    <span class="card-title"><i class="fas fa-wrench me-2"></i>Most Common Labor Services</span>
   </div>
   {% if top_labor %}
   <div class="table-wrapper">
@@ -164,7 +202,12 @@
     });
   </script>
   {% else %}
-  <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:32px 0;">No labor charges recorded yet.</p>
+  <div class="empty-state py-5">
+      <i class="fas fa-wrench"
+        style="font-size:36px;color:#CBD5E1;margin-bottom:12px;display:block;">
+      </i>
+      <p>No labor services recorded yet.</p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

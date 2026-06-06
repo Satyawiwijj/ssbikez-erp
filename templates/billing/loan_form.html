@@ -12,10 +12,40 @@
 
   <!-- ── LOAN FORM ── -->
   <div class="card form-card" style="max-width:none;">
-    <div class="card-header"><span class="card-title">&#x1F3E6; Loan Details</span></div>
+    <div class="card-header"><i class="fas fa-landmark me-2"></i> Loan Details</div>
     <div style="padding:20px;">
       <form method="post" novalidate id="loanForm">
         {% csrf_token %}
+        {% if form.errors %}
+          <div style="
+              background:#FEF2F2;
+              border:1px solid #FCA5A5;
+              color:#991B1B;
+              padding:14px;
+              border-radius:8px;
+              margin-bottom:20px;
+          ">
+              <strong>
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Form Submission Failed
+              </strong>
+
+              <ul style="margin:10px 0 0 18px;">
+                  {% for field in form %}
+                      {% for error in field.errors %}
+                          <li>
+                              <strong>{{ field.label }}</strong>:
+                              {{ error }}
+                          </li>
+                      {% endfor %}
+                  {% endfor %}
+
+                  {% for error in form.non_field_errors %}
+                      <li>{{ error }}</li>
+                  {% endfor %}
+              </ul>
+          </div>
+          {% endif %}
 
         {% if form.non_field_errors %}
         <div class="alert alert-danger mb-3">
@@ -58,6 +88,29 @@
             {{ form.loan_status }}
             {% if form.loan_status.errors %}<div class="form-error">{% for e in form.loan_status.errors %}{{ e }}{% endfor %}</div>{% endif %}
           </div>
+
+          <div class="form-group">
+            <label class="form-label"
+                  for="{{ form.hp_status.id_for_label }}">
+                {{ form.hp_status.label }}
+            </label>
+
+            {{ form.hp_status }}
+
+            {% if form.hp_status.help_text %}
+            <div style="font-size:12px;color:#6b7280;margin-top:3px;">
+                {{ form.hp_status.help_text }}
+            </div>
+            {% endif %}
+
+            {% if form.hp_status.errors %}
+            <div class="form-error">
+                {% for e in form.hp_status.errors %}
+                    {{ e }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
 
           <!-- Loan Amount -->
           <div class="form-group">

@@ -1,35 +1,159 @@
 {% extends 'base.html' %}
-{% block title %}Journal Entries{% endblock %}
+{% block title %}Journal Entries — SSBikez ERP{% endblock %}
 {% block page_title %}Journal Entries{% endblock %}
+
 {% block content %}
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
-  <h1 class="page-title">Journal Entries</h1>
-  <a href="{% url 'billing:journal_entry_create' %}" class="btn btn-primary">+ New Entry</a>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Journal Entries</h1>
+        <p class="page-subtitle">
+            Accounting ledger adjustments and manual entries
+        </p>
+    </div>
+
+    <a href="{% url 'billing:journal_entry_create' %}"
+       class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>
+        New Entry
+    </a>
 </div>
-<form method="get" style="display:flex;gap:8px;align-items:end;margin-bottom:14px;">
-  <div><label class="form-label">From</label><input type="date" name="start" value="{{ start }}" class="form-control"></div>
-  <div><label class="form-label">To</label><input type="date" name="end" value="{{ end }}" class="form-control"></div>
-  <button class="btn btn-primary">Filter</button>
+
+<form method="get"
+      class="search-bar"
+      style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+
+    <div>
+        <label class="form-label">From Date</label>
+        <input type="date"
+               name="start"
+               value="{{ start }}"
+               class="form-control">
+    </div>
+
+    <div>
+        <label class="form-label">To Date</label>
+        <input type="date"
+               name="end"
+               value="{{ end }}"
+               class="form-control">
+    </div>
+
+    <div style="display:flex;gap:8px;">
+
+        <button type="submit"
+                class="btn btn-primary">
+            <i class="fas fa-filter me-1"></i>
+            Filter
+        </button>
+
+        <a href="{% url 'billing:journal_entry_list' %}"
+           class="btn btn-secondary">
+            Clear
+        </a>
+
+    </div>
+
 </form>
+
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Amount</th><th>Description</th><th>Reference</th></tr></thead>
-      <tbody>
-        {% for e in entries %}
-        <tr>
-          <td>{{ e.entry_date|date:"d M Y" }}</td>
-          <td>{{ e.account_name }}</td>
-          <td><span class="badge">{{ e.get_entry_type_display }}</span></td>
-          <td>&#x20B9; {{ e.amount }}</td>
-          <td>{{ e.description }}</td>
-          <td>{{ e.reference|default:"—" }}</td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6"><div class="empty-state"><p>No entries.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <span class="card-title">
+            <i class="fas fa-book me-2"></i>
+            Journal Entries
+        </span>
+
+        <span class="badge bg-secondary">
+            {{ entries|length }}
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Type</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Reference</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for e in entries %}
+                <tr>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ e.entry_date|date:"d M Y" }}
+                    </td>
+
+                    <td style="font-weight:500;">
+                        {{ e.account_name }}
+                    </td>
+
+                    <td>
+
+                        {% if e.entry_type == 'debit' %}
+                            <span class="badge badge-blue">
+                                {{ e.get_entry_type_display }}
+                            </span>
+                        {% else %}
+                            <span class="badge badge-green">
+                                {{ e.get_entry_type_display }}
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ e.amount }}
+                    </td>
+
+                    <td>
+                        {{ e.description|default:"—" }}
+                    </td>
+
+                    <td style="color:#6B7280;">
+                        {{ e.reference|default:"—" }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+                    <td colspan="6">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-book text-muted"
+                               style="font-size:32px;"></i>
+
+                            <p class="mt-2">
+                                No journal entries found.
+                            </p>
+
+                        </div>
+
+                    </td>
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

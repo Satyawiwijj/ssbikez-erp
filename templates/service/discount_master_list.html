@@ -1,30 +1,132 @@
 {% extends 'base.html' %}
-{% block title %}Service Discount Master{% endblock %}
+
+{% block title %}Service Discount Master — SSBikez ERP{% endblock %}
 {% block page_title %}Service Discount Master{% endblock %}
 
 {% block content %}
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;">
-  <h1 class="page-title">Service Discount Master</h1>
-  <a href="{% url 'service:discount_master_create' %}" class="btn btn-primary">+ Add Discount</a>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">Service Discount Master</h1>
+        <p class="page-subtitle">
+            Configure discount rules for service invoices
+        </p>
+    </div>
+
+    <a href="{% url 'service:discount_master_create' %}"
+       class="btn btn-primary">
+        <i class="fas fa-plus me-1"></i>
+        Add Discount
+    </a>
+
 </div>
 
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Service Type</th><th>Discount %</th><th>Active</th><th></th></tr></thead>
-      <tbody>
-        {% for r in rows %}
-        <tr>
-          <td><strong>{{ r.service_type }}</strong></td>
-          <td>{{ r.discount_percent }}%</td>
-          <td>{% if r.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Inactive</span>{% endif %}</td>
-          <td><a href="{% url 'service:discount_master_update' r.pk %}" class="btn btn-sm btn-ghost">Edit</a></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="4"><div class="empty-state"><i class="fas fa-percent"></i><p>No discounts configured.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header">
+        <span class="card-title">
+            Discount Rules
+            <span class="badge badge-gray ms-2">
+                {{ rows|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Service Type</th>
+                    <th>Discount %</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for r in rows %}
+
+                <tr>
+
+                    <td style="font-weight:600;">
+                        {{ r.service_type }}
+                    </td>
+
+                    <td>
+                        <span style="font-weight:600;color:#2563EB;">
+                            {{ r.discount_percent }}%
+                        </span>
+                    </td>
+
+                    <td>
+
+                        {% if r.is_active %}
+                            <span class="badge badge-green">
+                                Active
+                            </span>
+                        {% else %}
+                            <span class="badge badge-gray">
+                                Inactive
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'service:discount_master_update' r.pk %}"
+                               class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-edit me-1"></i>
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="4">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-percent"
+                               style="
+                                   font-size:32px;
+                                   color:#CBD5E1;
+                                   margin-bottom:10px;
+                                   display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No discount rules configured yet.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

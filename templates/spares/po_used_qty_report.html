@@ -1,34 +1,160 @@
 {% extends 'base.html' %}
-{% block title %}PO Used Qty Report{% endblock %}
-{% block page_title %}PO Used Qty Report{% endblock %}
+
+{% block title %}PO Used Quantity Report — SSBikez ERP{% endblock %}
+{% block page_title %}PO Used Quantity Report{% endblock %}
+
 {% block content %}
-<div class="card">
-  <div class="card-header"><span class="card-title">PO vs Consumption</span></div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr>
-        <th>PO No</th><th>Supplier</th><th>Item</th>
-        <th class="text-right">Ordered</th>
-        <th class="text-right">Used (Service)</th>
-        <th class="text-right">Sold (Counter)</th>
-        <th class="text-right">Remaining</th>
-      </tr></thead>
-      <tbody>
-        {% for r in rows %}
-        <tr>
-          <td>{{ r.po_no }}</td>
-          <td>{{ r.supplier }}</td>
-          <td>{{ r.item.item_code }} — {{ r.item.item_name }}</td>
-          <td style="text-align:right;">{{ r.ordered }}</td>
-          <td style="text-align:right;">{{ r.used_service }}</td>
-          <td style="text-align:right;">{{ r.sold_counter }}</td>
-          <td style="text-align:right;"><strong>{{ r.remaining }}</strong></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="7"><div class="empty-state"><p>No purchase orders found.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:dashboard' %}">Spares</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">PO Used Quantity Report</span>
+</nav>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">PO Used Quantity Report</h1>
+        <p class="page-subtitle">
+            Track purchased quantities against service consumption and counter sales.
+        </p>
+    </div>
+
 </div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Purchase Order Consumption Report
+
+            <span class="badge badge-gray ms-2">
+                {{ rows|length }}
+            </span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Supplier</th>
+                    <th>Item</th>
+                    <th style="text-align:right;">Ordered Qty</th>
+                    <th style="text-align:right;">Used in Service</th>
+                    <th style="text-align:right;">Counter Sales</th>
+                    <th style="text-align:right;">Remaining Qty</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for r in rows %}
+
+                <tr>
+
+                    <td>
+                        <span style="font-weight:600;">
+                            {{ r.po_no }}
+                        </span>
+                    </td>
+
+                    <td>
+                        {{ r.supplier }}
+                    </td>
+
+                    <td>
+
+                        <div style="font-weight:500;">
+                            {{ r.item.item_name }}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            color:#6B7280;
+                            font-family:monospace;
+                        ">
+                            {{ r.item.item_code }}
+                        </div>
+
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ r.ordered }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ r.used_service }}
+                    </td>
+
+                    <td style="text-align:right;">
+                        {{ r.sold_counter }}
+                    </td>
+
+                    <td style="text-align:right;">
+
+                        {% if r.remaining < 0 %}
+                            <span class="badge badge-red">
+                                {{ r.remaining }}
+                            </span>
+
+                        {% elif r.remaining == 0 %}
+                            <span class="badge badge-yellow">
+                                {{ r.remaining }}
+                            </span>
+
+                        {% else %}
+                            <span class="badge badge-green">
+                                {{ r.remaining }}
+                            </span>
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="7">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-chart-bar"
+                               style="
+                                   font-size:32px;
+                                   color:#CBD5E1;
+                                   margin-bottom:10px;
+                                   display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No purchase order consumption records found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

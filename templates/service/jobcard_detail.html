@@ -26,6 +26,16 @@
 </div>
 {% endif %}
 
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'service:dashboard' %}">Service</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'service:jobcard_list' %}">Job Cards</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">JC-{{ job_card.pk }}</span>
+</nav>
+
 <div class="page-header">
   <div>
     <h1 class="page-title">JC-{{ job_card.pk }}</h1>
@@ -42,30 +52,31 @@
       </select>
       <button type="submit" class="btn btn-primary btn-sm">Update</button>
     </form>
-    <a href="{% url 'service:jobcard_print' job_card.pk %}" class="btn btn-secondary" target="_blank">&#x1F5A8; Print Job Card</a>
-    <a href="{% url 'service:jobcard_update' job_card.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'service:jobcard_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <a href="{% url 'service:jobcard_print' job_card.pk %}" class="btn btn-secondary" targ  et="_blank"><i class="fas fa-print"></i> Print Job Card</a>
+    <a href="{% url 'service:jobcard_update' job_card.pk %}" class="btn btn-secondary"><i class="fas fa-edit"></i> Edit</a>
+    <a href="{% url 'service:jobcard_list' %}" class="btn btn-secondary">&#8592; Back</a>
+    <a href="{% url 'service:insurance_claim_create' job_card.pk %}" class="btn btn-primary">Create Insurance Claim</a>
   </div>
 </div>
 
-<!-- STATUS WORKFLOW BAR -->
-<div class="status-bar">
-  {% with stages="pending,water_wash,in_bay,in_progress,outwork,final_inspection,ready,invoiced" %}
-  {% with labels="Pending,Water Wash,In Bay,In Progress,Outwork,Final Inspection,Ready,Invoiced" %}
-  {% with current=job_card.service_status %}
-  {% for val, label in job_card.ServiceStatus.choices %}
-  {% if not forloop.first %}
-  <span class="status-step-arrow">&#8250;</span>
-  {% endif %}
-  <div class="status-step {% if val == current %}current{% elif forloop.counter0 < job_card.ServiceStatus.choices|length %}{% endif %}">
-    <span class="status-step-dot"></span>
-    {{ label }}
+    <!-- STATUS WORKFLOW BAR -->
+  <div class="status-bar">
+    {% with stages="pending,water_wash,in_bay,in_progress,outwork,final_inspection,ready,invoiced" %}
+    {% with labels="Pending,Water Wash,In Bay,In Progress,Outwork,Final Inspection,Ready,Invoiced" %}
+    {% with current=job_card.service_status %}
+    {% for val, label in job_card.ServiceStatus.choices %}
+    {% if not forloop.first %}
+    <span class="status-step-arrow">&#8250;</span>
+    {% endif %}
+    <div class="status-step {% if val == current %}current{% elif forloop.counter0 < job_card.ServiceStatus.choices|length %}{% endif %}">
+      <span class="status-step-dot"></span>
+      {{ label }}
+    </div>
+    {% endfor %}
+    {% endwith %}
+    {% endwith %}
+    {% endwith %}
   </div>
-  {% endfor %}
-  {% endwith %}
-  {% endwith %}
-  {% endwith %}
-</div>
 
 <!-- GAP 4: ONE-CLICK WORKFLOW ADVANCE BUTTON -->
 <div class="card" style="background:linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%);border:1px solid #bfdbfe;">
@@ -110,40 +121,6 @@
   {% endif %}
 </div>
 
-<!-- Warranty Claims for this JC -->
-{% if job_card.warranty_claims.exists %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F6E1; Warranty Claims</span>
-    <a href="{% url 'service:warranty_claim_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
-  <div class="table-wrapper"><table class="table">
-    <thead><tr><th>Claim #</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th></th></tr></thead>
-    <tbody>{% for c in job_card.warranty_claims.all %}
-      <tr><td>{{ c.claim_number }}</td><td>{{ c.claim_date|date:"d M Y" }}</td>
-      <td>&#x20B9; {{ c.claimed_amount }}</td><td>&#x20B9; {{ c.approved_amount }}</td>
-      <td>{{ c.get_status_display }}</td>
-      <td><a href="{% url 'service:warranty_claim_detail' c.pk %}" class="btn btn-sm btn-ghost">View</a></td></tr>
-    {% endfor %}</tbody>
-  </table></div>
-</div>
-{% endif %}
-
-<!-- Insurance Estimations for this JC -->
-{% if job_card.insurance_estimations.exists %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F4C4; Insurance Estimations</span>
-    <a href="{% url 'service:insurance_estimation_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
-  <div class="table-wrapper"><table class="table">
-    <thead><tr><th>IE #</th><th>Date</th><th>Insurance Co</th><th>Total</th><th>Approved</th><th>Status</th><th></th></tr></thead>
-    <tbody>{% for ie in job_card.insurance_estimations.all %}
-      <tr><td>IE-{{ ie.pk }}</td><td>{{ ie.estimation_date|date:"d M Y" }}</td>
-      <td>{{ ie.insurance_company }}</td>
-      <td>&#x20B9; {{ ie.total_estimate }}</td><td>&#x20B9; {{ ie.approved_amount }}</td>
-      <td>{{ ie.get_status_display }}</td>
-      <td><a href="{% url 'service:insurance_estimation_detail' ie.pk %}" class="btn btn-sm btn-ghost">View</a></td></tr>
-    {% endfor %}</tbody>
-  </table></div>
-</div>
-{% endif %}
 
 <div class="detail-grid">
   <div class="card">
@@ -166,6 +143,158 @@
       <div class="detail-row"><dt>Created</dt><dd>{{ job_card.created_at }}</dd></div>
     </dl>
   </div>
+</div>
+
+<!-- Warranty Claims for this JC -->
+{% if job_card.warranty_claims.exists %}
+<div class="card">
+  <div class="card-header"><span class="card-title">&#x1F6E1; Warranty Claims</span>
+    <a href="{% url 'service:warranty_claim_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
+  <div class="table-wrapper"><table class="table">
+    <thead><tr><th>Claim #</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+    <tbody>{% for c in job_card.warranty_claims.all %}
+      <tr><td>{{ c.claim_number }}</td><td>{{ c.claim_date|date:"d M Y" }}</td>
+      <td>&#x20B9; {{ c.claimed_amount }}</td><td>&#x20B9; {{ c.approved_amount }}</td>
+      <td>{{ c.get_status_display }}</td>
+      <td><a href="{% url 'service:warranty_claim_detail' c.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye me-1"></i>View</a></td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+</div>
+{% endif %}
+
+<!-- Insurance Estimations for this JC -->
+{% if job_card.insurance_estimations.exists %}
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Insurance Estimations</span>
+
+    <a href="{% url 'service:insurance_estimation_create_for_jc' job_card.pk %}"
+       class="btn btn-sm btn-primary">
+      + New Estimation
+    </a>
+  </div>
+
+  {% if job_card.insurance_estimations.exists %}
+
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>IE #</th>
+          <th>Date</th>
+          <th>Insurance Company</th>
+          <th>Total Estimate</th>
+          <th>Approved Amount</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {% for ie in job_card.insurance_estimations.all %}
+        <tr>
+          <td style="font-weight:600;">IE-{{ ie.pk }}</td>
+
+          <td>{{ ie.estimation_date|date:"d M Y" }}</td>
+
+          <td>{{ ie.insurance_company }}</td>
+
+          <td>₹ {{ ie.total_estimate }}</td>
+
+          <td>₹ {{ ie.approved_amount }}</td>
+
+          <td>
+            {% if ie.status == 'approved' %}
+              <span class="badge badge-green">{{ ie.get_status_display }}</span>
+            {% elif ie.status == 'rejected' %}
+              <span class="badge badge-red">{{ ie.get_status_display }}</span>
+            {% elif ie.status == 'sent' %}
+              <span class="badge badge-blue">{{ ie.get_status_display }}</span>
+            {% else %}
+              <span class="badge badge-yellow">{{ ie.get_status_display }}</span>
+            {% endif %}
+          </td>
+
+          <td>
+            <a href="{% url 'service:insurance_estimation_detail' ie.pk %}"
+               class="btn btn-sm btn-ghost">
+              View
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %}
+
+  <div style="padding:20px;">
+    <div class="empty-state">
+      <i class="fas fa-file-invoice-dollar"
+         style="font-size:32px;color:#CBD5E1;margin-bottom:10px;display:block;">
+      </i>
+
+      <p>No insurance estimations created yet.</p>
+
+      <small style="color:#9CA3AF;">
+        Create an estimation before submitting an insurance claim.
+      </small>
+    </div>
+  </div>
+
+  {% endif %}
+</div>
+{% endif %}
+
+{# GAP 24: Update Customer button #}
+<div class="card" style="margin-top:14px;">
+  <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+    <div><strong>Customer:</strong> {{ job_card.customer_vehicle.customer.full_name }} &middot; {{ job_card.customer_vehicle.customer.phone }}</div>
+    <a href="{% url 'service:jobcard_update_customer' job_card.pk %}" class="btn btn-sm btn-secondary">&#x270E; Update Customer Info</a>
+  </div>
+</div>
+
+<!-- SERVICE INVOICE -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Service Invoice</span>
+    {% with invoice=job_card.service_invoice %}
+    {% if not invoice %}
+      {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' %}
+      <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
+      {% else %}
+      <span style="font-size:12px; color:#9CA3AF;padding: 10px;">Available when status is &ldquo;Ready&rdquo;</span>
+      {% endif %}
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% with invoice=job_card.service_invoice %}
+  {% if invoice %}
+  <dl class="detail-list">
+    <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number|default:"—" }}</dd></div>
+    <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
+    <div class="detail-row"><dt>Status</dt><dd>
+      {% if invoice.status == 'draft' %}<span class="badge badge-yellow">Draft</span>
+      {% elif invoice.status == 'issued' %}<span class="badge badge-blue">Issued</span>
+      {% elif invoice.status == 'paid' %}<span class="badge badge-green">Paid</span>
+      {% endif %}
+    </dd></div>
+    <div class="detail-row"><dt>Labor</dt><dd>&#x20B9;{{ invoice.labor_total }}</dd></div>
+    <div class="detail-row"><dt>Parts</dt><dd>&#x20B9;{{ invoice.spares_total }}</dd></div>
+    <div class="detail-row"><dt>GST (18%)</dt><dd>&#x20B9;{{ invoice.gst_amount }}</dd></div>
+    {% if invoice.discount_amount %}<div class="detail-row"><dt>Discount</dt><dd>— &#x20B9;{{ invoice.discount_amount }}</dd></div>{% endif %}
+    <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:16px; color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</dd></div>
+  </dl>
+  <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
+    <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
+    <a href="{% url 'billing:service_invoice_pdf' invoice.job_card.pk %}" class="btn btn-primary btn-sm" target="_blank">&#x1F4E5; Download PDF</a>
+    <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
+  </div>
+  {% else %}
+  <p style="color:#9CA3AF; font-size:14px;padding-left: 20px;">No service invoice created yet.{% if job_card.service_status != 'ready' and job_card.service_status != 'invoiced' %} Mark the job card as <strong>Ready</strong> to create an invoice.{% endif %}</p>
+  {% endif %}
+  {% endwith %}
 </div>
 
 <!-- BAY ASSIGNMENTS -->
@@ -315,60 +444,10 @@
   </div>
 </div>
 
-<!-- SERVICE INVOICE -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">Service Invoice</span>
-    {% with invoice=job_card.service_invoice %}
-    {% if not invoice %}
-      {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' %}
-      <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
-      {% else %}
-      <span style="font-size:12px; color:#9CA3AF;">Available when status is &ldquo;Ready&rdquo;</span>
-      {% endif %}
-    {% endif %}
-    {% endwith %}
-  </div>
-  {% with invoice=job_card.service_invoice %}
-  {% if invoice %}
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Invoice No</dt><dd style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number|default:"—" }}</dd></div>
-    <div class="detail-row"><dt>Invoice Date</dt><dd>{{ invoice.invoice_date|date:"d M Y" }}</dd></div>
-    <div class="detail-row"><dt>Status</dt><dd>
-      {% if invoice.status == 'draft' %}<span class="badge badge-yellow">Draft</span>
-      {% elif invoice.status == 'issued' %}<span class="badge badge-blue">Issued</span>
-      {% elif invoice.status == 'paid' %}<span class="badge badge-green">Paid</span>
-      {% endif %}
-    </dd></div>
-    <div class="detail-row"><dt>Labor</dt><dd>&#x20B9;{{ invoice.labor_total }}</dd></div>
-    <div class="detail-row"><dt>Parts</dt><dd>&#x20B9;{{ invoice.spares_total }}</dd></div>
-    <div class="detail-row"><dt>GST (18%)</dt><dd>&#x20B9;{{ invoice.gst_amount }}</dd></div>
-    {% if invoice.discount_amount %}<div class="detail-row"><dt>Discount</dt><dd>— &#x20B9;{{ invoice.discount_amount }}</dd></div>{% endif %}
-    <div class="detail-row"><dt>Final Amount</dt><dd style="font-weight:700; font-size:16px; color:#2563EB;">&#x20B9;{{ invoice.final_amount }}</dd></div>
-  </dl>
-  <div style="margin-top:12px; display:flex; gap:8px; flex-wrap:wrap;">
-    <a href="{% url 'service:service_invoice_detail' invoice.pk %}" class="btn btn-secondary btn-sm">View Invoice</a>
-    <a href="{% url 'billing:service_invoice_pdf' invoice.job_card.pk %}" class="btn btn-primary btn-sm" target="_blank">&#x1F4E5; Download PDF</a>
-    <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
-  </div>
-  {% else %}
-  <p style="color:#9CA3AF; font-size:14px;">No service invoice created yet.{% if job_card.service_status != 'ready' and job_card.service_status != 'invoiced' %} Mark the job card as <strong>Ready</strong> to create an invoice.{% endif %}</p>
-  {% endif %}
-  {% endwith %}
-</div>
-
-{# GAP 24: Update Customer button #}
-<div class="card" style="margin-top:14px;">
-  <div style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-    <div><strong>Customer:</strong> {{ job_card.customer_vehicle.customer.full_name }} &middot; {{ job_card.customer_vehicle.customer.phone }}</div>
-    <a href="{% url 'service:jobcard_update_customer' job_card.pk %}" class="btn btn-sm btn-secondary">&#x270E; Update Customer Info</a>
-  </div>
-</div>
-
 {# GAP 15: Service Childs (Sub-tasks) #}
 <div class="card" style="margin-top:14px;">
   <div class="card-header">
-    <span class="card-title">&#x2705; Service Sub-Tasks ({{ service_childs|length }})</span>
+    <span class="card-title"> Service Sub-Tasks ({{ service_childs|length }})</span>
     <a href="{% url 'service:service_child_add' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Add Sub-Task</a>
   </div>
   <div style="padding:12px 16px;">
@@ -400,7 +479,7 @@
 {# GAP 30: Additional Work Approvals #}
 <div class="card" style="margin-top:14px;">
   <div class="card-header">
-    <span class="card-title">&#x1F527; Additional Work Approvals ({{ additional_approvals|length }})</span>
+    <span class="card-title"> Additional Work Approvals ({{ additional_approvals|length }})</span>
     <a href="{% url 'service:additional_work_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ Request Additional Work</a>
   </div>
   <div class="table-wrapper">
@@ -441,7 +520,7 @@
 {# GAP 26: Insurance Claims #}
 <div class="card" style="margin-top:14px;">
   <div class="card-header">
-    <span class="card-title">&#x1F4D1; Insurance Claims ({{ insurance_claims|length }})</span>
+    <span class="card-title"> Insurance Claims ({{ insurance_claims|length }})</span>
     <a href="{% url 'service:insurance_claim_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">+ New Claim</a>
   </div>
   <div class="table-wrapper">
@@ -467,25 +546,56 @@
 </div>
 
 {# GAP 14: Revisit Card #}
-<div class="card" style="margin-top:14px;">
-  <div class="card-header">
-    <span class="card-title">&#x1F4C5; Next Service Revisit</span>
-    {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' or revisit %}
-    <a href="{% url 'service:revisit_create' job_card.pk %}" class="btn btn-sm btn-primary" style="float:right;">
-      {% if revisit %}Edit Revisit{% else %}Set Revisit{% endif %}
-    </a>
-    {% endif %}
-  </div>
-  <div style="padding:14px 18px;">
-    {% if revisit %}
-      <div><strong>Next service KM:</strong> {{ revisit.next_service_km }}</div>
-      <div><strong>Next service days:</strong> {{ revisit.next_service_days }} days</div>
-      <div><strong>Next service date:</strong> {{ revisit.next_service_date|date:"d M Y"|default:"—" }}</div>
-      {% if revisit.notes %}<div><strong>Notes:</strong> {{ revisit.notes }}</div>{% endif %}
-    {% else %}
-      <div style="color:#9ca3af;">No revisit scheduled.</div>
-    {% endif %}
-  </div>
+<div class="card" style="margin-top:16px;">
+    <div class="card-header"
+         style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title">
+            <i class="fas fa-calendar-check me-2"></i>
+            Next Service Revisit
+        </span>
+        {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' or revisit %}
+        <a href="{% url 'service:revisit_create' job_card.pk %}"
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-edit me-1"></i>
+            {% if revisit %}
+                Edit Revisit
+            {% else %}
+                Set Revisit
+            {% endif %}
+        </a>
+        {% endif %}
+    </div>
+    <div style="padding:18px;">
+        {% if revisit %}
+        <div class="detail-list">
+            <div class="detail-row">
+                <dt>Next Service KM</dt>
+                <dd>{{ revisit.next_service_km|default:"—" }}</dd>
+            </div>
+            <div class="detail-row">
+                <dt>Service Interval</dt>
+                <dd>{{ revisit.next_service_days }} Days</dd>
+            </div>
+            <div class="detail-row">
+                <dt>Next Service Date</dt>
+                <dd>{{ revisit.next_service_date|date:"d M Y"|default:"—" }}</dd>
+            </div>
+            {% if revisit.notes %}
+            <div class="detail-row">
+                <dt>Notes</dt>
+                <dd>{{ revisit.notes }}</dd>
+            </div>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-calendar-times fa-2x mb-2"></i>
+            <p>No revisit schedule has been created for this job card.</p>
+            {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' %}
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}

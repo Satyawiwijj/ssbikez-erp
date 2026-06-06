@@ -1,85 +1,165 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }} — SSBikez ERP{% endblock %}
-{% block page_title %}{{ title }}{% endblock %}
+
+{% block title %}
+{{ title }} — SSBikez ERP
+{% endblock %}
+
+{% block page_title %}
+{{ title }}
+{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'sales:delivery_list' %}" class="btn btn-ghost btn-sm">&#8592; Back</a>
+
+<button form="main-form"
+        class="btn btn-sm btn-primary">
+
+    <i class="fas fa-save me-1"></i>
+    Save
+
+</button>
+
+<a href="{% url 'sales:delivery_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+
+</a>
+
 {% endblock %}
 
 {% block content %}
-<form method="post" novalidate>
-  {% csrf_token %}
 
-  {% if form.non_field_errors %}
-  <div class="alert alert-danger mb-3">{{ form.non_field_errors }}</div>
-  {% endif %}
+<form method="post"
+      id="main-form"
+      novalidate>
 
-  <div style="display:grid; grid-template-columns:2fr 1fr; gap:16px;">
-    <div>
-      <div class="card mb-3">
-        <div class="card-header"><span class="card-title">Delivery Details</span></div>
-        <div style="padding:16px; display:flex; flex-direction:column; gap:14px;">
-          <div class="form-group">
-            <label class="form-label">Sales Order *</label>
-            {{ form.sales_order }}
-            {% if form.sales_order.errors %}<div class="form-error">{{ form.sales_order.errors.0 }}</div>{% endif %}
-          </div>
-          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-            <div class="form-group">
-              <label class="form-label">Delivery Date *</label>
-              {{ form.delivery_date }}
-              {% if form.delivery_date.errors %}<div class="form-error">{{ form.delivery_date.errors.0 }}</div>{% endif %}
+    {% csrf_token %}
+
+    <div class="row g-3">
+
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+
+                    <i class="fas fa-truck me-2"></i>
+                    {{ title }}
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {{ field.errors }}
+
+                            </div>
+
+                            {% endif %}
+
+                            {% if field.help_text %}
+
+                            <small class="text-muted">
+
+                                {{ field.help_text }}
+
+                            </small>
+
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
             </div>
-            <div class="form-group">
-              <label class="form-label">Delivered By</label>
-              {{ form.delivered_by }}
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">Remarks</label>
-            {{ form.remarks }}
-          </div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="card-header"><span class="card-title">Delivery Checklist</span></div>
-        <div style="padding:16px;">
-          <p style="font-size:13px; color:#6B7280; margin-bottom:14px;">
-            Tick each item after confirming it has been handed to the customer.
-          </p>
-          <div style="display:flex; flex-direction:column; gap:12px;">
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
-              {{ form.checklist_insurance }}
-              <span>{{ form.checklist_insurance.label }}</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
-              {{ form.checklist_rc_book }}
-              <span>{{ form.checklist_rc_book.label }}</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
-              {{ form.checklist_warranty }}
-              <span>{{ form.checklist_warranty.label }}</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
-              {{ form.checklist_toolkit }}
-              <span>{{ form.checklist_toolkit.label }}</span>
-            </label>
-            <label style="display:flex; align-items:center; gap:10px; font-size:14px; cursor:pointer;">
-              {{ form.checklist_accessories }}
-              <span>{{ form.checklist_accessories.label }}</span>
-            </label>
-          </div>
         </div>
-      </div>
+
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <i class="fas fa-info-circle me-2"></i>
+                    Details
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+
+                        <strong>
+                            Module
+                        </strong>
+
+                        <div class="text-muted">
+                            Sales Management
+                        </div>
+
+                    </div>
+
+                    <div class="mb-3">
+
+                        <strong>
+                            Section
+                        </strong>
+
+                        <div class="text-muted">
+                            Vehicle Delivery
+                        </div>
+
+                    </div>
+
+                    <div>
+
+                        <strong>
+                            Notes
+                        </strong>
+
+                        <div class="text-muted small">
+
+                            Complete all required delivery details before saving.
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
 
-  <div style="margin-top:16px; display:flex; gap:10px;">
-    <button type="submit" class="btn btn-primary">
-      <i class="fas fa-save me-1"></i>{% if object %}Update{% else %}Record{% endif %} Delivery
-    </button>
-    <a href="{% url 'sales:delivery_list' %}" class="btn btn-ghost">Cancel</a>
-  </div>
 </form>
+
 {% endblock %}

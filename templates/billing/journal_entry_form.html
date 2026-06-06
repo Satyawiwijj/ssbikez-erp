@@ -1,23 +1,164 @@
 {% extends 'base.html' %}
-{% block title %}New Journal Entry{% endblock %}
+
+{% block title %}New Journal Entry — SSBikez ERP{% endblock %}
 {% block page_title %}New Journal Entry{% endblock %}
+
+{% block topbar_actions %}
+<button form="journal-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Entry
+</button>
+
+<a href="{% url 'billing:journal_entry_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="card form-card">
-  <div style="padding:20px;">
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
-      </div>
-      {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'billing:journal_entry_list' %}" class="btn btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
-</div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'billing:dashboard' %}">
+        Billing
+    </a>
+
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'billing:journal_entry_list' %}">
+        Journal Entries
+    </a>
+
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        New Entry
+    </span>
+</nav>
+
+<form method="post"
+      id="journal-form"
+      novalidate>
+
+    {% csrf_token %}
+
+    <div class="row g-3">
+
+        <!-- Main Form -->
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+                    <i class="fas fa-book me-2"></i>
+                    Journal Entry Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                    <span class="text-danger">*</span>
+                                {% endif %}
+
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <small class="text-muted">
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Information Panel -->
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Billing
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Journal Entries
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Purpose</strong>
+                        <div class="text-muted small">
+                            Record accounting transactions,
+                            debit and credit adjustments,
+                            manual ledger entries and
+                            financial corrections.
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Tips</strong>
+                        <div class="text-muted small">
+                            Verify the account name,
+                            entry type and amount before
+                            saving. Journal entries affect
+                            financial reporting and ledger balances.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
 {% endblock %}

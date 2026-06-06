@@ -3,134 +3,377 @@
 {% block page_title %}Daily Collection Report{% endblock %}
 
 {% block content %}
+
 <nav class="breadcrumb-bar no-print">
-  <a href="{% url 'billing:dashboard' %}">Billing</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">Daily Report</span>
+    <a href="{% url 'billing:dashboard' %}">Billing</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Daily Collection Report</span>
 </nav>
 
-<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;">
-  <div>
-    <h1 class="page-title">Daily Collection Report</h1>
-    <div class="page-subtitle">End-of-day revenue summary &mdash; <strong>{{ report_date|date:"l, d F Y" }}</strong></div>
-  </div>
-  <form method="get" class="no-print" style="display:flex;gap:8px;align-items:center;">
-    <label style="font-size:13px;color:#374151;">Date:</label>
-    <input type="date" name="date" value="{{ report_date|date:'Y-m-d' }}" class="form-control" style="width:auto;">
-    <button type="submit" class="btn btn-primary btn-sm">Load</button>
-    <button type="button" class="btn btn-secondary btn-sm" onclick="window.print()">&#x1F5A8; Print</button>
-  </form>
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Daily Collection Report</h1>
+        <p class="page-subtitle">
+            Collection summary for {{ report_date|date:"l, d F Y" }}
+        </p>
+    </div>
+
+<form method="get"
+      class="no-print"
+      style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
+
+    <div>
+        <label class="form-label">Report Date</label>
+        <input type="date"
+               name="date"
+               value="{{ report_date|date:'Y-m-d' }}"
+               class="form-control">
+    </div>
+
+    <button type="submit"
+            class="btn btn-primary">
+        <i class="fas fa-search me-1"></i>
+        Load
+    </button>
+
+    <button type="button"
+            onclick="window.print()"
+            class="btn btn-secondary">
+        <i class="fas fa-print me-1"></i>
+        Print
+    </button>
+
+</form>
+
 </div>
 
-<!-- Method breakdown cards -->
+<!-- Collection Summary -->
+
+<div class="card" style="margin-bottom:20px;">
+
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-chart-line me-2"></i>
+        Collection Summary
+    </span>
+</div>
+
+<div style="padding:24px;">
+
+    <div class="stat-grid">
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-blue">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div>
+                <div class="stat-value">
+                    ₹ {{ grand_total|floatformat:0 }}
+                </div>
+                <div class="stat-label">
+                    Total Collection
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-green">
+                <i class="fas fa-motorcycle"></i>
+            </div>
+            <div>
+                <div class="stat-value">
+                    ₹ {{ vehicle_total|floatformat:0 }}
+                </div>
+                <div class="stat-label">
+                    Vehicle Sales
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-orange">
+                <i class="fas fa-tools"></i>
+            </div>
+            <div>
+                <div class="stat-value">
+                    ₹ {{ service_total|floatformat:0 }}
+                </div>
+                <div class="stat-label">
+                    Service Revenue
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon stat-icon-purple">
+                <i class="fas fa-cash-register"></i>
+            </div>
+            <div>
+                <div class="stat-value">
+                    ₹ {{ counter_total|floatformat:0 }}
+                </div>
+                <div class="stat-label">
+                    Counter Sales
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+<!-- Payment Method Summary -->
+
 <div class="stat-grid" style="grid-template-columns:repeat(5,1fr);">
-  {% for method, data in method_totals.items %}
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-blue"><i class="fas fa-money-bill-wave"></i></div>
-    <div>
-      <div class="stat-value">&#x20B9; {{ data.total|floatformat:0 }}</div>
-      <div class="stat-label">{{ data.label }} ({{ data.count }})</div>
+{% for method, data in method_totals.items %}
+<div class="stat-card">
+
+    <div class="stat-icon stat-icon-blue">
+        <i class="fas fa-money-bill-wave"></i>
     </div>
-  </div>
-  {% endfor %}
+
+    <div>
+        <div class="stat-value">
+            ₹ {{ data.total|floatformat:0 }}
+        </div>
+
+        <div class="stat-label">
+            {{ data.label }} ({{ data.count }})
+        </div>
+    </div>
+
+</div>
+{% endfor %}
+
 </div>
 
-<!-- Grand total card -->
-<div class="card" style="background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 100%);color:#fff;">
-  <div style="padding:18px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
-    <div>
-      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;opacity:.85;">Grand Total Collection</div>
-      <div style="font-size:32px;font-weight:800;margin-top:4px;">&#x20B9; {{ grand_total|floatformat:2 }}</div>
-    </div>
-    <div style="font-size:13px;opacity:.9;text-align:right;line-height:1.7;">
-      Vehicle Payments: &#x20B9; {{ vehicle_total|floatformat:2 }}<br>
-      Service Invoices: &#x20B9; {{ service_total|floatformat:2 }}<br>
-      Counter Sales: &#x20B9; {{ counter_total|floatformat:2 }}
-    </div>
-  </div>
-</div>
+<!-- Vehicle Payments -->
 
-<!-- Vehicle payment details -->
 <div class="card">
-  <div class="card-header"><span class="card-title">&#x1F697; Vehicle Sale Payments ({{ payments|length }})</span></div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Time</th><th>Invoice</th><th>Customer</th><th>Method</th><th>Reference</th><th class="text-right">Amount</th></tr></thead>
-      <tbody>
-        {% for p in payments %}
-        <tr>
-          <td>{{ p.payment_date|date:"H:i" }}</td>
-          <td>{{ p.invoice.invoice_number }}</td>
-          <td>{{ p.invoice.sales_order.customer.full_name }}</td>
-          <td>{{ p.get_payment_method_display }}</td>
-          <td>{{ p.transaction_reference|default:"—" }}</td>
-          <td style="text-align:right;"><strong>&#x20B9; {{ p.amount }}</strong></td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6"><div class="empty-state"><p>No vehicle payments on this date.</p></div></td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="card-header">
+
+    <span class="card-title">
+        <i class="fas fa-motorcycle me-2"></i>
+        Vehicle Sale Payments
+    </span>
+
+    <span class="badge bg-secondary">
+        {{ payments|length }}
+    </span>
+
 </div>
 
-<!-- Service invoices -->
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Method</th>
+                <th>Reference</th>
+                <th style="text-align:right;">Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for p in payments %}
+            <tr>
+
+                <td>{{ p.payment_date|date:"H:i" }}</td>
+
+                <td>
+                    {{ p.invoice.invoice_number }}
+                </td>
+
+                <td>
+                    {{ p.invoice.sales_order.customer.full_name }}
+                </td>
+
+                <td>
+                    {{ p.get_payment_method_display }}
+                </td>
+
+                <td>
+                    {{ p.transaction_reference|default:"—" }}
+                </td>
+
+                <td style="text-align:right;font-weight:600;">
+                    ₹ {{ p.amount }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="6" class="empty-state">
+                    No vehicle payments found.
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% if service_invoices %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F527; Service Invoices ({{ service_invoices|length }})</span></div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Invoice</th><th>Job Card</th><th>Customer</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
-      <tbody>
-        {% for si in service_invoices %}
-        <tr>
-          <td>{{ si.invoice_number|default:"SINV-"|add:si.pk }}</td>
-          <td>JC-{{ si.job_card_id }}</td>
-          <td>{{ si.job_card.customer_vehicle.customer.full_name }}</td>
-          <td>{{ si.get_status_display }}</td>
-          <td style="text-align:right;"><strong>&#x20B9; {{ si.final_amount }}</strong></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="card" style="margin-top:20px;">
+
+<div class="card-header">
+
+    <span class="card-title">
+        <i class="fas fa-tools me-2"></i>
+        Service Invoices
+    </span>
+
+    <span class="badge bg-secondary">
+        {{ service_invoices|length }}
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Invoice</th>
+                <th>Job Card</th>
+                <th>Customer</th>
+                <th>Status</th>
+                <th style="text-align:right;">Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for si in service_invoices %}
+            <tr>
+
+                <td>{{ si.invoice_number|default:"SINV-"|add:si.pk }}</td>
+
+                <td>JC-{{ si.job_card_id }}</td>
+
+                <td>
+                    {{ si.job_card.customer_vehicle.customer.full_name }}
+                </td>
+
+                <td>
+                    {{ si.get_status_display }}
+                </td>
+
+                <td style="text-align:right;font-weight:600;">
+                    ₹ {{ si.final_amount }}
+                </td>
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endif %}
 
-<!-- Counter sales -->
 {% if counter_sales %}
-<div class="card">
-  <div class="card-header"><span class="card-title">&#x1F4B5; Counter Sales ({{ counter_sales|length }})</span></div>
-  <div class="table-wrapper">
-    <table class="table">
-      <thead><tr><th>Sale #</th><th>Customer</th><th>Mobile</th><th>Pay Type</th><th class="text-right">Amount</th></tr></thead>
-      <tbody>
-        {% for cs in counter_sales %}
-        <tr>
-          <td>{{ cs.sale_no }}</td>
-          <td>{{ cs.customer }}</td>
-          <td>{{ cs.mobile }}</td>
-          <td>{{ cs.get_pay_type_display|default:"—" }}</td>
-          <td style="text-align:right;"><strong>&#x20B9; {{ cs.total_amount }}</strong></td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+<div class="card" style="margin-top:20px;">
+
+<div class="card-header">
+
+    <span class="card-title">
+        <i class="fas fa-cash-register me-2"></i>
+        Counter Sales
+    </span>
+
+    <span class="badge bg-secondary">
+        {{ counter_sales|length }}
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Sale No</th>
+                <th>Customer</th>
+                <th>Mobile</th>
+                <th>Payment Type</th>
+                <th style="text-align:right;">Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for cs in counter_sales %}
+            <tr>
+
+                <td>{{ cs.sale_no }}</td>
+
+                <td>{{ cs.customer }}</td>
+
+                <td>{{ cs.mobile }}</td>
+
+                <td>{{ cs.get_pay_type_display|default:"—" }}</td>
+
+                <td style="text-align:right;font-weight:600;">
+                    ₹ {{ cs.total_amount }}
+                </td>
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endif %}
 
-<div class="no-print" style="text-align:center;color:#9ca3af;font-size:12px;padding:20px;">
-  Generated {{ report_date|date:"d M Y" }} &middot; {% now "H:i" %}
-</div>
+
 {% endblock %}
 
 {% block extra_css %}
 @media print {
-  .no-print, .sidebar, .topbar { display:none !important; }
-  .main-content, .main { margin-left:0 !important; margin-top:0 !important; }
-  body { background:#fff; }
-  .card { box-shadow:none !important; border:1px solid #d1d5db !important; }
+
+.sidebar,
+.topbar,
+.no-print,
+.breadcrumb-bar {
+    display:none !important;
 }
-.text-right { text-align:right; }
+.main-content,
+.main {
+    margin:0 !important;
+    padding:0 !important;
+}
+.card {
+    box-shadow:none !important;
+    border:1px solid #D1D5DB !important;
+}
+}
 {% endblock %}

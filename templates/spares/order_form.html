@@ -1,120 +1,341 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
 {% block topbar_actions %}
-<a href="{% url 'spares:order_list' %}" class="btn btn-outline-secondary btn-sm">
-  <i class="fa fa-arrow-left me-1"></i>Back
+<button form="po-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Purchase Order
+</button>
+
+<a href="{% url 'spares:order_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
 </a>
 {% endblock %}
 
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">PO Header</h6></div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-sm-6"><label class="form-label">Supplier *</label>{{ form.supplier }}</div>
-            <div class="col-sm-6"><label class="form-label">Date *</label>{{ form.date }}</div>
-            <div class="col-sm-6"><label class="form-label">Required By</label>{{ form.required_by }}</div>
-            <div class="col-sm-6"><label class="form-label">Status</label>{{ form.status }}</div>
-            <div class="col-sm-6"><label class="form-label">Supplier GSTIN</label>{{ form.supplier_gstin }}</div>
-            <div class="col-sm-6"><label class="form-label">GST Category</label>{{ form.gst_category }}</div>
-            <div class="col-sm-6"><label class="form-label">Place of Supply</label>{{ form.place_of_supply }}</div>
-            <div class="col-sm-6 d-flex align-items-end">
-              <div class="form-check">{{ form.is_reverse_charge }}<label class="form-check-label ms-2">Reverse Charge</label></div>
-            </div>
-            <div class="col-sm-6"><label class="form-label">Supplier Quote</label>{{ form.supplier_quote }}</div>
-            <div class="col-12"><label class="form-label">Terms &amp; Conditions</label>{{ form.terms_and_conditions }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Items</h6>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row"><i class="fa fa-plus me-1"></i>Add Item</button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-sm mb-0">
-              <thead class="table-light">
-                <tr><th style="width:30%">Item</th><th>Warehouse</th><th>Qty</th><th>UOM</th><th>Rate</th><th>Req By</th><th></th></tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for f in formset %}
-                <tr class="formset-row">
-                  <td>{{ f.item }}{{ f.id }}</td>
-                  <td>{{ f.warehouse }}</td>
-                  <td>{{ f.quantity }}</td>
-                  <td>{{ f.uom }}</td>
-                  <td>{{ f.rate }}</td>
-                  <td>{{ f.required_by }}</td>
-                  <td>
-                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
-                  </td>
-                </tr>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:dashboard' %}">Spares</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:order_list' %}">Purchase Orders</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post"
+      id="po-form"
+      novalidate>
+
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if form.errors or form.non_field_errors or formset.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">
+            Please correct the following errors:
+        </h4>
+
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>
+                        <strong>{{ field.label }}</strong> — {{ error }}
+                    </li>
                 {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+            {% endfor %}
+
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+
+            {% for item_form in formset %}
+                {% for field in item_form %}
+                    {% for error in field.errors %}
+                        <li>
+                            Item Row {{ forloop.parentloop.parentloop.counter }}
+                            —
+                            <strong>{{ field.label }}</strong>
+                            —
+                            {{ error }}
+                        </li>
+                    {% endfor %}
+                {% endfor %}
+            {% endfor %}
+
+        </ul>
+
     </div>
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-grid">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Save PO</button>
+</div>
+{% endif %}
+
+    <div class="detail-grid">
+
+        <!-- LEFT SIDE -->
+        <div>
+
+            <!-- Purchase Order Header -->
+            <div class="card form-card">
+
+                <div class="card-header">
+                        Purchase Order Information
+                </div>
+
+                <div style="padding:20px;">
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label class="form-label">Supplier *</label>
+                            {{ form.supplier }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            {{ form.date }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Required By</label>
+                            {{ form.required_by }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Supplier GSTIN</label>
+                            {{ form.supplier_gstin }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">GST Category</label>
+                            {{ form.gst_category }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Place of Supply</label>
+                            {{ form.place_of_supply }}
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                {{ form.is_reverse_charge }}
+                                Reverse Charge
+                            </label>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Supplier Quote</label>
+                            {{ form.supplier_quote }}
+                        </div>
+
+                        <div class="form-group span-2">
+                            <label class="form-label">Terms & Conditions</label>
+                            {{ form.terms_and_conditions }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
         </div>
-      </div>
+
+        <!-- RIGHT SIDE -->
+        <div>
+
+            <div class="card">
+
+                <div class="card-header">
+                    <span class="card-title">
+                        Purchase Order Information
+                    </span>
+                </div>
+
+                <div style="padding:20px;">
+
+                    <div style="margin-bottom:14px;">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Spares Management
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Purchase Orders
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom:14px;">
+                        <strong>Purpose</strong>
+                        <div class="text-muted">
+                            Create supplier purchase orders and manage spare procurement.
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Tips</strong>
+                        <div class="text-muted">
+                            Verify supplier information, quantities and rates before saving.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+                        
+            <div class="card" style="margin-top:20px;">
+
+                <div class="card-header">
+
+                    <span class="card-title">
+                        Purchase Order Items
+                    </span>
+
+                    <button type="button"
+                            id="add-row"
+                            class="btn btn-sm btn-primary">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Item
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Warehouse</th>
+                                <th>Quantity</th>
+                                <th>UOM</th>
+                                <th>Rate</th>
+                                <th>Required By</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="formset-body">
+
+                            {% for f in formset %}
+                            <tr class="formset-row">
+
+                                <td>
+                                    {{ f.item }}
+                                    {{ f.id }}
+                                </td>
+
+                                <td>{{ f.warehouse }}</td>
+
+                                <td>{{ f.quantity }}</td>
+
+                                <td>{{ f.uom }}</td>
+
+                                <td>{{ f.rate }}</td>
+
+                                <td>{{ f.required_by }}</td>
+
+                                <td>
+
+                                    {% if f.instance.pk %}
+                                        {{ f.DELETE }}
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-danger remove-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </form>
+
 {% endblock %}
 
 {% block extra_js %}
 <script>
 (function() {
-  // ── Supplier auto-fill ──
-  var supplierSel = document.getElementById('id_supplier');
-  function loadSupplierDetails(supplierId) {
-    if (!supplierId) return;
-    fetch('{% url "spares:ajax_supplier_details" %}?supplier_id=' + supplierId)
-      .then(function(r){ return r.json(); })
-      .then(function(data) {
-        if (data.gstin       !== undefined) { var f = document.getElementById('id_supplier_gstin');    if(f) f.value = data.gstin; }
-        if (data.gst_category !== undefined){ var f = document.getElementById('id_gst_category');      if(f) f.value = data.gst_category; }
-        if (data.place_of_supply !== undefined){ var f = document.getElementById('id_place_of_supply'); if(f) f.value = data.place_of_supply; }
-      });
-  }
-  if (supplierSel) {
-    supplierSel.addEventListener('change', function(){ loadSupplierDetails(this.value); });
-    if (supplierSel.value) loadSupplierDetails(supplierSel.value);
-  }
+    const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+    const tbody = document.getElementById('formset-body');
+    const firstRow = tbody.querySelector('.formset-row');
 
-  // ── Formset add/remove ──
-  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
-  const tbody = document.getElementById('formset-body');
-  const firstRow = tbody.querySelector('.formset-row');
-  document.getElementById('add-row').addEventListener('click', function() {
-    const n = parseInt(totalForms.value);
-    const row = firstRow.cloneNode(true);
-    row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
-    row.querySelectorAll('input,select,textarea').forEach(function(el){el.value='';});
-    tbody.appendChild(row); totalForms.value = n + 1; bindRemove(row);
-  });
-  function bindRemove(row) {
-    var btn = row.querySelector('.remove-row');
-    if (btn) btn.addEventListener('click', function() {
-      var d = row.querySelector('[id$="-DELETE"]');
-      if (d) { d.checked=true; row.style.display='none'; } else row.remove();
+    document.getElementById('add-row').addEventListener('click', function() {
+
+        const n = parseInt(totalForms.value);
+
+        const row = firstRow.cloneNode(true);
+
+        row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
+
+        row.querySelectorAll('input, select, textarea').forEach(function(el) {
+            el.value = '';
+        });
+
+        tbody.appendChild(row);
+
+        totalForms.value = n + 1;
+
+        bindRemove(row);
     });
-  }
-  tbody.querySelectorAll('.formset-row').forEach(function(r){bindRemove(r);});
+
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+
+        if (btn) {
+            btn.addEventListener('click', function() {
+
+                const del = row.querySelector('[id$="-DELETE"]');
+
+                if (del) {
+                    del.checked = true;
+                    row.style.display = 'none';
+                } else {
+                    row.remove();
+                }
+
+            });
+        }
+    }
+
+    tbody.querySelectorAll('.formset-row').forEach(function(row) {
+        bindRemove(row);
+    });
+
 })();
 </script>
 {% endblock %}

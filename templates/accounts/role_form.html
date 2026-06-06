@@ -1,29 +1,156 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<button form="role-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Role
+</button>
+
+<a href="{% url 'accounts:role_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="row">
-  <div class="col-lg-6">
-    <div class="card">
-      <div class="card-header"><h6 class="card-title">{{ title }}</h6></div>
-      <div class="card-body p-4">
-        <form method="post">
-          {% csrf_token %}
-          {% for field in form %}
-          <div class="mb-3">
-            <label class="form-label">{{ field.label }}</label>
-            {{ field }}
-            {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>{% endif %}
-          </div>
-          {% endfor %}
-          <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-primary"><i class="fas fa-save me-1"></i>Save</button>
-            <a href="{% url 'accounts:role_list' %}" class="btn btn-outline-secondary">Cancel</a>
-          </div>
-        </form>
-      </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'accounts:role_list' %}">Roles</a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post"
+      id="role-form"
+      novalidate>
+
+    {% csrf_token %}
+
+    <div class="row g-3">
+
+        <!-- Main Form -->
+
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+                    <i class="fas fa-user-tag me-2"></i>
+                    Role Details
+                </div>
+
+                <div class="card-body">
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger mb-3">
+                        {% for error in form.non_field_errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <small class="text-muted">
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Sidebar -->
+
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Role Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Administration
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Role Management
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Purpose</strong>
+                        <div class="text-muted small">
+                            Define user roles and permission groups used across the ERP system.
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Notes</strong>
+                        <div class="text-muted small">
+                            Create meaningful role names and descriptions so users can be assigned the correct responsibilities.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
-</div>
+
+</form>
+
 {% endblock %}

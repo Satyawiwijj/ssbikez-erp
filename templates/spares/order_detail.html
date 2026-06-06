@@ -1,49 +1,259 @@
 {% extends 'base.html' %}
-{% block title %}{{ order.po_no }}{% endblock %}
-{% block page_title %}{{ order.po_no }}{% endblock %}
-{% block topbar_actions %}
-<a href="{% url 'spares:order_update' order.pk %}" class="btn btn-primary btn-sm"><i class="fa fa-edit me-1"></i>Edit</a>
-<a href="{% url 'spares:order_list' %}" class="btn btn-outline-secondary btn-sm ms-2"><i class="fa fa-arrow-left me-1"></i>Back</a>
+{% block title %}{{ order.po_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Purchase Order {{ order.po_no }}{% endblock %}
+
+{% block topbar_actions %} <a href="{% url 'spares:order_update' order.pk %}"
+class="btn btn-primary btn-sm"> <i class="fas fa-edit me-1"></i>
+Edit </a>
+
+<a href="{% url 'spares:order_list' %}"
+class="btn btn-secondary btn-sm">
+Back </a>
 {% endblock %}
+
 {% block content %}
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="table-light">
-            <tr><th>Item</th><th>Warehouse</th><th>Qty</th><th>Rate</th><th>Amount</th><th>Rcvd</th></tr>
-          </thead>
-          <tbody>
-            {% for i in items %}
-            <tr>
-              <td>{{ i.item.item_name }}</td>
-              <td>{{ i.warehouse.name }}</td>
-              <td>{{ i.quantity }}</td>
-              <td>&#8377;{{ i.rate }}</td>
-              <td>&#8377;{{ i.amount }}</td>
-              <td>{{ i.received_qty }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center text-muted">No items.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'spares:dashboard' %}">Spares</a>
+<span class="bc-sep">/</span>
+
+<a href="{% url 'spares:order_list' %}">Purchase Orders</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">{{ order.po_no }}</span>
+
+</nav>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ order.po_no }}</h1>
+        <p class="page-subtitle">
+            Purchase order details and ordered items
+        </p>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6">Supplier</dt><dd class="col-6">{{ order.supplier }}</dd>
-          <dt class="col-6">Date</dt><dd class="col-6">{{ order.date }}</dd>
-          <dt class="col-6">Status</dt><dd class="col-6">{{ order.get_status_display }}</dd>
-          <dt class="col-6 fw-bold">Grand Total</dt><dd class="col-6 fw-bold">&#8377;{{ order.grand_total }}</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
 </div>
+
+<div class="detail-grid">
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Purchase Order Information
+        </span>
+    </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>PO Number</dt>
+            <dd>{{ order.po_no }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Supplier</dt>
+            <dd>{{ order.supplier }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Order Date</dt>
+            <dd>{{ order.date|date:"d M Y" }}</dd>
+        </div>
+
+        {% if order.required_by %}
+        <div class="detail-row">
+            <dt>Required By</dt>
+            <dd>{{ order.required_by|date:"d M Y" }}</dd>
+        </div>
+        {% endif %}
+
+        <div class="detail-row">
+            <dt>Status</dt>
+            <dd>
+
+                {% if order.status == 'draft' %}
+                <span class="badge badge-gray">
+                    {{ order.get_status_display }}
+                </span>
+
+                {% elif order.status == 'submitted' %}
+                <span class="badge badge-blue">
+                    {{ order.get_status_display }}
+                </span>
+
+                {% elif order.status == 'received' %}
+                <span class="badge badge-green">
+                    {{ order.get_status_display }}
+                </span>
+
+                {% else %}
+                <span class="badge badge-yellow">
+                    {{ order.get_status_display }}
+                </span>
+                {% endif %}
+
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Grand Total</dt>
+            <dd style="font-weight:700;color:#2563EB;">
+                ₹ {{ order.grand_total }}
+            </dd>
+        </div>
+
+    </dl>
+
+</div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Supplier Details
+        </span>
+    </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>GSTIN</dt>
+            <dd>{{ order.supplier_gstin|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>GST Category</dt>
+            <dd>{{ order.gst_category|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Place of Supply</dt>
+            <dd>{{ order.place_of_supply|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Reverse Charge</dt>
+            <dd>
+                {% if order.is_reverse_charge %}
+                <span class="badge badge-green">Yes</span>
+                {% else %}
+                <span class="badge badge-gray">No</span>
+                {% endif %}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Supplier Quote</dt>
+            <dd>{{ order.supplier_quote|default:"—" }}</dd>
+        </div>
+
+    </dl>
+
+</div>
+
+</div>
+
+{% if order.terms_and_conditions %}
+
+<div class="card">
+<div class="card-header">
+    <span class="card-title">
+        Terms & Conditions
+    </span>
+</div>
+
+<div style="padding:20px;">
+    {{ order.terms_and_conditions|linebreaksbr }}
+</div>
+
+</div>
+{% endif %}
+
+<div class="card">
+
+<div class="card-header">
+    <span class="card-title">
+        Ordered Items
+    </span>
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Warehouse</th>
+                <th>Quantity</th>
+                <th>Rate</th>
+                <th>Amount</th>
+                <th>Received Qty</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for i in items %}
+
+            <tr>
+
+                <td style="font-weight:600;">
+                    {{ i.item.item_name }}
+                </td>
+
+                <td>
+                    {{ i.warehouse.name }}
+                </td>
+
+                <td>
+                    {{ i.quantity }}
+                </td>
+
+                <td>
+                    ₹ {{ i.rate }}
+                </td>
+
+                <td>
+                    ₹ {{ i.amount }}
+                </td>
+
+                <td>
+                    {{ i.received_qty }}
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+                <td colspan="6">
+
+                    <div class="empty-state">
+
+                        <i class="fas fa-inbox"
+                           style="font-size:32px;color:#CBD5E1;margin-bottom:10px;"></i>
+
+                        <p>
+                            No items found for this purchase order.
+                        </p>
+
+                    </div>
+
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endblock %}

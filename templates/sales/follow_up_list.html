@@ -12,7 +12,12 @@
 </nav>
 
 <div class="page-header">
-  <div><h1 class="page-title">My Follow-Up Board</h1></div>
+  <div>
+    <h1 class="page-title">Follow-Up Board</h1>
+    <p class="page-subtitle">
+      Track overdue, due today and upcoming customer follow-ups
+    </p>
+  </div>
 </div>
 
 <!-- FILTER TABS -->
@@ -94,8 +99,8 @@
           </td>
           <td>
             <div class="table-actions">
-              <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm">Add Feedback</a>
-              <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-ghost btn-sm">View</a>
+              <a href="{% url 'sales:feedback_create' %}?enquiry={{ enq.pk }}" class="btn btn-primary btn-sm">  Log Follow-up</a>
+              <a href="{% url 'sales:enquiry_detail' enq.pk %}" class="btn btn-outline-primary btn-sm">View</a>
             </div>
           </td>
         </tr>

@@ -235,8 +235,10 @@ def dashboard(request):
         pending_pdi = _VSO.objects.filter(
             sales_status='booked'
         ).exclude(pdi_checklist__isnull=False).count()
+        open_orders = _VSO.objects.filter(sales_status='booked').count()
     except Exception:
         pending_pdi = 0
+        open_orders = 0
 
     try:
         vehicles_aging_90 = VehicleStock.objects.filter(
@@ -294,6 +296,7 @@ def dashboard(request):
         'today':                       today,
         # Feature 10 extras
         'todays_test_rides':           todays_test_rides,
+        'open_orders':                 open_orders,
         'pending_pdi':                 pending_pdi,
         'vehicles_aging_90':           vehicles_aging_90,
         'aging_30_count':              aging_30_count,

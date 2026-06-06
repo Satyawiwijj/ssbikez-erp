@@ -1,54 +1,154 @@
 {% extends 'base.html' %}
+
 {% block title %}Fuel Expenses — SSBikez ERP{% endblock %}
 {% block page_title %}Fuel Expenses{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'accounts:fuel_expense_create' %}"
+   class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    Add Expense
+</a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Fuel Expenses</h1>
-    <p class="page-subtitle">Track vehicle fuel costs</p>
-  </div>
-  <a href="{% url 'accounts:fuel_expense_create' %}" class="btn btn-primary">+ Add Expense</a>
+
+    <div>
+        <h1 class="page-title">Fuel Expenses</h1>
+        <p class="page-subtitle">
+            Track vehicle fuel expenses and vouchers
+        </p>
+    </div>
+
 </div>
 
-<form class="search-bar" method="get">
-  <input type="text" name="q" value="{{ q }}" placeholder="Search voucher no. or chassis no.">
-  <button type="submit" class="btn btn-secondary">Search</button>
-  {% if q %}<a href="{% url 'accounts:fuel_expense_list' %}" class="btn btn-ghost">Clear</a>{% endif %}
+<form method="get" class="search-bar">
+
+    <input type="text"
+           name="q"
+           value="{{ q }}"
+           placeholder="Search voucher number or vehicle">
+
+    <button type="submit"
+            class="btn btn-secondary">
+        Search
+    </button>
+
+    {% if q %}
+    <a href="{% url 'accounts:fuel_expense_list' %}"
+       class="btn btn-ghost">
+        Clear
+    </a>
+    {% endif %}
+
 </form>
 
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Voucher No</th>
-          <th>Vehicle</th>
-          <th>Amount</th>
-          <th>Date</th>
-          <th>Created By</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for expense in expenses %}
-        <tr>
-          <td style="font-family:monospace; font-size:13px;">{{ expense.voucher_number|default:"—" }}</td>
-          <td>{{ expense.vehicle }}</td>
-          <td style="font-weight:500;">&#x20B9;{{ expense.amount }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ expense.fuel_date|date:"d M Y" }}</td>
-          <td style="color:#6B7280;">{{ expense.created_by|default:"—" }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'accounts:fuel_expense_update' expense.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty-state">No fuel expenses found{% if q %} for "{{ q }}"{% endif %}.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header">
+
+        <span class="card-title">
+            Fuel Expenses
+            <span class="badge badge-gray ms-2">
+                {{ expenses|length }}
+            </span>
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Voucher Number</th>
+                    <th>Vehicle</th>
+                    <th>Amount</th>
+                    <th>Fuel Date</th>
+                    <th>Created By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for expense in expenses %}
+
+                <tr>
+
+                    <td style="font-family:monospace;font-size:13px;">
+                        {{ expense.voucher_number|default:"—" }}
+                    </td>
+
+                    <td>
+                        {{ expense.vehicle }}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ expense.amount }}
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ expense.fuel_date|date:"d M Y" }}
+                    </td>
+
+                    <td>
+                        {{ expense.created_by|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'accounts:fuel_expense_update' expense.pk %}"
+                               class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="6">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-gas-pump"
+                               style="
+                                    font-size:32px;
+                                    color:#CBD5E1;
+                                    margin-bottom:10px;
+                                    display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No fuel expenses found{% if q %} for "{{ q }}"{% endif %}.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

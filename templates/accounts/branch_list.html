@@ -1,54 +1,147 @@
 {% extends 'base.html' %}
+
 {% block title %}Branches — SSBikez ERP{% endblock %}
 {% block page_title %}Branches{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'accounts:branch_create' %}"
+   class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    Create Branch
+</a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Branches</h1>
-    <p class="page-subtitle">Manage dealership branches</p>
-  </div>
-  <a href="{% url 'accounts:branch_create' %}" class="btn btn-primary">+ Create Branch</a>
+
+    <div>
+        <h1 class="page-title">Branches</h1>
+        <p class="page-subtitle">
+            Manage dealership branches and locations
+        </p>
+    </div>
+
 </div>
 
 <div class="card">
-  <div class="table-wrapper">
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Branch Name</th>
-          <th>Phone</th>
-          <th>GSTIN</th>
-          <th>Active</th>
-          <th>Created</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for branch in branches %}
-        <tr>
-          <td style="font-weight:500;">{{ branch.branch_name }}</td>
-          <td>{{ branch.phone|default:"—" }}</td>
-          <td style="font-family:monospace; font-size:13px;">{{ branch.gstin|default:"—" }}</td>
-          <td>
-            {% if branch.is_active %}
-            <span class="badge badge-green">Active</span>
-            {% else %}
-            <span class="badge badge-gray">Inactive</span>
-            {% endif %}
-          </td>
-          <td style="color:#6B7280; font-size:13px;">{{ branch.created_at|date:"d M Y" }}</td>
-          <td>
-            <div class="table-actions">
-              <a href="{% url 'accounts:branch_update' branch.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr><td colspan="6" class="empty-state">No branches found.</td></tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+
+    <div class="card-header">
+
+        <span class="card-title">
+            Branches
+            <span class="badge badge-gray ms-2">
+                {{ branches|length }}
+            </span>
+        </span>
+
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Branch Name</th>
+                    <th>Phone</th>
+                    <th>GSTIN</th>
+                    <th>Status</th>
+                    <th>Created Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for branch in branches %}
+
+                <tr>
+
+                    <td style="font-weight:600;">
+                        {{ branch.branch_name }}
+                    </td>
+
+                    <td>
+                        {{ branch.phone|default:"—" }}
+                    </td>
+
+                    <td style="font-family:monospace;font-size:13px;">
+                        {{ branch.gstin|default:"—" }}
+                    </td>
+
+                    <td>
+
+                        {% if branch.is_active %}
+
+                            <span class="badge badge-green">
+                                Active
+                            </span>
+
+                        {% else %}
+
+                            <span class="badge badge-gray">
+                                Inactive
+                            </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+                        {{ branch.created_at|date:"d M Y" }}
+                    </td>
+
+                    <td>
+
+                        <div class="table-actions">
+
+                            <a href="{% url 'accounts:branch_update' branch.pk %}"
+                               class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+                                Edit
+                            </a>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="6">
+
+                        <div class="empty-state">
+
+                            <i class="fas fa-building"
+                               style="
+                                    font-size:32px;
+                                    color:#CBD5E1;
+                                    margin-bottom:10px;
+                                    display:block;
+                               ">
+                            </i>
+
+                            <p>
+                                No branches found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% endblock %}

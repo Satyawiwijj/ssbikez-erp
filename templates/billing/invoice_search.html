@@ -2,28 +2,57 @@
 {% block title %}Search Invoices{% endblock %}
 {% block page_title %}Search Invoices{% endblock %}
 {% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Search Invoices</h1>
+        <p class="page-subtitle">
+            Find invoices by customer, date range or amount
+        </p>
+    </div>
+</div>
 <form method="get" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;margin-bottom:14px;">
   <div><label class="form-label">Search</label><input name="q" value="{{ q }}" class="form-control" placeholder="Invoice no / customer"></div>
   <div><label class="form-label">From</label><input type="date" name="start" value="{{ start }}" class="form-control"></div>
   <div><label class="form-label">To</label><input type="date" name="end" value="{{ end }}" class="form-control"></div>
   <div><label class="form-label">Min ₹</label><input type="number" step="0.01" name="amount_min" value="{{ amount_min }}" class="form-control"></div>
   <div><label class="form-label">Max ₹</label><input type="number" step="0.01" name="amount_max" value="{{ amount_max }}" class="form-control"></div>
-  <div style="grid-column:span 5;"><button class="btn btn-primary">Search</button></div>
+  <div style="grid-column:span 5;display:flex;gap:8px;">
+    <button type="submit" class="btn btn-primary">
+        <i class="fas fa-search me-1"></i>
+        Search
+    </button>
+
+    <a href="{% url 'billing:invoice_search' %}"
+       class="btn btn-secondary">
+        <i class="fas fa-times me-1"></i>
+        Clear
+    </a>
+</div>
 </form>
 
 <div class="card">
   <div class="table-wrapper">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="card-title">
+            <i class="fas fa-file-invoice me-2"></i>
+            Search Results
+        </span>
+
+        <span class="badge bg-secondary">
+            {{ invoices|length }}
+        </span>
+    </div>
     <table class="table">
       <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Amount</th><th></th></tr></thead>
       <tbody>
         {% for inv in invoices %}
         <tr>
-          <td>{{ inv.invoice_number }}</td>
+          <td style="font-family:monospace;font-weight:600;"><a href="{% url 'billing:invoice_detail' inv.pk %}" style="color:#2563EB;text-decoration:none;">{{ inv.invoice_number }}</a></td>
           <td>{{ inv.invoice_date|date:"d M Y" }}</td>
           <td>{{ inv.sales_order.customer.full_name }}</td>
           <td>&#x20B9; {{ inv.final_amount }}</td>
           <td>
-            <a href="{% url 'billing:invoice_detail' inv.pk %}" class="btn btn-sm btn-secondary">View</a>
+            <a href="{% url 'billing:invoice_detail' inv.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye me-1"></i>View</a>
             <a href="{% url 'billing:invoice_pdf' inv.pk %}" class="btn btn-sm btn-primary">PDF</a>
           </td>
         </tr>

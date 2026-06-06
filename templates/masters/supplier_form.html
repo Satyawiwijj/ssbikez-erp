@@ -1,74 +1,249 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — Masters{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="supplier-form"
+     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Save Supplier </button>
+
+<a href="{% url 'masters:supplier_list' %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+
+{% endblock %}
+
 {% block content %}
-<div class="card" style="max-width:900px;">
-  <div class="card-header"><span class="card-title">{{ title }}</span></div>
-  <div class="card-body">
-    <form method="post">
-      {% csrf_token %}
-      <div class="row g-3">
-        <div class="col-md-6">
-          <label class="form-label">{{ form.supplier_name.label }}</label>
-          {{ form.supplier_name }}
-          {% if form.supplier_name.errors %}<div class="text-danger small">{{ form.supplier_name.errors.0 }}</div>{% endif %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'masters:supplier_list' %}">Suppliers</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    {{ title }}
+</span>
+
+</nav>
+
+<div class="card mb-4">
+
+<div class="card-body" style="padding:18px 22px;">
+
+    <div style="display:flex;align-items:center;gap:14px;">
+
+        <div style="
+            width:48px;
+            height:48px;
+            border-radius:12px;
+            background:#DBEAFE;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+        ">
+            <i class="fas fa-truck-loading"
+               style="color:#2563EB;font-size:20px;"></i>
         </div>
-        <div class="col-md-6">
-          <label class="form-label">{{ form.contact_person.label }}</label>
-          {{ form.contact_person }}
+
+        <div>
+
+            <div style="
+                font-size:18px;
+                font-weight:700;
+                color:#0F172A;
+            ">
+                {{ title }}
+            </div>
+
+            <div style="
+                font-size:13px;
+                color:#64748B;
+            ">
+                Create or update supplier information
+            </div>
+
         </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.phone.label }}</label>
-          {{ form.phone }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.email.label }}</label>
-          {{ form.email }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.gstin.label }}</label>
-          {{ form.gstin }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.gst_category.label }}</label>
-          {{ form.gst_category }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.place_of_supply.label }}</label>
-          {{ form.place_of_supply }}
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-          <div class="form-check mb-1">
-            {{ form.is_active }}
-            <label class="form-check-label">{{ form.is_active.label }}</label>
-          </div>
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">{{ form.address_line1.label }}</label>
-          {{ form.address_line1 }}
-        </div>
-        <div class="col-md-6">
-          <label class="form-label">{{ form.address_line2.label }}</label>
-          {{ form.address_line2 }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.city.label }}</label>
-          {{ form.city }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.state.label }}</label>
-          {{ form.state }}
-        </div>
-        <div class="col-md-4">
-          <label class="form-label">{{ form.pincode.label }}</label>
-          {{ form.pincode }}
-        </div>
-      </div>
-      <div class="d-flex gap-2 mt-4">
-        <button type="submit" class="btn btn-primary">Save</button>
-        <a href="{% url 'masters:supplier_list' %}" class="btn btn-outline-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
+
+    </div>
+
 </div>
+
+</div>
+
+<form method="post"
+      id="supplier-form"
+      novalidate>
+
+{% csrf_token %}
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+
+        <div class="card form-card">
+
+            <div class="card-header">
+
+                <i class="fas fa-building me-2"></i>
+                Supplier Information
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            {{ form.supplier_name.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.supplier_name }}
+                        {% if form.supplier_name.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.supplier_name.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            {{ form.contact_person.label }}
+                        </label>
+                        {{ form.contact_person }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.phone.label }}
+                        </label>
+                        {{ form.phone }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.email.label }}
+                        </label>
+                        {{ form.email }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.gstin.label }}
+                        </label>
+                        {{ form.gstin }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.gst_category.label }}
+                        </label>
+                        {{ form.gst_category }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.place_of_supply.label }}
+                        </label>
+                        {{ form.place_of_supply }}
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            {{ form.is_active }}
+                            <label class="form-check-label">
+                                {{ form.is_active.label }}
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            {{ form.address_line1.label }}
+                        </label>
+                        {{ form.address_line1 }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            {{ form.address_line2.label }}
+                        </label>
+                        {{ form.address_line2 }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.city.label }}
+                        </label>
+                        {{ form.city }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.state.label }}
+                        </label>
+                        {{ form.state }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.pincode.label }}
+                        </label>
+                        {{ form.pincode }}
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+
+                <i class="fas fa-info-circle me-2"></i>
+                Details
+
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Module</strong>
+                    <div class="text-muted">Masters</div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Section</strong>
+                    <div class="text-muted">Supplier Management</div>
+                </div>
+
+                <div>
+                    <strong>Notes</strong>
+                    <div class="text-muted small">
+                        Maintain supplier contact details,
+                        GST information, address and status
+                        for procurement and inventory operations.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</form>
+
 {% endblock %}

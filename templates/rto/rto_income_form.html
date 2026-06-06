@@ -1,26 +1,203 @@
 {% extends 'base.html' %}
+
 {% block title %}RTO Income — RTO-{{ reg.pk }}{% endblock %}
-{% block page_title %}RTO Income for RTO-{{ reg.pk }}{% endblock %}
+{% block page_title %}RTO Income{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="income-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Income
+</button>
+
+<a href="{% url 'rto:registration_detail' reg.pk %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'rto:registration_detail' reg.pk %}">RTO-{{ reg.pk }}</a>
-  <span class="bc-sep">/</span><span class="bc-current">Add Income</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'rto:dashboard' %}">RTO</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'rto:registration_detail' reg.pk %}">
+        RTO-{{ reg.pk }}
+    </a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        Add Income
+    </span>
 </nav>
-<div class="card form-card">
-  <div style="padding:20px;">
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-      </div>
-      {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Save Income</button>
-        <a href="{% url 'rto:registration_detail' reg.pk %}" class="btn btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
+
+<div class="card mb-4">
+
+    <div class="card-body" style="padding:18px 22px;">
+
+        <div style="display:flex;align-items:center;gap:14px;">
+
+            <div style="
+                width:48px;
+                height:48px;
+                border-radius:12px;
+                background:#DCFCE7;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+            ">
+                <i class="fas fa-wallet"
+                   style="color:#16A34A;font-size:20px;"></i>
+            </div>
+
+            <div>
+
+                <div style="
+                    font-size:18px;
+                    font-weight:700;
+                    color:#0F172A;
+                ">
+                    Add Income Entry
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#64748B;
+                ">
+                    Record income related to RTO Registration #{{ reg.pk }}
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+<form method="post"
+      id="income-form"
+      novalidate>
+
+    {% csrf_token %}
+
+    <div class="row g-3">
+
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+
+                    <i class="fas fa-money-bill-wave me-2"></i>
+                    Income Information
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+
+                        <div class="col-md-6">
+
+                            <label class="form-label fw-semibold">
+
+                                {{ field.label }}
+
+                                {% if field.field.required %}
+                                <span class="text-danger">*</span>
+                                {% endif %}
+
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+
+                                {% for e in field.errors %}
+                                    {{ e }}
+                                {% endfor %}
+
+                            </div>
+                            {% endif %}
+
+                            {% if field.help_text %}
+                            <small class="text-muted">
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+
+                    <i class="fas fa-info-circle me-2"></i>
+                    Details
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">RTO Management</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Registration</strong>
+                        <div class="text-muted">
+                            RTO-{{ reg.pk }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Customer</strong>
+                        <div class="text-muted">
+                            {{ reg.sales_order.customer.full_name }}
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Notes</strong>
+                        <div class="text-muted small">
+                            Record service income, processing fees,
+                            documentation charges or any other
+                            revenue related to this registration.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
 {% endblock %}

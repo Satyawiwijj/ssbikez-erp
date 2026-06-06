@@ -1,90 +1,369 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+<button form="issue-form"
+        class="btn btn-primary btn-sm">
+    <i class="fas fa-save me-1"></i>
+    Save Issue Alteration
+</button>
+
+<a href="{% url 'spares:issue_alteration_list' %}"
+   class="btn btn-secondary btn-sm">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
 {% endblock %}
+
 {% block content %}
-<form method="post">
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Issue Alteration Header</h6></div>
-        <div class="card-body">
-          <div class="row g-3">
-            <div class="col-sm-6"><label class="form-label">Job Card No *</label>{{ form.job_card }}</div>
-            <div class="col-sm-6"><label class="form-label">Date *</label>{{ form.date }}</div>
-            <div class="col-sm-6"><label class="form-label">Godown *</label>{{ form.godown }}</div>
-            <div class="col-sm-6"><label class="form-label">Job Type</label>{{ form.job_type }}</div>
-            <div class="col-sm-6"><label class="form-label">Discount</label>{{ form.discount }}</div>
-          </div>
-        </div>
-      </div>
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Spares Items</h6>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row"><i class="fa fa-plus me-1"></i>Add Item</button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-sm mb-0">
-              <thead class="table-light">
-                <tr><th style="width:30%">Item</th><th>Qty</th><th>Rack</th><th>Bin</th><th>Rate</th><th>Disc%</th><th></th></tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for f in formset %}
-                <tr class="formset-row">
-                  <td>{{ f.item }}{{ f.id }}</td>
-                  <td>{{ f.quantity }}</td>
-                  <td>{{ f.rack }}</td>
-                  <td>{{ f.bin }}</td>
-                  <td>{{ f.rate }}</td>
-                  <td>{{ f.discount_percent }}</td>
-                  <td>
-                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:dashboard' %}">Spares</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'spares:issue_alteration_list' %}">
+        Issue Alterations
+    </a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post"
+      id="issue-form"
+      novalidate>
+
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if form.errors or formset.errors %}
+    <div class="alert alert-danger mb-3">
+        <strong>Please correct the errors below before saving.</strong>
     </div>
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-grid">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Save</button>
+    {% endif %}
+
+    <div class="row g-3">
+
+        <!-- Main Section -->
+        <div class="col-lg-8">
+
+            <!-- Header Information -->
+            <div class="card form-card mb-3">
+
+                <div class="card-header">
+                    Issue Alteration Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Job Card
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            {{ form.job_card }}
+
+                            {% if form.job_card.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.job_card.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Date
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            {{ form.date }}
+
+                            {% if form.date.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.date.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Godown
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            {{ form.godown }}
+
+                            {% if form.godown.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.godown.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Job Type
+                            </label>
+
+                            {{ form.job_type }}
+
+                            {% if form.job_type.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.job_type.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">
+                                Discount
+                            </label>
+
+                            {{ form.discount }}
+
+                            {% if form.discount.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.discount.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Item Details -->
+            <div class="card form-card">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+
+                    <span>
+                        Spare Parts
+                    </span>
+
+                    <button type="button"
+                            id="add-row"
+                            class="btn btn-sm btn-light">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Item
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th style="width:30%">Item</th>
+                                <th>Quantity</th>
+                                <th>Rack</th>
+                                <th>Bin</th>
+                                <th>Rate</th>
+                                <th>Discount %</th>
+                                <th style="width:70px;">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="formset-body">
+
+                            {% for f in formset %}
+
+                            <tr class="formset-row">
+
+                                {{ f.id }}
+
+                                <td>
+                                    {{ f.item }}
+                                    {% if f.item.errors %}
+                                    <div class="text-danger small">
+                                        {{ f.item.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>
+                                    {{ f.quantity }}
+                                    {% if f.quantity.errors %}
+                                    <div class="text-danger small">
+                                        {{ f.quantity.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ f.rack }}</td>
+
+                                <td>{{ f.bin }}</td>
+
+                                <td>{{ f.rate }}</td>
+
+                                <td>{{ f.discount_percent }}</td>
+
+                                <td>
+
+                                    {% if f.instance.pk %}
+                                    <div style="display:none;">
+                                        {{ f.DELETE }}
+                                    </div>
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger remove-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <strong>Module</strong>
+                        <div class="text-muted">
+                            Spares Management
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <strong>Section</strong>
+                        <div class="text-muted">
+                            Issue Alterations
+                        </div>
+                    </div>
+
+                    <div>
+                        <strong>Notes</strong>
+                        <div class="text-muted small">
+                            Issue spare parts against a job card.
+                            Discounts, quantities and stock movement
+                            are automatically considered during processing.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </form>
+
 {% endblock %}
+
 {% block extra_js %}
 <script>
-(function() {
-  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
-  const tbody = document.getElementById('formset-body');
-  const firstRow = tbody.querySelector('.formset-row');
-  document.getElementById('add-row').addEventListener('click', function() {
-    const n = parseInt(totalForms.value);
-    const row = firstRow.cloneNode(true);
-    row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
-    row.querySelectorAll('input,select,textarea').forEach(function(el){el.value='';});
-    tbody.appendChild(row); totalForms.value = n + 1; bindRemove(row);
-  });
-  function bindRemove(row) {
-    var btn = row.querySelector('.remove-row');
-    if (btn) btn.addEventListener('click', function() {
-      var d = row.querySelector('[id$="-DELETE"]');
-      if (d) { d.checked=true; row.style.display='none'; } else row.remove();
+(function () {
+
+    const totalForms =
+        document.querySelector('[name$="-TOTAL_FORMS"]');
+
+    const tbody =
+        document.getElementById('formset-body');
+
+    const addBtn =
+        document.getElementById('add-row');
+
+    addBtn.addEventListener('click', function () {
+
+        const formCount = parseInt(totalForms.value);
+
+        const firstRow =
+            tbody.querySelector('.formset-row');
+
+        const newRow =
+            firstRow.cloneNode(true);
+
+        newRow.innerHTML =
+            newRow.innerHTML.replace(
+                /items-\d+/g,
+                'items-' + formCount
+            );
+
+        newRow.querySelectorAll(
+            'input, select, textarea'
+        ).forEach(function (field) {
+
+            if (field.type !== 'hidden') {
+                field.value = '';
+            }
+
+            if (field.type === 'checkbox') {
+                field.checked = false;
+            }
+        });
+
+        tbody.appendChild(newRow);
+
+        totalForms.value =
+            formCount + 1;
+
+        bindRemove(newRow);
     });
-  }
-  tbody.querySelectorAll('.formset-row').forEach(function(r){bindRemove(r);});
+
+    function bindRemove(row) {
+
+        const btn =
+            row.querySelector('.remove-row');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+
+            const deleteField =
+                row.querySelector('[id$="-DELETE"]');
+
+            if (deleteField) {
+
+                deleteField.checked = true;
+                row.style.display = 'none';
+
+            } else {
+
+                row.remove();
+
+            }
+        });
+    }
+
+    document
+        .querySelectorAll('.formset-row')
+        .forEach(bindRemove);
+
 })();
 </script>
 {% endblock %}

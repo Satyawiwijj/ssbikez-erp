@@ -1,75 +1,563 @@
 {% extends 'base.html' %}
+
 {% block title %}RTO — {{ rto.sales_order.customer.full_name }} — SSBikez ERP{% endblock %}
 {% block page_title %}RTO Registration{% endblock %}
 
+{% block topbar_actions %}
+
+<a href="{% url 'rto:registration_update' rto.pk %}"
+class="btn btn-sm btn-secondary">
+<i class="fas fa-edit me-1"></i>
+Edit
+</a>
+
+<a href="{% url 'rto:registration_list' %}"
+class="btn btn-sm btn-outline-secondary">
+<i class="fas fa-arrow-left me-1"></i>
+Back
+</a>
+
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'accounts:dashboard' %}">Home</a>
-  <span class="bc-sep">/</span>
-  <a href="{% url 'rto:registration_list' %}">RTO Registrations</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">{{ rto.sales_order.customer.full_name }}</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'rto:registration_list' %}">Registrations</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">
+        RTO-{{ rto.pk }}
+    </span>
 </nav>
-<div class="page-header">
-  <div>
-    <h1 class="page-title">RTO — {{ rto.sales_order.customer.full_name }}</h1>
-    {% with s=rto.registration_status %}
-    {% if s == 'submitted' %}<span class="badge badge-blue" style="margin-top:6px; display:inline-flex;">{{ rto.get_registration_status_display }}</span>
-    {% elif s == 'registered' %}<span class="badge badge-green" style="margin-top:6px; display:inline-flex;">{{ rto.get_registration_status_display }}</span>
-    {% else %}<span class="badge badge-yellow" style="margin-top:6px; display:inline-flex;">{{ rto.get_registration_status_display }}</span>
-    {% endif %}
-    {% endwith %}
-  </div>
-  <div class="page-header-actions">
-    <!-- Quick status update -->
-    <form method="post" action="{% url 'rto:registration_status_update' rto.pk %}" style="display:flex; gap:6px; align-items:center;">
-      {% csrf_token %}
-      <select name="registration_status" style="width:auto; padding:7px 10px; font-size:13px;">
-        {% for val, label in rto.RegistrationStatus.choices %}
-        <option value="{{ val }}" {% if val == rto.registration_status %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-      <button type="submit" class="btn btn-primary btn-sm">Update</button>
-    </form>
-    <a href="{% url 'rto:registration_update' rto.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'rto:registration_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
+
+<div class="card mb-4">
+
+<div class="card-body" style="padding:18px 22px;">
+
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:20px;">
+
+        <div style="display:flex;align-items:center;gap:12px;">
+
+            <div style="
+                width:48px;
+                height:48px;
+                border-radius:12px;
+                background:#DBEAFE;
+                display:flex;
+                align-items:center;
+                justify-content:center; ">
+                <i class="fas fa-id-card"
+                   style="color:#2563EB;font-size:20px;"></i>
+            </div>
+
+            <div>
+
+                <div style="font-size:20px; font-weight:700; color:#0F172A; ">
+                    RTO-{{ rto.pk }}
+                </div>
+
+                <div style=" font-size:13px; color:#64748B; ">
+                    {{ rto.sales_order.customer.full_name }}
+                </div>
+
+            </div>
+
+        </div>
+
+        <div style="display:flex;align-items:center;gap:28px;flex-wrap:wrap;">
+
+            <div>
+
+                <div style="font-size:11px; color:#94A3B8; text-transform:uppercase; font-weight:600; ">
+                    Status
+                </div>
+
+                <div style="margin-top:4px;">
+
+                    {% if rto.registration_status == 'registered' %}
+                    <span class="badge badge-green">
+
+                    {% elif rto.registration_status == 'submitted' %}
+                    <span class="badge badge-blue">
+
+                    {% else %}
+                    <span class="badge badge-yellow">
+
+                    {% endif %}
+
+                        {{ rto.get_registration_status_display }}
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div style="font-size:11px; color:#94A3B8; text-transform:uppercase; font-weight:600;">
+                    Registration Number
+                </div>
+
+                <div style="font-family:monospace; font-weight:700; color:#0F172A; margin-top:4px;">
+
+                    {{ rto.registration_number|default:"Pending" }}
+
+                </div>
+
+            </div>
+
+            <div>
+
+                <div style="font-size:11px; color:#94A3B8; text-transform:uppercase; font-weight:600; ">
+                    RTO Charges
+                </div>
+
+                <div style="font-weight:700; color:#2563EB; margin-top:4px; ">
+
+                    ₹ {{ rto.rto_charges }}
+
+                </div>
+
+            </div>
+
+            <div style="
+                display:flex;
+                gap:10px;
+                flex-wrap:wrap;
+                margin-top:16px;
+            ">
+
+                <a href="{% url 'rto:reg_payment_create' rto.pk %}"
+                class="btn btn-primary btn-sm">
+
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    Registration Payment
+
+                </a>
+
+                <a href="{% url 'rto:rto_income_create' rto.pk %}"
+                class="btn btn-secondary btn-sm">
+
+                    <i class="fas fa-wallet me-1"></i>
+                    Record Income
+
+                </a>
+
+                <a href="{% url 'rto:rc_book_create' rto.pk %}"
+                class="btn btn-success btn-sm">
+
+                    <i class="fas fa-book me-1"></i>
+                    RC Book
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 </div>
 
 <div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Registration Details</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Sales Order</dt><dd>{{ rto.sales_order }}</dd></div>
-      <div class="detail-row"><dt>Vehicle</dt><dd>{{ rto.sales_order.vehicle.bike_model }}</dd></div>
-      <div class="detail-row"><dt>Form 20 Number</dt><dd style="font-family:monospace;">{{ rto.form20_number|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Registration Number</dt><dd style="font-weight:700;">{{ rto.registration_number|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>RTO Charges</dt><dd>&#x20B9; {{ rto.rto_charges }}</dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ rto.created_at }}</dd></div>
-    </dl>
-  </div>
 
-  <!-- NUMBER PLATE ORDER -->
-  <div class="card">
+<div class="card">
+
     <div class="card-header">
-      <span class="card-title">Number Plate Order</span>
-      {% if not plate %}
-      <a href="{% url 'rto:plate_create' %}?rto={{ rto.pk }}" class="btn btn-primary btn-sm">+ Add Plate</a>
-      {% endif %}
+
+        <span class="card-title">
+
+            <i class="fas fa-file-alt me-2"></i>
+            Registration Details
+
+        </span>
+
     </div>
-    {% if plate %}
+
     <dl class="detail-list">
-      <div class="detail-row"><dt>Plate Number</dt><dd style="font-weight:700;">{{ plate.plate_number|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Vendor</dt><dd>{{ plate.vendor_name|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Issue Date</dt><dd>{{ plate.issue_date|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-green">{{ plate.get_status_display }}</span></dd></div>
+
+        <div class="detail-row">
+            <dt>Sales Order</dt>
+            <dd>
+                ORD-{{ rto.sales_order.pk }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Customer</dt>
+            <dd>
+                {{ rto.sales_order.customer.full_name }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Vehicle</dt>
+            <dd>
+                {{ rto.sales_order.vehicle.bike_model }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Form 20 Number</dt>
+            <dd style="font-family:monospace;">
+                {{ rto.form20_number|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Registration Number</dt>
+            <dd style="font-weight:700;">
+                {{ rto.registration_number|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>RTO Charges</dt>
+            <dd>
+                ₹ {{ rto.rto_charges }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Created</dt>
+            <dd>
+                {{ rto.created_at|date:"d M Y" }}
+            </dd>
+        </div>
+
     </dl>
-    <div style="margin-top:12px;">
-      <a href="{% url 'rto:plate_update' plate.pk %}" class="btn btn-secondary btn-sm">Edit Plate Order</a>
-    </div>
-    {% else %}
-    <p style="color:#9CA3AF; font-size:14px;">No number plate order yet.</p>
-    {% endif %}
-  </div>
+
 </div>
+
+<div class="card">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-hashtag me-2"></i>
+            Number Plate Order
+
+        </span>
+
+        {% if not plate %}
+        <a href="{% url 'rto:plate_create' %}?rto={{ rto.pk }}"
+           class="btn btn-primary btn-sm">
+
+            <i class="fas fa-plus me-1"></i>
+            Add Plate
+
+        </a>
+        {% endif %}
+
+    </div>
+
+    {% if plate %}
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>Plate Number</dt>
+            <dd style="font-weight:700;">
+                {{ plate.plate_number|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Vendor</dt>
+            <dd>
+                {{ plate.vendor_name|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Issue Date</dt>
+            <dd>
+                {{ plate.issue_date|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Status</dt>
+            <dd>
+                <span class="badge badge-green">
+                    {{ plate.get_status_display }}
+                </span>
+            </dd>
+        </div>
+
+    </dl>
+
+    <div style="padding:16px 20px;border-top:1px solid #E5E7EB;">
+
+        <a href="{% url 'rto:plate_update' plate.pk %}"
+           class="btn btn-secondary btn-sm">
+
+            <i class="fas fa-edit me-1"></i>
+            Edit Plate
+
+        </a>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="fas fa-hashtag mb-2"></i>
+
+        <div>
+            No number plate order found.
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</div>
+
+
+<div class="detail-grid">
+
+    <!-- RC BOOK -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <span class="card-title">
+                <i class="fas fa-book me-2"></i>
+                RC Book
+            </span>
+
+        </div>
+
+        {% if rto.rc_book %}
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>RC Number</dt>
+                <dd>{{ rto.rc_book.rc_number|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Issue Date</dt>
+                <dd>{{ rto.rc_book.issue_date|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Issued To</dt>
+                <dd>{{ rto.rc_book.issued_to|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>{{ rto.rc_book.get_status_display }}</dd>
+            </div>
+
+        </dl>
+
+        <div style="padding:16px 20px;border-top:1px solid #E5E7EB;">
+
+            <a href="{% url 'rto:rc_book_detail' rto.rc_book.pk %}"
+               class="btn btn-secondary btn-sm">
+
+                View RC Book
+
+            </a>
+
+        </div>
+
+        {% else %}
+
+        <div class="empty-state">
+
+            <i class="fas fa-book mb-2"></i>
+
+            <div>
+                No RC Book created yet.
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+
+    <!-- FINANCIAL RECORDS -->
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <span class="card-title">
+                <i class="fas fa-wallet me-2"></i>
+                Financial Records
+            </span>
+
+        </div>
+
+            <div style="padding:18px;">
+
+        <div style="margin-bottom:18px;">
+
+            <div style="
+                font-size:12px;
+                font-weight:600;
+                color:#64748B;
+                text-transform:uppercase;
+                margin-bottom:10px;
+            ">
+                Registration Payments
+            </div>
+
+            {% for payment in rto.reg_payments.all|slice:":3" %}
+
+            <div style="
+                padding:10px 12px;
+                border:1px solid #E5E7EB;
+                border-radius:8px;
+                margin-bottom:8px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                ">
+
+                    <strong>
+                        ₹ {{ payment.amount }}
+                    </strong>
+
+                    <span style="
+                        font-size:12px;
+                        color:#64748B;
+                    ">
+                        {{ payment.payment_date }}
+                    </span>
+
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#64748B;
+                    margin-top:4px;
+                ">
+                    {{ payment.payment_type }}
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="text-muted small">
+                No payments recorded.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        <div>
+
+            <div style="
+                font-size:12px;
+                font-weight:600;
+                color:#64748B;
+                text-transform:uppercase;
+                margin-bottom:10px;
+            ">
+                Income Entries
+            </div>
+
+            {% for income in rto.income_entries.all|slice:":3" %}
+
+            <div style="
+                padding:10px 12px;
+                border:1px solid #E5E7EB;
+                border-radius:8px;
+                margin-bottom:8px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                ">
+
+                    <strong style="color:#059669;">
+                        ₹ {{ income.amount }}
+                    </strong>
+
+                    <span style="
+                        font-size:12px;
+                        color:#64748B;
+                    ">
+                        {{ income.date }}
+                    </span>
+
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    color:#64748B;
+                    margin-top:4px;
+                ">
+                    {{ income.income_type }}
+                </div>
+
+            </div>
+
+            {% empty %}
+
+            <div class="text-muted small">
+                No income entries recorded.
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+    <div style="
+        padding:16px 20px;
+        border-top:1px solid #E5E7EB;
+        display:flex;
+        gap:10px;
+        flex-wrap:wrap;
+    ">
+
+        <a href="{% url 'rto:reg_payment_create' rto.pk %}"
+           class="btn btn-primary btn-sm">
+
+            <i class="fas fa-money-bill-wave me-1"></i>
+            Add Payment
+
+        </a>
+
+        <a href="{% url 'rto:rto_income_create' rto.pk %}"
+           class="btn btn-secondary btn-sm">
+
+            <i class="fas fa-wallet me-1"></i>
+            Add Income
+
+        </a>
+
+    </div>
+
+</div>
+
 {% endblock %}
+

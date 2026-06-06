@@ -1,117 +1,339 @@
 {% extends 'base.html' %}
-{% block title %}{{ title }}{% endblock %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:counter_sale_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+<a href="{% url 'spares:counter_sale_list' %}"
+   class="btn btn-secondary btn-sm">
+    Back
+</a>
 {% endblock %}
+
 {% block content %}
+
 <form method="post" novalidate>
-  {% csrf_token %}
-  {{ formset.management_form }}
-  <div class="row g-3">
-    <div class="col-lg-8">
-      <div class="card border-0 shadow-sm mb-3">
-        <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Sale Header</h6></div>
-        <div class="card-body">
-          {% if form.non_field_errors %}
-          <div class="alert alert-danger py-2">
-            {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
-          </div>
-          {% endif %}
-          <div class="row g-3">
-            <div class="col-sm-6">
-              <label class="form-label">Customer Name *</label>
-              {{ form.customer }}
-              {% if form.customer.errors %}<div class="text-danger small mt-1">{{ form.customer.errors }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Mobile *</label>
-              {{ form.mobile }}
-              {% if form.mobile.errors %}<div class="text-danger small mt-1">{{ form.mobile.errors }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Date *</label>
-              {{ form.date }}
-              {% if form.date.errors %}<div class="text-danger small mt-1">{{ form.date.errors }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6">
-              <label class="form-label">Godown *</label>
-              {{ form.godown }}
-              {% if form.godown.errors %}<div class="text-danger small mt-1">{{ form.godown.errors }}</div>{% endif %}
-            </div>
-            <div class="col-sm-6"><label class="form-label">GST Category</label>{{ form.gst_category }}</div>
-            <div class="col-sm-6"><label class="form-label">Pay Type</label>{{ form.pay_type }}</div>
-            <div class="col-sm-6"><label class="form-label">Status</label>{{ form.status }}</div>
-            <div class="col-sm-6"><label class="form-label">Discount Amount</label>{{ form.discount_amount }}</div>
-            <div class="col-sm-6 d-flex align-items-end">
-              <div class="form-check">{{ form.is_warranty }}<label class="form-check-label ms-2">Warranty Sale</label></div>
-            </div>
-          </div>
+
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% if form.errors or formset.errors %}
+
+    <div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;">
+        <div style="padding:16px;">
+            <strong style="color:#DC2626;">
+                Please correct the errors below before saving.
+            </strong>
         </div>
-      </div>
-      <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 pt-3 d-flex justify-content-between align-items-center">
-          <h6 class="mb-0 fw-semibold">Items</h6>
-          <button type="button" class="btn btn-outline-primary btn-sm" id="add-row"><i class="fa fa-plus me-1"></i>Add Item</button>
-        </div>
-        <div class="card-body p-0">
-          <div class="table-responsive">
-            <table class="table table-sm mb-0">
-              <thead class="table-light">
-                <tr><th style="width:35%">Item</th><th>Rack</th><th>Bin</th><th>Qty</th><th>Rate</th><th>GST%</th><th></th></tr>
-              </thead>
-              <tbody id="formset-body">
-                {% for f in formset %}
-                <tr class="formset-row">
-                  <td>{{ f.item }}{{ f.id }}</td>
-                  <td>{{ f.rack }}</td>
-                  <td>{{ f.bin }}</td>
-                  <td>{{ f.quantity }}</td>
-                  <td>{{ f.rate }}</td>
-                  <td>{{ f.gst_percent }}</td>
-                  <td>
-                    {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
-                    <button type="button" class="btn btn-outline-danger btn-sm remove-row"><i class="fa fa-trash"></i></button>
-                  </td>
-                </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
-    <div class="col-lg-4">
-      <div class="card border-0 shadow-sm">
-        <div class="card-body d-grid">
-          <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i>Save Sale</button>
+
+    {% endif %}
+
+    <div class="detail-grid">
+
+        <!-- Sale Header -->
+
+        <div>
+
+            <div class="card form-card" style="margin-bottom:20px;">
+
+                <div class="card-header">
+                        Sale Information
+                </div>
+
+                <div style="padding:20px;">
+
+                    {% if form.non_field_errors %}
+                    <div class="form-error" style="margin-bottom:16px;">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <div class="form-grid">
+
+                        <div class="form-group">
+                            <label class="form-label">Customer Name *</label>
+                            {{ form.customer }}
+                            {% if form.customer.errors %}
+                            <div class="form-error">{{ form.customer.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mobile *</label>
+                            {{ form.mobile }}
+                            {% if form.mobile.errors %}
+                            <div class="form-error">{{ form.mobile.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Date *</label>
+                            {{ form.date }}
+                            {% if form.date.errors %}
+                            <div class="form-error">{{ form.date.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Godown *</label>
+                            {{ form.godown }}
+                            {% if form.godown.errors %}
+                            <div class="form-error">{{ form.godown.errors }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">GST Category</label>
+                            {{ form.gst_category }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Payment Type</label>
+                            {{ form.pay_type }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Discount Amount</label>
+                            {{ form.discount_amount }}
+                        </div>
+
+                    </div>
+
+                    <div style="margin-top:16px;">
+
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            {{ form.is_warranty }}
+                            <span>Warranty Sale</span>
+                        </label>
+
+                    </div>
+
+                </div>
+
+            </div>
+
         </div>
-      </div>
+
+        <!-- Sidebar -->
+
+        <div>
+            <div class="card form-card">
+
+                <div class="card-header"
+                     style="display:flex;justify-content:space-between;align-items:center;">
+
+                        Sale Items
+
+                    <button type="button"
+                            id="add-row"
+                            class="btn btn-primary btn-sm">
+                        Add Item
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Rack</th>
+                                <th>Bin</th>
+                                <th>Qty</th>
+                                <th>Rate</th>
+                                <th>GST %</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="formset-body">
+
+                            {% for f in formset %}
+
+                            <tr class="formset-row">
+
+                                <td>
+                                    {{ f.item }}
+                                    {{ f.id }}
+
+                                    {% if f.item.errors %}
+                                    <div class="form-error">
+                                        {{ f.item.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ f.rack }}</td>
+
+                                <td>{{ f.bin }}</td>
+
+                                <td>
+                                    {{ f.quantity }}
+                                    {% if f.quantity.errors %}
+                                    <div class="form-error">
+                                        {{ f.quantity.errors }}
+                                    </div>
+                                    {% endif %}
+                                </td>
+
+                                <td>{{ f.rate }}</td>
+
+                                <td>{{ f.gst_percent }}</td>
+
+                                <td>
+
+                                    {% if f.instance.pk %}
+                                        {{ f.DELETE }}
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm remove-row">
+                                        Remove
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="card">
+
+                <div class="card-header">
+                        Sale Summary
+                </div>
+
+                <div style="padding:20px;">
+
+                    <p style="font-size:13px;color:#6B7280;margin-bottom:16px;">
+                        Item totals, GST and grand total are calculated automatically when the sale is saved.
+                    </p>
+
+                    <div class="form-actions"
+                         style="margin-top:0;">
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                style="width:100%;">
+                            Save Sale
+                        </button>
+
+                        <a href="{% url 'spares:counter_sale_list' %}"
+                           class="btn btn-sm btn-outline-secondary"
+                           style="width:100%;">
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
+
 </form>
+
 {% endblock %}
+
 {% block extra_js %}
+
 <script>
 (function() {
-  const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
-  const tbody = document.getElementById('formset-body');
-  const firstRow = tbody.querySelector('.formset-row');
-  document.getElementById('add-row').addEventListener('click', function() {
-    const n = parseInt(totalForms.value);
-    const row = firstRow.cloneNode(true);
-    row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
-    row.querySelectorAll('input,select,textarea').forEach(function(el){el.value='';});
-    tbody.appendChild(row); totalForms.value = n + 1; bindRemove(row);
-  });
-  function bindRemove(row) {
-    var btn = row.querySelector('.remove-row');
-    if (btn) btn.addEventListener('click', function() {
-      var d = row.querySelector('[id$="-DELETE"]');
-      if (d) { d.checked=true; row.style.display='none'; } else row.remove();
+
+    const totalForms =
+        document.querySelector('[name="items-TOTAL_FORMS"]');
+
+    const tbody =
+        document.getElementById('formset-body');
+
+    const firstRow =
+        tbody.querySelector('.formset-row');
+
+    document.getElementById('add-row')
+        .addEventListener('click', function() {
+
+        const n = parseInt(totalForms.value);
+
+        const row =
+            firstRow.cloneNode(true);
+
+        row.innerHTML =
+            row.innerHTML.replace(
+                /items-\d+/g,
+                'items-' + n
+            );
+
+        row.querySelectorAll(
+            'input,select,textarea'
+        ).forEach(function(el) {
+
+            if (el.type === 'checkbox') {
+                el.checked = false;
+            } else {
+                el.value = '';
+            }
+
+        });
+
+        tbody.appendChild(row);
+
+        totalForms.value = n + 1;
+
+        bindRemove(row);
+
     });
-  }
-  tbody.querySelectorAll('.formset-row').forEach(function(r){bindRemove(r);});
+
+    function bindRemove(row) {
+
+        const btn = row.querySelector('.remove-row');
+
+        if (!btn) return;
+
+        btn.addEventListener('click', function() {
+
+            const del =
+                row.querySelector('[id$="-DELETE"]');
+
+            if (del) {
+
+                del.checked = true;
+                row.style.display = 'none';
+
+            } else {
+
+                row.remove();
+
+                totalForms.value =
+                    parseInt(totalForms.value) - 1;
+            }
+
+        });
+
+    }
+
+    tbody.querySelectorAll('.formset-row')
+         .forEach(bindRemove);
+
 })();
 </script>
+
 {% endblock %}

@@ -1,52 +1,223 @@
 {% extends 'base.html' %}
-{% block title %}{{ sale.sale_no }}{% endblock %}
-{% block page_title %}{{ sale.sale_no }}{% endblock %}
+
+{% block title %}{{ sale.sale_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Counter Sale{% endblock %}
+
 {% block topbar_actions %}
-<a href="{% url 'spares:counter_sale_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
+
+<a href="{% url 'spares:counter_sale_list' %}"
+   class="btn btn-outline-primary">
+    Back
+</a>
 {% endblock %}
+
 {% block content %}
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="table-light">
-            <tr><th>Item</th><th>Qty</th><th>Rate</th><th>GST%</th><th>Amount</th><th>Total</th></tr>
-          </thead>
-          <tbody>
-            {% for i in items %}
-            <tr>
-              <td>{{ i.item.item_name }}</td>
-              <td>{{ i.quantity }}</td>
-              <td>&#8377;{{ i.rate }}</td>
-              <td>{{ i.gst_percent }}%</td>
-              <td>&#8377;{{ i.amount }}</td>
-              <td>&#8377;{{ i.total }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="6" class="text-center text-muted">No items.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">{{ sale.sale_no }}</h1>
+        <p class="page-subtitle">
+            Counter sale details and item summary
+        </p>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6">Customer</dt><dd class="col-6">{{ sale.customer }}</dd>
-          <dt class="col-6">Mobile</dt><dd class="col-6">{{ sale.mobile }}</dd>
-          <dt class="col-6">Date</dt><dd class="col-6">{{ sale.date }}</dd>
-          <dt class="col-6">Godown</dt><dd class="col-6">{{ sale.godown.name }}</dd>
-          <dt class="col-6">Status</dt><dd class="col-6">{{ sale.get_status_display }}</dd>
-          <dt class="col-6">Pay Type</dt><dd class="col-6">{{ sale.get_pay_type_display|default:"&mdash;" }}</dd>
-          <dt class="col-6">Discount</dt><dd class="col-6">&#8377;{{ sale.discount_amount }}</dd>
-          <dt class="col-6 fw-bold">Total Amount</dt><dd class="col-6 fw-bold">&#8377;{{ sale.total_amount }}</dd>
-        </dl>
-      </div>
-    </div>
-  </div>
 </div>
+
+<div class="detail-grid">
+
+    <!-- Sale Information -->
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">Sale Information</span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Sale Number</dt>
+                <dd style="font-family:monospace;font-weight:600;">
+                    {{ sale.sale_no }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Customer</dt>
+                <dd>{{ sale.customer }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Mobile</dt>
+                <dd>{{ sale.mobile|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Date</dt>
+                <dd>{{ sale.date|date:"d M Y" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Godown</dt>
+                <dd>{{ sale.godown.name }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Payment Type</dt>
+                <dd>{{ sale.get_pay_type_display|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+
+                    {% if sale.status == 'draft' %}
+                        <span class="badge badge-gray">
+                            Draft
+                        </span>
+
+                    {% elif sale.status == 'submitted' %}
+                        <span class="badge badge-green">
+                            Submitted
+                        </span>
+
+                    {% elif sale.status == 'cancelled' %}
+                        <span class="badge badge-red">
+                            Cancelled
+                        </span>
+
+                    {% else %}
+                        <span class="badge badge-gray">
+                            {{ sale.get_status_display }}
+                        </span>
+                    {% endif %}
+
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+    <!-- Amount Summary -->
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">Amount Summary</span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Discount</dt>
+                <dd>
+                    ₹ {{ sale.discount_amount|default:"0.00" }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Warranty Sale</dt>
+                <dd>
+                    {% if sale.is_warranty %}
+                        <span class="badge badge-blue">Yes</span>
+                    {% else %}
+                        <span class="badge badge-gray">No</span>
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Total Amount</dt>
+                <dd style="
+                    font-weight:700;
+                    font-size:16px;
+                    color:#2563EB;
+                ">
+                    ₹ {{ sale.total_amount }}
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+</div>
+
+<!-- Sale Items -->
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">Sale Items</span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>GST %</th>
+                    <th>Amount</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for i in items %}
+
+                <tr>
+
+                    <td style="font-weight:500;">
+                        {{ i.item.item_name }}
+                    </td>
+
+                    <td>
+                        {{ i.quantity }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.rate }}
+                    </td>
+
+                    <td>
+                        {{ i.gst_percent }}%
+                    </td>
+
+                    <td>
+                        ₹ {{ i.amount }}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ i.total }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="6">
+
+                        <div class="empty-state">
+                            No sale items found.
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

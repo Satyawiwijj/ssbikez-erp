@@ -52,10 +52,10 @@
         <tbody>
           {% for inv in recent_invoices %}
           <tr>
-            <td><a href="{% url 'billing:invoice_detail' inv.pk %}">{{ inv.invoice_number }}</a></td>
+            <td><a href="{% url 'billing:invoice_detail' inv.pk %}" class="fw-semibold text-decoration-none">{{ inv.invoice_number }}</a></td>
             <td>{{ inv.sales_order.customer.full_name }}</td>
-            <td>Rs. {{ inv.final_amount }}</td>
-            <td>{{ inv.invoice_date }}</td>
+            <td>₹ {{ inv.final_amount }}</td>
+            <td>{{ inv.invoice_date|date:"d M Y" }}</td>
             <td><a href="{% url 'billing:invoice_detail' inv.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
           </tr>
           {% empty %}

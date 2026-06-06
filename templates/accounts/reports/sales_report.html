@@ -4,116 +4,117 @@
 
 {% block content %}
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Sales Report</h1>
-    <p class="page-subtitle">Enquiries, orders and conversion analytics</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'accounts:spares_report' %}" class="btn btn-ghost btn-sm">Spares</a>
-    <a href="{% url 'accounts:service_report' %}" class="btn btn-ghost btn-sm">Service</a>
-  </div>
+    <div>
+        <h1 class="page-title">
+            <i class="fas fa-chart-pie me-2 text-primary"></i>
+            Sales Analytics Dashboard
+        </h1>
+        <p class="page-subtitle">
+            Enquiry performance, conversion tracking and sales trends
+        </p>
+    </div>
+    <div class="page-header-actions">
+        <a href="{% url 'accounts:spares_report' %}"
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-boxes me-1"></i>
+            Spares
+        </a>
+        <a href="{% url 'accounts:service_report' %}"
+           class="btn btn-outline-primary btn-sm">
+            <i class="fas fa-tools me-1"></i>
+            Service
+        </a>
+    </div>
 </div>
 
 <!-- KPI STATS -->
 <div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-blue">&#x1F4CB;</div>
-    <div>
-      <div class="stat-value">{{ enquiries_this_month }}</div>
-      <div class="stat-label">Enquiries This Month</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ enquiries_this_month }}</div>
+            <div class="stat-label">Enquiries This Month</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-orange">&#x1F4C5;</div>
-    <div>
-      <div class="stat-value">{{ enquiries_last_month }}</div>
-      <div class="stat-label">Enquiries Last Month</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-calendar-alt"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ enquiries_last_month }}</div>
+            <div class="stat-label">Enquiries Last Month</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-green">&#x1F4B0;</div>
-    <div>
-      <div class="stat-value">{{ conversion_rate }}%</div>
-      <div class="stat-label">Conversion Rate</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ conversion_rate }}%</div>
+            <div class="stat-label">Conversion Rate</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-purple">&#x1F4E6;</div>
-    <div>
-      <div class="stat-value">{{ open_orders }}</div>
-      <div class="stat-label">Open Orders</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-purple">
+            <i class="fas fa-shopping-cart"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ open_orders }}</div>
+            <div class="stat-label">Open Orders</div>
+        </div>
     </div>
-  </div>
+
 </div>
 
-<div class="grid-2col">
-  <!-- 6-MONTH TREND -->
-  <div class="card" style="margin-bottom:0;">
-    <div class="card-header">
-      <span class="card-title">&#x1F4C8; Monthly Enquiries (6 months)</span>
-    </div>
-    {% if monthly_trend %}
-    <div style="display:flex; align-items:flex-end; gap:12px; height:180px; padding:8px 0 24px;">
-      {% for m in monthly_trend %}
-      <div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:4px;">
-        <div style="font-size:11px; font-weight:600; color:#374151;">{{ m.count }}</div>
-        <div style="width:100%; background:#2563EB; border-radius:4px 4px 0 0; min-height:4px;"
-             style="height:{% if max_trend > 0 %}{{ m.count|floatformat:0 }}{% else %}0{% endif %}px;"
-             title="{{ m.count }} enquiries"
-             data-count="{{ m.count }}" data-max="{{ max_trend }}">
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3">
+                <h3 class="text-primary mb-1">
+                    {{ enquiries_this_month }}
+                </h3>
+                <small class="text-muted">
+                    This Month
+                </small>
+            </div>
+            <div class="col-md-3">
+                <h3 class="text-warning mb-1">
+                    {{ enquiries_last_month }}
+                </h3>
+                <small class="text-muted">
+                    Last Month
+                </small>
+            </div>
+            <div class="col-md-3">
+                <h3 class="text-success mb-1">
+                    {{ conversion_rate }}%
+                </h3>
+                <small class="text-muted">
+                    Conversion Rate
+                </small>
+            </div>
+            <div class="col-md-3">
+                <h3 class="text-purple mb-1">
+                    {{ open_orders }}
+                </h3>
+                <small class="text-muted">
+                    Open Orders
+                </small>
+            </div>
         </div>
-        <div style="font-size:10px; color:#9CA3AF; white-space:nowrap;">{{ m.month|date:"M Y" }}</div>
-      </div>
-      {% endfor %}
     </div>
-    <script>
-      document.querySelectorAll('[data-count][data-max]').forEach(el => {
-        const pct = parseInt(el.dataset.count) / parseInt(el.dataset.max);
-        el.style.height = Math.max(4, Math.round(pct * 120)) + 'px';
-      });
-    </script>
-    {% else %}
-    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No data yet.</p>
-    {% endif %}
-  </div>
-
-  <!-- SOURCE BREAKDOWN -->
-  <div class="card" style="margin-bottom:0;">
-    <div class="card-header">
-      <span class="card-title">&#x1F4CD; Enquiry Sources</span>
-      <span style="font-size:12px; color:#6B7280;">Total: {{ total_enquiries }}</span>
-    </div>
-    {% if source_breakdown %}
-    <div style="display:flex; flex-direction:column; gap:10px;">
-      {% for src in source_breakdown %}
-      <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
-          <span style="font-weight:500; color:#374151;">{{ src.enquiry_source|default:"Unknown"|title }}</span>
-          <span style="color:#6B7280;">{{ src.count }}</span>
-        </div>
-        <div style="background:#F3F4F6; border-radius:4px; height:8px; overflow:hidden;">
-          <div style="background:#2563EB; height:100%; border-radius:4px; width:{% if total_enquiries %}{{ src.count }}00{% else %}0{% endif %}%;"
-               data-src-count="{{ src.count }}" data-src-total="{{ total_enquiries }}"></div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-    <script>
-      document.querySelectorAll('[data-src-count]').forEach(el => {
-        const total = parseInt(el.dataset.srcTotal) || 1;
-        el.style.width = Math.round(parseInt(el.dataset.srcCount) / total * 100) + '%';
-      });
-    </script>
-    {% else %}
-    <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:40px 0;">No data yet.</p>
-    {% endif %}
-  </div>
 </div>
 
 <!-- TOP BIKE MODELS -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">&#x1F3CD;&#xFE0F; Top Enquired Models</span>
+    <span class="card-title"><i class="fas fa-motorcycle me-2"></i>Top Enquired Models</span>
   </div>
   {% if top_models %}
   <div class="table-wrapper">
@@ -151,7 +152,12 @@
     });
   </script>
   {% else %}
-  <p style="color:#9CA3AF; font-size:14px; text-align:center; padding:32px 0;">No model data yet.</p>
+  <div class="empty-state">
+      <i class="fas fa-chart-bar"
+        style=" font-size:36px; color:#CBD5E1; margin-bottom:12px; display:block; ">
+      </i>
+      <p>No analytics data available yet.</p>
+  </div>
   {% endif %}
 </div>
 {% endblock %}

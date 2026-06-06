@@ -1,29 +1,174 @@
 {% extends 'base.html' %}
+
 {% block title %}Additional Work — JC-{{ jc.pk }}{% endblock %}
 {% block page_title %}Additional Work Request for JC-{{ jc.pk }}{% endblock %}
+
+{% block topbar_actions %} <button form="additional-work-form"
+     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Create Request </button>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'service:jobcard_detail' jc.pk %}">JC-{{ jc.pk }}</a>
-  <span class="bc-sep">/</span><span class="bc-current">Additional Work</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:dashboard' %}">
+    Service
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_list' %}">
+    Job Cards
+</a>
+
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:jobcard_detail' jc.pk %}">
+    JC-{{ jc.pk }}
+</a>
+
+<span class="bc-sep">/</span>
+
+<span class="bc-current">
+    Additional Work Request
+</span>
+
 </nav>
-<div class="card form-card">
-  <div class="card-header"><span class="card-title">&#x1F527; Describe Additional Work</span></div>
-  <div style="padding:20px;">
-    <form method="post" novalidate>
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group">
-        <label class="form-label">{{ field.label }}</label>
-        {{ field }}
-        {% if field.help_text %}<small class="form-text">{{ field.help_text }}</small>{% endif %}
-        {% if field.errors %}<div class="form-error">{{ field.errors|join:', ' }}</div>{% endif %}
-      </div>
-      {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Create Request</button>
-        <a href="{% url 'service:jobcard_detail' jc.pk %}" class="btn btn-secondary">Cancel</a>
-      </div>
-    </form>
-  </div>
+
+<form method="post"
+      id="additional-work-form"
+      novalidate>
+
+{% csrf_token %}
+
+<div class="row g-3">
+
+    <div class="col-lg-8">
+
+        <div class="card form-card">
+
+            <div class="card-header">
+                <i class="fas fa-tools me-2"></i>
+                Additional Work Request
+            </div>
+
+            <div class="card-body">
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger mb-3">
+                    {{ form.non_field_errors }}
+                </div>
+                {% endif %}
+
+                <div class="row g-3">
+
+                    {% for field in form %}
+                    <div class="col-12">
+
+                        <label class="form-label fw-semibold">
+                            {{ field.label }}
+
+                            {% if field.field.required %}
+                            <span class="text-danger">*</span>
+                            {% endif %}
+                        </label>
+
+                        {{ field }}
+
+                        {% if field.help_text %}
+                        <small class="text-muted">
+                            {{ field.help_text }}
+                        </small>
+                        {% endif %}
+
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Request Information
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <strong>Job Card</strong>
+                    <div class="text-muted">
+                        JC-{{ jc.pk }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Module</strong>
+                    <div class="text-muted">
+                        Service Management
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Purpose</strong>
+                    <div class="text-muted small">
+                        Record additional repair or maintenance work identified after the Job Card was created and send it for customer approval.
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Workflow</strong>
+                    <div class="text-muted small">
+                        1. Create Request<br>
+                        2. Send to Customer<br>
+                        3. Customer Approves / Rejects<br>
+                        4. Work Added to Job Card
+                    </div>
+                </div>
+
+                <div>
+                    <strong>Examples</strong>
+                    <div class="text-muted small">
+                        • Brake Pad Replacement<br>
+                        • Chain & Sprocket Kit Change<br>
+                        • Battery Replacement<br>
+                        • Fork Oil Service<br>
+                        • Additional Electrical Repairs
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
+
+</form>
+
 {% endblock %}

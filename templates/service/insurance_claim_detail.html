@@ -1,25 +1,175 @@
 {% extends 'base.html' %}
-{% block title %}Claim {{ claim.claim_number }}{% endblock %}
-{% block page_title %}Insurance Claim {{ claim.claim_number }}{% endblock %}
+
+{% block title %}{{ claim.claim_number }} — SSBikez ERP{% endblock %}
+{% block page_title %}Insurance Claim{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'service:insurance_claim_list' %}">Claims</a>
-  <span class="bc-sep">/</span><span class="bc-current">{{ claim.claim_number }}</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+    <a href="{% url 'service:insurance_claim_list' %}">
+        Insurance Claims
+    </a>
+    <span class="bc-sep">/</span>
+
+    <span class="bc-current">
+        {{ claim.claim_number }}
+    </span>
 </nav>
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">{{ claim.claim_number }} — {{ claim.get_status_display }}</span>
-    <a href="{% url 'service:insurance_claim_update' claim.pk %}" class="btn btn-sm btn-secondary" style="float:right;">Edit</a>
-  </div>
-  <div style="padding:20px;line-height:1.9;">
-    <div><strong>Job Card:</strong> <a href="{% url 'service:jobcard_detail' claim.job_card_id %}">JC-{{ claim.job_card_id }}</a></div>
-    <div><strong>Insurance Co:</strong> {{ claim.insurance_company }}</div>
-    <div><strong>Policy #:</strong> {{ claim.policy_number }}</div>
-    <div><strong>Claim Amount:</strong> &#x20B9; {{ claim.claim_amount }}</div>
-    <div><strong>Approved Amount:</strong> &#x20B9; {{ claim.approved_amount }}</div>
-    <div><strong>Status:</strong> {{ claim.get_status_display }}</div>
-    <div><strong>Settlement Date:</strong> {{ claim.settlement_date|date:"d M Y"|default:"—" }}</div>
-    {% if claim.notes %}<div><strong>Notes:</strong><br>{{ claim.notes|linebreaksbr }}</div>{% endif %}
-  </div>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">
+            {{ claim.claim_number }}
+        </h1>
+
+        <p class="page-subtitle">
+            Insurance claim raised against
+            <a href="{% url 'service:jobcard_detail' claim.job_card_id %}">
+                JC-{{ claim.job_card_id }}
+            </a>
+        </p>
+
+        <div style="margin-top:10px;">
+
+            {% if claim.status == 'approved' %}
+                <span class="badge badge-green">
+                    {{ claim.get_status_display }}
+                </span>
+
+            {% elif claim.status == 'settled' %}
+                <span class="badge badge-blue">
+                    {{ claim.get_status_display }}
+                </span>
+
+            {% elif claim.status == 'rejected' %}
+                <span class="badge badge-red">
+                    {{ claim.get_status_display }}
+                </span>
+
+            {% else %}
+                <span class="badge badge-yellow">
+                    {{ claim.get_status_display }}
+                </span>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <div class="page-header-actions">
+
+        <a href="{% url 'service:insurance_claim_update' claim.pk %}"
+           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+            Edit
+        </a>
+
+        <a href="{% url 'service:insurance_claim_list' %}"
+           class="btn btn-ghost">
+            <i class="fas fa-arrow-left me-1"></i>
+            Back
+        </a>
+
+    </div>
+
 </div>
+
+<div class="detail-grid">
+
+    <!-- Claim Details -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-file-medical me-2"></i>
+                Claim Details
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Claim Number</dt>
+                <dd>{{ claim.claim_number }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Job Card</dt>
+                <dd>
+                    <a href="{% url 'service:jobcard_detail' claim.job_card_id %}">
+                        JC-{{ claim.job_card_id }}
+                    </a>
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Insurance Company</dt>
+                <dd>{{ claim.insurance_company }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Policy Number</dt>
+                <dd>{{ claim.policy_number }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Claim Amount</dt>
+                <dd style="font-weight:600;">
+                    ₹ {{ claim.claim_amount }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Approved Amount</dt>
+                <dd style="font-weight:600;color:#059669;">
+                    ₹ {{ claim.approved_amount|default:"0.00" }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>{{ claim.get_status_display }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Settlement Date</dt>
+                <dd>
+                    {{ claim.settlement_date|date:"d M Y"|default:"—" }}
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+    <!-- Notes -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                <i class="fas fa-sticky-note me-2"></i>
+                Notes
+            </span>
+        </div>
+
+        <div style="padding:20px; min-height:220px;">
+
+            {% if claim.notes %}
+                {{ claim.notes|linebreaksbr }}
+            {% else %}
+                <span style="color:#9CA3AF;">
+                    No notes available.
+                </span>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
 {% endblock %}

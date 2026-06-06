@@ -1,44 +1,130 @@
 {% extends 'base.html' %}
+
 {% block title %}Racks — Masters{% endblock %}
 {% block page_title %}Racks{% endblock %}
-{% block topbar_actions %}
-<a href="{% url 'masters:rack_create' %}" class="btn btn-primary btn-sm">
-  <i class="fas fa-plus me-1"></i>New Rack
-</a>
+
+{% block topbar_actions %} <a href="{% url 'masters:rack_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
+New Rack </a>
 {% endblock %}
+
 {% block content %}
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'masters:warehouse_list' %}">Warehouses</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">Racks</span>
+
+</nav>
+
 <div class="card">
-  <div class="card-header d-flex align-items-center justify-content-between">
-    <span class="card-title">All Racks</span>
-    <span class="badge bg-secondary">{{ racks|length }}</span>
-  </div>
-  <div class="card-body p-0">
-    {% if racks %}
-    <table class="table table-hover mb-0">
-      <thead>
-        <tr><th>Rack Name</th><th>Warehouse</th><th>Created</th><th class="text-end">Actions</th></tr>
-      </thead>
-      <tbody>
-        {% for rack in racks %}
-        <tr>
-          <td class="fw-semibold">{{ rack.name }}</td>
-          <td>{{ rack.warehouse.name }}</td>
-          <td>{{ rack.created_at|date:"d M Y" }}</td>
-          <td class="text-end">
-            <a href="{% url 'masters:rack_update' rack.pk %}" class="btn btn-sm btn-outline-secondary">
-              <i class="fas fa-edit"></i>
-            </a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-    {% else %}
-    <div class="empty-state">
-      <i class="fas fa-th-large text-muted"></i>
-      <p class="mt-2">No racks yet. <a href="{% url 'masters:rack_create' %}">Add one</a>.</p>
-    </div>
-    {% endif %}
-  </div>
+
+<div class="card-header"
+     style="display:flex;justify-content:space-between;align-items:center;">
+
+    <span class="card-title">
+
+        <i class="fas fa-th-large me-2"></i>
+        Racks
+
+    </span>
+
+    <span class="badge badge-blue">
+
+        {{ racks|length }}
+
+    </span>
+
 </div>
+
+<div class="table-wrapper">
+
+    {% if racks %}
+
+    <table class="table">
+
+        <thead>
+
+            <tr>
+                <th>Rack ID</th>
+                <th>Rack Name</th>
+                <th>Warehouse</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for rack in racks %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+                    RACK-{{ rack.pk }}
+                </td>
+
+                <td style="font-weight:600;">
+                    {{ rack.name }}
+                </td>
+
+                <td>
+                    {{ rack.warehouse.name }}
+                </td>
+
+                <td>
+                    {{ rack.created_at|date:"d M Y" }}
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'masters:rack_update' rack.pk %}"
+                           class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>
+
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+    {% else %}
+
+    <div class="empty-state">
+
+        <i class="fas fa-th-large mb-2"></i>
+
+        <div>
+
+            {% if q %}
+                No racks match "{{ q }}".
+            {% else %}
+                No racks found.
+            {% endif %}
+
+        </div>
+
+    </div>
+
+    {% endif %}
+
+</div>
+
+</div>
+
 {% endblock %}

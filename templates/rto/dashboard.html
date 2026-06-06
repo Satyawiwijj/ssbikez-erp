@@ -2,66 +2,206 @@
 {% block title %}RTO Dashboard — SSBikez ERP{% endblock %}
 {% block page_title %}RTO Dashboard{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'rto:registration_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Registration</a>
-{% endblock %}
-
 {% block content %}
+
 <div class="stat-grid">
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-blue"><i class="fas fa-id-card" style="color:#1d4ed8"></i></div>
-    <div>
-      <div class="stat-value">{{ total_reg }}</div>
-      <div class="stat-label">Total Registrations</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-blue">
+            <i class="fas fa-id-card" style="color:#1D4ED8"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_reg }}</div>
+            <div class="stat-label">Total Registrations</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-orange"><i class="fas fa-clock" style="color:#92400e"></i></div>
-    <div>
-      <div class="stat-value">{{ pending_reg }}</div>
-      <div class="stat-label">Pending</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-orange">
+            <i class="fas fa-clock" style="color:#92400E"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ pending_reg }}</div>
+            <div class="stat-label">Pending Registrations</div>
+        </div>
     </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-icon stat-icon-green"><i class="fas fa-hashtag" style="color:#065f46"></i></div>
-    <div>
-      <div class="stat-value">{{ total_plates }}</div>
-      <div class="stat-label">Number Plates</div>
+
+    <div class="stat-card">
+        <div class="stat-icon stat-icon-green">
+            <i class="fas fa-hashtag" style="color:#065F46"></i>
+        </div>
+        <div>
+            <div class="stat-value">{{ total_plates }}</div>
+            <div class="stat-label">Number Plates Issued</div>
+        </div>
     </div>
-  </div>
+
 </div>
 
 <div class="card">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h6 class="card-title mb-0">Recent Registrations</h6>
-    <a href="{% url 'rto:registration_list' %}" class="btn btn-sm btn-outline-secondary">View All</a>
+
+  <div class="card-header"
+      style="display:flex;justify-content:space-between;align-items:center;">
+
+      <span class="card-title">
+
+          <i class="fas fa-id-card me-2"></i>
+          Recent Registrations
+
+      </span>
+
+      <div style="display:flex;align-items:center;gap:10px;">
+
+          <span class="badge badge-blue">
+              {{ recent_regs|length }}
+          </span>
+
+          <a href="{% url 'rto:registration_list' %}"
+            class="btn btn-secondary btn-sm">
+
+              View All
+
+          </a>
+
+      </div>
+
   </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
-        <thead>
-          <tr><th>#</th><th>Customer</th><th>Reg. Number</th><th>Status</th><th>Date</th><th>Actions</th></tr>
-        </thead>
-        <tbody>
-          {% for reg in recent_regs %}
-          <tr>
-            <td>RTO-{{ reg.pk }}</td>
-            <td>{{ reg.sales_order.customer.full_name }}</td>
-            <td>{{ reg.registration_number|default:"Pending" }}</td>
-            <td>
-              <span class="badge badge-soft-{% if reg.registration_status == 'registered' %}success{% elif reg.registration_status == 'submitted' %}info{% else %}warning{% endif %}">
-                {{ reg.get_registration_status_display }}
-              </span>
-            </td>
-            <td>{{ reg.created_at|date:"d M Y" }}</td>
-            <td><a href="{% url 'rto:registration_detail' reg.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="6" class="text-center text-muted py-4"><i class="fas fa-inbox fa-2x mb-2 d-block"></i>No registrations yet.</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+
+                <tr>
+                    <th>RTO ID</th>
+                    <th>Customer</th>
+                    <th>Registration No.</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for reg in recent_regs %}
+
+                <tr>
+
+                    <td style="font-family:monospace;font-weight:600;">
+
+                        RTO-{{ reg.pk }}
+
+                    </td>
+
+                    <td>
+
+                        <div style="font-weight:600;">
+
+                            {{ reg.sales_order.customer.full_name }}
+
+                        </div>
+
+                        <div style="font-size:12px;color:#6B7280;">
+
+                            ORD-{{ reg.sales_order.pk }}
+
+                        </div>
+
+                    </td>
+
+                    <td>
+
+                        {% if reg.registration_number %}
+
+                        <span style="font-family:monospace;">
+
+                            {{ reg.registration_number }}
+
+                        </span>
+
+                        {% else %}
+
+                        <span style="color:#D97706;">
+                            Pending
+                        </span>
+
+                        {% endif %}
+
+                    </td>
+
+                    <td>
+
+                        {% if reg.registration_status == 'registered' %}
+
+                        <span class="badge badge-green">
+
+                        {% elif reg.registration_status == 'submitted' %}
+
+                        <span class="badge badge-blue">
+
+                        {% elif reg.registration_status == 'pending' %}
+
+                        <span class="badge badge-yellow">
+
+                        {% else %}
+
+                        <span class="badge badge-gray">
+
+                        {% endif %}
+
+                            {{ reg.get_registration_status_display }}
+
+                        </span>
+
+                    </td>
+
+                    <td style="color:#6B7280;font-size:13px;">
+
+                        {{ reg.created_at|date:"d M Y" }}
+
+                    </td>
+
+                    <td>
+
+                        <a href="{% url 'rto:registration_detail' reg.pk %}"
+                           class="btn btn-secondary btn-sm">
+
+                            <i class="fas fa-eye me-1"></i>
+                            View
+
+                        </a>
+
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="6" class="empty-state">
+
+                        <i class="fas fa-id-card mb-2"></i>
+
+                        <div>
+                            No registrations found.
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
     </div>
-  </div>
+
 </div>
+
 {% endblock %}

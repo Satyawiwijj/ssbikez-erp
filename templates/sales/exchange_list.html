@@ -1,41 +1,167 @@
 {% extends 'base.html' %}
+
 {% block title %}Exchange Vehicles — SSBikez ERP{% endblock %}
 {% block page_title %}Exchange Vehicles{% endblock %}
 
-{% block topbar_actions %}
-<a href="{% url 'sales:exchange_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>Record Exchange</a>
+{% block topbar_actions %} <a href="{% url 'sales:exchange_create' %}"
+class="btn btn-primary btn-sm">
+<i class="fas fa-plus me-1"></i>
+Record Exchange
+</a>
 {% endblock %}
 
 {% block content %}
+
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:dashboard' %}">Sales</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Exchange Vehicles</span>
+</nav>
+
 <div class="card">
-  <div class="card-header">
-    <h6 class="card-title mb-0">All Exchange Vehicles <span class="badge bg-secondary ms-2">{{ exchanges|length }}</span></h6>
-  </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-hover mb-0">
+
+<div class="card-header">
+
+    <span class="card-title">
+
+        <i class="fas fa-exchange-alt me-2"></i>
+        All Exchange Vehicles
+
+    </span>
+
+    <span class="badge badge-blue">
+
+        {{ exchanges|length }}
+
+    </span>
+
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
         <thead>
-          <tr><th>#</th><th>Order</th><th>Customer</th><th>Old Vehicle</th><th>Reg No</th><th>Valuation</th><th>Actions</th></tr>
+
+            <tr>
+                <th>Exchange ID</th>
+                <th>Order</th>
+                <th>Customer</th>
+                <th>Old Vehicle</th>
+                <th>Registration No</th>
+                <th>Valuation</th>
+                <th>Actions</th>
+            </tr>
+
         </thead>
+
         <tbody>
-          {% for ex in exchanges %}
-          <tr>
-            <td>{{ ex.pk }}</td>
-            <td><a href="{% url 'sales:order_detail' ex.sales_order.pk %}">ORD-{{ ex.sales_order.pk }}</a></td>
-            <td>{{ ex.sales_order.customer.full_name }}</td>
-            <td>{{ ex.old_vehicle_model|default:"—" }}</td>
-            <td>{{ ex.registration_no|default:"—" }}</td>
-            <td>{% if ex.valuation_amount %}Rs. {{ ex.valuation_amount }}{% else %}—{% endif %}</td>
-            <td>
-              <a href="{% url 'sales:exchange_update' ex.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="7" class="text-center text-muted py-4"><i class="fas fa-exchange-alt fa-2x mb-2 d-block"></i>No exchange records.</td></tr>
-          {% endfor %}
+
+            {% for ex in exchanges %}
+
+            <tr>
+
+                <td style="font-family:monospace;font-weight:600;">
+
+                    EX-{{ ex.pk }}
+
+                </td>
+
+                <td>
+
+                    <a href="{% url 'sales:order_detail' ex.sales_order.pk %}"
+                       class="text-decoration-none fw-semibold text-primary">
+
+                        ORD-{{ ex.sales_order.pk }}
+
+                    </a>
+
+                </td>
+
+                <td>
+
+                    <div class="fw-semibold">
+
+                        {{ ex.sales_order.customer.full_name }}
+
+                    </div>
+
+                </td>
+
+                <td>
+
+                    {{ ex.old_vehicle_model|default:"—" }}
+
+                </td>
+
+                <td style="font-family:monospace;">
+
+                    {{ ex.registration_no|default:"—" }}
+
+                </td>
+
+                <td>
+
+                    {% if ex.valuation_amount %}
+
+                    <span class="fw-semibold text-success">
+
+                        ₹ {{ ex.valuation_amount }}
+
+                    </span>
+
+                    {% else %}
+
+                    —
+
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'sales:exchange_update' ex.pk %}"
+                           class="btn btn-outline-primary btn-sm">
+
+                            <i class="fas fa-edit me-1"></i>
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="7" class="empty-state">
+
+                    <i class="fas fa-exchange-alt mb-2"></i>
+
+                    <div>
+
+                        No exchange vehicle records found.
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
         </tbody>
-      </table>
-    </div>
-  </div>
+
+    </table>
+
+</div>
 </div>
 {% endblock %}

@@ -2,56 +2,240 @@
 {% block title %}My Profile — SSBikez ERP{% endblock %}
 {% block page_title %}My Profile{% endblock %}
 
+{% block topbar_actions %}
+<a href="{% url 'accounts:profile_update' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-user-edit me-1"></i>Edit Profile
+</a>
+
+<a href="{% url 'accounts:password_change' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="fas fa-key me-1"></i>Change Password
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">My Profile</h1>
-    <p class="page-subtitle">{{ profile_user.get_full_name|default:profile_user.username }}</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'accounts:profile_update' %}" class="btn btn-primary">Edit Profile</a>
-    <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary">Change Password</a>
-  </div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">My Profile</span>
+</nav>
+
+<!-- Profile Banner -->
+
+<div class="card mb-4">
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-user-circle me-2"></i>
+            User Profile
+        </span>
+    </div>
+
+    <div class="card-body">
+
+        <div class="d-flex align-items-center">
+
+            <div style="
+                width:80px;
+                height:80px;
+                border-radius:50%;
+                background:linear-gradient(135deg,#2563EB,#1E3A8A);
+                color:white;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                font-size:32px;
+                font-weight:700;
+                margin-right:20px;">
+                {{ profile_user.first_name|first|default:profile_user.username|first|upper }}
+            </div>
+
+            <div>
+                <h3 class="mb-1">
+                    {{ profile_user.get_full_name|default:profile_user.username }}
+                </h3>
+
+                <div class="text-muted">
+                    {{ profile_user.email|default:"No Email" }}
+                </div>
+
+                <div class="mt-2">
+
+                    {% if profile_user.status == 'active' %}
+                    <span class="badge badge-green">
+                        Active User
+                    </span>
+                    {% else %}
+                    <span class="badge badge-gray">
+                        {{ profile_user.get_status_display }}
+                    </span>
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Personal Information</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Full Name</dt><dd>{{ profile_user.get_full_name|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Username</dt><dd><code>{{ profile_user.username }}</code></dd></div>
-      <div class="detail-row"><dt>Email</dt><dd>{{ profile_user.email|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Phone</dt><dd>{{ profile_user.phone|default:"—" }}</dd></div>
-    </dl>
-  </div>
-  <div class="card">
-    <div class="card-header"><span class="card-title">Account Details</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Role</dt><dd>{{ profile_user.role|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Branch</dt><dd>{{ profile_user.branch|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Status</dt>
-        <dd>
-          {% if profile_user.status == 'active' %}
-          <span class="badge badge-green">Active</span>
-          {% else %}
-          <span class="badge badge-gray">{{ profile_user.get_status_display }}</span>
-          {% endif %}
-        </dd>
-      </div>
-      <div class="detail-row"><dt>Member Since</dt><dd>{{ profile_user.date_joined|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Last Updated</dt><dd>{{ profile_user.updated_at|date:"d M Y H:i" }}</dd></div>
-    </dl>
-  </div>
+<div class="row g-3">
+
+    <!-- Personal Information -->
+
+    <div class="col-lg-6">
+
+        <div class="card h-100">
+
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-id-card me-2"></i>
+                    Personal Information
+                </span>
+            </div>
+
+            <div class="card-body">
+
+                <dl class="detail-list">
+
+                    <div class="detail-row">
+                        <dt>Full Name</dt>
+                        <dd>{{ profile_user.get_full_name|default:"—" }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Username</dt>
+                        <dd>
+                            <code>{{ profile_user.username }}</code>
+                        </dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Email</dt>
+                        <dd>{{ profile_user.email|default:"—" }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Phone</dt>
+                        <dd>{{ profile_user.phone|default:"—" }}</dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Account Details -->
+
+    <div class="col-lg-6">
+
+        <div class="card h-100">
+
+            <div class="card-header">
+                <span class="card-title">
+                    <i class="fas fa-user-shield me-2"></i>
+                    Account Details
+                </span>
+            </div>
+
+            <div class="card-body">
+
+                <dl class="detail-list">
+
+                    <div class="detail-row">
+                        <dt>Role</dt>
+                        <dd>{{ profile_user.role|default:"—" }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Branch</dt>
+                        <dd>{{ profile_user.branch|default:"—" }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Status</dt>
+                        <dd>
+                            {% if profile_user.status == 'active' %}
+                            <span class="badge badge-green">
+                                Active
+                            </span>
+                            {% else %}
+                            <span class="badge badge-gray">
+                                {{ profile_user.get_status_display }}
+                            </span>
+                            {% endif %}
+                        </dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Member Since</dt>
+                        <dd>{{ profile_user.date_joined|date:"d M Y" }}</dd>
+                    </div>
+
+                    <div class="detail-row">
+                        <dt>Last Updated</dt>
+                        <dd>{{ profile_user.updated_at|date:"d M Y H:i" }}</dd>
+                    </div>
+
+                </dl>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
 
-<div class="card">
-  <div class="card-header"><span class="card-title">Security</span></div>
-  <p style="color:#6B7280; font-size:14px; margin-bottom:16px;">
-    Keep your account secure by using a strong password and updating it regularly.
-  </p>
-  <div style="display:flex; gap:8px;">
-    <a href="{% url 'accounts:password_change' %}" class="btn btn-secondary">&#x1F512; Change Password</a>
-    <a href="{% url 'accounts:profile_update' %}" class="btn btn-ghost">Edit Profile Info</a>
-  </div>
+<!-- Security -->
+
+<div class="card mt-4">
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-lock me-2"></i>
+            Security Settings
+        </span>
+    </div>
+
+    <div class="card-body">
+
+        <div class="alert alert-light border">
+
+            <i class="fas fa-shield-alt text-primary me-2"></i>
+
+            Keep your account secure by using a strong password
+            and updating it regularly.
+
+        </div>
+
+        <div class="d-flex gap-2 flex-wrap">
+
+            <a href="{% url 'accounts:password_change' %}"
+               class="btn btn-primary">
+
+                <i class="fas fa-key me-2"></i>
+                Change Password
+
+            </a>
+
+            <a href="{% url 'accounts:profile_update' %}"
+               class="btn btn-outline-secondary">
+
+                <i class="fas fa-user-edit me-2"></i>
+                Edit Profile
+
+            </a>
+
+        </div>
+
+    </div>
+
 </div>
+
 {% endblock %}

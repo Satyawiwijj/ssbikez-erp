@@ -1,53 +1,270 @@
 {% extends 'base.html' %}
-{% block title %}{{ invoice.invoice_no }}{% endblock %}
-{% block page_title %}{{ invoice.invoice_no }}{% endblock %}
-{% block topbar_actions %}
-<a href="{% url 'spares:invoice_list' %}" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i>Back</a>
-{% endblock %}
+
+{% block title %}{{ invoice.invoice_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Purchase Invoice {{ invoice.invoice_no }}{% endblock %}
+
 {% block content %}
-<div class="row g-3">
-  <div class="col-lg-8">
-    <div class="card border-0 shadow-sm mb-3">
-      <div class="card-header bg-white border-0 pt-3"><h6 class="mb-0 fw-semibold">Items</h6></div>
-      <div class="table-responsive">
-        <table class="table table-sm mb-0">
-          <thead class="table-light">
-            <tr><th>Item</th><th>WH</th><th>Qty</th><th>Rate</th><th>SGST</th><th>CGST</th><th>Total</th></tr>
-          </thead>
-          <tbody>
-            {% for i in items %}
-            <tr>
-              <td>{{ i.item.item_name }}</td>
-              <td>{{ i.warehouse.name }}</td>
-              <td>{{ i.quantity }}</td>
-              <td>&#8377;{{ i.rate }}</td>
-              <td>&#8377;{{ i.sgst_amount }}</td>
-              <td>&#8377;{{ i.cgst_amount }}</td>
-              <td>&#8377;{{ i.total }}</td>
-            </tr>
-            {% empty %}
-            <tr><td colspan="7" class="text-center text-muted">No items.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
+
+<div class="page-header">
+
+    <div>
+        <h1 class="page-title">{{ invoice.invoice_no }}</h1>
+        <p class="page-subtitle">
+            Supplier Purchase Invoice Details
+        </p>
     </div>
-  </div>
-  <div class="col-lg-4">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <dl class="row mb-0">
-          <dt class="col-6">Supplier</dt><dd class="col-6">{{ invoice.supplier }}</dd>
-          <dt class="col-6">Date</dt><dd class="col-6">{{ invoice.date }}</dd>
-          <dt class="col-6">Status</dt><dd class="col-6">{{ invoice.get_status_display }}</dd>
-          <dt class="col-6">Total Amount</dt><dd class="col-6">&#8377;{{ invoice.total_amount }}</dd>
-          <dt class="col-6">SGST</dt><dd class="col-6">&#8377;{{ invoice.total_sgst }}</dd>
-          <dt class="col-6">CGST</dt><dd class="col-6">&#8377;{{ invoice.total_cgst }}</dd>
-          <dt class="col-6 fw-bold">Grand Total</dt><dd class="col-6 fw-bold">&#8377;{{ invoice.grand_total }}</dd>
-          <dt class="col-6">Payment</dt><dd class="col-6">{{ invoice.payment_status }}</dd>
-        </dl>
-      </div>
+
+    <div class="page-header-actions">
+
+        <a href="{% url 'spares:invoice_list' %}"
+           class="btn btn-sm btn-outline-primary">
+            Back to List
+        </a>
+
     </div>
-  </div>
+
 </div>
+
+<div class="detail-grid">
+
+    <!-- Invoice Details -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                Invoice Information
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Invoice Number</dt>
+                <dd style="font-family:monospace;font-weight:600;">
+                    {{ invoice.invoice_no }}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Supplier</dt>
+                <dd>{{ invoice.supplier }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Invoice Date</dt>
+                <dd>{{ invoice.date|date:"d M Y" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+
+                    {% if invoice.status == 'draft' %}
+                        <span class="badge badge-gray">
+                            Draft
+                        </span>
+
+                    {% elif invoice.status == 'submitted' %}
+                        <span class="badge badge-blue">
+                            Submitted
+                        </span>
+
+                    {% elif invoice.status == 'paid' %}
+                        <span class="badge badge-green">
+                            Paid
+                        </span>
+
+                    {% elif invoice.status == 'cancelled' %}
+                        <span class="badge badge-red">
+                            Cancelled
+                        </span>
+
+                    {% else %}
+                        <span class="badge badge-gray">
+                            {{ invoice.get_status_display }}
+                        </span>
+                    {% endif %}
+
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Payment Status</dt>
+                <dd>{{ invoice.payment_status }}</dd>
+            </div>
+
+            {% if invoice.purchase_order %}
+            <div class="detail-row">
+                <dt>Purchase Order</dt>
+                <dd>
+                    <a href="{% url 'spares:order_detail' invoice.purchase_order.pk %}">
+                        {{ invoice.purchase_order }}
+                    </a>
+                </dd>
+            </div>
+            {% endif %}
+
+            {% if invoice.supplier_gstin %}
+            <div class="detail-row">
+                <dt>Supplier GSTIN</dt>
+                <dd>{{ invoice.supplier_gstin }}</dd>
+            </div>
+            {% endif %}
+
+            {% if invoice.gst_category %}
+            <div class="detail-row">
+                <dt>GST Category</dt>
+                <dd>{{ invoice.gst_category }}</dd>
+            </div>
+            {% endif %}
+
+            {% if invoice.place_of_supply %}
+            <div class="detail-row">
+                <dt>Place of Supply</dt>
+                <dd>{{ invoice.place_of_supply }}</dd>
+            </div>
+            {% endif %}
+
+            {% if invoice.remarks %}
+            <div class="detail-row">
+                <dt>Remarks</dt>
+                <dd>{{ invoice.remarks|linebreaksbr }}</dd>
+            </div>
+            {% endif %}
+
+        </dl>
+
+    </div>
+
+    <!-- Amount Summary -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <span class="card-title">
+                Amount Summary
+            </span>
+        </div>
+
+        <dl class="detail-list">
+
+            <div class="detail-row">
+                <dt>Total Amount</dt>
+                <dd>₹ {{ invoice.total_amount }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>SGST</dt>
+                <dd>₹ {{ invoice.total_sgst }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>CGST</dt>
+                <dd>₹ {{ invoice.total_cgst }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Grand Total</dt>
+                <dd style="font-weight:700;color:#2563EB;">
+                    ₹ {{ invoice.grand_total }}
+                </dd>
+            </div>
+
+        </dl>
+
+    </div>
+
+</div>
+
+<!-- Invoice Items -->
+
+<div class="card" style="margin-top:20px;">
+
+    <div class="card-header">
+        <span class="card-title">
+            Invoice Items
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Warehouse</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>SGST</th>
+                    <th>CGST</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for i in items %}
+
+                <tr>
+
+                    <td style="font-weight:500;">
+                        {{ i.item.item_name }}
+                    </td>
+
+                    <td>
+                        {{ i.warehouse.name }}
+                    </td>
+
+                    <td>
+                        {{ i.quantity }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.rate }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.sgst_amount }}
+                    </td>
+
+                    <td>
+                        ₹ {{ i.cgst_amount }}
+                    </td>
+
+                    <td style="font-weight:600;">
+                        ₹ {{ i.total }}
+                    </td>
+
+                </tr>
+
+                {% empty %}
+
+                <tr>
+
+                    <td colspan="7">
+
+                        <div class="empty-state">
+
+                            <p>
+                                No invoice items found.
+                            </p>
+
+                        </div>
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
 {% endblock %}

@@ -1,44 +1,181 @@
 {% extends 'base.html' %}
+
 {% block title %}PP-{{ package.pk }} — SSBikez ERP{% endblock %}
 {% block page_title %}Protection Plus Detail{% endblock %}
 
+{% block topbar_actions %}
+
+<a href="{% url 'vas:pp_update' package.pk %}"
+class="btn btn-secondary btn-sm">
+<i class="fas fa-edit me-1"></i>
+Edit
+</a>
+
+<a href="{% url 'vas:pp_list' %}"
+class="btn btn-outline-secondary btn-sm">
+<i class="fas fa-arrow-left me-1"></i>
+Back
+</a>
+
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Protection Plus — PP-{{ package.pk }}</h1>
-    <p class="page-subtitle">{{ package.customer_vehicle.customer.full_name }}</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'vas:pp_update' package.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'vas:pp_list' %}" class="btn btn-ghost">&#8592; Back</a>
-  </div>
-</div>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'vas:dashboard' %}">VAS</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'vas:pp_list' %}">Protection Plus Packages</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">PP-{{ package.pk }}</span>
+</nav>
+
+
 
 <div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Package Info</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Package Name</dt><dd style="font-weight:500;">{{ package.package_name|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Provider</dt><dd>{{ package.provider_name|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Start Date</dt><dd>{{ package.start_date|date:"d M Y"|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>End Date</dt><dd>{{ package.end_date|date:"d M Y"|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Amount</dt><dd style="font-weight:600;">{% if package.amount %}&#x20B9; {{ package.amount }}{% else %}—{% endif %}</dd></div>
-      <div class="detail-row"><dt>Status</dt><dd><span class="badge badge-purple">{{ package.get_status_display }}</span></dd></div>
-      <div class="detail-row"><dt>Created</dt><dd style="color:#6B7280; font-size:13px;">{{ package.created_at|date:"d M Y" }}</dd></div>
-    </dl>
-  </div>
 
-  <div class="card">
-    <div class="card-header"><span class="card-title">Customer Vehicle</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Customer</dt><dd style="font-weight:500;">{{ package.customer_vehicle.customer.full_name }}</dd></div>
-      <div class="detail-row"><dt>Phone</dt><dd>{{ package.customer_vehicle.customer.phone }}</dd></div>
-      <div class="detail-row"><dt>Vehicle</dt><dd>{{ package.customer_vehicle.vehicle.bike_model }}</dd></div>
-      <div class="detail-row"><dt>Reg. No.</dt><dd style="font-family:monospace;">{{ package.customer_vehicle.registration_no|default:"—" }}</dd></div>
-    </dl>
-    <div style="margin-top:16px;">
-      <a href="{% url 'customer_vehicles:customervehicle_detail' package.customer_vehicle.pk %}" class="btn btn-secondary btn-sm">View Customer Vehicle</a>
+<div class="card h-100">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-shield-alt me-2"></i>
+            Package Information
+
+        </span>
+
+        <span class="badge badge-purple">
+            PP-{{ package.pk }}
+        </span>
+
     </div>
-  </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>Package Name</dt>
+            <dd style="font-weight:600;">
+                {{ package.package_name|default:"—" }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Provider</dt>
+            <dd>{{ package.provider_name|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Start Date</dt>
+            <dd>{{ package.start_date|date:"d M Y"|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>End Date</dt>
+            <dd>{{ package.end_date|date:"d M Y"|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Amount</dt>
+            <dd style="font-size:16px;font-weight:700;color:#7C3AED;">
+                {% if package.amount %}
+                ₹ {{ package.amount }}
+                {% else %}
+                —
+                {% endif %}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Status</dt>
+            <dd>
+
+                {% if package.status == 'active' %}
+                <span class="badge badge-green">{{ package.get_status_display }}</span>
+
+                {% elif package.status == 'expired' %}
+                <span class="badge badge-red">{{ package.get_status_display }}</span>
+
+                {% elif package.status == 'pending' %}
+                <span class="badge badge-yellow">{{ package.get_status_display }}</span>
+
+                {% else %}
+                <span class="badge badge-gray">{{ package.get_status_display }}</span>
+
+                {% endif %}
+
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Created</dt>
+            <dd>{{ package.created_at|date:"d M Y" }}</dd>
+        </div>
+
+    </dl>
+
 </div>
+
+<div class="card h-100">
+
+    <div class="card-header">
+
+        <span class="card-title">
+
+            <i class="fas fa-motorcycle me-2"></i>
+            Customer Vehicle
+
+        </span>
+
+        <a href="{% url 'customer_vehicles:customervehicle_detail' package.customer_vehicle.pk %}"
+           class="btn btn-primary btn-sm">
+
+            <i class="fas fa-eye me-1"></i>
+            View
+
+        </a>
+
+    </div>
+
+    <dl class="detail-list">
+
+        <div class="detail-row">
+            <dt>Customer</dt>
+            <dd style="font-weight:600;">
+                {{ package.customer_vehicle.customer.full_name }}
+            </dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Phone</dt>
+            <dd>{{ package.customer_vehicle.customer.phone|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Vehicle</dt>
+            <dd>{{ package.customer_vehicle.vehicle.bike_model }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Registration No.</dt>
+            <dd style="font-family:monospace;font-weight:600;">
+                {{ package.customer_vehicle.registration_no|default:"—" }}
+            </dd>
+        </div>
+
+    </dl>
+
+</div>
+
+</div>
+{% if package.end_date and package.status == 'active' %}
+<div class="alert alert-warning mt-4">
+
+<i class="fas fa-exclamation-triangle me-2"></i>
+Protection Plus coverage is active and expires on
+<strong>{{ package.end_date|date:"d M Y" }}</strong>.
+</div>
+{% endif %}
+
 {% endblock %}

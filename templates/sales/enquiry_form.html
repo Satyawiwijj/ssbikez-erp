@@ -1,110 +1,228 @@
 {% extends 'base.html' %}
+
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %} <button form="enquiry-form" class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
+Save Enquiry </button>
+
+<a href="{% url 'sales:enquiry_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
 {% block content %}
-<nav class="breadcrumb-bar">
-  <a href="{% url 'accounts:dashboard' %}">Home</a>
-  <span class="bc-sep">/</span>
-  <a href="{% url 'sales:enquiry_list' %}">Enquiries</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">{{ title }}</span>
-</nav>
 
 <div class="page-header">
-  <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'sales:enquiry_list' %}" class="btn btn-ghost">&#8592; Cancel</a>
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">
+            Create and manage sales enquiries
+        </p>
+    </div>
 </div>
 
-<form method="post" novalidate>
-  {% csrf_token %}
-  {% if form.non_field_errors %}
-  <div class="alert alert-warning" style="margin-bottom:16px;">
-    {% for err in form.non_field_errors %}{{ err }}{% endfor %}
-  </div>
-  {% endif %}
+<form method="post" id="enquiry-form" novalidate>
+    {% csrf_token %}
+{% if form.non_field_errors %}
+<div class="alert alert-warning mb-3">
+    {% for err in form.non_field_errors %}
+        {{ err }}
+    {% endfor %}
+</div>
+{% endif %}
 
-  <!-- PROSPECT SECTION -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-header">
-      <span class="card-title">&#x1F464; New Prospect (Walk-in / Phone Call)</span>
-    </div>
-    <p style="font-size:13px; color:#6B7280; margin-bottom:16px;">
-      Fill this section for a visitor who is <strong>not yet</strong> a registered customer.
-      If they are an existing customer, leave blank and select below.
-    </p>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div class="form-group">
-        <label class="form-label" for="{{ form.prospect_name.id_for_label }}">{{ form.prospect_name.label }}</label>
-        {{ form.prospect_name }}
-        {% if form.prospect_name.errors %}
-        <div class="form-error">{% for e in form.prospect_name.errors %}{{ e }}{% endfor %}</div>
-        {% endif %}
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="{{ form.prospect_phone.id_for_label }}">{{ form.prospect_phone.label }}</label>
-        {{ form.prospect_phone }}
-        {% if form.prospect_phone.errors %}
-        <div class="form-error">{% for e in form.prospect_phone.errors %}{{ e }}{% endfor %}</div>
-        {% endif %}
-        <div class="form-help">If this phone matches an existing customer, they will be linked automatically.</div>
-      </div>
-    </div>
-  </div>
+<div class="row g-4">
 
-  <!-- EXISTING CUSTOMER -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-header">
-      <span class="card-title">&#x1F4CB; Existing Customer (Optional)</span>
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>
-      {{ form.customer }}
-      <div class="form-help">{{ form.customer.help_text }}</div>
-      {% if form.customer.errors %}
-      <div class="form-error">{% for e in form.customer.errors %}{{ e }}{% endfor %}</div>
-      {% endif %}
-    </div>
-  </div>
+    <div class="col-lg-8">
 
-  <!-- ENQUIRY DETAILS -->
-  <div class="card" style="margin-bottom:16px;">
-    <div class="card-header">
-      <span class="card-title">&#x1F50D; Enquiry Details</span>
-    </div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div class="form-group">
-        <label class="form-label" for="{{ form.bike_model.id_for_label }}">Vehicle of Interest</label>
-        {{ form.bike_model }}
-        {% if form.bike_model.errors %}<div class="form-error">{% for e in form.bike_model.errors %}{{ e }}{% endfor %}</div>{% endif %}
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="{{ form.enquiry_source.id_for_label }}">{{ form.enquiry_source.label }}</label>
-        {{ form.enquiry_source }}
-        {% if form.enquiry_source.errors %}<div class="form-error">{% for e in form.enquiry_source.errors %}{{ e }}{% endfor %}</div>{% endif %}
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="{{ form.sales_executive.id_for_label }}">{{ form.sales_executive.label }}</label>
-        {{ form.sales_executive }}
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="{{ form.branch.id_for_label }}">{{ form.branch.label }}</label>
-        {{ form.branch }}
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="{{ form.status.id_for_label }}">{{ form.status.label }}</label>
-        {{ form.status }}
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label" for="{{ form.remarks.id_for_label }}">{{ form.remarks.label }}</label>
-      {{ form.remarks }}
-    </div>
-  </div>
+        <div class="card form-card mb-4">
 
-  <div class="form-actions">
-    <button type="submit" class="btn btn-primary">Save Enquiry</button>
-    <a href="{% url 'sales:enquiry_list' %}" class="btn btn-secondary">Cancel</a>
-  </div>
+            <div class="card-header">
+                <i class="fas fa-user-plus me-2"></i>
+                New Prospect
+            </div>
+
+            <div class="card-body">
+
+                <p class="text-muted small mb-3">
+                    Fill this section for a walk-in visitor or phone enquiry who is not yet a registered customer.
+                </p>
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="{{ form.prospect_name.id_for_label }}">
+                            {{ form.prospect_name.label }}
+                        </label>
+
+                        {{ form.prospect_name }}
+
+                        {% if form.prospect_name.errors %}
+                        <div class="form-error">
+                            {% for e in form.prospect_name.errors %}
+                                {{ e }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="{{ form.prospect_phone.id_for_label }}">
+                            {{ form.prospect_phone.label }}
+                        </label>
+
+                        {{ form.prospect_phone }}
+
+                        {% if form.prospect_phone.errors %}
+                        <div class="form-error">
+                            {% for e in form.prospect_phone.errors %}
+                                {{ e }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <small class="text-muted">
+                            Existing customers will be linked automatically if the phone number matches.
+                        </small>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="card form-card mb-4">
+
+            <div class="card-header">
+                <i class="fas fa-users me-2"></i>
+                Existing Customer
+            </div>
+
+            <div class="card-body">
+
+                <label class="form-label" for="{{ form.customer.id_for_label }}">
+                    {{ form.customer.label }}
+                </label>
+
+                {{ form.customer }}
+
+                {% if form.customer.help_text %}
+                <small class="text-muted">
+                    {{ form.customer.help_text }}
+                </small>
+                {% endif %}
+
+                {% if form.customer.errors %}
+                <div class="form-error">
+                    {% for e in form.customer.errors %}
+                        {{ e }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+            </div>
+
+        </div>
+
+        <div class="card form-card">
+
+            <div class="card-header">
+                <i class="fas fa-search me-2"></i>
+                Enquiry Details
+            </div>
+
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+
+                        <label class="form-label" for="{{ form.bike_model.id_for_label }}">
+                            Vehicle of Interest
+                        </label>
+
+                        {{ form.bike_model }}
+
+                        {% if form.bike_model.errors %}
+                        <div class="form-error">
+                            {% for e in form.bike_model.errors %}
+                                {{ e }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.enquiry_source.id_for_label }}">
+                            {{ form.enquiry_source.label }}
+                        </label>
+                        {{ form.enquiry_source }}
+                        {% if form.enquiry_source.errors %}
+                        <div class="form-error">
+                            {% for e in form.enquiry_source.errors %}
+                                {{ e }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.sales_executive.id_for_label }}">
+                            {{ form.sales_executive.label }}
+                        </label>
+                        {{ form.sales_executive }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.branch.id_for_label }}">
+                            {{ form.branch.label }}
+                        </label>
+                        {{ form.branch }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label" for="{{ form.status.id_for_label }}">
+                            {{ form.status.label }}
+                        </label>
+                        {{ form.status }}
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <label class="form-label" for="{{ form.remarks.id_for_label }}">
+                        {{ form.remarks.label }}
+                    </label>
+                    {{ form.remarks }}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Information
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="fw-semibold mb-1">Lead Types</div>
+                    <div class="text-muted">Prospect or Existing Customer</div>
+                </div>
+                <div class="mb-4">
+                    <div class="fw-semibold mb-1">Workflow</div>
+                    <div class="text-muted">Enquiry → Follow-up → Order</div>
+                </div>
+                <div>
+                    <div class="fw-semibold mb-1">Notes</div>
+                    <div class="text-muted small">Capture complete customer information and vehicle interest before saving the enquiry.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 </form>
 {% endblock %}

@@ -1,33 +1,110 @@
 {% extends 'base.html' %}
+
 {% block title %}Delivery — ORD-{{ delivery.sales_order.pk }} — SSBikez ERP{% endblock %}
 {% block page_title %}Vehicle Delivery{% endblock %}
 
-{% block content %}
-<div class="page-header">
-  <div>
-    <h1 class="page-title">Vehicle Delivery</h1>
-    <p class="page-subtitle">ORD-{{ delivery.sales_order.pk }} — {{ delivery.sales_order.customer.full_name }}</p>
-  </div>
-  <div class="page-header-actions">
-    <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-secondary">Edit</a>
-    <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}" class="btn btn-ghost">&#8592; Back to Order</a>
-  </div>
-</div>
+{% block topbar_actions %}
 
-<div class="detail-grid">
-  <div class="card">
-    <div class="card-header"><span class="card-title">Delivery Details</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Sales Order</dt><dd>
-        <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}">ORD-{{ delivery.sales_order.pk }}</a>
-      </dd></div>
-      <div class="detail-row"><dt>Customer</dt><dd>{{ delivery.sales_order.customer.full_name }}</dd></div>
-      <div class="detail-row"><dt>Vehicle</dt><dd>{{ delivery.sales_order.vehicle.bike_model }}</dd></div>
-      <div class="detail-row"><dt>Delivery Date</dt><dd style="font-weight:600;">{{ delivery.delivery_date|date:"d M Y" }}</dd></div>
-      <div class="detail-row"><dt>Delivered By</dt><dd>{{ delivery.delivered_by|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Remarks</dt><dd>{{ delivery.remarks|default:"—" }}</dd></div>
-      <div class="detail-row"><dt>Created</dt><dd>{{ delivery.created_at|date:"d M Y" }}</dd></div>
-    </dl>
-  </div>
+<a href="{% url 'sales:delivery_update' delivery.pk %}"
+class="btn btn-sm btn-primary">
+<i class="fas fa-edit me-1"></i>
+Edit Delivery
+</a>
+
+<a href="{% url 'sales:order_detail' delivery.sales_order.pk %}"
+class="btn btn-sm btn-outline-secondary">
+<i class="fas fa-arrow-left me-1"></i>
+Back to Order
+</a>
+{% endblock %}
+{% block content %}
+<div class="card mb-4">
+<div class="card-body py-3">
+    <div class="row text-center">
+        <div class="col-md-4 border-end">
+            <div class="text-muted small fw-semibold">
+                Customer
+            </div>
+            <div class="fw-semibold">
+                {{ delivery.sales_order.customer.full_name }}
+            </div>
+        </div>
+        <div class="col-md-4 border-end">
+            <div class="text-muted small fw-semibold">
+                Vehicle
+            </div>
+            <div class="fw-semibold">
+                {{ delivery.sales_order.vehicle.bike_model }}
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-muted small fw-semibold">
+                Delivery Date
+            </div>
+            <div class="fw-bold text-primary">
+                {{ delivery.delivery_date|date:"d M Y" }}
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div class="card">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-truck me-2"></i>
+        Delivery Details
+    </span>
+</div>
+<div class="table-wrapper">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Sales Order</th>
+                <td>
+                    <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}"
+                       class="text-decoration-none fw-semibold text-primary">
+                        ORD-{{ delivery.sales_order.pk }}
+                    </a>
+                </td>
+            </tr>
+            <tr>
+                <th>Customer</th>
+                <td>
+                    {{ delivery.sales_order.customer.full_name }}
+                </td>
+            </tr>
+            <tr>
+                <th>Vehicle</th>
+                <td>
+                    {{ delivery.sales_order.vehicle.bike_model }}
+                </td>
+            </tr>
+            <tr>
+                <th>Delivery Date</th>
+                <td>
+                    {{ delivery.delivery_date|date:"d M Y" }}
+                </td>
+            </tr>
+            <tr>
+                <th>Delivered By</th>
+                <td>
+                    {{ delivery.delivered_by|default:"—" }}
+                </td>
+            </tr>
+            <tr>
+                <th>Remarks</th>
+                <td>
+                    {{ delivery.remarks|default:"—" }}
+                </td>
+            </tr>
+            <tr>
+                <th>Created On</th>
+                <td>
+                    {{ delivery.created_at|date:"d M Y" }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 </div>
 {% endblock %}

@@ -10,39 +10,31 @@
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
     <div class="card">
       <div class="card-header"><span class="card-title">Engine &amp; Mechanical</span></div>
-      {% for fname in 'engine_oil_level coolant_level brake_fluid_level chain_tension chain_lubrication tyre_pressure_front tyre_pressure_rear brake_front_working brake_rear_working clutch_adjustment throttle_smooth'|split %}
-        {% with field=form|getitem:fname %}
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-          {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-        </div>
-        {% endwith %}
-      {% endfor %}
+      {% for field in form %}{% if field.name in "engine_oil_level coolant_level brake_fluid_level chain_tension chain_lubrication tyre_pressure_front tyre_pressure_rear brake_front_working brake_rear_working clutch_adjustment throttle_smooth" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
+      </div>
+      {% endif %}{% endfor %}
     </div>
     <div class="card">
       <div class="card-header"><span class="card-title">Electrical</span></div>
-      {% for fname in 'battery_voltage headlight_working taillight_working indicators_working horn_working speedometer_working kill_switch_working'|split %}
-        {% with field=form|getitem:fname %}
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-          {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-        </div>
-        {% endwith %}
-      {% endfor %}
+      {% for field in form %}{% if field.name in "battery_voltage headlight_working taillight_working indicators_working horn_working speedometer_working kill_switch_working" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
+      </div>
+      {% endif %}{% endfor %}
       <div class="card-header" style="margin-top:10px;"><span class="card-title">Body &amp; Aesthetics</span></div>
-      {% for fname in 'paint_no_scratches all_panels_fitted mirrors_adjusted seat_firm toolkit_present owners_manual_present'|split %}
-        {% with field=form|getitem:fname %}
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-          {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-        </div>
-        {% endwith %}
-      {% endfor %}
+      {% for field in form %}{% if field.name in "paint_no_scratches all_panels_fitted mirrors_adjusted seat_firm toolkit_present owners_manual_present" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
+      </div>
+      {% endif %}{% endfor %}
       <div class="card-header" style="margin-top:10px;"><span class="card-title">Documents</span></div>
-      {% for fname in 'invoice_ready insurance_done form20_submitted temporary_registration'|split %}
-        {% with field=form|getitem:fname %}
-        <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-          {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-        </div>
-        {% endwith %}
-      {% endfor %}
+      {% for field in form %}{% if field.name in "invoice_ready insurance_done form20_submitted temporary_registration" %}
+      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
+        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
+      </div>
+      {% endif %}{% endfor %}
     </div>
   </div>
   <div class="card" style="margin-top:16px;">

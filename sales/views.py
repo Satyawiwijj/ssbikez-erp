@@ -395,11 +395,13 @@ def feedback_create(request):
 
 @login_required
 def feedback_list(request, enquiry_pk):
+    from django.utils import timezone
     enquiry       = get_object_or_404(SalesEnquiry, pk=enquiry_pk)
     feedback_list = enquiry.feedback.select_related('created_by').all()
     return render(request, 'sales/enquiry_detail.html', {
         'enquiry':       enquiry,
         'feedback_list': feedback_list,
+        'today':         timezone.now().date(),
     })
 
 

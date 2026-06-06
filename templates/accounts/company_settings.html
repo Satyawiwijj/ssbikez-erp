@@ -1,71 +1,289 @@
 {% extends 'base.html' %}
+
 {% block title %}Company Settings — SSBikez ERP{% endblock %}
 {% block page_title %}Company Settings{% endblock %}
 
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'accounts:dashboard' %}">Home</a>
-  <span class="bc-sep">/</span>
-  <span class="bc-current">Company Settings</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Company Settings</span>
 </nav>
 
 <div class="page-header">
-  <div>
-    <h1 class="page-title">Company Settings</h1>
-    <div class="page-subtitle">Showroom details, GSTIN, PAN, GST slabs &mdash; used on invoices and reports.</div>
-  </div>
+    <div>
+        <h1 class="page-title d-flex align-items-center">
+            <i class="fas fa-cogs text-primary me-3"></i>
+            Company Settings
+        </h1>
+
+        <div class="page-subtitle">
+            Configure showroom information, GST details and company identity used throughout the ERP.
+        </div>
+    </div>
 </div>
 
-<div class="card form-card" style="max-width:880px;">
-  <div class="card-header"><span class="card-title">&#x1F3E2; Company &amp; GST Configuration</span></div>
-  <form method="post" novalidate style="padding:20px;">
-    {% csrf_token %}
+<div class="card form-card" style="max-width:1000px;">
 
-    {% if form.non_field_errors %}<div class="alert alert-danger">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="card-header">
+            <i class="fas fa-building me-2"></i>
+            Company & GST Configuration
+      </div>
 
-    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Company Identity</h3>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">Company Name</label>{{ form.company_name }}{{ form.company_name.errors }}</div>
-      <div class="form-group"><label class="form-label">Tagline</label>{{ form.tagline }}{{ form.tagline.errors }}</div>
-      <div class="form-group span-2"><label class="form-label">Logo URL</label>{{ form.logo_url }}{{ form.logo_url.errors }}</div>
-    </div>
+    <form method="post" novalidate style="padding:24px;">
 
-    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Address</h3>
-    <div class="form-grid">
-      <div class="form-group span-2"><label class="form-label">Address Line 1</label>{{ form.address_line1 }}</div>
-      <div class="form-group span-2"><label class="form-label">Address Line 2</label>{{ form.address_line2 }}</div>
-      <div class="form-group"><label class="form-label">City</label>{{ form.city }}</div>
-      <div class="form-group"><label class="form-label">State</label>{{ form.state }}</div>
-      <div class="form-group"><label class="form-label">Pincode</label>{{ form.pincode }}</div>
-      <div class="form-group"><label class="form-label">Phone</label>{{ form.phone }}</div>
-      <div class="form-group span-2"><label class="form-label">Email</label>{{ form.email }}</div>
-    </div>
+        {% csrf_token %}
 
-    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">Tax Identifiers</h3>
-    <div class="form-grid">
-      <div class="form-group"><label class="form-label">GSTIN</label>{{ form.gstin }}</div>
-      <div class="form-group"><label class="form-label">PAN Number</label>{{ form.pan_number }}</div>
-    </div>
+        {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-4">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
 
-    <h3 style="font-size:13px;color:#374151;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin:20px 0 12px;border-bottom:1px solid #e5e7eb;padding-bottom:6px;">GST Slabs</h3>
-    <div class="form-grid-3">
-      <div class="form-group"><label class="form-label">Total GST Rate (%)</label>{{ form.gst_rate }}</div>
-      <div class="form-group"><label class="form-label">CGST Rate (%)</label>{{ form.cgst_rate }}</div>
-      <div class="form-group"><label class="form-label">SGST Rate (%)</label>{{ form.sgst_rate }}</div>
-    </div>
-    <p style="font-size:12px;color:#6b7280;margin-top:6px;">CGST + SGST should equal Total GST Rate.</p>
+        <!-- Company Identity -->
 
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Settings</button>
-      <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Cancel</a>
-    </div>
-  </form>
+        <div class="settings-section-title" style="padding-bottom: 10px;">
+            <i class="fas fa-id-card"></i>
+            <b>Company Identity</b>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label class="form-label">Company Name</label>
+                {{ form.company_name }}
+                {{ form.company_name.errors }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Tagline</label>
+                {{ form.tagline }}
+                {{ form.tagline.errors }}
+            </div>
+
+            <div class="form-group span-2">
+                <label class="form-label">Logo URL</label>
+                {{ form.logo_url }}
+                {{ form.logo_url.errors }}
+            </div>
+
+        </div>
+
+        <!-- Address -->
+
+        <div class="settings-section-title border-top pt-4 mt-4" style="padding-bottom: 10px;">
+            <i class="fas fa-map-marker-alt"></i><b>
+            Address Information</b>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group span-2">
+                <label class="form-label">Address Line 1</label>
+                {{ form.address_line1 }}
+            </div>
+
+            <div class="form-group span-2">
+                <label class="form-label">Address Line 2</label>
+                {{ form.address_line2 }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">City</label>
+                {{ form.city }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">State</label>
+                {{ form.state }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Pincode</label>
+                {{ form.pincode }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Phone</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="form-group span-2">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+            </div>
+
+        </div>
+
+        <!-- Tax -->
+
+        <div class="settings-section-title border-top pt-4 mt-4" style="padding-bottom: 10px;">
+            <i class="fas fa-file-invoice"></i>
+            <b>Tax Identifiers</b>
+        </div>
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label class="form-label">GSTIN</label>
+                {{ form.gstin }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">PAN Number</label>
+                {{ form.pan_number }}
+            </div>
+
+        </div>
+
+        <!-- GST -->
+
+        <div class="settings-section-title">
+            <i class="fas fa-percentage"></i>
+            GST Configuration
+        </div>
+
+        <div class="form-grid-3">
+
+            <div class="form-group">
+                <label class="form-label">Total GST Rate (%)</label>
+                {{ form.gst_rate }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">CGST Rate (%)</label>
+                {{ form.cgst_rate }}
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">SGST Rate (%)</label>
+                {{ form.sgst_rate }}
+            </div>
+
+        </div>
+
+        <div class="alert alert-light mt-3">
+            <i class="fas fa-info-circle me-2 text-primary"></i>
+            CGST + SGST should equal the Total GST Rate.
+        </div>
+
+        <!-- Buttons -->
+
+        <div class="form-actions border-top pt-4 mt-4">
+
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-2"></i>
+                Save Settings
+            </button>
+
+            <a href="{% url 'accounts:dashboard' %}"
+               class="btn btn-outline-secondary">
+                <i class="fas fa-times me-2"></i>
+                Cancel
+            </a>
+
+        </div>
+
+    </form>
+
 </div>
+
 {% endblock %}
 
 {% block extra_css %}
-.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
-.form-grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
-.form-group.span-2 { grid-column: span 2; }
-@media (max-width:600px) { .form-grid, .form-grid-3 { grid-template-columns:1fr; } .form-group.span-2 { grid-column:1; } }
+
+<style>
+
+.form-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+}
+
+.form-grid-3{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:18px;
+}
+
+.form-group.span-2{
+    grid-column:span 2;
+}
+
+.settings-section-title{
+    display:flex;
+    align-items:center;
+    gap:10px;
+
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+
+    color:#1E3A8A;
+
+    margin:28px 0 16px;
+    padding-bottom:10px;
+
+    border-bottom:2px solid #E5E7EB;
+}
+
+.settings-section-title i{
+    color:#2563EB;
+}
+
+.form-card{
+    border:none;
+    border-radius:14px;
+    overflow:hidden;
+}
+
+.form-card .card-header{
+    background:linear-gradient(
+        135deg,
+        #1E3A8A,
+        #2563EB
+    );
+    color:white;
+    padding:18px 24px;
+}
+
+.form-card .card-title{
+    color:white;
+    font-size:15px;
+    font-weight:600;
+}
+
+.form-actions{
+    display:flex;
+    gap:12px;
+    align-items:center;
+}
+
+.form-label{
+    font-weight:600;
+    margin-bottom:6px;
+}
+
+.alert-light{
+    background:#F8FAFC;
+    border:1px solid #E2E8F0;
+}
+
+@media (max-width:768px){
+
+    .form-grid,
+    .form-grid-3{
+        grid-template-columns:1fr;
+    }
+
+    .form-group.span-2{
+        grid-column:auto;
+    }
+
+}
+
+</style>
+
 {% endblock %}

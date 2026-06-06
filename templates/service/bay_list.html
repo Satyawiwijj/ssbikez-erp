@@ -3,34 +3,153 @@
 {% block page_title %}Service Bays{% endblock %}
 
 {% block content %}
+
 <div class="page-header">
-  <div>
+
+<div>
     <h1 class="page-title">Service Bays</h1>
-    <p class="page-subtitle">Workshop bay configuration</p>
-  </div>
-  <a href="{% url 'service:bay_create' %}" class="btn btn-primary">+ Add Bay</a>
+    <p class="page-subtitle">
+        Workshop bay configuration and availability
+    </p>
 </div>
 
-<div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:16px;">
-  {% for bay in bays %}
-  <div class="card" style="padding:20px; text-align:center; cursor:default;">
-    <div style="font-size:32px; margin-bottom:12px;">&#x1F3D7;&#xFE0F;</div>
-    <div style="font-size:16px; font-weight:700; color:#111827; margin-bottom:8px;">{{ bay.bay_name }}</div>
-    {% if bay.status == 'available' %}
-    <span class="badge badge-green">{{ bay.get_status_display }}</span>
-    {% elif bay.status == 'occupied' %}
-    <span class="badge badge-red">{{ bay.get_status_display }}</span>
-    {% else %}
-    <span class="badge badge-gray">{{ bay.get_status_display }}</span>
-    {% endif %}
-    <div style="margin-top:14px;">
-      <a href="{% url 'service:bay_update' bay.pk %}" class="btn btn-secondary btn-sm">Edit</a>
-    </div>
-  </div>
-  {% empty %}
-  <div style="grid-column:1/-1; text-align:center; padding:40px; color:#9CA3AF;">
-    No bays configured yet. <a href="{% url 'service:bay_create' %}" style="color:#2563EB;">Add a bay</a>.
-  </div>
-  {% endfor %}
+<a href="{% url 'service:bay_create' %}"
+   class="btn btn-primary">
+    <i class="fas fa-plus me-1"></i>
+    Add Bay
+</a>
+
 </div>
+
+<div class="card">
+
+<div class="card-header">
+
+    <span class="card-title">
+        Service Bays
+
+        <span class="badge badge-gray ms-2">
+            {{ bays|length }}
+        </span>
+
+    </span>
+
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Bay Name</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for bay in bays %}
+
+            <tr>
+
+                <td style="font-weight:600;">
+
+                    <i class="fas fa-warehouse"
+                       style="color:#2563EB;margin-right:8px;"></i>
+
+                    {{ bay.bay_name }}
+
+                </td>
+
+                <td>
+
+                    {% if bay.status == 'available' %}
+
+                        <span class="badge badge-green">
+                            {{ bay.get_status_display }}
+                        </span>
+
+                    {% elif bay.status == 'occupied' %}
+
+                        <span class="badge badge-red">
+                            {{ bay.get_status_display }}
+                        </span>
+
+                    {% else %}
+
+                        <span class="badge badge-gray">
+                            {{ bay.get_status_display }}
+                        </span>
+
+                    {% endif %}
+
+                </td>
+
+                <td style="color:#6B7280;font-size:13px;">
+
+                    {% if bay.created_at %}
+                        {{ bay.created_at|date:"d M Y" }}
+                    {% else %}
+                        —
+                    {% endif %}
+
+                </td>
+
+                <td>
+
+                    <div class="table-actions">
+
+                        <a href="{% url 'service:bay_update' bay.pk %}"
+                           class="btn btn-sm btn-outline-primary">
+
+                            <i class="fas fa-edit me-1"></i>
+                            Edit
+
+                        </a>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% empty %}
+
+            <tr>
+
+                <td colspan="4">
+
+                    <div class="empty-state">
+
+                        <i class="fas fa-warehouse"
+                           style="
+                           font-size:32px;
+                           color:#CBD5E1;
+                           margin-bottom:10px;
+                           display:block;
+                        "></i>
+
+                        <p>
+                            No service bays configured yet.
+                        </p>
+
+                    </div>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endblock %}

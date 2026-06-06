@@ -1,62 +1,260 @@
 {% extends 'base.html' %}
-{% block title %}Service Enquiry Bulk Import{% endblock %}
+
+{% block title %}Service Enquiry Bulk Import — SSBikez ERP{% endblock %}
 {% block page_title %}Service Enquiry Bulk Import{% endblock %}
+
+{% block topbar_actions %}
+
+<a href="/static/sample_service_enquiries.csv"
+download
+class="btn btn-sm btn-primary"> <i class="fas fa-download me-1"></i>
+Sample CSV </a>
+
+<a href="{% url 'service:enquiry_list' %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+
+{% endblock %}
+
 {% block content %}
+
 <nav class="breadcrumb-bar">
-  <a href="{% url 'service:enquiry_list' %}">Enquiries</a>
-  <span class="bc-sep">/</span><span class="bc-current">Bulk Import</span>
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+
+<a href="{% url 'service:dashboard' %}">Service</a>
+<span class="bc-sep">/</span>
+
+<a href="{% url 'service:enquiry_list' %}">Enquiries</a>
+<span class="bc-sep">/</span>
+
+<span class="bc-current">Bulk Import</span>
+
 </nav>
-<div class="card form-card">
-  <div class="card-header"><span class="card-title">&#x1F4E5; Upload CSV</span></div>
-  <div style="padding:20px;">
-    <div style="background:#f3f4f6;padding:14px;border-radius:8px;margin-bottom:16px;font-size:13px;">
-      <strong>Required columns:</strong>
-      <code>customer_name</code>, <code>phone</code>, <code>registration_no</code>, <code>issue_description</code><br>
-      <a href="/static/sample_service_enquiries.csv" download class="btn btn-sm btn-secondary" style="margin-top:8px;">
-        &#x2B07; Download Sample CSV
-      </a>
+
+<div class="row g-3">
+
+<!-- Upload Form -->
+
+<div class="col-lg-8">
+
+    <div class="card form-card">
+
+        <div class="card-header">
+            <i class="fas fa-file-import me-2"></i>
+            Upload CSV File
+        </div>
+
+        <div class="card-body">
+
+            <form method="post"
+                  enctype="multipart/form-data">
+
+                {% csrf_token %}
+
+                <div class="form-group">
+
+                    <label class="form-label fw-semibold">
+                        Select CSV File
+                    </label>
+
+                    <input type="file"
+                           name="file"
+                           accept=".csv"
+                           class="form-control"
+                           required>
+
+                </div>
+
+                <div class="form-actions mt-3">
+
+                    <button type="submit"
+                            class="btn btn-primary">
+
+                        <i class="fas fa-upload me-1"></i>
+                        Upload & Import
+
+                    </button>
+
+                    <a href="{% url 'service:enquiry_list' %}"
+                       class="btn btn-secondary">
+                        Cancel
+                    </a>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
-    <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="form-group">
-        <label class="form-label">Select CSV File</label>
-        <input type="file" name="file" accept=".csv" class="form-control" required>
-      </div>
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Upload &amp; Import</button>
-        <a href="{% url 'service:enquiry_list' %}" class="btn btn-secondary">Back</a>
-      </div>
-    </form>
-  </div>
+
 </div>
+
+<!-- Instructions -->
+
+<div class="col-lg-4">
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>
+            Import Instructions
+        </div>
+
+        <div class="card-body">
+
+            <p class="small text-muted mb-3">
+                The CSV file must contain the following columns:
+            </p>
+
+            <ul class="small mb-3">
+                <li><code>customer_name</code></li>
+                <li><code>phone</code></li>
+                <li><code>registration_no</code></li>
+                <li><code>issue_description</code></li>
+            </ul>
+
+            <hr>
+
+            <div class="small text-muted">
+                Download the sample CSV and use the same format before importing.
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
 {% if results %}
-<div class="card" style="margin-top:20px;">
-  <div class="card-header">
-    <span class="card-title">&#x1F4CB; Results</span>
-    <span style="float:right;font-size:13px;">
-      Total: <strong>{{ results.total }}</strong> &middot;
-      Imported: <strong style="color:#16a34a;">{{ results.imported_count }}</strong> &middot;
-      Errors: <strong style="color:#dc2626;">{{ results.error_count }}</strong>
-    </span>
-  </div>
-  <div class="table-wrapper">
-    {% if results.imported %}
-    <table class="table">
-      <thead><tr><th>Row</th><th>Reg No</th><th>Enquiry ID</th></tr></thead>
-      <tbody>
-        {% for r in results.imported %}<tr><td>{{ r.row }}</td><td>{{ r.reg }}</td><td>{{ r.enquiry_id }}</td></tr>{% endfor %}
-      </tbody>
-    </table>
-    {% endif %}
-    {% if results.errors %}
-    <table class="table">
-      <thead><tr><th>Row</th><th>Error</th></tr></thead>
-      <tbody>
-        {% for e in results.errors %}<tr><td>{{ e.row }}</td><td style="color:#dc2626;">{{ e.error }}</td></tr>{% endfor %}
-      </tbody>
-    </table>
-    {% endif %}
-  </div>
+
+<!-- Summary -->
+
+<div class="stat-grid" style="margin-top:20px;">
+
+<div class="stat-card">
+    <div>
+        <div class="stat-value">{{ results.total }}</div>
+        <div class="stat-label">Total Rows</div>
+    </div>
 </div>
+
+<div class="stat-card">
+    <div>
+        <div class="stat-value" style="color:#16A34A;">
+            {{ results.imported_count }}
+        </div>
+        <div class="stat-label">Imported</div>
+    </div>
+</div>
+
+<div class="stat-card">
+    <div>
+        <div class="stat-value" style="color:#DC2626;">
+            {{ results.error_count }}
+        </div>
+        <div class="stat-label">Errors</div>
+    </div>
+</div>
+
+</div>
+
+<!-- Imported -->
+
+{% if results.imported %}
+
+<div class="card" style="margin-top:20px;">
+
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-check-circle me-2"></i>
+        Successfully Imported
+    </span>
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Row</th>
+                <th>Registration No</th>
+                <th>Enquiry ID</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for r in results.imported %}
+
+            <tr>
+                <td>{{ r.row }}</td>
+                <td>{{ r.reg }}</td>
+                <td>SENQ-{{ r.enquiry_id }}</td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endif %}
+
+<!-- Errors -->
+
+{% if results.errors %}
+
+<div class="card" style="margin-top:20px;">
+
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        Import Errors
+    </span>
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Row</th>
+                <th>Error</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for e in results.errors %}
+
+            <tr>
+                <td>{{ e.row }}</td>
+                <td style="color:#DC2626;">
+                    {{ e.error }}
+                </td>
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</div>
+
+{% endif %}
+{% endif %}
+
 {% endblock %}

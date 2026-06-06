@@ -1,55 +1,337 @@
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>Receipt #{{ payment.pk }}</title>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Receipt #{{ payment.pk }}</title>
+
 <style>
-  @page { size: A5 portrait; margin: 12mm; }
-  body { font-family: Arial, sans-serif; font-size: 12px; color:#111; }
-  .header { text-align:center; border-bottom:2px solid #1d4ed8; padding-bottom:10px; margin-bottom:14px; }
-  .company { font-size:18px; font-weight:bold; color:#1d4ed8; }
-  .tagline { font-size:11px; color:#555; }
-  h1 { font-size:16px; text-align:center; letter-spacing:2px; margin:14px 0; }
-  table.kv { width:100%; border-collapse:collapse; margin:10px 0; }
-  table.kv td { padding:6px 8px; border-bottom:1px solid #e5e7eb; }
-  table.kv td.l { color:#6b7280; width:40%; }
-  .amount-box { background:#f0fdf4; border:1px solid #16a34a; padding:14px; text-align:center; margin:14px 0; border-radius:6px; }
-  .amount-box .lbl { font-size:11px; color:#16a34a; text-transform:uppercase; }
-  .amount-box .val { font-size:22px; font-weight:bold; color:#16a34a; }
-  .words { font-style:italic; font-size:11px; margin-top:4px; }
-  .footer { text-align:center; margin-top:24px; font-size:11px; color:#6b7280; border-top:1px solid #e5e7eb; padding-top:10px; }
-  .stamp { float:right; margin-top:20px; font-size:11px; }
-</style></head>
+    @page {
+        size: A5 portrait;
+        margin: 12mm;
+    }
+
+    body {
+        font-family: Helvetica, Arial, sans-serif;
+        font-size: 11px;
+        color: #1F2937;
+    }
+
+    .header {
+        border-bottom: 3px solid #0d276c;
+        padding-bottom: 10px;
+        margin-bottom: 15px;
+    }
+
+    .company-name {
+        font-size: 22px;
+        font-weight: bold;
+        color: #0d276c;
+    }
+
+    .company-info {
+        font-size: 10px;
+        color: #6B7280;
+        margin-top: 2px;
+        line-height: 1.5;
+    }
+
+    .receipt-title {
+        background: #0d276c;
+        color: white;
+        text-align: center;
+        padding: 10px;
+        font-size: 16px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin-bottom: 15px;
+    }
+
+    .section-title {
+        font-size: 12px;
+        font-weight: bold;
+        color: #0d276c;
+        margin-bottom: 6px;
+        border-bottom: 1px solid #D1D5DB;
+        padding-bottom: 4px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .info-table td {
+        padding: 6px 4px;
+        border-bottom: 1px solid #E5E7EB;
+    }
+
+    .label {
+        width: 35%;
+        color: #6B7280;
+        font-weight: bold;
+    }
+
+    .value {
+        color: #111827;
+    }
+
+    .payment-table {
+        margin-top: 10px;
+    }
+
+    .payment-table th {
+        background: #EFF6FF;
+        color: #0d276c;
+        text-align: left;
+        padding: 8px;
+        border: 1px solid #D1D5DB;
+    }
+
+    .payment-table td {
+        padding: 8px;
+        border: 1px solid #D1D5DB;
+    }
+
+    .amount-box {
+        margin-top: 15px;
+        padding: 14px;
+        border: 2px solid #16A34A;
+        background: #F0FDF4;
+        text-align: center;
+    }
+
+    .amount-label {
+        font-size: 11px;
+        color: #15803D;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .amount-value {
+        font-size: 24px;
+        font-weight: bold;
+        color: #15803D;
+    }
+
+    .amount-words {
+        margin-top: 6px;
+        font-style: italic;
+        color: #374151;
+    }
+
+    .signature-section {
+        margin-top: 30px;
+    }
+
+    .signature-box {
+        width: 220px;
+        text-align: center;
+        float: right;
+    }
+
+    .signature-line {
+        border-top: 1px solid #111827;
+        margin-top: 40px;
+        padding-top: 5px;
+        font-size: 10px;
+    }
+
+    .footer {
+        margin-top: 70px;
+        text-align: center;
+        font-size: 10px;
+        color: #6B7280;
+        border-top: 1px solid #D1D5DB;
+        padding-top: 10px;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 8px;
+        background: #DCFCE7;
+        color: #166534;
+        font-size: 10px;
+        font-weight: bold;
+    }
+</style>
+
+</head>
+
 <body>
-  <div class="header">
-    <div class="company">{{ company.company_name|default:"SS Bikez" }}</div>
-    <div class="tagline">{{ company.tagline|default:"Motorcycle Dealership" }}</div>
-    <div class="tagline">
-      {% if company %}{{ company.address_line1 }} {{ company.city }} {{ company.state }} {{ company.pincode }}{% endif %}
+
+<!-- Company Header -->
+
+<div class="header">
+
+    <div class="company-name">
+        {{ company.company_name|default:"SS Bikez" }}
     </div>
-    <div class="tagline">
-      {% if company %}Phone: {{ company.phone }} &middot; GSTIN: {{ company.gstin }}{% endif %}
+
+    <div class="company-info">
+
+        {{ company.tagline|default:"Authorised Motorcycle Dealership" }}
+
+        <br>
+
+        {% if company %}
+            {{ company.address_line1 }}
+            {{ company.city }},
+            {{ company.state }}
+            {{ company.pincode }}
+        {% endif %}
+
+        <br>
+
+        {% if company %}
+            Phone: {{ company.phone }}
+            |
+            GSTIN: {{ company.gstin }}
+        {% endif %}
+
     </div>
-  </div>
 
-  <h1>PAYMENT RECEIPT</h1>
+</div>
 
-  <table class="kv">
-    <tr><td class="l">Receipt No</td><td>RCPT-{{ payment.pk }}</td></tr>
-    <tr><td class="l">Date</td><td>{{ payment.payment_date|date:"d M Y H:i" }}</td></tr>
-    <tr><td class="l">Customer</td><td>{{ customer.full_name }}</td></tr>
-    <tr><td class="l">Phone</td><td>{{ customer.phone }}</td></tr>
-    <tr><td class="l">Invoice No</td><td>{{ invoice.invoice_number }}</td></tr>
-    <tr><td class="l">Payment Method</td><td>{{ payment.get_payment_method_display }}</td></tr>
-    <tr><td class="l">Transaction Ref</td><td>{{ payment.transaction_reference|default:"—" }}</td></tr>
-  </table>
+<!-- Title -->
 
-  <div class="amount-box">
-    <div class="lbl">Amount Received</div>
-    <div class="val">&#x20B9; {{ payment.amount }}</div>
-    <div class="words">Rupees {{ amount_in_words }} Only</div>
-  </div>
+<div class="receipt-title">
+    PAYMENT RECEIPT
+</div>
 
-  <div class="stamp">Authorised Signature</div>
-  <div class="footer">
-    Thank you for your payment!<br>
-    This is a computer-generated receipt.
-  </div>
-</body></html>
+<!-- Receipt Information -->
+
+<div class="section-title">
+    Receipt Information
+</div>
+
+<table class="info-table">
+
+    <tr>
+        <td class="label">Receipt Number</td>
+        <td class="value">RCPT-{{ payment.pk }}</td>
+    </tr>
+
+    <tr>
+        <td class="label">Receipt Date</td>
+        <td class="value">{{ payment.payment_date|date:"d M Y H:i" }}</td>
+    </tr>
+
+    <tr>
+        <td class="label">Invoice Number</td>
+        <td class="value">{{ invoice.invoice_number }}</td>
+    </tr>
+
+</table>
+
+<br>
+
+<!-- Customer Information -->
+
+<div class="section-title">
+    Customer Information
+</div>
+
+<table class="info-table">
+
+    <tr>
+        <td class="label">Customer Name</td>
+        <td class="value">{{ customer.full_name }}</td>
+    </tr>
+
+    <tr>
+        <td class="label">Phone Number</td>
+        <td class="value">{{ customer.phone }}</td>
+    </tr>
+
+</table>
+
+<br>
+
+<!-- Payment Details -->
+
+<div class="section-title">
+    Payment Details
+</div>
+
+<table class="payment-table">
+
+    <thead>
+        <tr>
+            <th>Payment Method</th>
+            <th>Transaction Reference</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr>
+
+            <td>
+                {{ payment.get_payment_method_display }}
+            </td>
+
+            <td>
+                {{ payment.transaction_reference|default:"—" }}
+            </td>
+
+            <td>
+                <span class="badge">
+                    {{ payment.get_payment_status_display }}
+                </span>
+            </td>
+
+        </tr>
+    </tbody>
+
+</table>
+
+<!-- Amount -->
+
+<div class="amount-box">
+
+    <div class="amount-label">
+        Amount Received
+    </div>
+
+    <div class="amount-value">
+        ₹ {{ payment.amount }}
+    </div>
+
+    <div class="amount-words">
+        {{ amount_in_words }}
+    </div>
+
+</div>
+
+<!-- Signature -->
+
+<div class="signature-section">
+
+    <div class="signature-box">
+
+        <div class="signature-line">
+            Authorised Signature
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Footer -->
+
+<div class="footer">
+
+    <strong>Thank You For Your Payment!</strong>
+
+    <br><br>
+
+    This is a computer-generated receipt and does not require a physical signature.
+
+    <br>
+
+    Generated from SSBikez ERP
+
+</div>
+
+</body>
+</html>
