@@ -2,8 +2,16 @@
 {% block title %}Vehicle Stock — SSBikez ERP{% endblock %}
 {% block page_title %}Vehicle Stock{% endblock %}
 
-{% block topbar_actions %} <a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm"> <i class="fas fa-plus me-1"></i>
-Add Stock Unit </a>
+{% block topbar_actions %} 
+<a href="{% url 'customers:vehicle_stock_create' %}" class="btn btn-primary btn-sm">
+    <i class="fas fa-plus me-1"></i>
+    Add Stock Unit
+</a>
+
+<a href="{% url 'customers:stock_aging' %}" class="btn btn-warning btn-sm">
+    <i class="fas fa-hourglass-half me-1"></i>
+    Stock Aging
+</a>
 {% endblock %}
 
 {% block content %}

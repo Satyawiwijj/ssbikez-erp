@@ -150,4 +150,61 @@
 
 </div>
 
+{% if missing_deliveries %}
+<div class="card mt-4">
+  <div class="card-header" style="background:#fffbeb;border-bottom:1px solid #fbbf24;">
+    <span class="card-title">
+      <i class="fas fa-exclamation-triangle me-2" style="color:#f59e0b;"></i>
+      Delivered Orders — Delivery Record Missing
+    </span>
+    <span class="badge" style="background:#f59e0b;color:#fff;">
+      {{ missing_deliveries|length }}
+    </span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Customer</th>
+          <th>Vehicle</th>
+          <th>Sales Executive</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in missing_deliveries %}
+        <tr>
+          <td style="font-family:monospace;font-weight:600;">
+            <a href="{% url 'sales:order_detail' order.pk %}"
+               class="text-decoration-none text-primary">
+              ORD-{{ order.pk }}
+            </a>
+          </td>
+          <td>
+            <div class="fw-semibold">{{ order.customer.full_name }}</div>
+          </td>
+          <td>{{ order.vehicle.bike_model|default:"—" }}</td>
+          <td>{{ order.sales_executive|default:"—" }}</td>
+          <td>
+            <span class="badge" style="background:#f59e0b;color:#fff;">
+              Delivery Record Missing
+            </span>
+          </td>
+          <td>
+            <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}"
+               class="btn btn-warning btn-sm">
+              <i class="fas fa-plus me-1"></i>
+              Create Delivery Record
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

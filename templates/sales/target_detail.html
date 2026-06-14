@@ -1,17 +1,131 @@
 {% extends 'base.html' %}
+
 {% block title %}Target Detail — SSBikez ERP{% endblock %}
 {% block page_title %}Target Detail{% endblock %}
+
+{% block topbar_actions %} <a href="{% url 'sales:target_list' %}" class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">{{ target.sales_executive.get_full_name }} — {{ target.month }}/{{ target.year }}</h1>
-  <a href="{% url 'sales:target_list' %}" class="btn btn-ghost">&#8592; Back</a>
+    <div>
+        <h1 class="page-title">
+          {{ target.sales_executive.username }}
+        </h1>
+        <p class="page-subtitle">
+            Sales target performance for {{ target.month }}/{{ target.year }}
+        </p>
+    </div>
 </div>
-<div class="card">
-  <dl class="detail-list">
-    <div class="detail-row"><dt>Enquiries</dt><dd>{{ target.actual_enquiries }} / {{ target.target_enquiries }}</dd></div>
-    <div class="detail-row"><dt>Conversions</dt><dd>{{ target.actual_conversions }} / {{ target.target_conversions }}</dd></div>
-    <div class="detail-row"><dt>Revenue</dt><dd>₹{{ target.actual_revenue|floatformat:0 }} / ₹{{ target.target_revenue|floatformat:0 }}</dd></div>
-    <div class="detail-row"><dt>Conversion %</dt><dd>{{ target.conversion_percent }}%</dd></div>
-  </dl>
+
+<div class="row g-4">
+
+<div class="col-lg-8">
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-bullseye me-2"></i>
+            Target Performance
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row">
+                    <dt>Sales Executive</dt>
+                    <dd>{{ target.sales_executive.username }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Period</dt>
+                    <dd>{{ target.month }}/{{ target.year }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Target Enquiries</dt>
+                    <dd>{{ target.actual_enquiries }} / {{ target.target_enquiries }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Target Conversions</dt>
+                    <dd>{{ target.actual_conversions }} / {{ target.target_conversions }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Target Revenue</dt>
+                    <dd>₹{{ target.actual_revenue|floatformat:0 }} / ₹{{ target.target_revenue|floatformat:0 }}</dd>
+                </div>
+
+                <div class="detail-row">
+                    <dt>Conversion Percentage</dt>
+                    <dd>{{ target.conversion_percent }}%</dd>
+                </div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
 </div>
+
+<div class="col-lg-4">
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-chart-line me-2"></i>
+            Performance Summary
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-4">
+                <div class="fw-semibold mb-1">
+                    Enquiries
+                </div>
+                <div class="text-muted">
+                    {{ target.actual_enquiries }} completed out of {{ target.target_enquiries }} target enquiries.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="fw-semibold mb-1">
+                    Conversions
+                </div>
+                <div class="text-muted">
+                    {{ target.actual_conversions }} completed out of {{ target.target_conversions }} target conversions.
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <div class="fw-semibold mb-1">
+                    Revenue
+                </div>
+                <div class="text-muted">
+                    ₹{{ target.actual_revenue|floatformat:0 }} achieved against target revenue.
+                </div>
+            </div>
+
+            <div>
+                <div class="fw-semibold mb-1">
+                    Conversion Rate
+                </div>
+                <div class="text-muted">
+                    Current conversion rate is {{ target.conversion_percent }}%.
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
 {% endblock %}

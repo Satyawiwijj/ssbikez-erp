@@ -225,7 +225,7 @@
           Authorised Motorcycle Dealership<br>
           {% if order.branch %}{{ order.branch.address|default:"" }}<br>{% endif %}
           {% if order.branch and order.branch.phone %}Ph: {{ order.branch.phone }}{% endif %}
-          {% if order.branch and order.branch.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ order.branch.gstin }}</strong>{% endif %}
+          {% if order.branch and order.branch.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ order.branch.gstin }}</strong>{% elif company and company.gstin %}&nbsp;&nbsp;GSTIN: <strong>{{ company.gstin }}</strong>{% endif %}
         </div>
       </div>
       <div class="hdr-right">

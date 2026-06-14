@@ -1,40 +1,238 @@
 {% extends 'base.html' %}
+
 {% block title %}Test Rides — SSBikez ERP{% endblock %}
 {% block page_title %}Test Rides{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:test_ride_create' %}"
+   class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i>
+    Log Test Ride
+</a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">Test Ride Log</h1>
-  <a href="{% url 'sales:test_ride_create' %}" class="btn btn-primary">+ Log Test Ride</a>
+    <div>
+        <h1 class="page-title">Test Ride Log</h1>
+        <p class="page-subtitle">
+            Manage customer test rides and vehicle returns.
+        </p>
+    </div>
 </div>
+
+{% if rides %}
+
 <div class="card">
-  <table class="table">
-    <thead><tr><th>TR#</th><th>Rider</th><th>Vehicle</th><th>Start</th><th>Duration</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody>
-    {% for ride in rides %}
-    <tr style="{% if ride.status == 'out' %}background:#fef2f2;{% endif %}">
-      <td>TR-{{ ride.pk }}</td>
-      <td>{{ ride.rider_name }}<br><small style="color:#64748b;">{{ ride.rider_phone }}</small></td>
-      <td>{{ ride.vehicle.bike_model }}</td>
-      <td>{{ ride.start_time|date:"d M H:i" }}</td>
-      <td>{% if ride.duration_minutes %}{{ ride.duration_minutes }} min{% else %}—{% endif %}</td>
-      <td>
-        {% if ride.status == 'out' %}<span class="badge badge-red">Out</span>
-        {% elif ride.status == 'returned' %}<span class="badge badge-green">Returned</span>
-        {% else %}<span class="badge badge-gray">Cancelled</span>{% endif %}
-      </td>
-      <td>
-        {% if ride.status == 'out' %}
-        <form method="post" action="{% url 'sales:test_ride_return' ride.pk %}" style="display:inline;">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-sm btn-primary">Return</button>
-        </form>
-        {% endif %}
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="7" style="text-align:center;color:#64748b;padding:30px;">No test rides logged.</td></tr>
-    {% endfor %}
-    </tbody>
-  </table>
+
+    <div class="card-header">
+        <i class="fas fa-motorcycle me-2"></i>
+        Test Ride Records
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Ride ID</th>
+                    <th>Rider</th>
+                    <th>Vehicle</th>
+                    <th>Start Time</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for ride in rides %}
+            <tr>
+
+                <td>
+                    <strong>TR-{{ ride.pk }}</strong>
+                </td>
+
+                <td>
+                    <div>{{ ride.rider_name }}</div>
+                    <small class="text-muted">
+                        {{ ride.rider_phone }}
+                    </small>
+                </td>
+
+                <td>
+                    {{ ride.vehicle.bike_model }}
+                </td>
+
+                <td>
+                    {{ ride.start_time|date:"d M Y, H:i" }}
+                </td>
+
+                <td>
+                    {% if ride.duration_minutes %}
+                        {{ ride.duration_minutes }} min
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    {% if ride.status == 'out' %}
+                        <span class="badge bg-danger">
+                            Out
+                        </span>
+
+                    {% elif ride.status == 'returned' %}
+                        <span class="badge bg-success">
+                            Returned
+                        </span>
+
+                    {% else %}
+                        <span class="badge bg-secondary">
+                            Cancelled
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>
+
+                    {% if ride.status == 'out' %}
+
+                    <form method="post"
+                          action="{% url 'sales:test_ride_return' ride.pk %}"
+                          style="display:inline;">
+
+                        {% csrf_token %}
+
+                        <button type="submit"
+                                class="btn btn-sm btn-success">
+
+                            <i class="fas fa-check me-1"></i>
+                            Return
+
+                        </button>
+
+                    </form>
+
+                    {% else %}
+                        <span class="text-muted">Completed</span>
+                    {% endif %}
+
+                </td>
+
+            </tr>
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
+{% else %}
+
+<div class="card">
+    <div class="card-body text-center py-5">
+
+        <i class="fas fa-motorcycle"
+           style="font-size:48px;color:#cbd5e1;"></i>
+
+        <h5 class="mt-3">
+            No Test Rides Found
+        </h5>
+
+        <p class="text-muted">
+            No test ride records have been created yet.
+        </p>
+
+        <a href="{% url 'sales:test_ride_create' %}"
+           class="btn btn-primary">
+
+            <i class="fas fa-plus me-1"></i>
+            Log First Test Ride
+
+        </a>
+
+    </div>
+</div>
+
+{% endif %}
+
+<!-- Scheduled Test Rides from Appointments -->
+{% if scheduled_appointments %}
+<div class="card mt-4">
+    <div class="card-header">
+        <i class="fas fa-calendar-check me-2"></i>
+        Scheduled Test Rides (from Appointments)
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Appointment</th>
+                    <th>Customer</th>
+                    <th>Bike Model</th>
+                    <th>Date &amp; Time</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for apt in scheduled_appointments %}
+            <tr>
+                <td><strong>APT-{{ apt.pk }}</strong></td>
+                <td>
+                    {% if apt.enquiry.customer %}
+                        {{ apt.enquiry.customer.full_name }}
+                        <br><small class="text-muted">{{ apt.enquiry.customer.phone }}</small>
+                    {% elif apt.enquiry.prospect %}
+                        {{ apt.enquiry.prospect.full_name }}
+                        <br><small class="text-muted">{{ apt.enquiry.prospect.phone }}</small>
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+                <td>
+                    {% if apt.enquiry.bike_model %}
+                        {{ apt.enquiry.bike_model }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td>{{ apt.appointment_date|date:"d M Y, H:i" }}</td>
+                <td>
+                    {% if apt.status == 'scheduled' %}
+                        <span class="badge bg-primary">Scheduled</span>
+                    {% elif apt.status == 'completed' %}
+                        <span class="badge bg-success">Completed</span>
+                    {% elif apt.status == 'cancelled' %}
+                        <span class="badge bg-secondary">Cancelled</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark">No Show</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if apt.status == 'scheduled' %}
+                    <a href="{% url 'sales:test_ride_create' %}?enquiry={{ apt.enquiry_id }}"
+                       class="btn btn-sm btn-primary">
+                        <i class="fas fa-motorcycle me-1"></i>
+                        Log Test Ride
+                    </a>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 {% endblock %}

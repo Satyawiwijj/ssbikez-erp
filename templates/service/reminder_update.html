@@ -1,26 +1,189 @@
 {% extends 'base.html' %}
+
 {% block title %}Update Reminder — SSBikez ERP{% endblock %}
 {% block page_title %}Update Reminder{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="reminder-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Update
+</button>
+
+<a href="{% url 'service:reminder_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">Update Reminder SR-{{ reminder.pk }}</h1>
-  <a href="{% url 'service:reminder_list' %}" class="btn btn-ghost">&#8592; Back</a>
-</div>
-<div class="card" style="max-width:400px;">
-  <form method="post">{% csrf_token %}
-    <div class="form-group">
-      <label class="form-label">Status</label>
-      <select name="status" class="form-control">
-        {% for val, label in reminder.Status.choices %}
-        <option value="{{ val }}" {% if reminder.status == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
+    <div>
+        <h1 class="page-title">
+            Update Reminder SR-{{ reminder.pk }}
+        </h1>
+
+        <p class="page-subtitle">
+            Update reminder status and record follow-up notes.
+        </p>
     </div>
-    <div class="form-group">
-      <label class="form-label">Notes</label>
-      <textarea name="notes" rows="3" class="form-control">{{ reminder.notes }}</textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Update</button>
-  </form>
 </div>
+
+<form method="post"
+      id="reminder-form"
+      novalidate>
+
+{% csrf_token %}
+
+<div class="row g-4">
+
+    <!-- Update Form -->
+
+    <div class="col-lg-8">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-edit me-2"></i>
+                Reminder Update
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Status
+                    </label>
+
+                    <select name="status" class="form-control">
+
+                        {% for val, label in reminder.Status.choices %}
+
+                        <option value="{{ val }}"
+                                {% if reminder.status == val %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label class="form-label">
+                        Notes
+                    </label>
+
+                    <textarea name="notes"
+                              rows="4"
+                              class="form-control">{{ reminder.notes }}</textarea>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Information Panel -->
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Reminder Information
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Customer
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.customer_vehicle.customer.full_name }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Phone
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.customer_vehicle.customer.phone }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Vehicle
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.customer_vehicle.vehicle.bike_model }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Registration No.
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.customer_vehicle.registration_no }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Reminder Type
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.get_reminder_type_display }}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">
+                        Reminder Date
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.reminder_date }}
+                    </div>
+                </div>
+
+                <div>
+                    <div class="fw-semibold">
+                        Assigned To
+                    </div>
+
+                    <div class="text-muted">
+                        {{ reminder.assigned_to.username|default:"—" }}
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+</form>
+
 {% endblock %}

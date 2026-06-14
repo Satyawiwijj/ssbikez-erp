@@ -1,0 +1,574 @@
+Performing system checks...
+
+System check identified no issues (0 silenced).
+June 14, 2026 - 04:45:42
+Django version 6.0.1, using settings 'ssbikez.settings'
+Starting development server at http://127.0.0.1:8000/
+Quit the server with CTRL-BREAK.
+
+WARNING: This is a development server. Do not use it in a production setting. Use a production WSGI or ASGI server instead.
+For more information on production servers see: https://docs.djangoproject.com/en/6.0/howto/deployment/
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:16:02 +0000
+Message-ID: <178139256251.23784.16197618463796644358@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 800824
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+--- OTP email dispatched to  ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:16:37 +0000
+Message-ID: <178139259705.23784.5059554357594433278@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 391389
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:16:57 +0000
+Message-ID: <178139261754.23784.9766160856257329361@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 115370
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:17:16 +0000
+Message-ID: <178139263634.23784.11960908119212286078@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 277902
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: arjun.e2e@ssbikez.com
+Date: Sat, 13 Jun 2026 23:20:43 +0000
+Message-ID: <178139284319.23784.18416012196747305646@Satya-ROG-G16>
+
+Hello Arjun,
+
+Your OTP for login is: 634832
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to arjun.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:20:59 +0000
+Message-ID: <178139285961.23784.6953621629349109663@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 995946
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:25:01 +0000
+Message-ID: <178139310144.23784.4752570006593753305@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 855283
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: arjun.e2e@ssbikez.com
+Date: Sat, 13 Jun 2026 23:28:32 +0000
+Message-ID: <178139331252.23784.10098145349491086051@Satya-ROG-G16>
+
+Hello Arjun,
+
+Your OTP for login is: 303964
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to arjun.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sat, 13 Jun 2026 23:28:48 +0000
+Message-ID: <178139332889.23784.809616017617755839@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 589897
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:24:21 +0000
+Message-ID: <178143626140.23784.15357913153133065637@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 707968
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:30:36 +0000
+Message-ID: <178143663693.23784.18380058958859820790@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 361035
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:35:23 +0000
+Message-ID: <178143692394.23784.15945206475797684541@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 587262
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:40:26 +0000
+Message-ID: <178143722603.23784.4902920495316545337@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 559596
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+--- OTP email dispatched to  ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:44:46 +0000
+Message-ID: <178143748699.23784.8643371991763242558@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 246199
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: meena.e2e@ssbikez.com
+Date: Sun, 14 Jun 2026 11:44:54 +0000
+Message-ID: <178143749475.23784.7861669213199435634@Satya-ROG-G16>
+
+Hello Meena,
+
+Your OTP for login is: 245804
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to meena.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 11:45:09 +0000
+Message-ID: <178143750911.23784.5498540158770014711@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 142067
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:00:38 +0000
+Message-ID: <178143843877.23784.3063062500292412551@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 454063
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+--- OTP email dispatched to  ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:04:51 +0000
+Message-ID: <178143869127.23784.13512788848374429594@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 368757
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: meena.e2e@ssbikez.com
+Date: Sun, 14 Jun 2026 12:04:59 +0000
+Message-ID: <178143869901.23784.2559749497860422052@Satya-ROG-G16>
+
+Hello Meena,
+
+Your OTP for login is: 580328
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to meena.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:05:13 +0000
+Message-ID: <178143871335.23784.11729606103988395199@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 417315
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:15:24 +0000
+Message-ID: <178143932463.23784.17830387075364374043@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 135954
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+--- OTP email dispatched to  ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:19:42 +0000
+Message-ID: <178143958243.23784.15547472081535095581@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 127277
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: meena.e2e@ssbikez.com
+Date: Sun, 14 Jun 2026 12:19:50 +0000
+Message-ID: <178143959016.23784.10980196171760577764@Satya-ROG-G16>
+
+Hello Meena,
+
+Your OTP for login is: 662563
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to meena.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 12:20:03 +0000
+Message-ID: <178143960344.23784.11140067895880651436@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 880760
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 17:39:56 +0000
+Message-ID: <178145879681.23784.11758983408731605500@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 743205
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+--- OTP email dispatched to  ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 17:44:14 +0000
+Message-ID: <178145905499.23784.885357687816893567@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 663265
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to admin@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: meena.e2e@ssbikez.com
+Date: Sun, 14 Jun 2026 17:44:22 +0000
+Message-ID: <178145906272.23784.12797220047230801159@Satya-ROG-G16>
+
+Hello Meena,
+
+Your OTP for login is: 500911
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------
+--- OTP email dispatched to meena.e2e@ssbikez.com ---
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+Subject: Your SSBikez ERP Login OTP
+From: SSBikez ERP <noreply@ssbikez.com>
+To: admin@ssbikez.com
+Date: Sun, 14 Jun 2026 17:44:36 +0000
+Message-ID: <178145907605.23784.17825148858154385967@Satya-ROG-G16>
+
+Hello admin,
+
+Your OTP for login is: 887991
+
+This code is valid for the next 10 minutes.
+
+Thank you,
+SSBikez ERP Team
+
+-------------------------------------------------------------------------------

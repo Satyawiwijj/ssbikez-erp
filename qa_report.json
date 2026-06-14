@@ -1,0 +1,443 @@
+{
+  "summary": {
+    "total": 86,
+    "passed": 84,
+    "issues": 2
+  },
+  "results": [
+    {
+      "status": "OK",
+      "flow": "Login",
+      "step": "Authenticated as admin"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Stat cards present (6)"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Sidebar: Customers"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Sidebar: Sales"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Sidebar: Invoices"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Sidebar: Service"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Sidebar: Spares"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Notification bell (a.notification-bell) present"
+    },
+    {
+      "status": "OK",
+      "flow": "Dashboard",
+      "step": "Search bar present"
+    },
+    {
+      "status": "OK",
+      "flow": "Customers",
+      "step": "Customer created"
+    },
+    {
+      "status": "OK",
+      "flow": "Customers",
+      "step": "New customer visible in list"
+    },
+    {
+      "status": "OK",
+      "flow": "Customers",
+      "step": "Customer detail page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Customers",
+      "step": "Duplicate phone shows validation error"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Enquiry created"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Detail shows: Customer"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Detail shows: Status"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Detail shows: Enquiry"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Feedback added"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Follow-ups page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Appointment booked with purpose=test_ride"
+    },
+    {
+      "status": "OK",
+      "flow": "Test Rides",
+      "step": "Scheduled Test Rides section visible"
+    },
+    {
+      "status": "OK",
+      "flow": "Enquiry",
+      "step": "Appointments list loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Stock",
+      "step": "Vehicle stock unit created"
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "LIVE-TEST vehicle found in order form"
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "Sales order created"
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "Detail tab/section: Details"
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "Detail tab/section: Finance"
+    },
+    {
+      "status": "ISSUE",
+      "flow": "Order",
+      "step": "Detail section: Documents",
+      "detail": "'Documents' not found on order detail",
+      "screenshot": ""
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "Detail tab/section: Insurance"
+    },
+    {
+      "status": "OK",
+      "flow": "Order",
+      "step": "PDI created (28 checkboxes)"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "Live test order linked to invoice"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "Invoice created"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "Payment summary section present"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "GST info visible on invoice"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "Payment recorded"
+    },
+    {
+      "status": "OK",
+      "flow": "Billing",
+      "step": "Invoice PDF/print view generates"
+    },
+    {
+      "status": "OK",
+      "flow": "RTO",
+      "step": "RTO registration created"
+    },
+    {
+      "status": "OK",
+      "flow": "RTO",
+      "step": "RC Book created"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Service enquiry created"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Job card created"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Warranty status visible on job card"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Workflow/progress element present"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Job card status advanced 5 times"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Labour charge added"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Service invoice loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Service",
+      "step": "Service invoice PDF generates"
+    },
+    {
+      "status": "OK",
+      "flow": "Spares",
+      "step": "KPI / stat cards on spares dashboard"
+    },
+    {
+      "status": "OK",
+      "flow": "Spares",
+      "step": "Spare item created"
+    },
+    {
+      "status": "OK",
+      "flow": "Spares",
+      "step": "Test item selected in counter sale"
+    },
+    {
+      "status": "OK",
+      "flow": "Spares",
+      "step": "GST visible in counter sale form"
+    },
+    {
+      "status": "OK",
+      "flow": "Spares",
+      "step": "Counter sale created/submitted"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "GST Report loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Profit Report loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Sales Targets loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Leaderboard loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Technician Report loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Parts Consumption loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Stock Aging loads with content"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Sales Targets has colour-coded achievement badges"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "Profit report has profit data"
+    },
+    {
+      "status": "OK",
+      "flow": "Reports",
+      "step": "\"Delivery Record Missing\" section visible in delivery list"
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "Logout"
+    },
+    {
+      "status": "OK",
+      "flow": "Login",
+      "step": "Authenticated as e2e_sales"
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "e2e_sales login succeeded"
+    },
+    {
+      "status": "ISSUE",
+      "flow": "RBAC",
+      "step": "Billing visible to e2e_sales",
+      "detail": "Finance/Billing links visible in sidebar for Sales role",
+      "screenshot": ""
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "Billing Invoices is blocked (redirect/403/access-denied)"
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "Spares Items is blocked (redirect/403/access-denied)"
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "User Management is blocked (redirect/403/access-denied)"
+    },
+    {
+      "status": "OK",
+      "flow": "Login",
+      "step": "Authenticated as admin"
+    },
+    {
+      "status": "OK",
+      "flow": "RBAC",
+      "step": "Re-logged in as admin"
+    },
+    {
+      "status": "OK",
+      "flow": "Notifications",
+      "step": "notification-bell link found"
+    },
+    {
+      "status": "OK",
+      "flow": "Notifications",
+      "step": "Notification list has 35 items/rows"
+    },
+    {
+      "status": "OK",
+      "flow": "Notifications",
+      "step": "Mark as read clicked"
+    },
+    {
+      "status": "OK",
+      "flow": "Search",
+      "step": "Search bar input found"
+    },
+    {
+      "status": "OK",
+      "flow": "Search",
+      "step": "Search results contain \"Live Test\""
+    },
+    {
+      "status": "OK",
+      "flow": "Search",
+      "step": "Clicking result navigates correctly"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Suppliers page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Warehouses page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Company Settings page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Users page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Roles page loads"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Company Settings has GSTIN field"
+    },
+    {
+      "status": "OK",
+      "flow": "Masters",
+      "step": "Supplier created"
+    },
+    {
+      "status": "OK",
+      "flow": "VAS",
+      "step": "AMC list loads"
+    },
+    {
+      "status": "OK",
+      "flow": "VAS",
+      "step": "RSA list loads"
+    },
+    {
+      "status": "OK",
+      "flow": "VAS",
+      "step": "AMC package created"
+    }
+  ]
+}

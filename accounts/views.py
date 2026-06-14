@@ -312,14 +312,37 @@ def dashboard(request):
 # Users
 # ---------------------------------------------------------------------------
 
+_USER_MGMT_ROLES = {'Managing Director', 'Sales Manager'}
+_SETTINGS_MGMT_ROLES = {'Managing Director'}
+
+
+def _can_manage_settings(user):
+    if user.is_superuser:
+        return True
+    role_name = getattr(getattr(user, 'role', None), 'role_name', '')
+    return role_name in _SETTINGS_MGMT_ROLES
+
+
+def _can_manage_users(user):
+    if user.is_superuser:
+        return True
+    role_name = getattr(getattr(user, 'role', None), 'role_name', '')
+    return role_name in _USER_MGMT_ROLES
+
 @login_required
 def user_list(request):
+    if not _can_manage_users(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     users = User.objects.select_related('role', 'branch').all()
     return render(request, 'accounts/user_list.html', {'users': users})
 
 
 @login_required
 def user_create(request):
+    if not _can_manage_users(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = UserCreationForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.save()
@@ -331,6 +354,9 @@ def user_create(request):
 
 @login_required
 def user_update(request, pk):
+    if not _can_manage_users(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     user = get_object_or_404(User, pk=pk)
     form = UserUpdateForm(request.POST or None, instance=user)
     if request.method == 'POST' and form.is_valid():
@@ -367,12 +393,18 @@ def profile_update(request):
 
 @login_required
 def branch_list(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     branches = Branch.objects.all()
     return render(request, 'accounts/branch_list.html', {'branches': branches})
 
 
 @login_required
 def branch_create(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = BranchForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         branch = form.save()
@@ -384,6 +416,9 @@ def branch_create(request):
 
 @login_required
 def branch_update(request, pk):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     branch = get_object_or_404(Branch, pk=pk)
     form   = BranchForm(request.POST or None, instance=branch)
     if request.method == 'POST' and form.is_valid():
@@ -406,12 +441,18 @@ def home(request):
 
 @login_required
 def role_list(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     roles = Role.objects.all()
     return render(request, 'accounts/role_list.html', {'roles': roles})
 
 
 @login_required
 def role_create(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = RoleForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         role = form.save()
@@ -423,6 +464,9 @@ def role_create(request):
 
 @login_required
 def role_update(request, pk):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     role = get_object_or_404(Role, pk=pk)
     form = RoleForm(request.POST or None, instance=role)
     if request.method == 'POST' and form.is_valid():
@@ -759,6 +803,9 @@ def insurance_expiry_list(request):
 
 @login_required
 def company_settings(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     from .forms import CompanySettingsForm
     from .models import CompanySettings as CS
     instance = CS.get_instance()

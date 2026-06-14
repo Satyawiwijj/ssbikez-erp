@@ -1,21 +1,163 @@
 {% extends 'base.html' %}
+
 {% block title %}Log Test Ride — SSBikez ERP{% endblock %}
 {% block page_title %}Log Test Ride{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="test-ride-form"
+        class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save Test Ride
+</button>
+
+<a href="{% url 'sales:test_ride_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">{{ title }}</h1>
-  <a href="{% url 'sales:test_ride_list' %}" class="btn btn-ghost">&#8592; Back</a>
-</div>
-<div class="card" style="max-width:640px;">
-  <form method="post">{% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="text-danger" style="font-size:12px;">{{ field.errors }}</div>{% endif %}
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+
+        <p class="page-subtitle">
+            Record customer vehicle test rides and track ride activity.
+        </p>
     </div>
-    {% endfor %}
-    <button type="submit" class="btn btn-primary">Log Test Ride</button>
-  </form>
 </div>
+
+<form method="post"
+      id="test-ride-form"
+      novalidate>
+
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-warning mb-3">
+        {% for err in form.non_field_errors %}
+            {{ err }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="row g-4">
+
+        <!-- Main Form -->
+        <div class="col-lg-8">
+
+            <div class="card form-card">
+
+                <div class="card-header">
+                    <i class="fas fa-motorcycle me-2"></i>
+                    Test Ride Details
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row g-3">
+
+                        {% for field in form %}
+
+                        <div class="col-md-6">
+
+                            <label class="form-label"
+                                   for="{{ field.id_for_label }}">
+                                {{ field.label }}
+                            </label>
+
+                            {{ field }}
+
+                            {% if field.help_text %}
+                            <small class="text-muted">
+                                {{ field.help_text }}
+                            </small>
+                            {% endif %}
+
+                            {% if field.errors %}
+                            <div class="form-error">
+                                {% for error in field.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+
+                        </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Info Panel -->
+        <div class="col-lg-4">
+
+            <div class="card">
+
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Information
+                </div>
+
+                <div class="card-body">
+
+                    <div class="mb-4">
+                        <div class="fw-semibold mb-1">
+                            Purpose
+                        </div>
+
+                        <div class="text-muted">
+                            Track customer test rides before vehicle purchase.
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="fw-semibold mb-1">
+                            Workflow
+                        </div>
+
+                        <div class="text-muted">
+                            Enquiry → Appointment → Test Ride → Order
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="fw-semibold mb-1">
+                            Vehicle Tracking
+                        </div>
+
+                        <div class="text-muted">
+                            Maintain ride records for vehicle movement and customer engagement.
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="fw-semibold mb-1">
+                            Note
+                        </div>
+
+                        <div class="text-muted small">
+                            Ensure rider information and selected vehicle details are verified before saving.
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</form>
+
 {% endblock %}

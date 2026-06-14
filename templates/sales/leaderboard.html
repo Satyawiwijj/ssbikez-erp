@@ -1,40 +1,152 @@
 {% extends 'base.html' %}
+
 {% block title %}Sales Leaderboard — SSBikez ERP{% endblock %}
 {% block page_title %}Sales Leaderboard{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:target_list' %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Targets
+</a>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">Leaderboard — {{ month }}/{{ year }}</h1>
-  <a href="{% url 'sales:target_list' %}" class="btn btn-ghost">&#8592; Targets</a>
+    <div>
+        <h1 class="page-title">
+            Sales Leaderboard
+        </h1>
+        <p class="page-subtitle">
+            Top-performing sales executives for {{ month }}/{{ year }}.
+        </p>
+    </div>
 </div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+            <div>
+                <h5 style="margin-bottom:4px;">
+                    Monthly Performance Rankings
+                </h5>
+                <p style="margin:0;color:#64748b;">
+                    Period: {{ month }}/{{ year }}
+                </p>
+            </div>
+
+            <div style="font-size:14px;color:#64748b;">
+                Total Executives:
+                <strong>{{ leaderboard|length }}</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% if leaderboard %}
+
 <div class="card">
-  <table class="table">
-    <thead><tr><th>Rank</th><th>Executive</th><th>Enquiries</th><th>Conversions</th><th>Revenue</th><th>Conv%</th></tr></thead>
-    <tbody>
-    {% for row in leaderboard %}
-    <tr>
-      <td>
-        {% if row.rank == 1 %}<span style="font-size:20px;">🥇</span>
-        {% elif row.rank == 2 %}<span style="font-size:20px;">🥈</span>
-        {% elif row.rank == 3 %}<span style="font-size:20px;">🥉</span>
-        {% else %}<span style="color:#64748b;">#{{ row.rank }}</span>
-        {% endif %}
-      </td>
-      <td><strong>{{ row.user.get_full_name }}</strong></td>
-      <td>{{ row.month_enquiries }}</td>
-      <td>{{ row.month_conversions }}</td>
-      <td>₹{{ row.month_revenue|default:0|floatformat:0 }}</td>
-      <td>
-        {% if row.month_enquiries %}
-          {{ row.month_conversions|floatformat:0 }}%
-        {% else %}—{% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-medal me-2"></i>
+            Executive Rankings
+        </span>
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Rank</th>
+                    <th>Executive</th>
+                    <th>Enquiries</th>
+                    <th>Conversions</th>
+                    <th>Revenue</th>
+                    <th>Conversion %</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for row in leaderboard %}
+            <tr>
+
+                <td>
+                  {% if row.rank == 1 %}
+                      <i class="fas fa-trophy text-warning fs-5"></i>
+                  {% elif row.rank == 2 %}
+                      <i class="fas fa-medal text-secondary fs-5"></i>
+                  {% elif row.rank == 3 %}
+                      <i class="fas fa-award" style="color:#cd7f32;"></i>
+                  {% else %}
+                      <span class="badge bg-secondary">#{{ row.rank }}</span>
+                  {% endif %}
+                </td>
+
+                <td>
+                    <strong>
+                        {{ row.user.get_full_name|default:row.user.username }}
+                    </strong>
+                </td>
+
+                <td>
+                    {{ row.month_enquiries }}
+                </td>
+
+                <td>
+                    {{ row.month_conversions }}
+                </td>
+
+                <td>
+                    ₹{{ row.month_revenue|default:0|floatformat:0 }}
+                </td>
+
+                <td>
+                    {% if row.month_enquiries %}
+                        <span class="badge bg-success">
+                            {{ row.conversion_percent }}%
+                        </span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+
+            </tr>
+            {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
 </div>
+
 {% else %}
-<div class="card"><p style="padding:20px;color:#64748b;">No sales executives found.</p></div>
+
+<div class="card">
+
+    <div class="card-body text-center py-5">
+
+        <i class="fas fa-trophy"
+           style="font-size:48px;color:#cbd5e1;"></i>
+
+        <h5 class="mt-3">
+            No Sales Data Available
+        </h5>
+
+        <p class="text-muted">
+            No sales executives were found for the selected period.
+        </p>
+
+    </div>
+
+</div>
+
 {% endif %}
+
 {% endblock %}

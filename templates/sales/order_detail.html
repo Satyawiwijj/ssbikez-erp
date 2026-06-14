@@ -265,7 +265,95 @@
         </div>
 
     </div>
+</div>
 
+<!-- PDI CHECKLIST -->
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-clipboard-check me-2"></i>
+            Pre-Delivery Inspection (PDI)
+        </span>
+
+        {% if not order.pdi_checklist %}
+        <a href="{% url 'sales:pdi_create' order.pk %}"
+           class="btn btn-primary btn-sm">
+            <i class="fas fa-plus me-1"></i>
+            Create PDI
+        </a>
+        {% endif %}
+    </div>
+
+    {% if order.pdi_checklist %}
+
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+
+                <tr>
+                    <th>Inspection Date</th>
+                    <td>{{ order.pdi_checklist.inspection_date }}</td>
+                </tr>
+
+                <tr>
+                    <th>Inspected By</th>
+                    <td>{{ order.pdi_checklist.inspected_by }}</td>
+                </tr>
+
+                <tr>
+                    <th>Mechanical Score</th>
+                    <td>{{ order.pdi_checklist.mechanical_score }}</td>
+                </tr>
+
+                <tr>
+                    <th>Electrical Score</th>
+                    <td>{{ order.pdi_checklist.electrical_score }}</td>
+                </tr>
+
+                <tr>
+                    <th>Status</th>
+                    <td>
+                        {% if order.pdi_checklist.is_approved %}
+                        <span class="badge bg-success">
+                            Approved
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">
+                            Pending Approval
+                        </span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer">
+
+        <a href="{% url 'sales:pdi_detail' order.pdi_checklist.pk %}"
+           class="btn btn-outline-primary btn-sm">
+
+            <i class="fas fa-eye me-1"></i>
+            View PDI
+
+        </a>
+
+    </div>
+
+    {% else %}
+
+    <div class="empty-state">
+        <p class="mb-2">
+            PDI checklist not created yet.
+        </p>
+
+        <small class="text-muted">
+            Complete inspection before vehicle delivery.
+        </small>
+    </div>
+
+    {% endif %}
 </div>
 
 <!-- EXCHANGE VEHICLE -->
@@ -360,6 +448,137 @@
         <small class="text-muted">Add finance details from the Billing module.</small>
     </div>
     {% endif %}
+</div>
+
+<!-- DOCUMENTS HUB -->
+<div class="card" style="margin-bottom:20px;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-folder-open me-2"></i>Documents</span>
+  </div>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:0; border-top:1px solid #F0F2F5;">
+
+    <!-- 1. Invoice -->
+    <div style="padding:18px; border-bottom:1px solid #F0F2F5; border-right:1px solid #F0F2F5;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <i class="fas fa-file-invoice" style="color:#2563EB; font-size:16px;"></i>
+        <span style="font-weight:700; font-size:14px; color:#111;">Invoice</span>
+        {% if invoice %}
+          <span class="badge badge-green" style="margin-left:auto;">Issued</span>
+        {% else %}
+          <span class="badge badge-yellow" style="margin-left:auto;">Not Created</span>
+        {% endif %}
+      </div>
+      {% if invoice %}
+        <div style="font-size:13px; color:#374151; margin-bottom:2px;">
+          <span style="font-family:monospace; font-weight:600;">{{ invoice.invoice_number }}</span>
+        </div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">
+          &#x20B9;{{ invoice.final_amount }} &middot; {{ invoice.invoice_date|date:"d M Y" }}
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <a href="{% url 'billing:invoice_detail' invoice.pk %}" class="btn btn-sm btn-outline-secondary">
+            <i class="fas fa-eye me-1"></i>View Invoice
+          </a>
+          <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-sm btn-ghost" target="_blank">
+            <i class="fas fa-download me-1"></i>Download PDF
+          </a>
+        </div>
+      {% else %}
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">No invoice generated for this order yet.</div>
+        <a href="{% url 'billing:invoice_create' %}?order={{ order.pk }}" class="btn btn-sm btn-primary">
+          <i class="fas fa-plus me-1"></i>Create Invoice
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- 2. RC Book / RTO -->
+    <div style="padding:18px; border-bottom:1px solid #F0F2F5;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <i class="fas fa-id-card" style="color:#7C3AED; font-size:16px;"></i>
+        <span style="font-weight:700; font-size:14px; color:#111;">RC Book / RTO</span>
+        {% if rto %}
+          <span class="badge badge-blue" style="margin-left:auto;">{{ rto.get_registration_status_display }}</span>
+        {% else %}
+          <span class="badge badge-yellow" style="margin-left:auto;">Not Started</span>
+        {% endif %}
+      </div>
+      {% if rto %}
+        <div style="font-size:13px; color:#374151; margin-bottom:2px;">
+          Reg: <span style="font-family:monospace; font-weight:600;">{{ rto.registration_number|default:"Pending" }}</span>
+        </div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">
+          {% if rto.form20_number %}Form 20: {{ rto.form20_number }}{% else %}&nbsp;{% endif %}
+        </div>
+        <a href="{% url 'rto:registration_detail' rto.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-eye me-1"></i>View RTO
+        </a>
+      {% else %}
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">RTO registration not yet initiated.</div>
+        <a href="{% url 'rto:registration_create' %}?order={{ order.pk }}" class="btn btn-sm btn-primary">
+          <i class="fas fa-plus me-1"></i>Start RTO
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- 3. Insurance Policy -->
+    <div style="padding:18px; border-right:1px solid #F0F2F5;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <i class="fas fa-shield-alt" style="color:#059669; font-size:16px;"></i>
+        <span style="font-weight:700; font-size:14px; color:#111;">Insurance</span>
+        {% if insurance %}
+          <span class="badge badge-green" style="margin-left:auto;">Active</span>
+        {% else %}
+          <span class="badge badge-yellow" style="margin-left:auto;">No Policy</span>
+        {% endif %}
+      </div>
+      {% if insurance %}
+        <div style="font-size:13px; color:#374151; margin-bottom:2px;">
+          <span style="font-family:monospace; font-weight:600;">{{ insurance.policy_number }}</span>
+        </div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">
+          {{ insurance.provider_name }} &middot; Exp: {{ insurance.end_date|date:"d M Y" }}
+        </div>
+        <a href="{% url 'billing:insurance_policy_detail' insurance.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-eye me-1"></i>View Policy
+        </a>
+      {% else %}
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">No insurance policy linked to this order.</div>
+        <a href="{% url 'billing:insurance_policy_create' %}?order={{ order.pk }}" class="btn btn-sm btn-primary">
+          <i class="fas fa-plus me-1"></i>Add Policy
+        </a>
+      {% endif %}
+    </div>
+
+    <!-- 4. Vehicle Delivery -->
+    <div style="padding:18px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:10px;">
+        <i class="fas fa-truck" style="color:#D97706; font-size:16px;"></i>
+        <span style="font-weight:700; font-size:14px; color:#111;">Vehicle Delivery</span>
+        {% if delivery %}
+          <span class="badge badge-green" style="margin-left:auto;">Delivered</span>
+        {% else %}
+          <span class="badge badge-yellow" style="margin-left:auto;">Not Yet Delivered</span>
+        {% endif %}
+      </div>
+      {% if delivery %}
+        <div style="font-size:13px; color:#374151; margin-bottom:2px;">
+          Delivered: <strong>{{ delivery.delivery_date|date:"d M Y" }}</strong>
+        </div>
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">
+          {% if delivery.delivered_by %}By {{ delivery.delivered_by }}{% else %}&nbsp;{% endif %}
+        </div>
+        <a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="fas fa-edit me-1"></i>View Delivery
+        </a>
+      {% else %}
+        <div style="font-size:12px; color:#6B7280; margin-bottom:10px;">Vehicle not yet handed over to customer.</div>
+        <a href="{% url 'sales:delivery_create' %}?order={{ order.pk }}" class="btn btn-sm btn-primary">
+          <i class="fas fa-plus me-1"></i>Record Delivery
+        </a>
+      {% endif %}
+    </div>
+
+  </div>
 </div>
 
 <!-- INVOICE -->

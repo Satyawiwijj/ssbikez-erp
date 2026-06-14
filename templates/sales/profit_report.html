@@ -1,48 +1,212 @@
 {% extends 'base.html' %}
+
 {% block title %}Profit Report — SSBikez ERP{% endblock %}
-{% block page_title %}Profit Per Vehicle Report{% endblock %}
+{% block page_title %}Profit Report{% endblock %}
+
+{% block topbar_actions %}
+<form method="get" style="display:flex;gap:8px;align-items:center;">
+    <input type="number"
+           name="month"
+           value="{{ month }}"
+           min="1"
+           max="12"
+           class="form-control form-control-sm"
+           style="width:80px;">
+
+    <input type="number"
+           name="year"
+           value="{{ year }}"
+           min="2024"
+           class="form-control form-control-sm"
+           style="width:100px;">
+
+    <button type="submit" class="btn btn-sm btn-primary">
+        <i class="fas fa-filter me-1"></i>
+        Filter
+    </button>
+</form>
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">Profit Report</h1>
-  <form method="get" style="display:flex;gap:8px;align-items:center;">
-    <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:80px;">
-    <input type="number" name="year"  value="{{ year }}"  min="2024" class="form-control" style="width:100px;">
-    <button type="submit" class="btn btn-secondary">Filter</button>
-  </form>
+    <div>
+        <h1 class="page-title">
+            Profit Per Vehicle Report
+        </h1>
+        <p class="page-subtitle">
+            Analyze profitability, margins, discounts and vehicle sales performance.
+        </p>
+    </div>
 </div>
+
+<div class="card mb-4">
+    <div class="card-body">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;">
+
+            <div>
+                <h5 style="margin-bottom:4px;">
+                    Reporting Period
+                </h5>
+                <p style="margin:0;color:#64748b;">
+                    Month {{ month }} / {{ year }}
+                </p>
+            </div>
+
+            <div style="text-align:right;">
+                <div style="font-size:13px;color:#64748b;">
+                    Total Profit
+                </div>
+                <div style="font-size:24px;font-weight:700;color:#16a34a;">
+                    ₹{{ total_profit|floatformat:0 }}
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% if profit_data %}
+
 <div class="card">
-  <table class="table">
-    <thead><tr>
-      <th>Order</th><th>Customer</th><th>Model</th><th>Cost</th>
-      <th>Selling</th><th>Discount</th><th>Gross Profit</th><th>Margin%</th>
-    </tr></thead>
-    <tbody>
-    {% for row in profit_data %}
-    <tr>
-      <td>ORD-{{ row.order.pk }}</td>
-      <td>{{ row.order.customer.full_name }}</td>
-      <td>{% if row.order.vehicle %}{{ row.order.vehicle.bike_model }}{% else %}—{% endif %}</td>
-      <td>₹{{ row.cost_price|floatformat:0 }}</td>
-      <td>₹{{ row.selling_price|floatformat:0 }}</td>
-      <td>₹{{ row.discount|floatformat:0 }}</td>
-      <td style="color:{% if row.gross_profit > 0 %}#16a34a{% else %}#dc2626{% endif %};">
-        ₹{{ row.gross_profit|floatformat:0 }}
-      </td>
-      <td style="font-weight:600;color:{% if row.margin_pct >= 10 %}#16a34a{% elif row.margin_pct < 5 %}#dc2626{% else %}#d97706{% endif %};">
-        {{ row.margin_pct }}%
-      </td>
-    </tr>
-    {% empty %}
-    <tr><td colspan="8" style="text-align:center;color:#64748b;padding:30px;">No orders for this period.</td></tr>
-    {% endfor %}
-    </tbody>
-    {% if profit_data %}
-    <tfoot><tr style="font-weight:700;background:#f8fafc;">
-      <td colspan="6">Total</td>
-      <td>₹{{ total_profit|floatformat:0 }}</td>
-      <td></td>
-    </tr></tfoot>
-    {% endif %}
-  </table>
+
+    <div class="card-header">
+        <span class="card-title">
+            <i class="fas fa-coins me-2"></i>
+            Vehicle Profit Analysis
+        </span>
+    </div>
+
+    <div class="table-responsive">
+
+        <table class="table">
+
+            <thead>
+                <tr>
+                    <th>Order</th>
+                    <th>Customer</th>
+                    <th>Model</th>
+                    <th>Cost Price</th>
+                    <th>Selling Price</th>
+                    <th>Discount</th>
+                    <th>Gross Profit</th>
+                    <th>Margin %</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+            {% for row in profit_data %}
+            <tr>
+
+                <td>
+                    <strong>ORD-{{ row.order.pk }}</strong>
+                </td>
+
+                <td>
+                    {{ row.order.customer.full_name }}
+                </td>
+
+                <td>
+                    {% if row.order.vehicle %}
+                        {{ row.order.vehicle.bike_model }}
+                    {% else %}
+                        —
+                    {% endif %}
+                </td>
+
+                <td>
+                    ₹{{ row.cost_price|floatformat:0 }}
+                </td>
+
+                <td>
+                    ₹{{ row.selling_price|floatformat:0 }}
+                </td>
+
+                <td>
+                    ₹{{ row.discount|floatformat:0 }}
+                </td>
+
+                <td>
+                    {% if row.gross_profit > 0 %}
+                        <span class="badge bg-success">
+                            ₹{{ row.gross_profit|floatformat:0 }}
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger">
+                            ₹{{ row.gross_profit|floatformat:0 }}
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>
+
+                    {% if row.margin_pct >= 10 %}
+                        <span class="badge bg-success">
+                            {{ row.margin_pct }}%
+                        </span>
+
+                    {% elif row.margin_pct >= 5 %}
+                        <span class="badge bg-warning text-dark">
+                            {{ row.margin_pct }}%
+                        </span>
+
+                    {% else %}
+                        <span class="badge bg-danger">
+                            {{ row.margin_pct }}%
+                        </span>
+                    {% endif %}
+
+                </td>
+
+            </tr>
+            {% endfor %}
+
+            </tbody>
+
+            <tfoot>
+                <tr style="background:#f8fafc;font-weight:700;">
+                    <td colspan="6">
+                        Total Profit
+                    </td>
+
+                    <td style="color:#16a34a;">
+                        ₹{{ total_profit|floatformat:0 }}
+                    </td>
+
+                    <td></td>
+                </tr>
+            </tfoot>
+
+        </table>
+
+    </div>
+
 </div>
+
+{% else %}
+
+<div class="card">
+
+    <div class="card-body text-center py-5">
+
+        <i class="fas fa-chart-line"
+           style="font-size:48px;color:#cbd5e1;"></i>
+
+        <h5 class="mt-3">
+            No Profit Data Available
+        </h5>
+
+        <p class="text-muted">
+            No vehicle sales were recorded for the selected period.
+        </p>
+
+    </div>
+
+</div>
+
+{% endif %}
+
 {% endblock %}

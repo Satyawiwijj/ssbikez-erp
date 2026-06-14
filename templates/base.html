@@ -1,3 +1,4 @@
+{% load rbac_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -281,6 +282,10 @@
       display: flex; align-items: center; gap: 16px;
       transition: transform .3s, box-shadow .3s; cursor: pointer;
     }
+    .stat-number{ font-size:32px; font-weight:700; margin-bottom:4px;}
+    .stat-card.danger{border-left:4px solid #dc2626;}
+    .stat-card.orange{border-left:4px solid #f97316;}
+    .stat-card.warning{border-left:4px solid #eab308;}
     .stat-card:hover { transform: translateY(-4px); box-shadow: 0 15px 35px rgba(15,23,42,.1); }
     .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
     .stat-icon-blue   { background: #dbeafe; }
@@ -460,145 +465,75 @@
     @media (max-width: 480px)  { .stat-grid { grid-template-columns: 1fr; } }
 
     /* ── EXTRA CSS ── */
-    .info-box{
-        background:#F8FAFC;
-        border:1px solid #E5E7EB;
-        border-radius:12px;
-        padding:14px;
+    .info-box{background:#F8FAFC; border:1px solid #E5E7EB; border-radius:12px; padding:14px; }
+    .info-label{font-size:11px; font-weight:600; color:#64748B; text-transform:uppercase; letter-spacing:.04em; margin-bottom:4px;}
+    .info-value{font-size:14px; font-weight:600; color:#0F172A; word-break:break-word;}
+    .loan-layout{display:grid; grid-template-columns:minmax(0,1fr) 320px; gap:20px; align-items:start;}
+    @media (max-width:1200px){.loan-layout{ grid-template-columns:1fr; }}
+    .emi-panel{ position:sticky; top:90px;}
+    .stats-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:20px;}
+    .hero-card{
+        background:linear-gradient(135deg,#0f172a,#1e3a8a); color:#fff;
+        border-radius:24px; padding:32px; margin-bottom:28px; display:flex;
+        justify-content:space-between; align-items:center; overflow:hidden; position:relative;
     }
-
-    .info-label{
+    .hero-card::after{
+        content:''; position:absolute; right:-60px; top:-60px;
+        width:220px; height:220px; border-radius:50%; background:rgba(255,255,255,.05);
+    }
+    .hero-title{font-size:32px; font-weight:200; margin-bottom:8px; }
+    .hero-subtitle{color:rgba(255,255,255,.75); margin-bottom:16px; max-width:650px; }
+    .hero-meta{ display:flex; gap:20px; flex-wrap:wrap;}
+    .hero-meta span{display:flex; align-items:center; gap:8px; font-size:12px; color:#dbeafe;}
+    .hero-icon{font-size:72px; color:rgba(255,255,255,.12); }
+    .section-header{display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;}
+    .section-header h2{font-size:15px; font-weight:400; margin:0;}
+    .module-count{background:#eef2ff; color:#4338ca; padding:6px 12px; border-radius:999px; font-size:12px; font-weight:200;}
+    .module-card{border:none; border-radius:20px; transition:all .25s ease; box-shadow:0 4px 20px rgba(15,23,42,.06);}
+    .module-card:hover{transform:translateY(-8px); box-shadow:0 16px 35px rgba(15,23,42,.12);}
+    .module-card i{transition:.25s;}
+    .module-card:hover i{transform:scale(1.1);}
+    
+    /* ── NOTIFICATIONS ── */
+    .notification-bell{ position:relative; color:#64748B; font-size:18px; text-decoration:none; }
+    .notification-bell:hover{ color:#2563EB; }
+    .notification-badge{
+        position:absolute;
+        top:-8px;
+        right:-10px;
+        min-width:18px;
+        height:18px;
+        border-radius:999px;
+        background:#DC2626;
+        color:#fff;
         font-size:11px;
         font-weight:600;
-        color:#64748B;
-        text-transform:uppercase;
-        letter-spacing:.04em;
-        margin-bottom:4px;
-    }
-    .info-value{
-        font-size:14px;
-        font-weight:600;
-        color:#0F172A;
-        word-break:break-word;
-    }
-    .loan-layout{
-      display:grid;
-      grid-template-columns:minmax(0,1fr) 320px;
-      gap:20px;
-      align-items:start;
-    }
-    @media (max-width:1200px){
-        .loan-layout{
-            grid-template-columns:1fr;
-        }
-    }
-    .emi-panel{
-        position:sticky;
-        top:90px;
-    }
-    .stats-grid{
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-        gap:16px;
-        margin-bottom:20px;
-    }
-    .hero-card{
-        background:linear-gradient(135deg,#0f172a,#1e3a8a);
-        color:#fff;
-        border-radius:24px;
-        padding:32px;
-        margin-bottom:28px;
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        overflow:hidden;
-        position:relative;
-    }
-
-    .hero-card::after{
-        content:'';
-        position:absolute;
-        right:-60px;
-        top:-60px;
-        width:220px;
-        height:220px;
-        border-radius:50%;
-        background:rgba(255,255,255,.05);
-    }
-
-    .hero-title{
-        font-size:32px;
-        font-weight:200;
-        margin-bottom:8px;
-    }
-
-    .hero-subtitle{
-        color:rgba(255,255,255,.75);
-        margin-bottom:16px;
-        max-width:650px;
-    }
-
-    .hero-meta{
-        display:flex;
-        gap:20px;
-        flex-wrap:wrap;
-    }
-
-    .hero-meta span{
         display:flex;
         align-items:center;
-        gap:8px;
-        font-size:12px;
-        color:#dbeafe;
+        justify-content:center;
     }
 
-    .hero-icon{
-        font-size:72px;
-        color:rgba(255,255,255,.12);
-    }
-
-    .section-header{
-        display:flex;
-        justify-content:space-between;
-        align-items:center;
-        margin-bottom:18px;
-    }
-
-    .section-header h2{
-        font-size:15px;
-        font-weight:400;
-        margin:0;
-    }
-
-    .module-count{
-        background:#eef2ff;
-        color:#4338ca;
-        padding:6px 12px;
-        border-radius:999px;
-        font-size:12px;
-        font-weight:200;
-    }
-    .module-card{
-        border:none;
-        border-radius:20px;
-        transition:all .25s ease;
-        box-shadow:0 4px 20px rgba(15,23,42,.06);
-    }
-
-    .module-card:hover{
-        transform:translateY(-8px);
-        box-shadow:0 16px 35px rgba(15,23,42,.12);
-    }
-
-    .module-card i{
-        transition:.25s;
-    }
-
-    .module-card:hover i{
-        transform:scale(1.1);
-    }
   </style>
 </head>
+<script>
+function loadNotificationCount() {
+    fetch("{% url 'accounts:notification_count' %}")
+        .then(response => response.json())
+        .then(data => {
+            const badge = document.getElementById("notification-count");
+
+            if (true) {
+                badge.textContent = data.count;
+                badge.style.display = "flex";
+            } else {
+                badge.style.display = "none";
+            }
+        });
+}
+
+loadNotificationCount();
+setInterval(loadNotificationCount, 60000);
+</script>
 <body>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -619,22 +554,33 @@
   <a href="{% url 'accounts:home' %}" class="sidebar-link" data-href="/accounts/home/"><i class="nav-icon fas fa-home"></i> Home</a>
   <a href="{% url 'accounts:dashboard' %}" class="sidebar-link" data-href="/accounts/dashboard/"><i class="nav-icon fas fa-chart-line"></i> Dashboard</a>
 
+  {% can_see_section 'Sales Executive' 'Managing Director' as show_sales %}
+  {% if show_sales %}
   <div class="sidebar-section">Sales</div>
   <a href="{% url 'sales:dashboard' %}" class="sidebar-link" data-href="/sales/"><i class="nav-icon fas fa-chart-line"></i>SALES Dashboard</a>
   <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="nav-icon fas fa-clipboard-list"></i> Enquiries</a>
   <a href="{% url 'sales:follow_up_list' %}" class="sidebar-link" data-href="/sales/follow-ups/"><i class="nav-icon fas fa-phone-alt"></i> Follow-Ups</a>
   <a href="{% url 'sales:feedback_all' %}" class="sidebar-link" data-href="/sales/feedback/"><i class="nav-icon fas fa-comments"></i>Feedback</a>
   <a href="{% url 'sales:all_appointments' %}" class="sidebar-link" data-href="/sales/all-appointments/"><i class="nav-icon fas fa-calendar-check"></i> Appointments</a>
+  <a href="{% url 'sales:test_ride_list' %}" class="sidebar-link"><i class="nav-icon fas fa-motorcycle"></i> Test Rides</a>
   <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="nav-icon fas fa-shopping-cart"></i> Orders</a>
   <a href="{% url 'sales:exchange_list' %}" class="sidebar-link" data-href="/sales/exchange-list/"><i class="nav-icon fas fa-exchange-alt"></i>Exchange Vehicles</a>
   <a href="{% url 'sales:delivery_list' %}" class="sidebar-link" data-href="/sales/delivery-list/"><i class="nav-icon fas fa-truck"></i> Deliveries</a>
+  <a href="{% url 'sales:target_list' %}" class="sidebar-link" data-href="/sales/targets/"><i class="nav-icon fas fa-bullseye"></i> Sales Targets</a>
+  <a href="{% url 'sales:profit_report' %}" class="sidebar-link" data-href="/sales/profit-report/"><i class="nav-icon fas fa-chart-pie"></i> Profit Report</a>
+  {% endif %}
 
+  {% can_see_section 'Sales Executive' 'Managing Director' as show_customers %}
+  {% if show_customers %}
   <div class="sidebar-section">Customers</div>
   <a href="{% url 'customers:customer_list' %}" class="sidebar-link" data-href="/customers/"><i class="nav-icon fas fa-users"></i> Customers</a>
   <a href="{% url 'customer_vehicles:customervehicle_list' %}" class="sidebar-link" data-href="/customer-vehicles/"><i class="nav-icon fas fa-key"></i> Customer Vehicles</a>
   <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="nav-icon fas fa-list"></i> Bike Models</a>
   <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Stock</a>
+  {% endif %}
 
+  {% can_see_section 'Cashier' 'Accounts' 'Managing Director' as show_finance %}
+  {% if show_finance %}
   <div class="sidebar-section">Finance</div>
   <a href="{% url 'billing:dashboard' %}" class="sidebar-link" data-href="/billing/dashboard/"><i class="nav-icon fas fa-chart-line"></i>FINANCE Dashboard</a>
   <a href="{% url 'billing:daily_collection_report' %}" class="sidebar-link" data-href="/billing/daily-report/"><i class="nav-icon fas fa-chart-bar"></i> Daily Collection</a>
@@ -646,18 +592,25 @@
   <a href="{% url 'billing:refund_advance_list' %}" class="sidebar-link" data-href="/billing/refunds-advances/"><i class="nav-icon fas fa-exchange-alt"></i> Refunds &amp; Advances</a>
   <a href="{% url 'billing:journal_entry_list' %}" class="sidebar-link" data-href="/billing/journal/"><i class="nav-icon fas fa-book"></i> Journal Entries</a>
   <a href="{% url 'billing:general_ledger' %}" class="sidebar-link" data-href="/billing/ledger/"><i class="nav-icon fas fa-list"></i> General Ledger</a>
+  {% endif %}
 
+  {% can_see_section 'Cashier' 'Managing Director' as show_rto %}
+  {% if show_rto %}
   <div class="sidebar-section">RTO</div>
   <a href="{% url 'rto:dashboard' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-tachometer-alt"></i>RTO Dashboard</a>
   <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-id-card"></i> Registrations</a>
   <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="nav-icon fas fa-hashtag"></i> Number Plates</a>
   <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
+  {% endif %}
 
+  {% can_see_section 'Floor Supervisor' 'Service Advisor' 'CRE Telecaller' 'Managing Director' as show_service %}
+  {% if show_service %}
   <div class="sidebar-section">Service</div>
   <a href="{% url 'service:dashboard' %}" class="sidebar-link" data-href="/service/dashboard/"><i class="nav-icon fas fa-chart-line"></i> SERVICE Dashboard</a>
   <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Enquiries</a>
   <a href="{% url 'service:enquiry_bulk_import' %}" class="sidebar-link" data-href="/service/bulk-import/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
   <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="nav-icon fas fa-calendar-alt"></i> Appointments</a>
+  <a href="{% url 'service:reminder_list' %}" class="sidebar-link" data-href="/service/reminders/"><i class="nav-icon fas fa-bell"></i> Service Reminders</a>
   <a href="{% url 'service:jobcard_list' %}" class="sidebar-link" data-href="/service/jobcards/"><i class="nav-icon fas fa-file-alt"></i> Job Cards</a>
   <a href="{% url 'service:labor_charge_list' %}" class="sidebar-link" data-href="/service/labor-charges/"><i class="nav-icon fas fa-tools"></i> Labour Charges</a>
   <a href="{% url 'service:discount_master_list' %}" class="sidebar-link" data-href="/service/discount-master/"><i class="nav-icon fas fa-percent"></i> Discount Master</a>
@@ -665,7 +618,11 @@
   <a href="{% url 'service:call_list' %}" class="sidebar-link" data-href="/service/calls/"><i class="nav-icon fas fa-phone"></i> Customer Calls</a>
   <a href="{% url 'service:warranty_claim_list' %}" class="sidebar-link" data-href="/service/warranty-claims/"><i class="nav-icon fas fa-shield-alt"></i> Warranty Claims</a>
   <a href="{% url 'service:insurance_claim_list' %}" class="sidebar-link" data-href="/service/insurance-claims/"><i class="nav-icon fas fa-file-medical"></i> Insurance Claims</a>
+  <a href="{% url 'service:technician_report' %}" class="sidebar-link" data-href="/service/technician-report/"><i class="nav-icon fas fa-user-cog"></i> Technician Report</a>
+  {% endif %}
 
+  {% can_see_section 'Spares' 'Managing Director' as show_spares %}
+  {% if show_spares %}
   <div class="sidebar-section">Spares</div>
   <a href="{% url 'spares:dashboard' %}" class="sidebar-link" data-href="/spares/"><i class="nav-icon fas fa-chart-line"></i> SPARES Dashboard</a>
   <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="nav-icon fas fa-boxes"></i> Items</a>
@@ -678,30 +635,47 @@
   <a href="{% url 'spares:stock_report' %}" class="sidebar-link" data-href="/spares/stock/"><i class="nav-icon fas fa-chart-bar"></i> Stock Report</a>
   <a href="{% url 'spares:bulk_insert' %}" class="sidebar-link" data-href="/spares/bulk-insert/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
   <a href="{% url 'spares:po_used_qty_report' %}" class="sidebar-link" data-href="/spares/reports/po-used-qty/"><i class="nav-icon fas fa-chart-line"></i> PO Used Qty Report</a>
+  <a href="{% url 'spares:parts_consumption_report' %}" class="sidebar-link" data-href="/spares/reports/parts-consumption/"><i class="nav-icon fas fa-chart-pie"></i>Parts Consumption</a>
+  {% endif %}
 
+  {% can_see_section 'Sales Executive' 'Managing Director' as show_vas %}
+  {% if show_vas %}
   <div class="sidebar-section">VAS</div>
   <a href="{% url 'vas:dashboard' %}" class="sidebar-link" data-href="/vas/"><i class="nav-icon fas fa-chart-pie"></i>VAS Dashboard</a>
   <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>
   <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="nav-icon fas fa-ambulance"></i> RSA Packages</a>
   <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
+  {% endif %}
 
+  {% can_see_section 'Managing Director' as show_masters %}
+  {% if show_masters %}
   <div class="sidebar-section">Masters</div>
   <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="nav-icon fas fa-truck-loading"></i> Suppliers</a>
   <a href="{% url 'masters:warehouse_list' %}" class="sidebar-link" data-href="/masters/warehouses/"><i class="nav-icon fas fa-warehouse"></i> Warehouses</a>
   <a href="{% url 'masters:rack_list' %}" class="sidebar-link" data-href="/masters/racks/"><i class="nav-icon fas fa-th-large"></i> Racks</a>
   <a href="{% url 'masters:bin_list' %}" class="sidebar-link" data-href="/masters/bins/"><i class="nav-icon fas fa-box"></i>Bins</a>
   <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="nav-icon fas fa-tags"></i> Categories</a>
+  {% endif %}
 
+  {% can_see_section 'Accounts' 'Managing Director' as show_reports %}
+  {% if show_reports %}
+  <div class="sidebar-section">Reports</div>
+  <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="nav-icon fas fa-chart-bar"></i> Sales Report</a>
+  <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="nav-icon fas fa-chart-pie"></i> Spares Report</a>
+  <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="nav-icon fas fa-wrench"></i> Service Report</a>
+  <a href="{% url 'accounts:gst_report' %}" class="sidebar-link"><i class="nav-icon fas fa-file-invoice-dollar"></i> GST Report</a>
+  {% endif %}
+
+  {% can_see_section 'Managing Director' as show_admin %}
+  {% if show_admin %}
   <div class="sidebar-section">Admin</div>
   <a href="{% url 'accounts:user_list' %}" class="sidebar-link" data-href="/accounts/users/"><i class="nav-icon fas fa-users-cog"></i> Users</a>
   <a href="{% url 'accounts:role_list' %}" class="sidebar-link" data-href="/accounts/roles/"><i class="nav-icon fas fa-user-tag"></i> Roles</a>
   <a href="{% url 'accounts:branch_list' %}" class="sidebar-link" data-href="/accounts/branches/"><i class="nav-icon fas fa-building"></i> Branches</a>
   <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="nav-icon fas fa-gas-pump"></i> Fuel Expenses</a>
   <a href="{% url 'accounts:insurance_expiry_list' %}" class="sidebar-link" data-href="/accounts/insurance-expiry/"><i class="nav-icon fas fa-exclamation-triangle"></i> Insurance Expiry</a>
-  <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="nav-icon fas fa-chart-bar"></i> Sales Report</a>
-  <a href="{% url 'accounts:spares_report' %}" class="sidebar-link" data-href="/accounts/reports/spares/"><i class="nav-icon fas fa-chart-pie"></i> Spares Report</a>
-  <a href="{% url 'accounts:service_report' %}" class="sidebar-link" data-href="/accounts/reports/service/"><i class="nav-icon fas fa-wrench"></i> Service Report</a>
   <a href="{% url 'accounts:company_settings' %}" class="sidebar-link" data-href="/accounts/company-settings/"><i class="nav-icon fas fa-cogs"></i>Company Settings</a>
+  {% endif %}
 </nav>
 
 <!-- ═══ TOPBAR ═══ -->
@@ -731,6 +705,12 @@
         <a href="{% url 'accounts:logout' %}" class="danger"><i class="fas fa-sign-out-alt me-2"></i>Logout</a>
       </div>
     </div>
+          <div class="notification-dropdown">
+          <a href="{% url 'accounts:notification_list' %}" class="notification-bell">
+              <i class="fas fa-bell"></i>
+              <span id="notification-count" class="notification-badge">0</span>
+          </a>
+      </div>
   </div>
 </header>
 

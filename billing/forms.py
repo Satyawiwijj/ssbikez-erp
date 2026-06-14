@@ -12,6 +12,35 @@ class InvoiceForm(forms.ModelForm):
             'invoice_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
+    def clean(self):
+        from decimal import Decimal
+        cleaned = super().clean()
+        subtotal        = cleaned.get('subtotal') or Decimal('0')
+        gst_amount      = cleaned.get('gst_amount') or Decimal('0')
+        discount_amount = cleaned.get('discount_amount') or Decimal('0')
+
+        if subtotal < Decimal('0'):
+            self.add_error('subtotal', 'Subtotal cannot be negative.')
+
+        # Auto-calculate GST at 18% if not supplied
+        if gst_amount == Decimal('0') and subtotal > Decimal('0'):
+            try:
+                from accounts.models import CompanySettings
+                rate = Decimal(str(CompanySettings.get_instance().gst_rate or 18))
+            except Exception:
+                rate = Decimal('18')
+            gst_amount = (subtotal * rate / Decimal('100')).quantize(Decimal('0.01'))
+            cleaned['gst_amount'] = gst_amount
+
+        # Always derive final_amount from components
+        expected_final = subtotal + gst_amount - discount_amount
+        if expected_final < Decimal('0'):
+            self.add_error('discount_amount', 'Discount cannot exceed subtotal + GST.')
+        else:
+            cleaned['final_amount'] = expected_final
+
+        return cleaned
+
 
 class PaymentForm(forms.ModelForm):
     class Meta:
@@ -27,6 +56,11 @@ class PaymentForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         if self._invoice:
             self.fields['invoice'].initial = self._invoice
+        # <input type="date"> submits "YYYY-MM-DD"; ensure DateTimeField accepts
+        # it regardless of USE_L10N locale format settings.
+        self.fields['payment_date'].input_formats = [
+            '%Y-%m-%d', '%Y-%m-%dT%H:%M', '%Y-%m-%d %H:%M:%S',
+        ]
 
     def clean_amount(self):
         from decimal import Decimal
@@ -44,7 +78,10 @@ class PaymentForm(forms.ModelForm):
         if date:
             now = timezone.now()
             cmp = date.date() if isinstance(date, datetime.datetime) else date
-            if cmp > now.date():
+            # Use local timezone date (not UTC) so IST users don't get a false
+            # "in the future" error when the UTC date is still the previous day.
+            local_today = timezone.localtime(now).date()
+            if cmp > local_today:
                 raise forms.ValidationError('Payment date cannot be in the future.')
         return date
 

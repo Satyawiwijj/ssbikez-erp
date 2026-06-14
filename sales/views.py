@@ -184,10 +184,19 @@ def all_appointments(request):
 
 @login_required
 def delivery_list(request):
+    from django.db.models import Exists, OuterRef
     deliveries = VehicleDelivery.objects.select_related(
         'sales_order__customer', 'delivered_by'
     ).order_by('-delivery_date')
-    return render(request, 'sales/delivery_list.html', {'deliveries': deliveries})
+    missing_deliveries = VehicleSalesOrder.objects.filter(
+        sales_status='delivered'
+    ).exclude(
+        Exists(VehicleDelivery.objects.filter(sales_order=OuterRef('pk')))
+    ).select_related('customer', 'vehicle__bike_model', 'sales_executive').order_by('-created_at')
+    return render(request, 'sales/delivery_list.html', {
+        'deliveries': deliveries,
+        'missing_deliveries': missing_deliveries,
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -441,20 +450,25 @@ def order_detail(request, pk):
         ),
         pk=pk,
     )
-    invoice  = getattr(order, 'invoice',          None)
-    loan     = getattr(order, 'loan',             None)
-    exchange = getattr(order, 'exchange_vehicle', None)
-    rto      = getattr(order, 'rto_registration', None)
-    delivery = getattr(order, 'delivery',         None)
-    policies = order.insurance_policies.all()
+    from billing.models import Invoice, InsurancePolicy
+    from rto.models import RTORegistration
+
+    invoice   = Invoice.objects.filter(sales_order=order).first()
+    rto_reg   = RTORegistration.objects.filter(sales_order=order).first()
+    insurance = InsurancePolicy.objects.filter(sales_order=order).first()
+    delivery  = VehicleDelivery.objects.filter(sales_order=order).first()
+    loan      = getattr(order, 'loan',             None)
+    exchange  = getattr(order, 'exchange_vehicle', None)
+    policies  = order.insurance_policies.all()
     return render(request, 'sales/order_detail.html', {
-        'order':    order,
-        'invoice':  invoice,
-        'loan':     loan,
-        'exchange': exchange,
-        'rto':      rto,
-        'delivery': delivery,
-        'policies': policies,
+        'order':     order,
+        'invoice':   invoice,
+        'loan':      loan,
+        'exchange':  exchange,
+        'rto':       rto_reg,    # keep key 'rto' so existing template sections work
+        'delivery':  delivery,
+        'policies':  policies,
+        'insurance': insurance,  # single policy for the Documents hub
     })
 
 
@@ -746,7 +760,15 @@ def test_ride_list(request):
     rides = TestRideLog.objects.select_related(
         'enquiry', 'vehicle__bike_model', 'accompanied_by'
     ).order_by('-created_at')
-    return render(request, 'sales/test_ride_list.html', {'rides': rides})
+    scheduled_appointments = SalesAppointment.objects.filter(
+        purpose='test_ride'
+    ).select_related(
+        'enquiry__customer', 'enquiry__prospect', 'enquiry__bike_model'
+    ).order_by('-appointment_date')
+    return render(request, 'sales/test_ride_list.html', {
+        'rides': rides,
+        'scheduled_appointments': scheduled_appointments,
+    })
 
 
 @login_required
@@ -849,7 +871,8 @@ def sale_profit_report(request):
     for order in orders:
         cost_price = 0
         if order.vehicle and order.vehicle.bike_model:
-            cost_price = order.vehicle.bike_model.ex_showroom_price or 0
+            bm = order.vehicle.bike_model
+            cost_price = bm.dealer_cost_price or bm.ex_showroom_price or 0
         selling_price = order.total_amount or 0
         discount      = order.discount_amount or 0
         fittings_rev  = order.fittings.aggregate(t=Sum('cost'))['t'] or 0

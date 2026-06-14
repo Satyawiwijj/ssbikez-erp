@@ -1,49 +1,176 @@
 {% extends 'base.html' %}
+
 {% block title %}PDI Checklist — SSBikez ERP{% endblock %}
 {% block page_title %}PDI Checklist{% endblock %}
+
+{% block topbar_actions %}
+
+<button form="pdi-form" class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save PDI
+</button>
+
+<a href="{% url 'sales:order_detail' order.pk %}"
+   class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">{{ title }}</h1>
-  <a href="{% url 'sales:order_detail' order.pk %}" class="btn btn-ghost">&#8592; Order</a>
+    <div>
+        <h1 class="page-title">{{ title }}</h1>
+        <p class="page-subtitle">
+            Complete the pre-delivery inspection checklist before vehicle handover.
+        </p>
+    </div>
 </div>
-<form method="post">{% csrf_token %}
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-    <div class="card">
-      <div class="card-header"><span class="card-title">Engine &amp; Mechanical</span></div>
-      {% for field in form %}{% if field.name in "engine_oil_level coolant_level brake_fluid_level chain_tension chain_lubrication tyre_pressure_front tyre_pressure_rear brake_front_working brake_rear_working clutch_adjustment throttle_smooth" %}
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-      </div>
-      {% endif %}{% endfor %}
+
+<form method="post" id="pdi-form" novalidate>
+{% csrf_token %}
+
+<div class="row g-4">
+
+    <div class="col-lg-8">
+
+        <!-- Engine & Mechanical -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-cogs me-2"></i>
+                Engine & Mechanical
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-check mb-2">{{ form.engine_oil_level }} <label class="form-check-label ms-2">{{ form.engine_oil_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.coolant_level }} <label class="form-check-label ms-2">{{ form.coolant_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_fluid_level }} <label class="form-check-label ms-2">{{ form.brake_fluid_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.chain_tension }} <label class="form-check-label ms-2">{{ form.chain_tension.label }}</label></div>
+                <div class="form-check mb-2">{{ form.chain_lubrication }} <label class="form-check-label ms-2">{{ form.chain_lubrication.label }}</label></div>
+                <div class="form-check mb-2">{{ form.tyre_pressure_front }} <label class="form-check-label ms-2">{{ form.tyre_pressure_front.label }}</label></div>
+                <div class="form-check mb-2">{{ form.tyre_pressure_rear }} <label class="form-check-label ms-2">{{ form.tyre_pressure_rear.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_front_working }} <label class="form-check-label ms-2">{{ form.brake_front_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_rear_working }} <label class="form-check-label ms-2">{{ form.brake_rear_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.clutch_adjustment }} <label class="form-check-label ms-2">{{ form.clutch_adjustment.label }}</label></div>
+                <div class="form-check mb-2">{{ form.throttle_smooth }} <label class="form-check-label ms-2">{{ form.throttle_smooth.label }}</label></div>
+
+            </div>
+        </div>
+
+        <!-- Electrical -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-bolt me-2"></i>
+                Electrical Checks
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-check mb-2">{{ form.battery_voltage }} <label class="form-check-label ms-2">{{ form.battery_voltage.label }}</label></div>
+                <div class="form-check mb-2">{{ form.headlight_working }} <label class="form-check-label ms-2">{{ form.headlight_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.taillight_working }} <label class="form-check-label ms-2">{{ form.taillight_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.indicators_working }} <label class="form-check-label ms-2">{{ form.indicators_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.horn_working }} <label class="form-check-label ms-2">{{ form.horn_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.speedometer_working }} <label class="form-check-label ms-2">{{ form.speedometer_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.kill_switch_working }} <label class="form-check-label ms-2">{{ form.kill_switch_working.label }}</label></div>
+
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-motorcycle me-2"></i>
+                Body & Aesthetics
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-check mb-2">{{ form.paint_no_scratches }} <label class="form-check-label ms-2">{{ form.paint_no_scratches.label }}</label></div>
+                <div class="form-check mb-2">{{ form.all_panels_fitted }} <label class="form-check-label ms-2">{{ form.all_panels_fitted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.mirrors_adjusted }} <label class="form-check-label ms-2">{{ form.mirrors_adjusted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.seat_firm }} <label class="form-check-label ms-2">{{ form.seat_firm.label }}</label></div>
+                <div class="form-check mb-2">{{ form.toolkit_present }} <label class="form-check-label ms-2">{{ form.toolkit_present.label }}</label></div>
+                <div class="form-check mb-2">{{ form.owners_manual_present }} <label class="form-check-label ms-2">{{ form.owners_manual_present.label }}</label></div>
+
+            </div>
+        </div>
+
+        <!-- Documents -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-file-alt me-2"></i>
+                Documents
+            </div>
+
+            <div class="card-body">
+
+                <div class="form-check mb-2">{{ form.invoice_ready }} <label class="form-check-label ms-2">{{ form.invoice_ready.label }}</label></div>
+                <div class="form-check mb-2">{{ form.insurance_done }} <label class="form-check-label ms-2">{{ form.insurance_done.label }}</label></div>
+                <div class="form-check mb-2">{{ form.form20_submitted }} <label class="form-check-label ms-2">{{ form.form20_submitted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.temporary_registration }} <label class="form-check-label ms-2">{{ form.temporary_registration.label }}</label></div>
+
+            </div>
+        </div>
+
+        <!-- Remarks -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-comment-dots me-2"></i>
+                Overall Remarks
+            </div>
+
+            <div class="card-body">
+                {{ form.overall_remarks }}
+            </div>
+        </div>
+
     </div>
-    <div class="card">
-      <div class="card-header"><span class="card-title">Electrical</span></div>
-      {% for field in form %}{% if field.name in "battery_voltage headlight_working taillight_working indicators_working horn_working speedometer_working kill_switch_working" %}
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-      </div>
-      {% endif %}{% endfor %}
-      <div class="card-header" style="margin-top:10px;"><span class="card-title">Body &amp; Aesthetics</span></div>
-      {% for field in form %}{% if field.name in "paint_no_scratches all_panels_fitted mirrors_adjusted seat_firm toolkit_present owners_manual_present" %}
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-      </div>
-      {% endif %}{% endfor %}
-      <div class="card-header" style="margin-top:10px;"><span class="card-title">Documents</span></div>
-      {% for field in form %}{% if field.name in "invoice_ready insurance_done form20_submitted temporary_registration" %}
-      <div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f1f5f9;">
-        {{ field }}<label for="{{ field.id_for_label }}" style="font-size:13px;margin:0;cursor:pointer;">{{ field.label }}</label>
-      </div>
-      {% endif %}{% endfor %}
+
+    <div class="col-lg-4">
+
+        <div class="card">
+
+            <div class="card-header">
+                <i class="fas fa-info-circle me-2"></i>
+                Order Information
+            </div>
+
+            <div class="card-body">
+
+                <div class="mb-3">
+                    <div class="fw-semibold">Order</div>
+                    <div class="text-muted">ORD-{{ order.pk }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">Customer</div>
+                    <div class="text-muted">{{ order.customer.full_name }}</div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="fw-semibold">Vehicle</div>
+                    <div class="text-muted">{{ order.vehicle.bike_model }}</div>
+                </div>
+
+                <div>
+                    <div class="fw-semibold">Purpose</div>
+                    <div class="text-muted small">
+                        Ensure vehicle readiness before invoice, registration and delivery.
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
     </div>
-  </div>
-  <div class="card" style="margin-top:16px;">
-    <div class="form-group">
-      <label class="form-label">Overall Remarks</label>{{ form.overall_remarks }}
-    </div>
-  </div>
-  <div style="margin-top:16px;">
-    <button type="submit" class="btn btn-primary">Save PDI Checklist</button>
-  </div>
+
+</div>
+
 </form>
+
 {% endblock %}

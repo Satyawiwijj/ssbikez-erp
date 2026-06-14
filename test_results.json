@@ -1,0 +1,944 @@
+{
+  "summary": {
+    "total": 228,
+    "pass": 225,
+    "fail": 0,
+    "warn": 1,
+    "skip": 2
+  },
+  "db_counts": {
+    "Customers": 10,
+    "Bike Models": 10,
+    "Vehicle Stock": 11,
+    "Customer Vehicles": 8,
+    "Sales Enquiries": 8,
+    "Sales Orders": 7,
+    "Job Cards": 7,
+    "Spares Items": 9,
+    "Invoices": 5,
+    "RTO Registrations": 6,
+    "Service Reminders": 3,
+    "Test Rides": 2,
+    "PDI Checklists": 1,
+    "Sales Targets": 2
+  },
+  "pass": [
+    {
+      "name": "OTP generation (6-digit)",
+      "detail": ""
+    },
+    {
+      "name": "OTP expiry set in future",
+      "detail": ""
+    },
+    {
+      "name": "Login page accessible (anon)",
+      "detail": ""
+    },
+    {
+      "name": "Login POST redirects to OTP page",
+      "detail": ""
+    },
+    {
+      "name": "OTP record created in DB after login",
+      "detail": ""
+    },
+    {
+      "name": "Correct OTP accepted and redirects",
+      "detail": ""
+    },
+    {
+      "name": "Wrong OTP rejected",
+      "detail": ""
+    },
+    {
+      "name": "Admin force_login (used for remaining tests)",
+      "detail": ""
+    },
+    {
+      "name": "Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "Home",
+      "detail": ""
+    },
+    {
+      "name": "User List",
+      "detail": ""
+    },
+    {
+      "name": "User Create Form",
+      "detail": ""
+    },
+    {
+      "name": "User Edit Form",
+      "detail": ""
+    },
+    {
+      "name": "Branch List",
+      "detail": ""
+    },
+    {
+      "name": "Branch Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Role List",
+      "detail": ""
+    },
+    {
+      "name": "Role Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Fuel Expense List",
+      "detail": ""
+    },
+    {
+      "name": "Fuel Expense Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Profile View",
+      "detail": ""
+    },
+    {
+      "name": "Profile Edit Form",
+      "detail": ""
+    },
+    {
+      "name": "Global Search",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Expiry List",
+      "detail": ""
+    },
+    {
+      "name": "Company Settings",
+      "detail": ""
+    },
+    {
+      "name": "Notification List",
+      "detail": ""
+    },
+    {
+      "name": "Notification Count API",
+      "detail": ""
+    },
+    {
+      "name": "GST Report",
+      "detail": ""
+    },
+    {
+      "name": "Sales Report",
+      "detail": ""
+    },
+    {
+      "name": "Spares Report",
+      "detail": ""
+    },
+    {
+      "name": "Service Report",
+      "detail": ""
+    },
+    {
+      "name": "Branch Edit Form",
+      "detail": ""
+    },
+    {
+      "name": "Role Edit Form",
+      "detail": ""
+    },
+    {
+      "name": "Customer List",
+      "detail": ""
+    },
+    {
+      "name": "Customer Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Bike Model List",
+      "detail": ""
+    },
+    {
+      "name": "Bike Model Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Vehicle Stock List",
+      "detail": ""
+    },
+    {
+      "name": "Vehicle Stock Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Stock Aging Report",
+      "detail": ""
+    },
+    {
+      "name": "Customer Detail",
+      "detail": ""
+    },
+    {
+      "name": "Customer Edit Form",
+      "detail": ""
+    },
+    {
+      "name": "Vehicle Stock Detail",
+      "detail": ""
+    },
+    {
+      "name": "Vehicle Stock Edit",
+      "detail": ""
+    },
+    {
+      "name": "Bike Model Detail",
+      "detail": ""
+    },
+    {
+      "name": "Bike Model Edit",
+      "detail": ""
+    },
+    {
+      "name": "Customer - invalid phone rejected by form validation",
+      "detail": ""
+    },
+    {
+      "name": "Sales Dashboard (as sales exec)",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry List",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Order List",
+      "detail": ""
+    },
+    {
+      "name": "Order Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Delivery List",
+      "detail": ""
+    },
+    {
+      "name": "Delivery Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Exchange List",
+      "detail": ""
+    },
+    {
+      "name": "Exchange Create Form",
+      "detail": ""
+    },
+    {
+      "name": "All Appointments",
+      "detail": ""
+    },
+    {
+      "name": "All Feedback",
+      "detail": ""
+    },
+    {
+      "name": "Follow-up List",
+      "detail": ""
+    },
+    {
+      "name": "Sales Target List",
+      "detail": ""
+    },
+    {
+      "name": "Sales Target Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Sales Leaderboard",
+      "detail": ""
+    },
+    {
+      "name": "Test Ride List",
+      "detail": ""
+    },
+    {
+      "name": "Test Ride Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Profit Report",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry Detail",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry Edit",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry Appointments",
+      "detail": ""
+    },
+    {
+      "name": "Enquiry Feedback",
+      "detail": ""
+    },
+    {
+      "name": "Order Detail",
+      "detail": ""
+    },
+    {
+      "name": "Order Edit",
+      "detail": ""
+    },
+    {
+      "name": "Vehicle Allotment",
+      "detail": ""
+    },
+    {
+      "name": "PDI Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Fittings Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Sales Target Detail",
+      "detail": ""
+    },
+    {
+      "name": "PDI Detail",
+      "detail": ""
+    },
+    {
+      "name": "Delivery Detail",
+      "detail": ""
+    },
+    {
+      "name": "Delivery Edit",
+      "detail": ""
+    },
+    {
+      "name": "Sales Feedback Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Appointment Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Billing Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "Invoice List",
+      "detail": ""
+    },
+    {
+      "name": "Invoice Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Policy List",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Loan List",
+      "detail": ""
+    },
+    {
+      "name": "Loan Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Daily Collection Report",
+      "detail": ""
+    },
+    {
+      "name": "Payment Reconciliation",
+      "detail": ""
+    },
+    {
+      "name": "Invoice Search",
+      "detail": ""
+    },
+    {
+      "name": "Refunds & Advances List",
+      "detail": ""
+    },
+    {
+      "name": "Refund/Advance Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Journal Entry List",
+      "detail": ""
+    },
+    {
+      "name": "Journal Entry Create Form",
+      "detail": ""
+    },
+    {
+      "name": "General Ledger",
+      "detail": ""
+    },
+    {
+      "name": "Invoice Detail",
+      "detail": ""
+    },
+    {
+      "name": "Invoice Edit",
+      "detail": ""
+    },
+    {
+      "name": "Invoice PDF",
+      "detail": ""
+    },
+    {
+      "name": "Invoice Payments",
+      "detail": ""
+    },
+    {
+      "name": "Payment Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Loan Detail",
+      "detail": ""
+    },
+    {
+      "name": "Loan Edit",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Policy Detail",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Edit",
+      "detail": ""
+    },
+    {
+      "name": "Refund/Advance Detail",
+      "detail": ""
+    },
+    {
+      "name": "Service Invoice PDF",
+      "detail": ""
+    },
+    {
+      "name": "Service Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "Service Enquiry List",
+      "detail": ""
+    },
+    {
+      "name": "Service Enquiry Create",
+      "detail": ""
+    },
+    {
+      "name": "Service Appointment List",
+      "detail": ""
+    },
+    {
+      "name": "Service Appointment Create",
+      "detail": ""
+    },
+    {
+      "name": "Job Card List",
+      "detail": ""
+    },
+    {
+      "name": "Job Card Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Bay List",
+      "detail": ""
+    },
+    {
+      "name": "Bay Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Labor Charge List",
+      "detail": ""
+    },
+    {
+      "name": "Labor Charge Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Warranty Claim List",
+      "detail": ""
+    },
+    {
+      "name": "Warranty Claim Create",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Estimation Create",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Claim List",
+      "detail": ""
+    },
+    {
+      "name": "Discount Master List",
+      "detail": ""
+    },
+    {
+      "name": "Discount Master Create",
+      "detail": ""
+    },
+    {
+      "name": "Customer Call List",
+      "detail": ""
+    },
+    {
+      "name": "Customer Call Create",
+      "detail": ""
+    },
+    {
+      "name": "Service Reminder List",
+      "detail": ""
+    },
+    {
+      "name": "Technician Report",
+      "detail": ""
+    },
+    {
+      "name": "Bulk Import Form",
+      "detail": ""
+    },
+    {
+      "name": "Job Card Detail",
+      "detail": ""
+    },
+    {
+      "name": "Job Card Edit",
+      "detail": ""
+    },
+    {
+      "name": "Job Card Print",
+      "detail": ""
+    },
+    {
+      "name": "Revisit Form",
+      "detail": ""
+    },
+    {
+      "name": "Service Child Add",
+      "detail": ""
+    },
+    {
+      "name": "Additional Work Create",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Estimation for JC",
+      "detail": ""
+    },
+    {
+      "name": "Warranty Claim for JC",
+      "detail": ""
+    },
+    {
+      "name": "Insurance Claim for JC",
+      "detail": ""
+    },
+    {
+      "name": "Service Enquiry Detail",
+      "detail": ""
+    },
+    {
+      "name": "Service Enquiry Edit",
+      "detail": ""
+    },
+    {
+      "name": "Reminder Update Form",
+      "detail": ""
+    },
+    {
+      "name": "Service Invoice Detail",
+      "detail": ""
+    },
+    {
+      "name": "Service Invoice Edit",
+      "detail": ""
+    },
+    {
+      "name": "Warranty Claim Detail",
+      "detail": ""
+    },
+    {
+      "name": "Warranty Claim Edit",
+      "detail": ""
+    },
+    {
+      "name": "Spares Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "Item List",
+      "detail": ""
+    },
+    {
+      "name": "Item Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Stock Report",
+      "detail": ""
+    },
+    {
+      "name": "Quote List",
+      "detail": ""
+    },
+    {
+      "name": "Quote Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Purchase Order List",
+      "detail": ""
+    },
+    {
+      "name": "Purchase Order Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Spares Invoice List",
+      "detail": ""
+    },
+    {
+      "name": "Spares Invoice Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Counter Sale List",
+      "detail": ""
+    },
+    {
+      "name": "Counter Sale Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Counter Return List",
+      "detail": ""
+    },
+    {
+      "name": "Counter Return Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Issue Alteration List",
+      "detail": ""
+    },
+    {
+      "name": "Issue Alteration Create",
+      "detail": ""
+    },
+    {
+      "name": "Spares Issue Create",
+      "detail": ""
+    },
+    {
+      "name": "Bulk Insert Form",
+      "detail": ""
+    },
+    {
+      "name": "PO Used Qty Report",
+      "detail": ""
+    },
+    {
+      "name": "Parts Consumption Report",
+      "detail": ""
+    },
+    {
+      "name": "Spares Item Detail",
+      "detail": ""
+    },
+    {
+      "name": "Spares Item Edit",
+      "detail": ""
+    },
+    {
+      "name": "PO Detail",
+      "detail": ""
+    },
+    {
+      "name": "PO Edit",
+      "detail": ""
+    },
+    {
+      "name": "Counter Sale Detail",
+      "detail": ""
+    },
+    {
+      "name": "Quote Detail",
+      "detail": ""
+    },
+    {
+      "name": "Quote Edit",
+      "detail": ""
+    },
+    {
+      "name": "AJAX Item Details endpoint",
+      "detail": "HTTP 404"
+    },
+    {
+      "name": "AJAX Supplier Details endpoint",
+      "detail": "HTTP 404"
+    },
+    {
+      "name": "AJAX Rack Bins endpoint",
+      "detail": "HTTP 200"
+    },
+    {
+      "name": "RTO Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "RTO Registration List",
+      "detail": ""
+    },
+    {
+      "name": "RTO Registration Create",
+      "detail": ""
+    },
+    {
+      "name": "Number Plate List",
+      "detail": ""
+    },
+    {
+      "name": "Number Plate Create",
+      "detail": ""
+    },
+    {
+      "name": "RC Book List",
+      "detail": ""
+    },
+    {
+      "name": "RTO Registration Detail",
+      "detail": ""
+    },
+    {
+      "name": "RTO Registration Edit",
+      "detail": ""
+    },
+    {
+      "name": "RC Book Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Reg Payment Create Form",
+      "detail": ""
+    },
+    {
+      "name": "RTO Income Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Number Plate Edit",
+      "detail": ""
+    },
+    {
+      "name": "RC Book Detail",
+      "detail": ""
+    },
+    {
+      "name": "VAS Dashboard",
+      "detail": ""
+    },
+    {
+      "name": "AMC List",
+      "detail": ""
+    },
+    {
+      "name": "AMC Create Form",
+      "detail": ""
+    },
+    {
+      "name": "RSA List",
+      "detail": ""
+    },
+    {
+      "name": "RSA Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Protection Plus List",
+      "detail": ""
+    },
+    {
+      "name": "Protection Plus Create Form",
+      "detail": ""
+    },
+    {
+      "name": "AMC Detail",
+      "detail": ""
+    },
+    {
+      "name": "AMC Edit",
+      "detail": ""
+    },
+    {
+      "name": "RSA Detail",
+      "detail": ""
+    },
+    {
+      "name": "RSA Edit",
+      "detail": ""
+    },
+    {
+      "name": "Protection Plus Detail",
+      "detail": ""
+    },
+    {
+      "name": "Protection Plus Edit",
+      "detail": ""
+    },
+    {
+      "name": "Category List",
+      "detail": ""
+    },
+    {
+      "name": "Category Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Supplier List",
+      "detail": ""
+    },
+    {
+      "name": "Supplier Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Warehouse List",
+      "detail": ""
+    },
+    {
+      "name": "Warehouse Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Rack List",
+      "detail": ""
+    },
+    {
+      "name": "Rack Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Bin List",
+      "detail": ""
+    },
+    {
+      "name": "Bin Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Category Edit",
+      "detail": ""
+    },
+    {
+      "name": "Supplier Detail",
+      "detail": ""
+    },
+    {
+      "name": "Supplier Edit",
+      "detail": ""
+    },
+    {
+      "name": "Customer Vehicle List",
+      "detail": ""
+    },
+    {
+      "name": "Customer Vehicle Create Form",
+      "detail": ""
+    },
+    {
+      "name": "Customer Vehicle Detail",
+      "detail": ""
+    },
+    {
+      "name": "Customer Vehicle Edit",
+      "detail": ""
+    },
+    {
+      "name": "Sales Exec - can access Sales module",
+      "detail": ""
+    },
+    {
+      "name": "Sales Exec - blocked from Billing module",
+      "detail": ""
+    },
+    {
+      "name": "Service Advisor - can access Service module",
+      "detail": ""
+    },
+    {
+      "name": "CRE user - can access dashboard",
+      "detail": ""
+    },
+    {
+      "name": "Job cards - no orphaned FK",
+      "detail": ""
+    },
+    {
+      "name": "Stock - no negative quantities",
+      "detail": ""
+    },
+    {
+      "name": "Invoices - no zero-amount",
+      "detail": ""
+    },
+    {
+      "name": "No stale/expired OTPs",
+      "detail": ""
+    },
+    {
+      "name": "All migrations applied",
+      "detail": ""
+    }
+  ],
+  "fail": [],
+  "warn": [
+    {
+      "name": "Sales Exec - user management",
+      "detail": "No RBAC block detected"
+    }
+  ],
+  "skip": [
+    {
+      "name": "Test Ride Return",
+      "detail": "No pending test rides"
+    },
+    {
+      "name": "Insurance Claim Detail/Edit",
+      "detail": "No insurance claims in DB"
+    }
+  ]
+}

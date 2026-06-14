@@ -439,13 +439,19 @@ def labor_charge_delete(request, pk):
 @login_required
 def service_invoice_create(request):
     initial = {}
-    if request.GET.get('jc'):
-        initial['job_card'] = request.GET['jc']
+    jc_pk = request.GET.get('jc')
+    if jc_pk:
+        initial['job_card'] = jc_pk
+        # Redirect to existing invoice rather than raising a duplicate error
+        existing = ServiceInvoice.objects.filter(job_card_id=jc_pk).first()
+        if existing:
+            messages.info(request, 'A service invoice already exists for this job card.')
+            return redirect('service:service_invoice_detail', pk=existing.pk)
     form = ServiceInvoiceForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         invoice = form.save(commit=False)
-        # Auto-generate invoice number
-        invoice.invoice_number = f'SINV-{invoice.job_card_id}-{timezone.now().strftime("%Y%m%d")}'
+        # Include time to avoid duplicate invoice_number on same day for same job card
+        invoice.invoice_number = f'SINV-{invoice.job_card_id}-{timezone.now().strftime("%Y%m%d%H%M%S")}'
         invoice.save()
         # Calculate totals from labour, spares, outwork
         invoice.calculate_totals()

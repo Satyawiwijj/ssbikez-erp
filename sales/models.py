@@ -121,7 +121,10 @@ class SalesEnquiry(models.Model):
         verbose_name_plural = 'Sales Enquiries'
 
     def __str__(self):
-        lead = self.customer or self.prospect
+        try:
+            lead = self.customer or self.prospect
+        except Exception:
+            lead = f'#{self.customer_id or self.prospect_id}'
         return f"ENQ-{self.pk} | {lead} — {self.bike_model}"
 
     def clean(self):
@@ -279,7 +282,15 @@ class VehicleSalesOrder(models.Model):
         verbose_name_plural = 'Vehicle Sales Orders'
 
     def __str__(self):
-        return f"ORD-{self.pk} | {self.customer} — {self.vehicle}"
+        try:
+            cust = self.customer
+        except Exception:
+            cust = f'#{self.customer_id}'
+        try:
+            veh = self.vehicle
+        except Exception:
+            veh = f'#vehicle_{self.vehicle_id}'
+        return f"ORD-{self.pk} | {cust} — {veh}"
 
 
 # ---------------------------------------------------------------------------
@@ -464,6 +475,25 @@ class SalesTarget(models.Model):
         if self.actual_enquiries == 0:
             return 0.0
         return round(self.actual_conversions / self.actual_enquiries * 100, 1)
+
+    @property
+    def revenue_achievement_percent(self) -> float:
+        if not self.target_revenue or self.target_revenue == 0:
+            return 0.0
+        return round(float(self.actual_revenue) / float(self.target_revenue) * 100, 1)
+
+    @property
+    def overall_achievement_percent(self) -> float:
+        scores = []
+        if self.target_enquiries > 0:
+            scores.append(min(100, self.actual_enquiries / self.target_enquiries * 100))
+        if self.target_conversions > 0:
+            scores.append(min(100, self.actual_conversions / self.target_conversions * 100))
+        if self.target_revenue and self.target_revenue > 0:
+            scores.append(min(100, float(self.actual_revenue or 0) / float(self.target_revenue) * 100))
+        if not scores:
+            return 0.0
+        return round(sum(scores) / len(scores), 1)
 
 
 # ---------------------------------------------------------------------------

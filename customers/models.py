@@ -36,8 +36,13 @@ class BikeModel(models.Model):
     # Informational only e.g. "Red, Blue, Black"
     # Actual per-unit color lives on VehicleStock
     available_colors  = models.TextField(blank=True, null=True)
-    ex_showroom_price = models.DecimalField(max_digits=10, decimal_places=2)
-    created_at        = models.DateTimeField(auto_now_add=True)
+    ex_showroom_price  = models.DecimalField(max_digits=10, decimal_places=2)
+    dealer_cost_price  = models.DecimalField(
+        max_digits=10, decimal_places=2,
+        null=True, blank=True,
+        help_text='Dealer purchase price from manufacturer (used for profit calculations)'
+    )
+    created_at         = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['brand', 'model_name']

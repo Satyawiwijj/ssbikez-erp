@@ -54,7 +54,7 @@ class BikeModelForm(forms.ModelForm):
     class Meta:
         model  = BikeModel
         fields = ('brand', 'model_name', 'variant', 'fuel_type',
-                  'available_colors', 'ex_showroom_price')
+                  'available_colors', 'ex_showroom_price', 'dealer_cost_price')
         widgets = {
             'available_colors': forms.Textarea(attrs={'rows': 2}),
         }

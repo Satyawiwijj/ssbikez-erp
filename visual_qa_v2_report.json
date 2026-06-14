@@ -1,0 +1,1952 @@
+{
+  "passed": 324,
+  "failed": 0,
+  "total": 324,
+  "issues": [],
+  "results": [
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "001_login_page renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0002_001_login_page.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "Login: Username field visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0003_001_Username_field.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "Login: Password field visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0004_001_Password_field.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "Login: Submit button visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0005_001_Submit_button.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "Login: Branding/title visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0006_001_login_brand.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Auth",
+      "check": "Login: Redirected successfully after login",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0008_002_login_redirect.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "003_home_page renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0010_003_home_page.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: Sales",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0011_003_mod_sales.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: Service",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0012_003_mod_service.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: Spares",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0013_003_mod_spares.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: Billing",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0014_003_mod_billing.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: RTO",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0015_003_mod_rto.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Module card: Customers",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0016_003_mod_customers.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Home",
+      "check": "Greeting/welcome message visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0017_003_home_greeting.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "004_dashboard renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0019_004_dashboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "KPI: Enquiries visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0020_004_kpi_enquiries.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "KPI: Orders visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0021_004_kpi_orders.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "KPI: Job Cards visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0022_004_kpi_job_cards.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "KPI: Follow-ups visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0023_004_kpi_follow-ups.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "KPI: Notifications bell visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0024_004_kpi_notifications_bell.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Sidebar section: SALES",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0025_004_sidebar_sales.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Sidebar section: CUSTOMERS",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0026_004_sidebar_customers.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Sidebar section: SERVICE",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0027_004_sidebar_service.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Sidebar section: SPARES",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0028_004_sidebar_spares.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Topbar: Search bar visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0029_004_topbar_search.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Follow-up board section visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0030_004_followup_board.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Dashboard",
+      "check": "Stock aging info visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0031_004_stock_aging.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "005_customer_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0033_005_customer_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "List: Name column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0034_005_col_name.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "List: Phone column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0035_005_col_phone.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "List: Customer column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0036_005_col_customer.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "006_customer_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0038_006_customer_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Create form: Full Name field",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0039_006_full_name.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Create form: Phone field",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0040_006_phone.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Create form: Email field",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0041_006_email.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Create form: Address field",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0042_006_address.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Customer created successfully",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0045_007_customer_created.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "008_customer_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0047_008_customer_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail: Visual QA Customer visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0048_008_detail_Visual QA .png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail: 9500000077 visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0049_008_detail_9500000077.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail: visualqa@ssbikez.com visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0050_008_detail_visualqa_s.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail tab/section: Profile",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0051_008_tab_profile.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail tab/section: Vehicle",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0052_008_tab_vehicle.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail tab/section: Order",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0053_008_tab_order.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Detail tab/section: Service",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0054_008_tab_service.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Duplicate phone: Error message shown",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0056_009_dup_error.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "New customer appears in list",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0058_010_customer_in_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "011_bike_models renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0060_011_bike_models.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Bike models: Data or headers visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0061_011_bike_data.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "012_vehicle_stock renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0063_012_vehicle_stock.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "013_stock_aging renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0065_013_stock_aging.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Stock aging: 30-day card visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0066_013_aging_30.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Stock aging: 60-day card visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0067_013_aging_60.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Customers",
+      "check": "Stock aging: 90-day card visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0068_013_aging_90.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "014_sales_dashboard renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0070_014_sales_dashboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "015_enquiry_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0072_015_enquiry_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry tabs: All",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0073_015_tab_all.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry tabs: Open",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0074_015_tab_open.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry tabs: Follow",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0075_015_tab_follow.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry tabs: Converted",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0076_015_tab_converted.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry tabs: Lost",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0077_015_tab_lost.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "New Enquiry button visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0078_015_new_enq_btn.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "016_enquiry_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0080_016_enquiry_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry created successfully",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0083_017_enquiry_created.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "018_enquiry_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0085_018_enquiry_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Customer section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0086_018_enq_customer.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Status section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0087_018_enq_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Feedback section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0088_018_enq_feedback.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Appointment section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0089_018_enq_appointment.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Order section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0090_018_enq_order.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry detail: Bike section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0091_018_enq_bike.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry action: Add Feedback button",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0092_018_btn_add_feedback.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry action: Book Appointment button",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0093_018_btn_book_appointment.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Enquiry action: Create Order button",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0094_018_btn_create_order.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "019_feedback_form renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0096_019_feedback_form.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Feedback added with follow-up date",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0099_020_feedback_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "021_followup_board renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0101_021_followup_board.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Follow-up board: Content visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0102_021_followup_data.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Follow-up tab: Overdue",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0103_021_tab_overdue.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Follow-up tab: Today",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0104_021_tab_today.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Follow-up tab: This Week",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0105_021_tab_this_week.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "022_appointment_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0107_022_appointment_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Appointment booked (test_ride)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0110_023_apt_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "024_appointments renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0112_024_appointments.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Appointments: Customer column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0113_024_col_customer.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Appointments: Date column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0114_024_col_date.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Appointments: Purpose column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0115_024_col_purpose.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Appointments: Status column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0116_024_col_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "025_test_rides renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0118_025_test_rides.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "026_test_ride_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0120_026_test_ride_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Test ride logged",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0123_027_tr_logged.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "028_orders_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0125_028_orders_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Orders tab: All",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0126_028_tab_all.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Orders tab: Booked",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0127_028_tab_booked.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Orders tab: Invoiced",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0128_028_tab_invoiced.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Orders tab: Delivered",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0129_028_tab_delivered.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Stock",
+      "check": "029_stock_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0131_029_stock_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Stock",
+      "check": "Vehicle stock unit created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0134_030_stock_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "031_order_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0136_031_order_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales order created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0139_032_order_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "033_order_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0141_033_order_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: Order Information",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0142_033_order_information.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: Financial Summary",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0143_033_financial_summary.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: PDI Status",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0144_033_pdi_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: Vehicle",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0145_033_vehicle.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: Finance/Loan",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0146_033_finance_loan.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Order detail: Insurance",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0147_033_insurance.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "034_pdi_form renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0149_034_pdi_form.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI form: Engine section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0150_034_pdi_engine.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI form: Mechanical section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0151_034_pdi_mechanical.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI form: Electrical section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0152_034_pdi_electrical.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI form: Body section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0153_034_pdi_body.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI form: Documents section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0154_034_pdi_documents.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI: 28 checkboxes present",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0155_034_pdi_checkboxes.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI checklist submitted and saved",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0158_035_pdi_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "036_pdi_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0160_036_pdi_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI detail: Mechanical visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0161_036_pdi_mechanical.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI detail: Electrical visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0162_036_pdi_electrical.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI detail: Score visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0163_036_pdi_score.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "PDI detail: Critical visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0164_036_pdi_critical.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "037_allotment_form renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0166_037_allotment_form.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Vehicle allotment form submitted",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0168_038_allotment_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "039_fitting_form renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0170_039_fitting_form.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Vehicle fitting added",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0172_040_fitting_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "041_sales_targets renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0174_041_sales_targets.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales targets: Target visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0175_041_targets_target.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales targets: Executive visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0176_041_targets_executive.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales targets: Enquir visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0177_041_targets_enquir.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales targets: Conversion visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0178_041_targets_conversion.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Sales targets: Revenue visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0179_041_targets_revenue.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "042_leaderboard renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0181_042_leaderboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Leaderboard: Leaderboard visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0182_042_lb_leaderboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Leaderboard: Rank visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0183_042_lb_rank.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Leaderboard: Executive visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0184_042_lb_executive.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Leaderboard: Enquir visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0185_042_lb_enquir.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Leaderboard: Conversion visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0186_042_lb_conversion.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "043_profit_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0188_043_profit_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Profit report: Profit visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0189_043_profit_profit.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Profit report: Vehicle visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0190_043_profit_vehicle.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Profit report: Margin visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0191_043_profit_margin.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Profit report: Cost visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0192_043_profit_cost.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "044_delivery_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0194_044_delivery_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "Delivery list: content visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0195_044_delivery_content.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "045_exchange_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0197_045_exchange_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Sales",
+      "check": "046_feedback_all renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0199_046_feedback_all.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "047_invoice_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0201_047_invoice_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice list: Invoice column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0202_047_col_invoice.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice list: Customer column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0203_047_col_customer.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice list: Amount column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0204_047_col_amount.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice list: Status column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0205_047_col_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice list: Date column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0206_047_col_date.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "048_invoice_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0208_048_invoice_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0211_049_invoice_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "050_invoice_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0213_050_invoice_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: Invoice number",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0214_050_inv_invoice_number.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: Customer name",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0215_050_inv_customer_name.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: Subtotal",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0216_050_inv_subtotal.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: CGST amount (9%)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0217_050_inv_cgst_amount_(9%).png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: Final amount",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0218_050_inv_final_amount.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: Payment section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0219_050_inv_payment_section.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice detail: GST breakdown CGST",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0220_050_inv_gst_breakdown_cgst.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice: Payment summary visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0221_050_payment_summary.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "051_payment_form renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0223_051_payment_form.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Payment recorded (\u00e2\u201a\u00b925,000 cash)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0226_052_payment_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice: Payment/balance reflected",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0228_053_payment_reflected.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice PDF generates without error",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0230_054_pdf_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice PDF: VQA-INV visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0231_054_pdf_vqa_inv.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice PDF: Visual QA visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0232_054_pdf_visual qa.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Invoice PDF: GSTIN visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0233_054_pdf_gstin.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Payment receipt PDF generates",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0235_055_receipt_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "056_loans renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0237_056_loans.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "057_loan_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0239_057_loan_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Finance loan created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0241_058_loan_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "059_loan_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0243_059_loan_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Loan detail: HDFC visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0244_059_loan_hdfc.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Loan detail: 36000 visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0245_059_loan_36000.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Loan detail: pending visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0246_059_loan_pending.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Loan detail: HP visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0247_059_loan_hp.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Loan detail: EMI visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0248_059_loan_emi.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "060_insurance_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0250_060_insurance_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "061_daily_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0252_061_daily_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Daily report: Content visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0253_061_daily_content.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "062_journal renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0255_062_journal.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "063_ledger renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0257_063_ledger.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "064_invoice_search renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0259_064_invoice_search.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "065_reconciliation renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0261_065_reconciliation.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "066_refunds renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0263_066_refunds.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "067_rto_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0265_067_rto_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "068_rto_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0267_068_rto_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RTO registration created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0270_069_rto_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "070_rto_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0272_070_rto_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RTO detail: VQA-F20-001",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0273_070_rto_vqa-f20-00.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RTO detail: TN11VQA001",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0274_070_rto_tn11vqa001.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RTO detail: submitted",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0275_070_rto_submitted.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RTO detail: Registration",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0276_070_rto_registrati.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "071_rcbook_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0278_071_rcbook_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "072_rcbook_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0280_072_rcbook_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "RC Book created (FIXED URL /rto/{pk}/rc-book/)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0283_073_rcbook_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "074_plates_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0285_074_plates_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RTO",
+      "check": "075_rto_income renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0287_075_rto_income.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "076_service_dashboard renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0289_076_service_dashboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "077_svc_enquiry_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0291_077_svc_enquiry_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "078_svc_enquiry_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0293_078_svc_enquiry_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service enquiry created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0295_079_svc_enq_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "080_svc_appointments renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0297_080_svc_appointments.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "081_jobcard_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0299_081_jobcard_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card list: Job Card",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0300_081_jc_job_card.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card list: Customer",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0301_081_jc_customer.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card list: Status",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0302_081_jc_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card list: Advisor",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0303_081_jc_advisor.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "082_jobcard_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0305_082_jobcard_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0308_083_jc_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "084_jobcard_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0310_084_jobcard_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card detail: Warranty banner/status",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0311_084_jc_Warranty_banner/status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card detail: Workflow progress bar",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0312_084_jc_Workflow_progress_bar.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card detail: Labour section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0313_084_jc_Labour_section.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card detail: Spares section",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0314_084_jc_Spares_section.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card status advanced (now: pending)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0316_085_jc_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "086_labour_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0318_086_labour_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Labour charge added (FIXED URL /service/labor-charges/create/)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0321_087_labour_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "088_service_invoice_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0323_088_service_invoice_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice created (FIXED URL /service/invoices/create/)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0326_089_sinv_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "090_sinv_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0328_090_sinv_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice detail: labour",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0329_090_sinv_labour.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice detail: total",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0330_090_sinv_total.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice detail: invoice",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0331_090_sinv_invoice.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice detail: amount",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0332_090_sinv_amount.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Service invoice PDF generates",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0334_091_sinv_pdf_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "092_warranty_claim_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0336_092_warranty_claim_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Warranty claim form submitted",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0338_093_wc_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "Job card print view generates",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0340_094_jc_print_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "095_reminders renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0342_095_reminders.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "096_technician_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0344_096_technician_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "097_warranty_claims renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0346_097_warranty_claims.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "098_insurance_claims renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0348_098_insurance_claims.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "099_bays renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0350_099_bays.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "100_labor_charges_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0352_100_labor_charges_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Service",
+      "check": "101_customer_calls renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0354_101_customer_calls.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "102_spares_dashboard renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0356_102_spares_dashboard.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Spares dashboard: total KPI visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0357_102_spares_total.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "103_items_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0359_103_items_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Items list: Item column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0360_103_col_item.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Items list: Part column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0361_103_col_part.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Items list: Category column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0362_103_col_category.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Items list: Rate column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0363_103_col_rate.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "104_item_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0365_104_item_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Spare item created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0368_105_item_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "106_item_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0370_106_item_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Item detail: VQA Oil Filter visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0371_106_item_vqa oil fi.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Item detail: VQA-OIL-001 visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0372_106_item_vqa_oil_00.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Item detail: 185 visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0373_106_item_185.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Item detail: SGST visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0374_106_item_sgst.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Item detail: CGST visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0375_106_item_cgst.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "107_stock_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0377_107_stock_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Stock report: Item visible (FIXED URL /spares/stock/)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0378_107_sr_item.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "108_quotes_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0380_108_quotes_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "109_po_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0382_109_po_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "110_pi_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0384_110_pi_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "111_counter_sales renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0386_111_counter_sales.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "112_counter_sale_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0388_112_counter_sale_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "Counter sale initiated",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0391_113_cs_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "114_counter_returns renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0393_114_counter_returns.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "115_parts_consumption renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0395_115_parts_consumption.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "116_po_used_qty renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0397_116_po_used_qty.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "117_issue_alterations renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0399_117_issue_alterations.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Spares",
+      "check": "118_bulk_insert renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0401_118_bulk_insert.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "VAS",
+      "check": "119_amc_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0403_119_amc_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "VAS",
+      "check": "120_amc_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0405_120_amc_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "VAS",
+      "check": "121_rsa_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0407_121_rsa_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "VAS",
+      "check": "122_pp_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0409_122_pp_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "123_suppliers renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0411_123_suppliers.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "124_supplier_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0413_124_supplier_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "Supplier created",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0415_125_supplier_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "126_warehouses renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0417_126_warehouses.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "127_racks renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0419_127_racks.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "128_bins renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0421_128_bins.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Masters",
+      "check": "129_categories renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0423_129_categories.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "130_users renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0425_130_users.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Users list: Username column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0426_130_col_username.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Users list: Role column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0427_130_col_role.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Users list: Branch column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0428_130_col_branch.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Users list: Status column",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0429_130_col_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "131_roles renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0431_131_roles.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "132_branches renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0433_132_branches.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "133_company_settings renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0435_133_company_settings.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Company settings: GSTIN visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0436_133_settings_gstin.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "134_fuel_expenses renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0438_134_fuel_expenses.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "135_insurance_expiry renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0440_135_insurance_expiry.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "136_notifications renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0442_136_notifications.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Notifications list loads (49 items)",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0443_136_notif_count.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "Mark as read works",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0445_136_notif_read_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "137_sales_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0447_137_sales_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "138_service_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0449_138_service_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "139_spares_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0451_139_spares_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "140_gst_report renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0453_140_gst_report.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Accounts",
+      "check": "GST report: GST data visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0454_140_gst_data.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "141_cv_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0456_141_cv_list.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "142_cv_detail renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0458_142_cv_detail.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "CV detail: Registration number",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0459_142_cv_Registration_number.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "CV detail: Warranty status",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0460_142_cv_Warranty_status.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "CV detail: Free service tracker",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0461_142_cv_Free_service_tracker.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "CV detail: Insurance info",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0462_142_cv_Insurance_info.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "CustVehicles",
+      "check": "CV detail: Service history",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0463_142_cv_Service_history.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Search",
+      "check": "143_search_results renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0465_143_search_results.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Search",
+      "check": "Search results: Visual QA data found",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0466_143_search_data.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Search",
+      "check": "Search by chassis returns vehicle",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0468_144_search_chassis_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Sales exec: Can access Sales Enquiries",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0473_148_rbac_sales_allowed.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Billing Invoices blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0475_149_rbac_billing_invoices.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Spares Items blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0477_149_rbac_spares_items.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "User Management blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0479_149_rbac_user_management.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "RTO Registrations blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0481_149_rbac_rto_registrations.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Company Settings blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0483_149_rbac_company_settings.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Masters Suppliers blocked for Sales Exec",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0485_149_rbac_masters_suppliers.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "RBAC",
+      "check": "Admin re-login successful",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0487_150_admin_login_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "151_profile renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0489_151_profile.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "Profile: admin visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0490_151_profile_admin.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "152_profile_edit renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0492_152_profile_edit.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "153_password_change renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0494_153_password_change.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "Password change: old_pw field visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0495_153_pwd_old_pw.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "Password change: new_pw1 field visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0496_153_pwd_new_pw1.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Profile",
+      "check": "Password change: new_pw2 field visible",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0497_153_pwd_new_pw2.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "154_insurance_create renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0499_154_insurance_create.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "Insurance policy form submitted",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0501_155_insurance_ok.png"
+    },
+    {
+      "status": "PASS",
+      "flow": "Billing",
+      "check": "156_insurance_list renders correctly",
+      "screenshot": "C:\\Users\\Satya\\ssbikez-erp\\visual_qa_v2\\0503_156_insurance_list.png"
+    }
+  ]
+}

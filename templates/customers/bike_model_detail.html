@@ -155,6 +155,17 @@
             </div>
 
             <div class="detail-row">
+                <dt>Dealer Cost Price</dt>
+                <dd style="font-weight:700;color:#059669;">
+                    {% if bike_model.dealer_cost_price %}
+                        ₹ {{ bike_model.dealer_cost_price }}
+                    {% else %}
+                        <span class="text-muted">Not set</span>
+                    {% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
                 <dt>Added On</dt>
                 <dd>{{ bike_model.created_at|date:"d M Y" }}</dd>
             </div>

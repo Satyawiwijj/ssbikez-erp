@@ -1,78 +1,311 @@
 {% extends 'base.html' %}
+
 {% block title %}PDI-{{ pdi.pk }} — SSBikez ERP{% endblock %}
 {% block page_title %}PDI Checklist{% endblock %}
+
+{% block topbar_actions %}
+
+{% if not pdi.is_approved %}
+
+<form method="post"
+      action="{% url 'sales:pdi_approve' pdi.pk %}"
+      style="display:inline;">
+    {% csrf_token %}
+    <button type="submit"
+            class="btn btn-sm btn-success">
+        <i class="fas fa-check me-1"></i>
+        Approve PDI
+    </button>
+</form>
+{% endif %}
+
+<a href="{% url 'sales:order_detail' pdi.sales_order_id %}"
+class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
+Back </a>
+
+{% endblock %}
+
 {% block content %}
+
 <div class="page-header">
-  <h1 class="page-title">PDI-{{ pdi.pk }} | Order {{ pdi.sales_order_id }}</h1>
-  <div class="page-header-actions">
-    {% if not pdi.is_approved %}
-    <form method="post" action="{% url 'sales:pdi_approve' pdi.pk %}">{% csrf_token %}
-      <button type="submit" class="btn btn-primary">Approve PDI</button>
-    </form>
-    {% else %}
-    <span class="badge badge-green">Approved by {{ pdi.approved_by.get_full_name }}</span>
-    {% endif %}
-    <a href="{% url 'sales:order_detail' pdi.sales_order_id %}" class="btn btn-ghost">&#8592; Order</a>
-  </div>
+    <div>
+        <h1 class="page-title">
+            PDI-{{ pdi.pk }}
+        </h1>
+
+    <p class="page-subtitle">
+        Pre-delivery inspection checklist for Order {{ pdi.sales_order_id }}
+    </p>
 </div>
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Mechanical — {{ pdi.mechanical_score }}</span>
-    </div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Engine Oil Level</dt><dd>{% if pdi.engine_oil_level %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Coolant Level</dt><dd>{% if pdi.coolant_level %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Brake Fluid</dt><dd>{% if pdi.brake_fluid_level %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Chain Tension</dt><dd>{% if pdi.chain_tension %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Chain Lubrication</dt><dd>{% if pdi.chain_lubrication %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Tyre Pressure Front</dt><dd>{% if pdi.tyre_pressure_front %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Tyre Pressure Rear</dt><dd>{% if pdi.tyre_pressure_rear %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Brake Front</dt><dd>{% if pdi.brake_front_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Brake Rear</dt><dd>{% if pdi.brake_rear_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Clutch</dt><dd>{% if pdi.clutch_adjustment %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Throttle</dt><dd>{% if pdi.throttle_smooth %}✓{% else %}✗{% endif %}</dd></div>
-    </dl>
-  </div>
-  <div class="card">
-    <div class="card-header">
-      <span class="card-title">Electrical — {{ pdi.electrical_score }}</span>
-    </div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Battery</dt><dd>{% if pdi.battery_voltage %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Headlight</dt><dd>{% if pdi.headlight_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Taillight</dt><dd>{% if pdi.taillight_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Indicators</dt><dd>{% if pdi.indicators_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Horn</dt><dd>{% if pdi.horn_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Speedometer</dt><dd>{% if pdi.speedometer_working %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Kill Switch</dt><dd>{% if pdi.kill_switch_working %}✓{% else %}✗{% endif %}</dd></div>
-    </dl>
-    <div class="card-header" style="margin-top:8px;"><span class="card-title">Documents</span></div>
-    <dl class="detail-list">
-      <div class="detail-row"><dt>Invoice Ready</dt><dd>{% if pdi.invoice_ready %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Insurance Done</dt><dd>{% if pdi.insurance_done %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Form 20 Submitted</dt><dd>{% if pdi.form20_submitted %}✓{% else %}✗{% endif %}</dd></div>
-      <div class="detail-row"><dt>Temp Registration</dt><dd>{% if pdi.temporary_registration %}✓{% else %}✗{% endif %}</dd></div>
-    </dl>
-  </div>
+
 </div>
-<div class="card" style="margin-top:12px;">
-  <dl class="detail-list" style="padding:0 16px;">
-    <div class="detail-row">
-      <dt><strong>All Critical Checks</strong></dt>
-      <dd>
-        {% if pdi.all_critical_passed %}
-        <span class="badge badge-green">ALL PASSED ✓</span>
-        {% else %}
-        <span class="badge badge-red">SOME FAILED ✗</span>
-        {% endif %}
-      </dd>
+
+<div class="row g-3 mb-4">
+
+<div class="col-md-4">
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="h3 mb-1">
+                {{ pdi.mechanical_score }}
+            </div>
+            <div class="text-muted">
+                Mechanical Score
+            </div>
+        </div>
     </div>
-  </dl>
-  {% if pdi.overall_remarks %}
-  <div style="padding:12px;border-top:1px solid #f1f5f9;">
-    <strong>Remarks:</strong> {{ pdi.overall_remarks }}
-  </div>
-  {% endif %}
 </div>
+
+<div class="col-md-4">
+    <div class="card">
+        <div class="card-body text-center">
+            <div class="h3 mb-1">
+                {{ pdi.electrical_score }}
+            </div>
+            <div class="text-muted">
+                Electrical Score
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="col-md-4">
+    <div class="card">
+        <div class="card-body text-center">
+
+            {% if pdi.is_approved %}
+                <span class="badge bg-success">
+                    Approved
+                </span>
+            {% else %}
+                <span class="badge bg-warning text-dark">
+                    Pending Approval
+                </span>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div class="row g-4">
+
+<div class="col-lg-8">
+
+    <!-- Mechanical -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <i class="fas fa-cogs me-2"></i>
+            Engine & Mechanical
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row"><dt>Engine Oil Level</dt><dd>{% if pdi.engine_oil_level %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Coolant Level</dt><dd>{% if pdi.coolant_level %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Brake Fluid Level</dt><dd>{% if pdi.brake_fluid_level %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Chain Tension</dt><dd>{% if pdi.chain_tension %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Chain Lubrication</dt><dd>{% if pdi.chain_lubrication %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Tyre Pressure Front</dt><dd>{% if pdi.tyre_pressure_front %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Tyre Pressure Rear</dt><dd>{% if pdi.tyre_pressure_rear %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Brake Front Working</dt><dd>{% if pdi.brake_front_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Brake Rear Working</dt><dd>{% if pdi.brake_rear_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Clutch Adjustment</dt><dd>{% if pdi.clutch_adjustment %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Throttle Smooth</dt><dd>{% if pdi.throttle_smooth %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+    <!-- Electrical -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <i class="fas fa-bolt me-2"></i>
+            Electrical
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row"><dt>Battery Voltage</dt><dd>{% if pdi.battery_voltage %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Headlight Working</dt><dd>{% if pdi.headlight_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Taillight Working</dt><dd>{% if pdi.taillight_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Indicators Working</dt><dd>{% if pdi.indicators_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Horn Working</dt><dd>{% if pdi.horn_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Speedometer Working</dt><dd>{% if pdi.speedometer_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Kill Switch Working</dt><dd>{% if pdi.kill_switch_working %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+    <!-- Body -->
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <i class="fas fa-motorcycle me-2"></i>
+            Body & Aesthetics
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row"><dt>Paint No Scratches</dt><dd>{% if pdi.paint_no_scratches %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>All Panels Fitted</dt><dd>{% if pdi.all_panels_fitted %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Mirrors Adjusted</dt><dd>{% if pdi.mirrors_adjusted %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Seat Firm</dt><dd>{% if pdi.seat_firm %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Toolkit Present</dt><dd>{% if pdi.toolkit_present %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Owner's Manual Present</dt><dd>{% if pdi.owners_manual_present %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+    <!-- Documents -->
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-file-alt me-2"></i>
+            Documents
+        </div>
+
+        <div class="card-body">
+
+            <dl class="detail-list">
+
+                <div class="detail-row"><dt>Invoice Ready</dt><dd>{% if pdi.invoice_ready %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Insurance Done</dt><dd>{% if pdi.insurance_done %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Form 20 Submitted</dt><dd>{% if pdi.form20_submitted %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+                <div class="detail-row"><dt>Temporary Registration</dt><dd>{% if pdi.temporary_registration %}<span class="badge bg-success">Passed</span>{% else %}<span class="badge bg-danger">Failed</span>{% endif %}</dd></div>
+
+            </dl>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div class="col-lg-4">
+
+    <div class="card mb-4">
+
+        <div class="card-header">
+            <i class="fas fa-info-circle me-2"></i>
+            Order Information
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-3">
+                <strong>Order</strong><br>
+                ORD-{{ pdi.sales_order.pk }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Customer</strong><br>
+                {{ pdi.sales_order.customer.full_name }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Vehicle</strong><br>
+                {{ pdi.sales_order.vehicle.bike_model }}
+            </div>
+
+            <div class="mb-3">
+                <strong>Inspected By</strong><br>
+                {{ pdi.inspected_by }}
+            </div>
+
+            <div>
+                <strong>Inspection Date</strong><br>
+                {{ pdi.inspection_date }}
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="card-header">
+            <i class="fas fa-shield-check me-2"></i>
+            Critical Checks
+        </div>
+
+        <div class="card-body">
+
+            {% if pdi.all_critical_passed %}
+                <span class="badge bg-success">
+                    All Critical Checks Passed
+                </span>
+            {% else %}
+                <span class="badge bg-danger">
+                    Critical Checks Failed
+                </span>
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+</div>
+
+{% if pdi.overall_remarks %}
+
+<div class="card mt-4">
+<div class="card-header">
+    <i class="fas fa-comment-dots me-2"></i>
+    Remarks
+</div>
+
+<div class="card-body">
+    {{ pdi.overall_remarks }}
+</div>
+
+</div>
+{% endif %}
+
 {% endblock %}

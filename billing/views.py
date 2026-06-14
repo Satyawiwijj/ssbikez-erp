@@ -77,11 +77,13 @@ def invoice_detail(request, pk):
         payment_status=Payment.PaymentStatus.COMPLETED
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
     balance    = invoice.final_amount - total_paid
+    gst_half   = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
     return render(request, 'billing/invoice_detail.html', {
         'invoice':    invoice,
         'payments':   payments,
         'total_paid': total_paid,
         'balance':    balance,
+        'gst_half':   gst_half,
     })
 
 

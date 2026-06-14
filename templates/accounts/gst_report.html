@@ -2,17 +2,33 @@
 {% block title %}GST Report — SSBikez ERP{% endblock %}
 {% block page_title %}GST Report{% endblock %}
 {% block content %}
+
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">GST Report</span>
+</nav>
+
 <div class="page-header">
-  <h1 class="page-title">GSTR-1 Format — {{ month_name }} {{ year }}</h1>
-  <div style="display:flex;gap:8px;align-items:center;">
+  <div>
+    <h1 class="page-title">GST Report</h1>
+    <p class="page-subtitle">
+      Monthly GST return summary for vehicle sales and service invoices
+    </p>
+  </div>
+  <div class="page-header-actions">
     <form method="get" style="display:flex;gap:8px;">
-      <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:80px;">
-      <input type="number" name="year"  value="{{ year }}"  min="2024" class="form-control" style="width:100px;">
+      <input type="number" name="month" value="{{ month }}" min="1" max="12" class="form-control" style="width:90px;">
+      <input type="number" name="year" value="{{ year }}" min="2024" class="form-control" style="width:110px;">
       <button type="submit" class="btn btn-secondary">Filter</button>
+          <button onclick="window.print()" class="btn btn-sm btn-outline-primary">
+      Print Report
+    </button>
     </form>
-    <button onclick="window.print()" class="btn btn-ghost">Print</button>
+
   </div>
 </div>
+
 
 <div class="card">
   <div class="card-header"><span class="card-title">Vehicle Sales Invoices (B2C)</span></div>

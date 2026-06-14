@@ -3,35 +3,44 @@
 {% block page_title %}Vehicle Stock Aging{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h1 class="page-title">Stock Aging Report</h1>
-  <a href="{% url 'customers:vehicle_stock_list' %}" class="btn btn-ghost">&#8592; Stock List</a>
+    <div>
+        <h1 class="page-title">Vehicle Stock Aging Report</h1>
+        <p class="page-subtitle">
+            Monitor slow-moving inventory and identify vehicles requiring immediate attention.
+        </p>
+    </div>
+
+    <div class="page-header-actions">
+        <a href="{% url 'customers:vehicle_stock_list' %}" class="btn btn-secondary">
+            Back to Stock
+        </a>
+    </div>
 </div>
 
-<div style="display:flex;gap:16px;margin-bottom:20px;">
-  <div class="card" style="flex:1;border-left:4px solid #eab308;">
-    <div style="padding:16px;text-align:center;">
-      <div style="font-size:32px;font-weight:700;color:#eab308;">{{ aging_30_count }}</div>
-      <div style="font-size:13px;color:#64748b;">Vehicles 30–60 days in stock</div>
+<div class="stats-grid">
+    <div class="stat-card warning">
+        <div class="stat-number">{{ aging_30_count }}</div>
+        <div class="stat-label"><i class="fas fa-clock"></i> 30-60 Days</div>
     </div>
-  </div>
-  <div class="card" style="flex:1;border-left:4px solid #f97316;">
-    <div style="padding:16px;text-align:center;">
-      <div style="font-size:32px;font-weight:700;color:#f97316;">{{ aging_60_count }}</div>
-      <div style="font-size:13px;color:#64748b;">Vehicles 60–90 days in stock</div>
+
+    <div class="stat-card orange">
+        <div class="stat-number">{{ aging_60_count }}</div>
+        <div class="stat-label"><i class="fas fa-hourglass-half"></i> 60-90 Days</div>
     </div>
-  </div>
-  <div class="card" style="flex:1;border-left:4px solid #dc2626;">
-    <div style="padding:16px;text-align:center;">
-      <div style="font-size:32px;font-weight:700;color:#dc2626;">{{ aging_90_count }}</div>
-      <div style="font-size:13px;color:#64748b;">Vehicles 90+ days — URGENT</div>
+
+    <div class="stat-card danger">
+        <div class="stat-number">{{ aging_90_count }}</div>
+        <div class="stat-label"><i class="fas fa-triangle-exclamation"></i> 90+ Days</div>
     </div>
-  </div>
 </div>
 
 {% if aging_90_list %}
 <div class="card">
-  <div class="card-header" style="background:#fef2f2;">
-    <span class="card-title" style="color:#dc2626;">90+ Days — Urgent Action Required</span>
+  <div class="card-header">
+      <span class="card-title">
+          <i class="fas fa-triangle-exclamation text-danger me-2"></i>
+          Critical Stock Aging (90+ Days)
+      </span>
   </div>
   <table class="table">
     <thead><tr><th>Model</th><th>Color</th><th>Chassis No</th><th>Days in Stock</th><th>Branch</th><th>Action</th></tr></thead>
@@ -54,7 +63,7 @@
 {% if aging_30 %}
 <div class="card" style="margin-top:16px;">
   <div class="card-header" style="background:#fefce8;">
-    <span class="card-title" style="color:#ca8a04;">30–60 Days</span>
+    <span class="card-title" style="color:#ca8a04;">30-60 Days</span>
   </div>
   <table class="table">
     <thead><tr><th>Model</th><th>Color</th><th>Chassis No</th><th>Purchase Date</th><th>Branch</th></tr></thead>
@@ -70,4 +79,39 @@
   </table>
 </div>
 {% endif %}
+
+{% if aging_60 %}
+<div class="card" style="margin-top:16px;">
+  <div class="card-header" style="background:#fff7ed;">
+    <span class="card-title" style="color:#ea580c;">
+      60-90 Days
+    </span>
+  </div>
+
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Model</th>
+        <th>Color</th>
+        <th>Chassis No</th>
+        <th>Purchase Date</th>
+        <th>Branch</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      {% for s in aging_60 %}
+      <tr>
+        <td>{{ s.bike_model }}</td>
+        <td>{{ s.color }}</td>
+        <td>{{ s.chassis_no }}</td>
+        <td>{{ s.purchase_date }}</td>
+        <td>{{ s.branch.branch_name|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
 {% endblock %}

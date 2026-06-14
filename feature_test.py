@@ -2,6 +2,11 @@ import django, os
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ssbikez.settings')
 django.setup()
 
+# Strip whitenoise (not installed in dev venv) so test Client can load middleware
+from django.conf import settings as _s
+_s.MIDDLEWARE = [m for m in _s.MIDDLEWARE if 'whitenoise' not in m]
+_s.STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 from decimal import Decimal
 from datetime import date, timedelta
 from django.utils import timezone
