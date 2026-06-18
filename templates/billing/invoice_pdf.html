@@ -316,8 +316,8 @@
         <td class="r">{{ hsn_code }}</td>
         <td class="r">1</td>
         <td class="r">{{ invoice.subtotal }}</td>
-        <td class="r">{{ gst_half }}</td>
-        <td class="r">{{ gst_half }}</td>
+        <td class="r">{{ cgst_amount }}</td>
+        <td class="r">{{ sgst_amount }}</td>
         <td class="r"><strong>{{ invoice.final_amount }}</strong></td>
       </tr>
     </tbody>
@@ -325,8 +325,8 @@
       <tr>
         <td colspan="3" style="text-align:right; font-weight:600; color:#555;">Sub-Total</td>
         <td class="r">{{ invoice.subtotal }}</td>
-        <td class="r">{{ gst_half }}</td>
-        <td class="r">{{ gst_half }}</td>
+        <td class="r">{{ cgst_amount }}</td>
+        <td class="r">{{ sgst_amount }}</td>
         <td class="r">{{ invoice.final_amount }}</td>
       </tr>
     </tfoot>
@@ -344,12 +344,12 @@
         <div class="tot-val">&#x20B9;&nbsp;{{ invoice.subtotal }}</div>
       </div>
       <div class="tot-row">
-        <div class="tot-lbl">CGST @ 9%</div>
-        <div class="tot-val">&#x20B9;&nbsp;{{ gst_half }}</div>
+        <div class="tot-lbl">CGST</div>
+        <div class="tot-val">&#x20B9;&nbsp;{{ cgst_amount }}</div>
       </div>
       <div class="tot-row">
-        <div class="tot-lbl">SGST @ 9%</div>
-        <div class="tot-val">&#x20B9;&nbsp;{{ gst_half }}</div>
+        <div class="tot-lbl">SGST</div>
+        <div class="tot-val">&#x20B9;&nbsp;{{ sgst_amount }}</div>
       </div>
       {% if invoice.discount_amount %}
       <div class="tot-row disc">

@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
 
+from accounts.audit import log_action
 from masters.models import Warehouse, Rack, Bin, Supplier
 from .models import (
     SparesItem, ItemRackBin, StockLedger,
@@ -163,7 +164,11 @@ def quote_create(request):
 
 @login_required
 def quote_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     obj = get_object_or_404(SupplierQuote, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = SupplierQuoteForm(request.POST or None, instance=obj)
     formset = SupplierQuoteItemFormSet(request.POST or None, instance=obj, prefix='items')
     if request.method == 'POST' and form.is_valid() and formset.is_valid():
@@ -187,7 +192,14 @@ def quote_update(request, pk):
 @login_required
 def order_list(request):
     orders = PurchaseOrder.objects.select_related('supplier').order_by('-date')
-    return render(request, 'spares/order_list.html', {'orders': orders})
+    status_filter = request.GET.get('status', '')
+    if status_filter:
+        orders = orders.filter(status=status_filter)
+    return render(request, 'spares/order_list.html', {
+        'orders': orders,
+        'status_choices': PurchaseOrder.STATUS,
+        'status_filter': status_filter,
+    })
 
 
 @login_required
@@ -215,14 +227,18 @@ def order_create(request):
             obj.save()
         messages.success(request, f'PO {obj.po_no} created.')
         return redirect('spares:order_detail', pk=obj.pk)
-    return render(request, 'spares/order_form.html', {
+    return render(request, 'spares/po_form.html', {
         'form': form, 'formset': formset, 'title': 'New Purchase Order'
     })
 
 
 @login_required
 def order_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     obj = get_object_or_404(PurchaseOrder, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = PurchaseOrderForm(request.POST or None, instance=obj)
     formset = PurchaseOrderItemFormSet(request.POST or None, instance=obj, prefix='items')
     if request.method == 'POST' and form.is_valid() and formset.is_valid():
@@ -236,7 +252,7 @@ def order_update(request, pk):
             obj.save()
         messages.success(request, 'PO updated.')
         return redirect('spares:order_detail', pk=pk)
-    return render(request, 'spares/order_form.html', {
+    return render(request, 'spares/po_form.html', {
         'form': form, 'formset': formset, 'title': 'Edit PO', 'object': obj
     })
 
@@ -466,9 +482,14 @@ def bulk_insert(request):
     from io import TextIOWrapper, StringIO
     from decimal import Decimal, InvalidOperation
 
+    MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
+
     results = None
     if request.method == 'POST' and request.FILES.get('file'):
         f = request.FILES['file']
+        if f.size > MAX_UPLOAD_BYTES:
+            messages.error(request, 'File is too large — the limit is 5MB.')
+            return render(request, 'spares/bulk_insert.html', {'results': None})
         name = (f.name or '').lower()
         rows = []
         errors = []
@@ -506,16 +527,23 @@ def bulk_insert(request):
             except (InvalidOperation, ValueError):
                 return Decimal(default)
 
+        def _defuse(value):
+            # Prevent CSV/Excel formula injection if this data is ever
+            # re-exported and opened by someone else.
+            if value and value[0] in ('=', '+', '-', '@'):
+                return "'" + value
+            return value
+
         for idx, row in enumerate(rows, start=2):
             try:
                 row = {(k or '').strip().lower(): v for k, v in row.items()}
-                name_v = (row.get('item_name') or '').strip()
+                name_v = _defuse((row.get('item_name') or '').strip())
                 if not name_v:
                     errors.append({'row': idx, 'error': 'item_name is required'})
                     continue
-                part_no = (row.get('part_number') or '').strip()
+                part_no = _defuse((row.get('part_number') or '').strip())
                 hsn = (row.get('hsn_sac') or '').strip()
-                category = (row.get('category') or '').strip()
+                category = _defuse((row.get('category') or '').strip())
 
                 item = SparesItem(
                     item_name=name_v,
@@ -627,3 +655,49 @@ def parts_consumption_report(request):
         'counter_consumption': counter_consumption,
     }
     return render(request, 'spares/parts_consumption_report.html', context)
+
+
+# ---------------------------------------------------------------------------
+# Delete views
+# ---------------------------------------------------------------------------
+from django.views.decorators.http import require_POST
+
+
+@login_required
+@require_POST
+def item_delete(request, pk):
+    from django.db.models import ProtectedError
+    item = get_object_or_404(SparesItem, pk=pk)
+    try:
+        item.delete()
+        log_action(request, 'SparesItem', 'delete', pk)
+        messages.success(request, f'Item deleted.')
+    except ProtectedError:
+        messages.error(
+            request,
+            f'Cannot delete "{item.item_name}": it is referenced by purchase orders, '
+            'invoices, or sales records. Deactivate it instead.'
+        )
+        return redirect('spares:item_detail', pk=pk)
+    return redirect('spares:item_list')
+
+
+@login_required
+@require_POST
+def purchase_order_delete(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(PurchaseOrder, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if obj.status in ('received', 'submitted'):
+        messages.error(
+            request,
+            f'Cannot delete {obj.po_no}: status is "{obj.get_status_display()}". '
+            'Only Draft or Cancelled orders can be deleted.'
+        )
+        return redirect('spares:order_detail', pk=pk)
+    obj.delete()
+    log_action(request, 'PurchaseOrder', 'delete', pk)
+    messages.success(request, f'Purchase order {obj.po_no} deleted.')
+    return redirect('spares:order_list')

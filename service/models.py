@@ -51,23 +51,29 @@ class ServiceAppointment(models.Model):
         ACCIDENTAL   = 'accidental',   'Accidental Repair'
         GENERAL      = 'general',      'General'
 
-    service_enquiry  = models.ForeignKey(
+    service_enquiry         = models.ForeignKey(
         ServiceEnquiry,
         on_delete=models.CASCADE,
         related_name='appointments'
     )
-    appointment_date = models.DateTimeField()
-    service_type     = models.CharField(
+    appointment_date        = models.DateTimeField()
+    service_type            = models.CharField(
         max_length=100,
         choices=ServiceType.choices,
         blank=True, null=True
     )
-    status           = models.CharField(
+    status                  = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.SCHEDULED
     )
-    created_at       = models.DateTimeField(auto_now_add=True)
+    # ERP-matched fields
+    phone_no                = models.CharField(max_length=20, blank=True, default='')
+    whatsapp_no             = models.CharField(max_length=20, blank=True, default='')
+    chassis_no              = models.CharField(max_length=50, blank=True, default='', verbose_name='Chassis No')
+    vehicle_name            = models.CharField(max_length=200, blank=True, default='')
+    is_cancelled_postponed  = models.BooleanField(default=False, verbose_name='Appointment Cancel/Postponed')
+    created_at              = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-appointment_date']
@@ -637,3 +643,48 @@ class ServiceReminder(models.Model):
 
     def __str__(self):
         return f"SR-{self.pk} | {self.customer_vehicle} | {self.reminder_type}"
+
+
+# ---------------------------------------------------------------------------
+# ERP Alignment — Vehicle Service Master
+# ---------------------------------------------------------------------------
+
+class VehicleServiceMaster(models.Model):
+    bike_model   = models.OneToOneField(
+        'customers.BikeModel',
+        on_delete=models.CASCADE,
+        related_name='service_master',
+        verbose_name='Vehicle / Bike Model'
+    )
+    vehicle_code = models.CharField(max_length=50, blank=True, default='', verbose_name='Vehicle Code')
+
+    class Meta:
+        verbose_name = 'Vehicle Service Master'
+
+    def __str__(self):
+        return f'{self.bike_model.model_name} Service Schedule'
+
+
+class VehicleServiceSchedule(models.Model):
+    SERVICE_TYPES = [
+        ('Free Service 1', 'Free Service 1'),
+        ('Free Service 2', 'Free Service 2'),
+        ('Free Service 3', 'Free Service 3'),
+        ('Paid Service', 'Paid Service'),
+        ('General Checkup', 'General Checkup'),
+    ]
+    master             = models.ForeignKey(
+        VehicleServiceMaster,
+        on_delete=models.CASCADE,
+        related_name='schedules'
+    )
+    service_type       = models.CharField(max_length=100, choices=SERVICE_TYPES, verbose_name='Service Type')
+    days_from_purchase = models.IntegerField(verbose_name='Service Days from Purchase')
+    km_from_purchase   = models.IntegerField(verbose_name='Service KM from Purchase')
+
+    class Meta:
+        ordering = ['days_from_purchase']
+        verbose_name = 'Service Schedule'
+
+    def __str__(self):
+        return f'{self.master} — {self.service_type}'

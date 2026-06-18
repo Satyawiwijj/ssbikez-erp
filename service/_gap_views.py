@@ -68,7 +68,11 @@ def jobcard_issue_spare(request, pk):
             return redirect('service:jobcard_issue_spare', pk=pk)
 
         item = get_object_or_404(SparesItem, pk=item_id)
-        warehouse = Warehouse.objects.first()
+        rack = Rack.objects.filter(pk=rack_id).select_related('warehouse').first() if rack_id else None
+        if rack:
+            warehouse = rack.warehouse
+        else:
+            warehouse = Warehouse.objects.first()
         if not warehouse:
             messages.error(request, 'No warehouse configured. Add one in Masters.')
             return redirect('service:jobcard_detail', pk=pk)
@@ -98,7 +102,9 @@ def jobcard_issue_spare(request, pk):
         sia.updated_total = sia.total
         sia.save(update_fields=['spares_total', 'total', 'updated_total'])
 
-        ledger = StockLedger.objects.filter(item=item).order_by('-quantity').first()
+        ledger = StockLedger.objects.filter(
+            item=item, warehouse=warehouse, rack_id=rack_id or None, bin_id=bin_id or None,
+        ).first()
         if ledger:
             ledger.quantity = max(Decimal('0'), (ledger.quantity or Decimal('0')) - quantity)
             ledger.save(update_fields=['quantity'])
@@ -160,9 +166,13 @@ def warranty_claim_detail(request, pk):
 
 @login_required
 def warranty_claim_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     from .forms import WarrantyClaimForm
     from .models import WarrantyClaim
     wc = get_object_or_404(WarrantyClaim, pk=pk)
+    if not user_owns(request.user, wc.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = WarrantyClaimForm(request.POST or None, instance=wc)
     if request.method == 'POST' and form.is_valid():
         form.save()

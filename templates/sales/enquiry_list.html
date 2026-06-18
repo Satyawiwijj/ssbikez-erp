@@ -183,11 +183,17 @@ Clear </a>
 
           <a href="{% url 'sales:enquiry_update' enq.pk %}"
              class="btn btn-sm btn-outline-primary">
-
             <i class="fas fa-edit me-1"></i>
             Edit
-
           </a>
+
+          <form method="post" action="{% url 'sales:enquiry_delete' enq.pk %}" style="display:inline"
+                onsubmit="return confirm('Delete ENQ-{{ enq.pk }}?')">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-sm btn-outline-danger">
+              <i class="fas fa-trash"></i>
+            </button>
+          </form>
 
         </div>
 

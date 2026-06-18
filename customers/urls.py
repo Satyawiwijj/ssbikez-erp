@@ -13,6 +13,7 @@ urlpatterns = [
     path('create/',                  views.customer_create,       name='customer_create'),
     path('customers/create/',        views.customer_create),       # alias
     path('<int:pk>/edit/',           views.customer_update,       name='customer_update'),
+    path('<int:pk>/delete/',         views.customer_delete,       name='customer_delete'),
 
     # BikeModel
     path('bikes/',                   views.bike_model_list,       name='bike_model_list'),

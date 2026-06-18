@@ -30,6 +30,13 @@ Back </a>
 
 {% csrf_token %}
 
+{% if form.non_field_errors %}
+<div class="alert alert-danger mb-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+</div>
+{% endif %}
+
 <div class="row g-3">
 
     <div class="col-lg-8">

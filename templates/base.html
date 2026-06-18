@@ -347,6 +347,24 @@
     .form-group.span-3 { grid-column: span 3; }
     .form-actions { display: flex; gap: 8px; align-items: center; margin-top: 24px; padding-top: 20px; border-top: 1px solid #f3f4f6; }
     .form-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
+    /* ── VALIDATION ERROR HIGHLIGHTS ── */
+    input.is-invalid, select.is-invalid, textarea.is-invalid,
+    .form-control.is-invalid { border-color: #dc2626 !important; background-color: #fef2f2; }
+    .errorlist { color: #dc2626; font-size: 12px; margin: 4px 0 0; padding: 0; list-style: none; }
+    .errorlist li { display: block; }
+    .form-non-field-errors { background: #fef2f2; border: 1px solid #fca5a5; border-left: 4px solid #dc2626;
+        border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; color: #991b1b; font-size: 13px; }
+    /* Container-level error highlight */
+    .has-error input:not([type="hidden"]),
+    .has-error select,
+    .has-error textarea,
+    .has-error .form-control,
+    .has-error .form-select { border-color: #dc2626 !important; background-color: #fef2f2; }
+    .has-error .form-label,
+    .has-error label { color: #dc2626; }
+    /* Field-level error text */
+    .field-error { color: #dc2626; font-size: 0.82rem; margin-top: 4px; display: block; }
+    .error-msg { display: block; }
     .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
 
@@ -616,6 +634,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'service:discount_master_list' %}" class="sidebar-link" data-href="/service/discount-master/"><i class="nav-icon fas fa-percent"></i> Discount Master</a>
   <a href="{% url 'service:bay_list' %}" class="sidebar-link" data-href="/service/bays/"><i class="nav-icon fas fa-warehouse"></i> Bays</a>
   <a href="{% url 'service:call_list' %}" class="sidebar-link" data-href="/service/calls/"><i class="nav-icon fas fa-phone"></i> Customer Calls</a>
+  <a href="{% url 'service:follow_up_list' %}" class="sidebar-link" data-href="/service/follow-ups/"><i class="nav-icon fas fa-phone-alt"></i> Follow-Ups</a>
   <a href="{% url 'service:warranty_claim_list' %}" class="sidebar-link" data-href="/service/warranty-claims/"><i class="nav-icon fas fa-shield-alt"></i> Warranty Claims</a>
   <a href="{% url 'service:insurance_claim_list' %}" class="sidebar-link" data-href="/service/insurance-claims/"><i class="nav-icon fas fa-file-medical"></i> Insurance Claims</a>
   <a href="{% url 'service:technician_report' %}" class="sidebar-link" data-href="/service/technician-report/"><i class="nav-icon fas fa-user-cog"></i> Technician Report</a>
@@ -645,6 +664,15 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>
   <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="nav-icon fas fa-ambulance"></i> RSA Packages</a>
   <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
+  {% endif %}
+
+  {% can_see_section 'Sales Executive' 'Floor Supervisor' 'Service Advisor' 'Spares' 'Managing Director' as show_vehicle_master %}
+  {% if show_vehicle_master %}
+  <div class="sidebar-section">Vehicle Master</div>
+  <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="nav-icon fas fa-motorcycle"></i> Bike Models</a>
+  <a href="{% url 'customers:bike_model_create' %}" class="sidebar-link" data-href="/customers/bikes/create/"><i class="nav-icon fas fa-plus-circle"></i> Add Bike Model</a>
+  <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-list"></i> Vehicle Stock</a>
+  <a href="{% url 'service:vehicle_service_master_list' %}" class="sidebar-link" data-href="/service/vehicle-service-master/"><i class="nav-icon fas fa-tools"></i> Service Master</a>
   {% endif %}
 
   {% can_see_section 'Managing Director' as show_masters %}
@@ -873,6 +901,32 @@ setInterval(loadNotificationCount, 60000);
       });
     });
   })();
+</script>
+<script>
+/* Auto-apply is-invalid + has-error to fields/containers with Django validation errors */
+document.addEventListener('DOMContentLoaded', function () {
+    ['.text-danger.small', '.text-danger.small.mt-1', '.form-error'].forEach(function (sel) {
+        document.querySelectorAll(sel).forEach(function (el) {
+            if (!el.textContent.trim()) return;
+            var container = el.closest('[class*="col-"], .mb-3, .mb-4, .form-group');
+            if (!container) container = el.parentElement;
+            if (!container) return;
+            container.classList.add('has-error');
+            var field = container.querySelector('input:not([type="hidden"]), select, textarea');
+            if (field) field.classList.add('is-invalid');
+        });
+    });
+    /* Also handle Django's default errorlist class */
+    document.querySelectorAll('.errorlist').forEach(function (el) {
+        if (!el.textContent.trim()) return;
+        var container = el.closest('[class*="col-"], .mb-3, .mb-4, .form-group');
+        if (!container) container = el.parentElement;
+        if (!container) return;
+        container.classList.add('has-error');
+        var field = container.querySelector('input:not([type="hidden"]), select, textarea');
+        if (field) field.classList.add('is-invalid');
+    });
+});
 </script>
 {% block extra_js %}{% endblock %}
 </body>

@@ -20,6 +20,12 @@ Add Feedback
   <span class="bc-sep">/</span>
   <span class="bc-current">Feedback</span>
 </nav>
+<form class="search-bar" method="get">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer name, phone, or notes...">
+    <button type="submit" class="btn btn-secondary"><i class="fas fa-search me-1"></i> Search</button>
+    {% if q %}<a href="{% url 'sales:feedback_all' %}" class="btn btn-ghost">Clear</a>{% endif %}
+</form>
+
 <div class="card">
 
 <div class="card-header">
@@ -37,10 +43,12 @@ Add Feedback
             <tr>
                 <th>Feedback ID</th>
                 <th>Customer</th>
+                <th>Vehicle Code</th>
                 <th>Feedback Notes</th>
                 <th>Next Follow-up</th>
                 <th>Created By</th>
                 <th>Date</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -60,6 +68,7 @@ Add Feedback
                         {% endif %}
                     </div>
                 </td>
+                <td>{{ fb.vehicle_name|default:"—" }}</td>
                 <td>
                     {{ fb.feedback_notes|truncatechars:60|default:"—" }}
                 </td>
@@ -88,10 +97,19 @@ Add Feedback
                 <td style="color:#6B7280;font-size:13px;">
                     {{ fb.created_at|date:"d M Y" }}
                 </td>
+                <td>
+                    <div class="table-actions">
+                        <form method="post" action="{% url 'sales:feedback_delete' fb.pk %}" style="display:inline"
+                              onsubmit="return confirm('Delete FB-{{ fb.pk }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </div>
+                </td>
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" class="empty-state">
+                <td colspan="8" class="empty-state">
                     <i class="fas fa-comments mb-2"></i>
                     <div>
                         No feedback records found.

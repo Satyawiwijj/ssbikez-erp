@@ -88,6 +88,20 @@ def registration_detail(request, pk):
 
 
 @login_required
+def form20_print(request, pk):
+    """Print-friendly Form 20 (RTO new-registration application)."""
+    from accounts.models import CompanySettings
+    rto = get_object_or_404(
+        RTORegistration.objects.select_related(
+            'sales_order__customer', 'sales_order__vehicle__bike_model'
+        ),
+        pk=pk
+    )
+    company = CompanySettings.get_instance()
+    return render(request, 'rto/form20_print.html', {'rto': rto, 'company': company})
+
+
+@login_required
 def registration_create(request):
     initial = {}
     if request.GET.get('order'):

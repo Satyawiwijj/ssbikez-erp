@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
 
@@ -184,3 +185,26 @@ def stock_aging(request):
         'aging_60': aging_60, 'aging_60_count': aging_60.count(),
         'aging_90_list': aging_90_list, 'aging_90_count': aging_90.count(),
     })
+
+
+@login_required
+@require_POST
+def customer_delete(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    # Guard: block if related records exist to prevent silent data loss
+    blockers = []
+    if customer.vehicles.exists():
+        blockers.append('customer vehicles')
+    if customer.enquiries.exists():
+        blockers.append('sales enquiries')
+    if blockers:
+        messages.error(
+            request,
+            f'Cannot delete CUST-{pk}: has linked {", ".join(blockers)}. '
+            'Remove or reassign those records first.'
+        )
+        return redirect('customers:customer_detail', pk=pk)
+    customer.delete()
+    log_action(request, 'Customer', 'delete', pk)
+    messages.success(request, f'Customer CUST-{pk} deleted.')
+    return redirect('customers:customer_list')

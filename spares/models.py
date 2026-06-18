@@ -146,6 +146,8 @@ class PurchaseOrder(models.Model):
     supplier_gstin = models.CharField(max_length=20, blank=True)
     gst_category = models.CharField(max_length=50, blank=True)
     place_of_supply = models.CharField(max_length=100, blank=True)
+    get_customer_order = models.BooleanField(default=False, verbose_name='Get Customer Order')
+    get_estimation     = models.BooleanField(default=False, verbose_name='Get Estimation')
     total_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_taxes = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -178,11 +180,17 @@ class PurchaseOrderItem(models.Model):
     item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT)
     required_by = models.DateField(null=True, blank=True)
-    quantity = models.DecimalField(max_digits=10, decimal_places=3)
-    uom = models.CharField(max_length=20, default='Nos')
-    rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-    amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    quantity     = models.DecimalField(max_digits=10, decimal_places=3)
+    uom          = models.CharField(max_length=20, default='Nos')
+    rate         = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    amount       = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     received_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0)
+    # ERP alignment — stock intelligence columns
+    used_qty      = models.IntegerField(default=0, verbose_name='Used QTY')
+    ordered_qty   = models.IntegerField(default=0, verbose_name='Ordered QTY')
+    average       = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Average')
+    stock_qty     = models.IntegerField(default=0, verbose_name='Stock QTY')
+    one_month_qty = models.IntegerField(default=0, verbose_name='1 Month')
 
     def save(self, *args, **kwargs):
         self.amount = self.quantity * self.rate

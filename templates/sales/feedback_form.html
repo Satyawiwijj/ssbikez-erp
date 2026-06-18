@@ -1,156 +1,257 @@
 {% extends 'base.html' %}
 
-{% block title %}
-{{ title }} — SSBikez ERP
-{% endblock %}
-
-{% block page_title %}
-{{ title }}
-{% endblock %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
 
 {% block topbar_actions %}
-
-<button form="main-form"
-     class="btn btn-sm btn-primary">
-<i class="fas fa-save me-1"></i>
-Save
-
+<button form="main-form" class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i> Save
 </button>
-
-<a href="{% url 'sales:feedback_all' %}"
-class="btn btn-sm btn-outline-secondary">
-
-<i class="fas fa-arrow-left me-1"></i>
-Back
-
+<a href="{% url 'sales:feedback_all' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
 </a>
-
 {% endblock %}
 
 {% block content %}
 
-<form method="post"
-      id="main-form"
-      novalidate>
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'sales:feedback_all' %}">Feedback</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
 
-{% csrf_token %}
+<form method="post" id="main-form" novalidate>
+    {% csrf_token %}
 
-<div class="row g-3">
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+    </div>
+    {% endif %}
 
-    <div class="col-lg-8">
+    <div class="detail-grid">
 
-        <div class="card form-card">
+        <div>
 
-            <div class="card-header">
+            <div class="card form-card mb-3">
+                <div class="card-header">Feedback Details</div>
+                <div style="padding:20px;">
+                    <div class="form-grid">
 
-                <i class="fas fa-edit me-2"></i>
-                {{ title }}
-
-            </div>
-
-            <div class="card-body">
-
-                <div class="row g-3">
-
-                    {% for field in form %}
-
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-
-                            {{ field.label }}
-
-                            {% if field.field.required %}
-                            <span class="text-danger">*</span>
+                        <div class="form-group">
+                            <label class="form-label">Sales Enquiry ID <span class="text-danger">*</span></label>
+                            {{ form.enquiry }}
+                            {% if form.enquiry.errors %}
+                            <div class="form-error">{{ form.enquiry.errors|join:", " }}</div>
                             {% endif %}
-
-                        </label>
-
-                        {{ field }}
-
-                        {% if field.errors %}
-                        <div class="text-danger small mt-1">
-                            {{ field.errors }}
                         </div>
-                        {% endif %}
 
-                        {% if field.help_text %}
-                        <small class="text-muted">
-                            {{ field.help_text }}
-                        </small>
-                        {% endif %}
+                        <div class="form-group">
+                            <label class="form-label">Vehicle Code</label>
+                            {{ form.vehicle_name }}
+                            {% if form.vehicle_name.errors %}
+                            <div class="form-error">{{ form.vehicle_name.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Customer</label>
+                            <input type="text" id="id_customer_display" class="form-control"
+                                   placeholder="Auto-filled from enquiry" readonly
+                                   value="{{ feedback.enquiry.lead_name|default:'' }}">
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Feed Back Follow Date</label>
+                            {{ form.next_followup_date }}
+                            {% if form.next_followup_date.errors %}
+                            <div class="form-error">{{ form.next_followup_date.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Phone No</label>
+                            {{ form.phone_no }}
+                            {% if form.phone_no.errors %}
+                            <div class="form-error">{{ form.phone_no.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Sales Appointment ID</label>
+                            {{ form.appointment }}
+                            {% if form.appointment.errors %}
+                            <div class="form-error">{{ form.appointment.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Feedback Date</label>
+                            {{ form.feed_back_date }}
+                            {% if form.feed_back_date.errors %}
+                            <div class="form-error">{{ form.feed_back_date.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Recorded By</label>
+                            {{ form.created_by }}
+                            {% if form.created_by.errors %}
+                            <div class="form-error">{{ form.created_by.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group span-2">
+                            <label class="form-label">Feedback Notes</label>
+                            {{ form.feedback_notes }}
+                            {% if form.feedback_notes.errors %}
+                            <div class="form-error">{{ form.feedback_notes.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
 
                     </div>
-
-                    {% endfor %}
-
                 </div>
-
             </div>
 
         </div>
 
-    </div>
-
-    <div class="col-lg-4">
-
-        <div class="card">
-
-            <div class="card-header">
-
-                <i class="fas fa-info-circle me-2"></i>
-                Details
-
+        <!-- Feedback Items Table -->
+        <div class="card form-card mb-3">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                <span class="card-title">Feed Backs</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" id="add-fbitem-row">
+                    <i class="fas fa-plus me-1"></i> Add Row
+                </button>
             </div>
+            <div style="overflow-x:auto;">
+                {{ fb_item_formset.management_form }}
+                <table class="table mb-0" id="fbitem-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th style="min-width:200px;">Points <span class="text-danger">*</span></th>
+                            <th style="min-width:130px;">Type</th>
+                            <th style="min-width:200px;">Response</th>
+                            <th style="min-width:80px;">Rating</th>
+                            <th>Del</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fbitem-body">
+                        {% for fi_form in fb_item_formset %}
+                        <tr class="fbitem-row" data-form-index="{{ forloop.counter0 }}">
+                            <td>{{ forloop.counter }}</td>
+                            <td>{% for h in fi_form.hidden_fields %}{{ h }}{% endfor %}{{ fi_form.points }}</td>
+                            <td>{{ fi_form.feedback_type }}</td>
+                            <td>{{ fi_form.response }}</td>
+                            <td>{{ fi_form.rating }}</td>
+                            <td style="text-align:center;vertical-align:middle;">
+                                {% if fi_form.instance.pk %}
+                                <label style="cursor:pointer;">{{ fi_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-fbitem"><i class="fas fa-trash"></i></button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
-            <div class="card-body">
-
-                <div class="mb-3">
-
-                    <strong>
-                        Module
-                    </strong>
-
-                    <div class="text-muted">
-                        Sales Management
-                    </div>
-
-                </div>
-
-                <div class="mb-3">
-
-                    <strong>
-                        Section
-                    </strong>
-
-                    <div class="text-muted">
-                        {{ title }}
-                    </div>
-
-                </div>
-
-                <div>
-
-                    <strong>
-                        Notes
-                    </strong>
-
+        <!-- Sidebar -->
+        <div>
+            <div class="card form-card">
+                <div class="card-header">CRM Workflow</div>
+                <div style="padding:16px;">
                     <div class="text-muted small">
-
-                        Complete all required information before saving.
-
+                        <div class="mb-1"><strong>Step 1:</strong> Sales Enquiry</div>
+                        <div class="mb-1"><strong>Step 2:</strong> Appointment</div>
+                        <div class="text-primary"><strong>Step 3:</strong> Feedback ← You are here</div>
                     </div>
 
+                    {% if feedback and feedback.enquiry %}
+                    <hr>
+                    <div class="mb-2">
+                        <strong class="small text-muted">LINKED ENQUIRY</strong>
+                        <div>
+                            <a href="{% url 'sales:enquiry_detail' feedback.enquiry.pk %}" class="text-primary">
+                                ENQ-{{ feedback.enquiry.pk }}
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if feedback and feedback.appointment %}
+                    <div class="mb-2">
+                        <strong class="small text-muted">LINKED APPOINTMENT</strong>
+                        <div>
+                            <a href="{% url 'sales:appointment_detail' feedback.appointment.pk %}" class="text-primary">
+                                APT-{{ feedback.appointment.pk }}
+                            </a>
+                            — {{ feedback.appointment.appointment_date|date:"d M Y" }}
+                        </div>
+                    </div>
+                    {% endif %}
+
                 </div>
-
             </div>
-
         </div>
 
     </div>
-
-</div>
-
 </form>
 
+<script>
+(function(){
+    const btn = document.getElementById('add-fbitem-row');
+    const tbody = document.getElementById('fbitem-body');
+    const totalForms = document.getElementById('id_feedback_items-TOTAL_FORMS');
+    if (!btn || !tbody || !totalForms) return;
+    const firstRow = tbody.querySelector('.fbitem-row[data-form-index="0"]') || tbody.querySelector('.fbitem-row');
+    btn.addEventListener('click', function(){
+        if (!firstRow) return;
+        const idx = parseInt(totalForms.value);
+        const clone = firstRow.cloneNode(true);
+        clone.innerHTML = clone.innerHTML
+            .replace(/feedback_items-0-/g, 'feedback_items-' + idx + '-')
+            .replace(/id_feedback_items-0-/g, 'id_feedback_items-' + idx + '-');
+        clone.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+        const delCell = clone.querySelector('td:last-child');
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-fbitem"><i class="fas fa-trash"></i></button>';
+        delCell.querySelector('.remove-fbitem').addEventListener('click', function(){ clone.remove(); });
+        tbody.appendChild(clone);
+        totalForms.value = idx + 1;
+    });
+    tbody.querySelectorAll('.remove-fbitem').forEach(b => {
+        b.addEventListener('click', function(){ b.closest('tr').remove(); });
+    });
+})();
+
+document.addEventListener('DOMContentLoaded', function () {
+    var enquirySelect = document.querySelector('[name="enquiry"]');
+    if (enquirySelect) {
+        enquirySelect.addEventListener('change', function () {
+            var enqId = this.value;
+            if (!enqId) return;
+            fetch('/sales/api/enquiry/' + enqId + '/info/')
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                    if (!data) return;
+                    var phoneField = document.querySelector('[name="phone_no"]');
+                    var vehicleField = document.querySelector('[name="vehicle_name"]');
+                    var custDisplay = document.getElementById('id_customer_display');
+                    if (phoneField && !phoneField.value) phoneField.value = data.phone || '';
+                    if (vehicleField && !vehicleField.value) vehicleField.value = data.bike_model || '';
+                    if (custDisplay) custDisplay.value = data.name || '';
+                })
+                .catch(() => {});
+        });
+    }
+});
+</script>
 {% endblock %}

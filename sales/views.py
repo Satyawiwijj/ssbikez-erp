@@ -10,10 +10,12 @@ from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
 
-from .forms import (ExchangeVehicleForm, SalesAppointmentForm, SalesFeedbackForm,
+from .forms import (CallLogFormSet, ExchangeVehicleForm, FeedbackItemFormSet,
+                    HistoryFormSet, SalesAppointmentForm, SalesFeedbackForm,
                     SalesEnquiryForm, VehicleDeliveryForm, VehicleSalesOrderForm)
 from .models import (ExchangeVehicle, Prospect, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleDelivery, VehicleSalesOrder)
+                     SalesEnquiry, SalesEnquiryCallLog, SalesEnquiryHistory,
+                     VehicleDelivery, VehicleSalesOrder)
 
 
 # ---------------------------------------------------------------------------
@@ -217,10 +219,19 @@ def exchange_list(request):
 
 @login_required
 def feedback_all(request):
+    q = request.GET.get('q', '').strip()
     feedbacks = SalesFeedback.objects.select_related(
         'enquiry__customer', 'enquiry__prospect', 'created_by'
     ).order_by('-created_at')
-    return render(request, 'sales/feedback_list.html', {'feedbacks': feedbacks})
+    if q:
+        feedbacks = feedbacks.filter(
+            Q(enquiry__customer__full_name__icontains=q) |
+            Q(enquiry__customer__phone__icontains=q) |
+            Q(enquiry__prospect__full_name__icontains=q) |
+            Q(enquiry__prospect__phone__icontains=q) |
+            Q(feedback_notes__icontains=q)
+        )
+    return render(request, 'sales/feedback_list.html', {'feedbacks': feedbacks, 'q': q})
 
 
 # ---------------------------------------------------------------------------
@@ -273,6 +284,9 @@ def enquiry_detail(request, pk):
     if latest_fb and latest_fb.next_followup_date:
         followup_delta = (latest_fb.next_followup_date - today).days
 
+    call_logs = enquiry.call_logs.order_by('-created_at')
+    histories = enquiry.histories.order_by('-update_date')
+
     return render(request, 'sales/enquiry_detail.html', {
         'enquiry':        enquiry,
         'appointments':   appointments,
@@ -281,32 +295,60 @@ def enquiry_detail(request, pk):
         'today':          today,
         'latest_fb':      latest_fb,
         'followup_delta': followup_delta,
+        'call_logs':      call_logs,
+        'histories':      histories,
     })
 
 
 @login_required
 def enquiry_create(request):
-    form = SalesEnquiryForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        enquiry = form.save()
-        log_action(request, 'Sales Enquiry', 'create', enquiry.pk)
-        messages.success(request, 'Enquiry created successfully.')
-        return redirect('sales:enquiry_detail', pk=enquiry.pk)
+    form              = SalesEnquiryForm(request.POST or None)
+    calllog_formset   = CallLogFormSet(request.POST or None, prefix='calllogs')
+    history_formset   = HistoryFormSet(request.POST or None, prefix='histories')
     if request.method == 'POST':
+        if form.is_valid() and calllog_formset.is_valid() and history_formset.is_valid():
+            enquiry = form.save()
+            calllog_formset.instance = enquiry
+            calllog_formset.save()
+            history_formset.instance = enquiry
+            history_formset.save()
+            log_action(request, 'Sales Enquiry', 'create', enquiry.pk)
+            messages.success(request, 'Enquiry created successfully.')
+            return redirect('sales:enquiry_detail', pk=enquiry.pk)
         messages.error(request, 'Please correct the errors below.')
-    return render(request, 'sales/enquiry_form.html', {'form': form, 'title': 'New Enquiry'})
+    return render(request, 'sales/enquiry_form.html', {
+        'form': form,
+        'calllog_formset': calllog_formset,
+        'history_formset': history_formset,
+        'title': 'New Enquiry',
+    })
 
 
 @login_required
 def enquiry_update(request, pk):
-    enquiry = get_object_or_404(SalesEnquiry, pk=pk)
-    form    = SalesEnquiryForm(request.POST or None, instance=enquiry)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Sales Enquiry', 'update', pk)
-        messages.success(request, 'Enquiry updated successfully.')
-        return redirect('sales:enquiry_detail', pk=enquiry.pk)
-    return render(request, 'sales/enquiry_form.html', {'form': form, 'title': 'Edit Enquiry'})
+    from accounts.permissions import user_owns
+    enquiry           = get_object_or_404(SalesEnquiry, pk=pk)
+    if not user_owns(request.user, enquiry):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    form              = SalesEnquiryForm(request.POST or None, instance=enquiry)
+    calllog_formset   = CallLogFormSet(request.POST or None, instance=enquiry, prefix='calllogs')
+    history_formset   = HistoryFormSet(request.POST or None, instance=enquiry, prefix='histories')
+    if request.method == 'POST':
+        if form.is_valid() and calllog_formset.is_valid() and history_formset.is_valid():
+            form.save()
+            calllog_formset.save()
+            history_formset.save()
+            log_action(request, 'Sales Enquiry', 'update', pk)
+            messages.success(request, 'Enquiry updated successfully.')
+            return redirect('sales:enquiry_detail', pk=enquiry.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/enquiry_form.html', {
+        'form': form,
+        'calllog_formset': calllog_formset,
+        'history_formset': history_formset,
+        'title': 'Edit Enquiry',
+    })
 
 
 @login_required
@@ -356,7 +398,11 @@ def appointment_create(request):
 
 @login_required
 def appointment_update(request, pk):
+    from accounts.permissions import user_owns
     apt  = get_object_or_404(SalesAppointment, pk=pk)
+    if not user_owns(request.user, apt.enquiry):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = SalesAppointmentForm(request.POST or None, instance=apt)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -388,18 +434,30 @@ def appointment_cancel(request, pk):
 def feedback_create(request):
     initial    = {}
     enquiry_pk = request.GET.get('enquiry')
+    apt_pk     = request.GET.get('appointment')
     if enquiry_pk:
         initial['enquiry'] = enquiry_pk
-    form = SalesFeedbackForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        fb = form.save()
-        log_action(request, 'Sales Feedback', 'create', fb.pk)
-        messages.success(request, 'Feedback recorded successfully.')
-        return redirect('sales:enquiry_detail', pk=fb.enquiry_id)
+    if apt_pk:
+        initial['appointment'] = apt_pk
+    form            = SalesFeedbackForm(request.POST or None, initial=initial)
+    fb_item_formset = FeedbackItemFormSet(request.POST or None, prefix='feedback_items')
     if request.method == 'POST':
+        if form.is_valid() and fb_item_formset.is_valid():
+            fb = form.save(commit=False)
+            if not fb.created_by_id:
+                fb.created_by = request.user
+            fb.save()
+            fb_item_formset.instance = fb
+            fb_item_formset.save()
+            log_action(request, 'Sales Feedback', 'create', fb.pk)
+            messages.success(request, 'Feedback recorded successfully.')
+            return redirect('sales:enquiry_detail', pk=fb.enquiry_id)
         messages.error(request, 'Please correct the errors below.')
-    return render(request, 'sales/feedback_form.html',
-                  {'form': form, 'title': 'Add Feedback'})
+    return render(request, 'sales/feedback_form.html', {
+        'form': form,
+        'fb_item_formset': fb_item_formset,
+        'title': 'Add Feedback',
+    })
 
 
 @login_required
@@ -510,9 +568,17 @@ def order_create(request):
     if 'sales_executive' not in initial:
         initial['sales_executive'] = request.user.pk
 
+    from accounts.permissions import user_is_manager
+    is_manager = user_is_manager(request.user)
+
     form = VehicleSalesOrderForm(request.POST or None, initial=initial)
+    if not is_manager:
+        form.fields.pop('sales_executive', None)
     if request.method == 'POST' and form.is_valid():
-        order = form.save()
+        order = form.save(commit=False)
+        if not is_manager:
+            order.sales_executive = request.user
+        order.save()
         log_action(request, 'Sales Order', 'create', order.pk)
         messages.success(request, 'Sales order created successfully.')
         return redirect('sales:order_detail', pk=order.pk)
@@ -523,8 +589,14 @@ def order_create(request):
 
 @login_required
 def order_update(request, pk):
+    from accounts.permissions import user_is_manager, user_owns
     order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if not user_owns(request.user, order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form  = VehicleSalesOrderForm(request.POST or None, instance=order)
+    if not user_is_manager(request.user):
+        form.fields.pop('sales_executive', None)
     if request.method == 'POST' and form.is_valid():
         form.save()
         log_action(request, 'Sales Order', 'update', pk)
@@ -689,23 +761,35 @@ def target_list(request):
 @login_required
 def target_create(request):
     from django.utils import timezone as _tz
+    from accounts.permissions import user_is_manager
+    is_manager = user_is_manager(request.user)
     today = _tz.now().date()
     if request.method == 'POST':
         form = SalesTargetForm(request.POST)
+        if not is_manager:
+            form.fields.pop('sales_executive', None)
         if form.is_valid():
             target = form.save(commit=False)
+            if not is_manager:
+                target.sales_executive = request.user
             target.created_by = request.user
             target.save()
             messages.success(request, 'Sales target set successfully.')
             return redirect('sales:target_list')
     else:
         form = SalesTargetForm(initial={'month': today.month, 'year': today.year})
+        if not is_manager:
+            form.fields.pop('sales_executive', None)
     return render(request, 'sales/target_form.html', {'form': form, 'title': 'Set Sales Target'})
 
 
 @login_required
 def target_detail(request, pk):
+    from accounts.permissions import user_owns
     target = get_object_or_404(SalesTarget, pk=pk)
+    if not user_owns(request.user, target):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     return render(request, 'sales/target_detail.html', {'target': target})
 
 
@@ -892,3 +976,148 @@ def sale_profit_report(request):
         'total_profit':  sum(d['gross_profit']  for d in profit_data),
     }
     return render(request, 'sales/profit_report.html', context)
+
+
+# ---------------------------------------------------------------------------
+# API: Enquiry info for JS auto-fill in appointment/feedback forms
+# ---------------------------------------------------------------------------
+
+@login_required
+def enquiry_info_api(request, pk):
+    from django.http import JsonResponse
+    enq = get_object_or_404(SalesEnquiry, pk=pk)
+    return JsonResponse({
+        'name':       enq.lead_name,
+        'phone':      enq.lead_phone,
+        'bike_model': str(enq.bike_model) if enq.bike_model else '',
+    })
+
+
+# ---------------------------------------------------------------------------
+# Appointment detail view
+# ---------------------------------------------------------------------------
+
+@login_required
+def appointment_detail(request, pk):
+    apt = get_object_or_404(SalesAppointment, pk=pk)
+    return render(request, 'sales/appointment_detail.html', {
+        'appointment': apt,
+        'title': f'Appointment APT-{apt.pk}',
+    })
+
+
+# ---------------------------------------------------------------------------
+# Call Log and History add views (lightweight separate-page forms)
+# ---------------------------------------------------------------------------
+
+@login_required
+def calllog_add(request, enquiry_pk):
+    from .forms import CallLogForm
+    enquiry = get_object_or_404(SalesEnquiry, pk=enquiry_pk)
+    form = CallLogForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        cl = form.save(commit=False)
+        cl.enquiry = enquiry
+        cl.save()
+        messages.success(request, 'Call log saved.')
+        return redirect('sales:enquiry_detail', pk=enquiry_pk)
+    return render(request, 'sales/calllog_form.html', {
+        'form': form, 'enquiry': enquiry, 'title': 'Add Call Log',
+    })
+
+
+@login_required
+def history_add(request, enquiry_pk):
+    from .forms import HistoryForm
+    enquiry = get_object_or_404(SalesEnquiry, pk=enquiry_pk)
+    form = HistoryForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        hist = form.save(commit=False)
+        hist.enquiry = enquiry
+        hist.save()
+        messages.success(request, 'History entry saved.')
+        return redirect('sales:enquiry_detail', pk=enquiry_pk)
+    return render(request, 'sales/history_form.html', {
+        'form': form, 'enquiry': enquiry, 'title': 'Add History Entry',
+    })
+
+
+# ---------------------------------------------------------------------------
+# Delete views — Issue 11
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def enquiry_delete(request, pk):
+    from django.db.models import ProtectedError
+    from accounts.permissions import user_owns
+    enq = get_object_or_404(SalesEnquiry, pk=pk)
+    if not user_owns(request.user, enq):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if enq.appointments.exists():
+        messages.error(request, f'Cannot delete ENQ-{pk}: it has linked appointments.')
+        return redirect('sales:enquiry_detail', pk=pk)
+    if enq.feedback.exists():
+        messages.error(request, f'Cannot delete ENQ-{pk}: it has linked feedback records.')
+        return redirect('sales:enquiry_detail', pk=pk)
+    try:
+        enq.delete()
+        log_action(request, 'SalesEnquiry', 'delete', pk)
+        messages.success(request, f'Enquiry ENQ-{pk} deleted.')
+    except ProtectedError:
+        messages.error(request, f'Cannot delete ENQ-{pk}: linked records exist.')
+    return redirect('sales:enquiry_list')
+
+
+@login_required
+@require_POST
+def appointment_delete(request, pk):
+    from accounts.permissions import user_owns
+    apt = get_object_or_404(SalesAppointment, pk=pk)
+    if not user_owns(request.user, apt.enquiry):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    apt.delete()
+    log_action(request, 'SalesAppointment', 'delete', pk)
+    messages.success(request, f'Appointment APT-{pk} deleted.')
+    return redirect('sales:all_appointments')
+
+
+@login_required
+@require_POST
+def feedback_delete(request, pk):
+    from accounts.permissions import user_owns
+    fb = get_object_or_404(SalesFeedback, pk=pk)
+    if not user_owns(request.user, fb):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    fb.delete()
+    log_action(request, 'SalesFeedback', 'delete', pk)
+    messages.success(request, 'Feedback record deleted.')
+    return redirect('sales:feedback_all')
+
+
+@login_required
+@require_POST
+def order_delete(request, pk):
+    from django.db.models import ProtectedError
+    from accounts.permissions import user_owns
+    order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if not user_owns(request.user, order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if order.sales_status != 'cancelled':
+        messages.error(
+            request,
+            f'Cannot delete ORD-{pk}: status is "{order.get_sales_status_display()}". '
+            'Only Cancelled orders can be deleted.'
+        )
+        return redirect('sales:order_detail', pk=pk)
+    try:
+        order.delete()
+        log_action(request, 'VehicleSalesOrder', 'delete', pk)
+        messages.success(request, f'Order ORD-{pk} deleted.')
+    except ProtectedError:
+        messages.error(request, f'Cannot delete ORD-{pk}: billing or delivery records exist.')
+    return redirect('sales:order_list')

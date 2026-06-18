@@ -29,20 +29,38 @@ def login_view(request):
     form = LoginForm(request, data=request.POST or None)
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
-        # Create OTP
+        next_url = request.GET.get('next', 'accounts:home')
+
+        # Every user — including superusers — must verify an emailed OTP
+        # before a session is created.
         OTPVerification.objects.filter(user=user, action='login').delete()
         otp = OTPVerification(user=user, action='login')
-        otp.generate_otp()
+        email_sent = otp.generate_otp()
+
+        if not email_sent:
+            # Fail closed — never let a user in without proving they received
+            # the emailed code.
+            otp.delete()
+            messages.error(
+                request,
+                'Could not send the OTP email. Please contact the system '
+                'administrator to fix email delivery before logging in.'
+            )
+            return render(request, 'accounts/login.html', {'form': form})
+
         request.session['pre_otp_user_id'] = user.pk
-        request.session['next_url'] = request.GET.get('next', 'accounts:home')
+        request.session['next_url'] = next_url
+        request.session.pop('otp_attempts', None)
         return redirect('accounts:verify_otp')
     return render(request, 'accounts/login.html', {'form': form})
+
 
 def verify_otp(request):
     user_id = request.session.get('pre_otp_user_id')
     if not user_id:
         return redirect('accounts:login')
-    
+
+    MAX_OTP_ATTEMPTS = 5
     if request.method == 'POST':
         otp_code = request.POST.get('otp_code', '').strip()
         try:
@@ -50,22 +68,32 @@ def verify_otp(request):
             if otp_record.otp_code == otp_code and otp_record.expires_at > timezone.now():
                 otp_record.is_verified = True
                 otp_record.save()
-                
-                # Fetch user and login
+
                 from django.contrib.auth import get_user_model
-                User = get_user_model()
-                user = User.objects.get(pk=user_id)
+                user = get_user_model().objects.get(pk=user_id)
                 login(request, user)
-                
-                # Cleanup session
-                del request.session['pre_otp_user_id']
+
                 next_url = request.session.pop('next_url', 'accounts:home')
+                for key in ('pre_otp_user_id', 'otp_attempts'):
+                    request.session.pop(key, None)
+
                 return redirect(next_url)
             else:
-                messages.error(request, "Invalid or expired OTP.")
+                attempts = request.session.get('otp_attempts', 0) + 1
+                request.session['otp_attempts'] = attempts
+                if attempts >= MAX_OTP_ATTEMPTS:
+                    otp_record.delete()
+                    for key in ('pre_otp_user_id', 'otp_attempts'):
+                        request.session.pop(key, None)
+                    messages.error(
+                        request,
+                        'Too many incorrect attempts. Please log in again to receive a new code.'
+                    )
+                    return redirect('accounts:login')
+                messages.error(request, 'Invalid or expired OTP.')
         except OTPVerification.DoesNotExist:
-            messages.error(request, "No valid OTP request found.")
-            
+            messages.error(request, 'No valid OTP request found.')
+
     return render(request, 'accounts/verify_otp.html')
 
 
@@ -359,6 +387,12 @@ def user_update(request, pk):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     user = get_object_or_404(User, pk=pk)
     form = UserUpdateForm(request.POST or None, instance=user)
+    if not _can_manage_settings(request.user):
+        # Only Managing Director / superuser may change role or activation —
+        # a user-management role (e.g. Sales Manager) could otherwise
+        # promote themselves or anyone else to a more privileged role.
+        form.fields.pop('role', None)
+        form.fields.pop('is_active', None)
     if request.method == 'POST' and form.is_valid():
         form.save()
         log_action(request, 'User', 'update', pk)
@@ -497,7 +531,9 @@ def fuel_expense_list(request):
 def fuel_expense_create(request):
     form = FuelExpenseForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
-        exp = form.save()
+        exp = form.save(commit=False)
+        exp.created_by = request.user
+        exp.save()
         log_action(request, 'Fuel Expense', 'create', exp.pk)
         messages.success(request, 'Fuel expense recorded successfully.')
         return redirect('accounts:fuel_expense_list')
@@ -507,7 +543,11 @@ def fuel_expense_create(request):
 
 @login_required
 def fuel_expense_update(request, pk):
+    from accounts.permissions import user_owns
     expense = get_object_or_404(FuelExpense, pk=pk)
+    if not user_owns(request.user, expense):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form    = FuelExpenseForm(request.POST or None, instance=expense)
     if request.method == 'POST' and form.is_valid():
         form.save()

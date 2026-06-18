@@ -126,12 +126,12 @@
             <dd>₹ {{ invoice.subtotal }}</dd>
         </div>
         <div class="detail-row">
-            <dt>CGST (9%)</dt>
-            <dd>₹ {{ gst_half }}</dd>
+            <dt>CGST</dt>
+            <dd>₹ {{ cgst_amount }}</dd>
         </div>
         <div class="detail-row">
-            <dt>SGST (9%)</dt>
-            <dd>₹ {{ gst_half }}</dd>
+            <dt>SGST</dt>
+            <dd>₹ {{ sgst_amount }}</dd>
         </div>
         {% if invoice.discount_amount %}
         <div class="detail-row">
@@ -195,9 +195,9 @@
         <tbody>
             {% for si in spares_issues %}
             <tr>
-                <td>{{ si.spare_part.part_name }}</td>
-                <td>{{ si.spare_part.part_number|default:"—" }}</td>
-                <td style="text-align:right;">{{ si.quantity_issued }}</td>
+                <td>{{ si.item.item_name }}</td>
+                <td>{{ si.item.part_number|default:"—" }}</td>
+                <td style="text-align:right;">{{ si.quantity }}</td>
             </tr>
             {% empty %}
             <tr>

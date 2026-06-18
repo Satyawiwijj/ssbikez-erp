@@ -5,6 +5,13 @@
 
 {% block topbar_actions %}
 
+<a href="{% url 'rto:form20_print' rto.pk %}"
+target="_blank"
+class="btn btn-sm btn-primary">
+<i class="fas fa-print me-1"></i>
+Print Form 20
+</a>
+
 <a href="{% url 'rto:registration_update' rto.pk %}"
 class="btn btn-sm btn-secondary">
 <i class="fas fa-edit me-1"></i>

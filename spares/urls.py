@@ -60,6 +60,10 @@ urlpatterns = [
     # FEATURE 8 — Parts Consumption Report
     path('reports/parts-consumption/', views.parts_consumption_report, name='parts_consumption_report'),
 
+    # Delete endpoints
+    path('items/<int:pk>/delete/', views.item_delete, name='item_delete'),
+    path('orders/<int:pk>/delete/', views.purchase_order_delete, name='order_delete'),
+
     # AJAX
     path('ajax/item-details/', views.ajax_item_details, name='ajax_item_details'),
     path('ajax/supplier-details/', views.ajax_supplier_details, name='ajax_supplier_details'),

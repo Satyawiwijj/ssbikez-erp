@@ -28,6 +28,33 @@ class SparesItemForm(forms.ModelForm):
             else:
                 w.attrs['class'] = 'form-control'
 
+    def clean_sgst(self):
+        from decimal import Decimal
+        val = self.cleaned_data.get('sgst')
+        if val is not None and val > Decimal('100'):
+            raise forms.ValidationError('SGST rate cannot exceed 100%.')
+        if val is not None and val < Decimal('0'):
+            raise forms.ValidationError('SGST rate cannot be negative.')
+        return val
+
+    def clean_cgst(self):
+        from decimal import Decimal
+        val = self.cleaned_data.get('cgst')
+        if val is not None and val > Decimal('100'):
+            raise forms.ValidationError('CGST rate cannot exceed 100%.')
+        if val is not None and val < Decimal('0'):
+            raise forms.ValidationError('CGST rate cannot be negative.')
+        return val
+
+    def clean_max_discount(self):
+        from decimal import Decimal
+        val = self.cleaned_data.get('max_discount')
+        if val is not None and val > Decimal('100'):
+            raise forms.ValidationError('Maximum discount cannot exceed 100%.')
+        if val is not None and val < Decimal('0'):
+            raise forms.ValidationError('Maximum discount cannot be negative.')
+        return val
+
 
 class SupplierQuoteForm(forms.ModelForm):
     class Meta:
@@ -72,30 +99,38 @@ class PurchaseOrderForm(forms.ModelForm):
         exclude = ['po_no', 'created_at', 'updated_at', 'created_by',
                    'total_quantity', 'total_amount', 'total_taxes', 'grand_total', 'supplier_name']
         widgets = {
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'date':        forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'required_by': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'supplier': forms.Select(attrs={'class': 'form-select'}),
+            'supplier':      forms.Select(attrs={'class': 'form-select'}),
             'supplier_quote': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
+            'status':        forms.Select(attrs={'class': 'form-select'}),
             'supplier_gstin': forms.TextInput(attrs={'class': 'form-control'}),
-            'gst_category': forms.TextInput(attrs={'class': 'form-control'}),
+            'gst_category':  forms.TextInput(attrs={'class': 'form-control'}),
             'place_of_supply': forms.TextInput(attrs={'class': 'form-control'}),
             'terms_and_conditions': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
-            'is_reverse_charge': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'is_reverse_charge':    forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'get_customer_order':   forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'get_estimation':       forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
 
 class PurchaseOrderItemForm(forms.ModelForm):
     class Meta:
         model = PurchaseOrderItem
-        fields = ['item', 'warehouse', 'quantity', 'uom', 'rate', 'required_by']
+        fields = ['item', 'warehouse', 'quantity', 'uom', 'rate', 'required_by',
+                  'used_qty', 'ordered_qty', 'average', 'stock_qty', 'one_month_qty']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
+            'item':      forms.Select(attrs={'class': 'form-select item-select'}),
             'warehouse': forms.Select(attrs={'class': 'form-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'uom': forms.TextInput(attrs={'class': 'form-control'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'quantity':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
+            'uom':       forms.TextInput(attrs={'class': 'form-control'}),
+            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'required_by': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'used_qty':    forms.NumberInput(attrs={'class': 'form-control'}),
+            'ordered_qty': forms.NumberInput(attrs={'class': 'form-control'}),
+            'average':     forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'stock_qty':   forms.NumberInput(attrs={'class': 'form-control'}),
+            'one_month_qty': forms.NumberInput(attrs={'class': 'form-control'}),
         }
 
 

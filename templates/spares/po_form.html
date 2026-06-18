@@ -2,25 +2,279 @@
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
+{% block topbar_actions %}
+<button form="po-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+<a href="{% url 'spares:order_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Cancel
+</a>
+{% endblock %}
+
 {% block content %}
-<div class="page-header">
-  <div><h1 class="page-title">{{ title }}</h1></div>
-  <a href="{% url 'spares:order_list' %}" class="btn btn-secondary">&#8592; Cancel</a>
-</div>
-<div class="card form-card">
-  <form method="post" novalidate>
+
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'spares:order_list' %}">Purchase Orders</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="po-form" novalidate>
     {% csrf_token %}
-    {% for field in form %}
-    <div class="form-group">
-      <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-      {{ field }}
-      {% if field.errors %}<div class="form-error">{% for e in field.errors %}{{ e }}{% endfor %}</div>{% endif %}
+
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
     </div>
-    {% endfor %}
-    <div class="form-actions">
-      <button type="submit" class="btn btn-primary">Save Purchase Order</button>
-      <a href="{% url 'spares:order_list' %}" class="btn btn-secondary">Cancel</a>
+    {% endif %}
+
+    <!-- PO Header -->
+    <div class="card form-card mb-3">
+        <div class="card-header">Purchase Order Details</div>
+        <div style="padding:20px;">
+            <div class="form-grid">
+
+                <div class="form-group">
+                    <label class="form-label">Supplier <span class="text-danger">*</span></label>
+                    {{ form.supplier }}
+                    {% if form.supplier.errors %}<div class="form-error">{{ form.supplier.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Supplier Quote</label>
+                    {{ form.supplier_quote }}
+                    {% if form.supplier_quote.errors %}<div class="form-error">{{ form.supplier_quote.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Order Date <span class="text-danger">*</span></label>
+                    {{ form.date }}
+                    {% if form.date.errors %}<div class="form-error">{{ form.date.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required By</label>
+                    {{ form.required_by }}
+                    {% if form.required_by.errors %}<div class="form-error">{{ form.required_by.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                    {% if form.status.errors %}<div class="form-error">{{ form.status.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Supplier GSTIN</label>
+                    {{ form.supplier_gstin }}
+                    {% if form.supplier_gstin.errors %}<div class="form-error">{{ form.supplier_gstin.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">GST Category</label>
+                    {{ form.gst_category }}
+                    {% if form.gst_category.errors %}<div class="form-error">{{ form.gst_category.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Place of Supply</label>
+                    {{ form.place_of_supply }}
+                    {% if form.place_of_supply.errors %}<div class="form-error">{{ form.place_of_supply.errors|join:", " }}</div>{% endif %}
+                </div>
+
+            </div>
+
+            <div class="form-group mt-3">
+                <label class="form-label">Terms &amp; Conditions</label>
+                {{ form.terms_and_conditions }}
+                {% if form.terms_and_conditions.errors %}<div class="form-error">{{ form.terms_and_conditions.errors|join:", " }}</div>{% endif %}
+            </div>
+
+            <div class="mt-2" style="display:flex;gap:20px;flex-wrap:wrap;">
+                <label class="d-flex align-items-center gap-2">
+                    {{ form.is_reverse_charge }}
+                    <span>Reverse Charge Applicable</span>
+                </label>
+                <label class="d-flex align-items-center gap-2">
+                    {{ form.get_customer_order }}
+                    <span>Get Customer Order</span>
+                </label>
+                <label class="d-flex align-items-center gap-2">
+                    {{ form.get_estimation }}
+                    <span>Get Estimation</span>
+                </label>
+            </div>
+        </div>
     </div>
-  </form>
-</div>
+
+    <!-- Item Lines -->
+    <div class="card mb-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title">Items</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-item-row">
+                <i class="fas fa-plus me-1"></i> Add Row
+            </button>
+        </div>
+        <div style="overflow-x:auto;">
+            {{ formset.management_form }}
+            {% if formset.non_form_errors %}
+            <div class="alert alert-danger m-2">{{ formset.non_form_errors }}</div>
+            {% endif %}
+            <table class="table mb-0" id="item-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px;">Item Code <span class="text-danger">*</span></th>
+                        <th style="min-width:80px;">QTY <span class="text-danger">*</span></th>
+                        <th style="min-width:70px;">Used QTY</th>
+                        <th style="min-width:70px;">Ordered QTY</th>
+                        <th style="min-width:80px;">Average</th>
+                        <th style="min-width:60px;">UOM</th>
+                        <th style="min-width:70px;">Stock QTY</th>
+                        <th style="min-width:70px;">1 Month</th>
+                        <th style="min-width:110px;">Rate</th>
+                        <th style="min-width:110px;">Amount</th>
+                        <th style="min-width:160px;">Warehouse <span class="text-danger">*</span></th>
+                        <th style="min-width:130px;">Required By</th>
+                        <th style="width:50px;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-body">
+                    {% for item_form in formset %}
+                    <tr class="item-row" data-form-index="{{ forloop.counter0 }}">
+                        <td>
+                            {% for hidden in item_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ item_form.item }}
+                            {% if item_form.item.errors %}<div class="form-error">{{ item_form.item.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>
+                            {{ item_form.quantity }}
+                            {% if item_form.quantity.errors %}<div class="form-error">{{ item_form.quantity.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>{{ item_form.used_qty }}</td>
+                        <td>{{ item_form.ordered_qty }}</td>
+                        <td>{{ item_form.average }}</td>
+                        <td>{{ item_form.uom }}</td>
+                        <td>{{ item_form.stock_qty }}</td>
+                        <td>{{ item_form.one_month_qty }}</td>
+                        <td>
+                            {{ item_form.rate }}
+                            {% if item_form.rate.errors %}<div class="form-error">{{ item_form.rate.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>
+                            <input type="text" class="form-control amount-display" readonly placeholder="0.00" style="background:#f9fafb;">
+                        </td>
+                        <td>
+                            {{ item_form.warehouse }}
+                            {% if item_form.warehouse.errors %}<div class="form-error">{{ item_form.warehouse.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>{{ item_form.required_by }}</td>
+                        <td style="text-align:center;vertical-align:middle;">
+                            {% if item_form.instance.pk %}
+                            <label style="display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+                                {{ item_form.DELETE }}
+                                <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
+                            </label>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f9fafb;font-weight:600;">
+                        <td colspan="9" style="text-align:right;padding:10px 12px;">Total</td>
+                        <td id="grand-total-cell" style="padding:10px 12px;">—</td>
+                        <td colspan="3"></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+</form>
+
+<script>
+(function () {
+    const totalForms = document.getElementById('id_items-TOTAL_FORMS');
+    const tbody      = document.getElementById('formset-body');
+
+    // Clone the first row (index 0) as the template for new rows.
+    // The formset always renders at least one extra row (extra=1) so this is safe.
+    const firstRow = tbody.querySelector('.item-row[data-form-index="0"]') ||
+                     tbody.querySelector('.item-row');
+
+    document.getElementById('add-item-row').addEventListener('click', function () {
+        if (!firstRow) {
+            console.error('PO formset: no template row found');
+            return;
+        }
+        const idx  = parseInt(totalForms.value);
+        const clone = firstRow.cloneNode(true);
+
+        // Update all field names/ids from index 0 → idx
+        clone.innerHTML = clone.innerHTML.replace(/items-0-/g, `items-${idx}-`).replace(/id_items-0-/g, `id_items-${idx}-`);
+
+        // Clear values in the cloned row
+        clone.querySelectorAll('input:not([type=hidden]), select').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+        clone.querySelector('.amount-display').value = '';
+
+        // Replace trash icon with remove button for new rows
+        const delCell = clone.querySelector('td:last-child');
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-trash"></i></button>';
+        delCell.querySelector('.remove-row').addEventListener('click', function () {
+            clone.remove();
+            recalc();
+        });
+
+        tbody.appendChild(clone);
+        totalForms.value = idx + 1;
+
+        bindRowCalc(clone);
+        recalc();
+    });
+
+    // Remove button for non-saved rows
+    tbody.querySelectorAll('.remove-row').forEach(btn => {
+        btn.addEventListener('click', function () {
+            btn.closest('tr').remove();
+            recalc();
+        });
+    });
+
+    function bindRowCalc(row) {
+        const qty  = row.querySelector('input[name$="-quantity"]');
+        const rate = row.querySelector('input[name$="-rate"]');
+        const disp = row.querySelector('.amount-display');
+        if (!qty || !rate || !disp) return;
+        function update() {
+            const q = parseFloat(qty.value) || 0;
+            const r = parseFloat(rate.value) || 0;
+            disp.value = (q * r).toFixed(2);
+            recalc();
+        }
+        qty.addEventListener('input', update);
+        rate.addEventListener('input', update);
+        update();
+    }
+
+    function recalc() {
+        let total = 0;
+        tbody.querySelectorAll('.amount-display').forEach(inp => {
+            total += parseFloat(inp.value) || 0;
+        });
+        document.getElementById('grand-total-cell').textContent = '₹ ' + total.toFixed(2);
+    }
+
+    // Bind existing rows
+    tbody.querySelectorAll('.item-row').forEach(bindRowCalc);
+    recalc();
+})();
+</script>
+
 {% endblock %}

@@ -172,23 +172,28 @@ class OTPVerification(models.Model):
     def generate_otp(self):
         from django.core.mail import send_mail
         from django.conf import settings
-        
+
         self.otp_code = f"{random.randint(100000, 999999)}"
         self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
         self.save()
-        
+
         subject = 'Your SSBikez ERP Login OTP'
-        message = f'Hello {self.user.first_name or self.user.username},\n\nYour OTP for login is: {self.otp_code}\n\nThis code is valid for the next 10 minutes.\n\nThank you,\nSSBikez ERP Team'
+        message = (
+            f'Hello {self.user.first_name or self.user.username},\n\n'
+            f'Your OTP for login is: {self.otp_code}\n\n'
+            f'This code is valid for the next 10 minutes.\n\nSSBikez ERP Team'
+        )
         from_email = getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ssbikez.com')
         recipient_list = [self.user.email]
-        
+
         try:
             send_mail(subject, message, from_email, recipient_list, fail_silently=False)
             print(f"--- OTP email dispatched to {self.user.email} ---")
+            return True
         except Exception as e:
             print(f"Failed to send email: {e}")
-            # Fallback print for local dev if email fails
-            print(f"--- FALLBACK MOCK OTP for {self.user.email} is {self.otp_code} ---")
+            print(f"--- FALLBACK OTP for {self.user.email} is {self.otp_code} ---")
+            return False
 
     class Meta:
         ordering = ['-created_at']

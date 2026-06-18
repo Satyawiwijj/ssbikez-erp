@@ -80,4 +80,20 @@ urlpatterns = [
 
     # FEATURE 9 — Profit Report
     path('profit-report/',                    views.sale_profit_report,    name='profit_report'),
+
+    # API: enquiry info for JS auto-fill
+    path('api/enquiry/<int:pk>/info/',        views.enquiry_info_api,      name='enquiry_info_api'),
+
+    # Appointment detail
+    path('appointments/<int:pk>/',            views.appointment_detail,    name='appointment_detail'),
+
+    # Call Log and History
+    path('enquiries/<int:enquiry_pk>/call-log/add/', views.calllog_add,  name='calllog_add'),
+    path('enquiries/<int:enquiry_pk>/history/add/',  views.history_add,  name='history_add'),
+
+    # Delete endpoints
+    path('enquiries/<int:pk>/delete/',        views.enquiry_delete,        name='enquiry_delete'),
+    path('appointments/<int:pk>/delete/',     views.appointment_delete,    name='appointment_delete'),
+    path('feedback/<int:pk>/delete/',         views.feedback_delete,       name='feedback_delete'),
+    path('orders/<int:pk>/delete/',           views.order_delete,          name='order_delete'),
 ]

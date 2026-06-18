@@ -1,228 +1,326 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
-{% block topbar_actions %} <button form="enquiry-form" class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
-Save Enquiry </button>
-
+{% block topbar_actions %}
+<button form="enquiry-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save Enquiry</button>
 <a href="{% url 'sales:enquiry_list' %}" class="btn btn-sm btn-outline-secondary">
-    <i class="fas fa-arrow-left me-1"></i>
-    Back
+    <i class="fas fa-arrow-left me-1"></i> Back
 </a>
 {% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <div>
-        <h1 class="page-title">{{ title }}</h1>
-        <p class="page-subtitle">
-            Create and manage sales enquiries
-        </p>
-    </div>
-</div>
-
-<form method="post" id="enquiry-form" novalidate>
-    {% csrf_token %}
 {% if form.non_field_errors %}
-<div class="alert alert-warning mb-3">
-    {% for err in form.non_field_errors %}
-        {{ err }}
-    {% endfor %}
+<div class="alert alert-danger mb-3">
+    {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
 </div>
 {% endif %}
 
-<div class="row g-4">
+<form method="post" id="enquiry-form" novalidate>
+{% csrf_token %}
 
-    <div class="col-lg-8">
-
-        <div class="card form-card mb-4">
-
-            <div class="card-header">
-                <i class="fas fa-user-plus me-2"></i>
-                New Prospect
-            </div>
-
-            <div class="card-body">
-
-                <p class="text-muted small mb-3">
-                    Fill this section for a walk-in visitor or phone enquiry who is not yet a registered customer.
-                </p>
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-
-                        <label class="form-label" for="{{ form.prospect_name.id_for_label }}">
-                            {{ form.prospect_name.label }}
-                        </label>
-
-                        {{ form.prospect_name }}
-
-                        {% if form.prospect_name.errors %}
-                        <div class="form-error">
-                            {% for e in form.prospect_name.errors %}
-                                {{ e }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                    </div>
-
-                    <div class="col-md-6">
-
-                        <label class="form-label" for="{{ form.prospect_phone.id_for_label }}">
-                            {{ form.prospect_phone.label }}
-                        </label>
-
-                        {{ form.prospect_phone }}
-
-                        {% if form.prospect_phone.errors %}
-                        <div class="form-error">
-                            {% for e in form.prospect_phone.errors %}
-                                {{ e }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                        <small class="text-muted">
-                            Existing customers will be linked automatically if the phone number matches.
-                        </small>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="card form-card mb-4">
-
-            <div class="card-header">
-                <i class="fas fa-users me-2"></i>
-                Existing Customer
-            </div>
-
-            <div class="card-body">
-
-                <label class="form-label" for="{{ form.customer.id_for_label }}">
-                    {{ form.customer.label }}
-                </label>
-
-                {{ form.customer }}
-
-                {% if form.customer.help_text %}
-                <small class="text-muted">
-                    {{ form.customer.help_text }}
-                </small>
-                {% endif %}
-
-                {% if form.customer.errors %}
-                <div class="form-error">
-                    {% for e in form.customer.errors %}
-                        {{ e }}
-                    {% endfor %}
-                </div>
-                {% endif %}
-
-            </div>
-
-        </div>
-
-        <div class="card form-card">
-
-            <div class="card-header">
-                <i class="fas fa-search me-2"></i>
-                Enquiry Details
-            </div>
-
-            <div class="card-body">
-
-                <div class="row g-3">
-
-                    <div class="col-md-6">
-
-                        <label class="form-label" for="{{ form.bike_model.id_for_label }}">
-                            Vehicle of Interest
-                        </label>
-
-                        {{ form.bike_model }}
-
-                        {% if form.bike_model.errors %}
-                        <div class="form-error">
-                            {% for e in form.bike_model.errors %}
-                                {{ e }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label" for="{{ form.enquiry_source.id_for_label }}">
-                            {{ form.enquiry_source.label }}
-                        </label>
-                        {{ form.enquiry_source }}
-                        {% if form.enquiry_source.errors %}
-                        <div class="form-error">
-                            {% for e in form.enquiry_source.errors %}
-                                {{ e }}
-                            {% endfor %}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="{{ form.sales_executive.id_for_label }}">
-                            {{ form.sales_executive.label }}
-                        </label>
-                        {{ form.sales_executive }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="{{ form.branch.id_for_label }}">
-                            {{ form.branch.label }}
-                        </label>
-                        {{ form.branch }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label" for="{{ form.status.id_for_label }}">
-                            {{ form.status.label }}
-                        </label>
-                        {{ form.status }}
-                    </div>
-                </div>
-                <div class="mt-3">
-                    <label class="form-label" for="{{ form.remarks.id_for_label }}">
-                        {{ form.remarks.label }}
-                    </label>
-                    {{ form.remarks }}
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-info-circle me-2"></i>
-                Information
-            </div>
-            <div class="card-body">
-                <div class="mb-4">
-                    <div class="fw-semibold mb-1">Lead Types</div>
-                    <div class="text-muted">Prospect or Existing Customer</div>
-                </div>
-                <div class="mb-4">
-                    <div class="fw-semibold mb-1">Workflow</div>
-                    <div class="text-muted">Enquiry → Follow-up → Order</div>
-                </div>
-                <div>
-                    <div class="fw-semibold mb-1">Notes</div>
-                    <div class="text-muted small">Capture complete customer information and vehicle interest before saving the enquiry.</div>
-                </div>
-            </div>
-        </div>
-    </div>
+<!-- TAB NAV -->
+<div class="tab-container">
+<div class="tab-nav">
+    <button type="button" class="tab-btn active" data-tab="tab-details"><i class="fas fa-list me-1"></i> Details</button>
+    <button type="button" class="tab-btn" data-tab="tab-calllogs"><i class="fas fa-phone me-1"></i> Call Logs</button>
+    <button type="button" class="tab-btn" data-tab="tab-history"><i class="fas fa-history me-1"></i> History</button>
 </div>
+
+<!-- ======================================================= TAB 1: DETAILS -->
+<div class="tab-content active" id="tab-details">
+
+    <!-- Lead section -->
+    <div class="card form-card mb-3">
+        <div class="card-header"><i class="fas fa-user-plus me-2"></i>New Prospect</div>
+        <div style="padding:20px;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">{{ form.prospect_name.label }}</label>
+                    {{ form.prospect_name }}
+                    {% if form.prospect_name.errors %}<div class="form-error">{{ form.prospect_name.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">{{ form.prospect_phone.label }}</label>
+                    {{ form.prospect_phone }}
+                    {% if form.prospect_phone.errors %}<div class="form-error">{{ form.prospect_phone.errors|join:", " }}</div>{% endif %}
+                    <small class="text-muted">Existing customers will be linked automatically by phone.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card form-card mb-3">
+        <div class="card-header"><i class="fas fa-users me-2"></i>Existing Customer</div>
+        <div style="padding:20px;">
+            <div class="form-group">
+                <label class="form-label">{{ form.customer.label }}</label>
+                {{ form.customer }}
+                {% if form.customer.errors %}<div class="form-error">{{ form.customer.errors|join:", " }}</div>{% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Basic Info -->
+    <div class="card form-card mb-3">
+        <div class="card-header"><i class="fas fa-search me-2"></i>Enquiry Details</div>
+        <div style="padding:20px;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Customer Enquiry Date</label>
+                    {{ form.customer_enquiry_date }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Enquiry Source</label>
+                    {{ form.enquiry_source }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Customer Type</label>
+                    {{ form.customer_type }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Enquiry Type</label>
+                    {{ form.enquiry_type }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    {{ form.gender }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Test Ride Taken</label>
+                    {{ form.test_ride_taken }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Vehicle of Interest</label>
+                    {{ form.bike_model }}
+                    {% if form.bike_model.errors %}<div class="form-error">{{ form.bike_model.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expected Purchase Date</label>
+                    {{ form.expected_purchase_date }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Payment Type</label>
+                    {{ form.payment_type }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Interested in Exchange</label>
+                    {{ form.customer_interested_in_exchange }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">WhatsApp No</label>
+                    {{ form.whatsapp_no }}
+                    {% if form.whatsapp_no.errors %}<div class="form-error">{{ form.whatsapp_no.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}<div class="form-error">{{ form.email.errors|join:", " }}</div>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Purpose</label>
+                    {{ form.purpose }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Source of Information</label>
+                    {{ form.source_of_information }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    {{ form.status }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Sales Executive</label>
+                    {{ form.sales_executive }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Branch</label>
+                    {{ form.branch }}
+                </div>
+            </div>
+            <div class="form-group mt-3">
+                <label class="form-label">Remarks</label>
+                {{ form.remarks }}
+            </div>
+        </div>
+    </div>
+
+    <!-- Address -->
+    <div class="card form-card mb-3">
+        <div class="card-header"><i class="fas fa-map-marker-alt me-2"></i>Address</div>
+        <div style="padding:20px;">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="form-label">Address 1</label>
+                    {{ form.address_line1 }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address 4</label>
+                    {{ form.address_line4 }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Pincode</label>
+                    {{ form.pincode }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address 2</label>
+                    {{ form.address_line2 }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">District</label>
+                    {{ form.district }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">State</label>
+                    {{ form.state }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Address 3</label>
+                    {{ form.address_line3 }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label">City</label>
+                    {{ form.city }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /tab-details -->
+
+<!-- ======================================================= TAB 2: CALL LOGS -->
+<div class="tab-content" id="tab-calllogs">
+    <div class="card mb-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title">Call Logs</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-calllog-row">
+                <i class="fas fa-plus me-1"></i> Add Row
+            </button>
+        </div>
+        <div style="overflow-x:auto;">
+            {{ calllog_formset.management_form }}
+            {% if calllog_formset.non_form_errors %}
+            <div class="alert alert-danger m-2">{{ calllog_formset.non_form_errors }}</div>
+            {% endif %}
+            <table class="table mb-0" id="calllog-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th style="min-width:150px;">Unique ID</th>
+                        <th style="min-width:150px;">Call From</th>
+                        <th style="min-width:80px;">Bill Sec</th>
+                        <th style="min-width:160px;">Start Time</th>
+                        <th style="min-width:200px;">Audio URL</th>
+                        <th style="min-width:200px;">Notes</th>
+                        <th>Del</th>
+                    </tr>
+                </thead>
+                <tbody id="calllog-body">
+                    {% for cl_form in calllog_formset %}
+                    <tr class="calllog-row" data-form-index="{{ forloop.counter0 }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{% for h in cl_form.hidden_fields %}{{ h }}{% endfor %}{{ cl_form.unique_id }}</td>
+                        <td>{{ cl_form.call_from }}</td>
+                        <td>{{ cl_form.bill_sec }}</td>
+                        <td>{{ cl_form.start_time }}</td>
+                        <td>{{ cl_form.audio_url }}</td>
+                        <td>{{ cl_form.notes }}</td>
+                        <td style="text-align:center;vertical-align:middle;">
+                            {% if cl_form.instance.pk %}
+                            <label style="cursor:pointer;">{{ cl_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-calllog"><i class="fas fa-trash"></i></button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div><!-- /tab-calllogs -->
+
+<!-- ======================================================= TAB 3: HISTORY -->
+<div class="tab-content" id="tab-history">
+    <div class="card mb-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title">Enquiry History</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-history-row">
+                <i class="fas fa-plus me-1"></i> Add Row
+            </button>
+        </div>
+        <div style="overflow-x:auto;">
+            {{ history_formset.management_form }}
+            {% if history_formset.non_form_errors %}
+            <div class="alert alert-danger m-2">{{ history_formset.non_form_errors }}</div>
+            {% endif %}
+            <table class="table mb-0" id="history-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th style="min-width:130px;">Update Date</th>
+                        <th style="min-width:300px;">Remarks</th>
+                        <th style="min-width:130px;">Status</th>
+                        <th>Del</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    {% for h_form in history_formset %}
+                    <tr class="history-row" data-form-index="{{ forloop.counter0 }}">
+                        <td>{{ forloop.counter }}</td>
+                        <td>{% for h in h_form.hidden_fields %}{{ h }}{% endfor %}{{ h_form.update_date }}</td>
+                        <td>{{ h_form.remarks }}</td>
+                        <td>{{ h_form.status }}</td>
+                        <td style="text-align:center;vertical-align:middle;">
+                            {% if h_form.instance.pk %}
+                            <label style="cursor:pointer;">{{ h_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-history"><i class="fas fa-trash"></i></button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div><!-- /tab-history -->
+
+</div><!-- /tab-container -->
 </form>
+
+<script>
+(function(){
+    function makeAddRow(btnId, bodyId, totalFormsId, prefix, rowClass, removeClass) {
+        const btn        = document.getElementById(btnId);
+        const tbody      = document.getElementById(bodyId);
+        const totalForms = document.getElementById(totalFormsId);
+        if (!btn || !tbody || !totalForms) return;
+        const firstRow = tbody.querySelector('.' + rowClass);
+        btn.addEventListener('click', function(){
+            if (!firstRow) { console.warn('No template row for', prefix); return; }
+            const idx   = parseInt(totalForms.value);
+            const clone = firstRow.cloneNode(true);
+            clone.innerHTML = clone.innerHTML
+                .replace(new RegExp(prefix + '-0-', 'g'), prefix + '-' + idx + '-')
+                .replace(new RegExp('id_' + prefix + '-0-', 'g'), 'id_' + prefix + '-' + idx + '-');
+            clone.querySelectorAll('input:not([type=hidden]), select, textarea').forEach(el => {
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                else el.value = '';
+            });
+            const delCell = clone.querySelector('td:last-child');
+            delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger ' + removeClass + '"><i class="fas fa-trash"></i></button>';
+            delCell.querySelector('.' + removeClass).addEventListener('click', function(){ clone.remove(); });
+            tbody.appendChild(clone);
+            totalForms.value = idx + 1;
+        });
+        tbody.querySelectorAll('.' + removeClass).forEach(btn => {
+            btn.addEventListener('click', function(){ btn.closest('tr').remove(); });
+        });
+    }
+    makeAddRow('add-calllog-row', 'calllog-body', 'id_calllogs-TOTAL_FORMS', 'calllogs', 'calllog-row', 'remove-calllog');
+    makeAddRow('add-history-row', 'history-body', 'id_histories-TOTAL_FORMS', 'histories', 'history-row', 'remove-history');
+})();
+</script>
 {% endblock %}

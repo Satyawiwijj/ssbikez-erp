@@ -107,10 +107,10 @@
   <tbody>
     {% for si in spares_issues %}
     <tr>
-      <td>{{ si.spare_part.part_name }}</td>
-      <td>{{ si.quantity_issued }}</td>
-      <td class="text-right">{{ si.unit_price|default:si.spare_part.mrp|default:"—" }}</td>
-      <td class="text-right">{{ si.total_price|default:"—" }}</td>
+      <td>{{ si.item.item_name }}</td>
+      <td>{{ si.quantity }}</td>
+      <td class="text-right">{{ si.rate|default:"—" }}</td>
+      <td class="text-right">{{ si.total|default:"—" }}</td>
     </tr>
     {% empty %}
     <tr><td colspan="4" class="empty-note">No parts used</td></tr>
@@ -168,16 +168,16 @@
         </tr>
 
         <tr>
-            <td>CGST (9%)</td>
+            <td>CGST</td>
             <td class="text-right">
-                ₹ {{ gst_half }}
+                ₹ {{ cgst_amount }}
             </td>
         </tr>
 
         <tr>
-            <td>SGST (9%)</td>
+            <td>SGST</td>
             <td class="text-right">
-                ₹ {{ gst_half }}
+                ₹ {{ sgst_amount }}
             </td>
         </tr>
 
@@ -200,8 +200,8 @@
     <tr><td>Outwork</td><td class="text-right">&#x20B9; {{ invoice.outwork_total }}</td></tr>
     {% endif %}
     <tr><td>Subtotal</td><td class="text-right">&#x20B9; {{ invoice.subtotal }}</td></tr>
-    <tr><td>CGST (9%)</td><td class="text-right">&#x20B9; {{ gst_half }}</td></tr>
-    <tr><td>SGST (9%)</td><td class="text-right">&#x20B9; {{ gst_half }}</td></tr>
+    <tr><td>CGST</td><td class="text-right">&#x20B9; {{ cgst_amount }}</td></tr>
+    <tr><td>SGST</td><td class="text-right">&#x20B9; {{ sgst_amount }}</td></tr>
     {% if invoice.discount_amount %}
     <tr><td>Discount</td><td class="text-right" style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</td></tr>
     {% endif %}

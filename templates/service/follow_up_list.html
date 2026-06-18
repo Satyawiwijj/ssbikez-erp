@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Follow-Ups — SSBikez ERP{% endblock %}
+{% block page_title %}CRE Follow-Up Board{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'service:dashboard' %}">Service</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Follow-Ups</span>
+</nav>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">CRE Follow-Up Board</h1>
+    <p class="page-subtitle">
+      Track overdue, due today and upcoming customer callbacks
+    </p>
+  </div>
+</div>
+
+<!-- FILTER TABS -->
+<div class="filter-tabs">
+  <a href="?period=all"      class="filter-tab {% if period == 'all' %}active{% endif %}">All</a>
+  <a href="?period=overdue"  class="filter-tab {% if period == 'overdue' %}active{% endif %}">
+    Overdue {% if overdue_count %}<span class="badge badge-red" style="font-size:11px; margin-left:4px;">{{ overdue_count }}</span>{% endif %}
+  </a>
+  <a href="?period=today"    class="filter-tab {% if period == 'today' %}active{% endif %}">
+    Today {% if today_count %}<span class="badge badge-yellow" style="font-size:11px; margin-left:4px;">{{ today_count }}</span>{% endif %}
+  </a>
+  <a href="?period=upcoming" class="filter-tab {% if period == 'upcoming' %}active{% endif %}">
+    This Week {% if upcoming_count %}<span class="badge badge-blue" style="font-size:11px; margin-left:4px;">{{ upcoming_count }}</span>{% endif %}
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Phone</th>
+          <th>Vehicle</th>
+          <th>Last Notes</th>
+          <th>Follow-up Date</th>
+          <th>Last Outcome</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for call in followups %}
+        {% with cv=call.customer_vehicle %}
+        <tr>
+          <td>
+            <span style="font-weight:600;">{{ cv.customer.full_name|default:"—" }}</span>
+            <div style="font-size:11px; color:#9CA3AF;">CV-{{ cv.pk }}</div>
+          </td>
+          <td>
+            {% if cv.customer.phone %}
+            <a href="tel:{{ cv.customer.phone }}" style="color:#2563EB; text-decoration:none; font-weight:500;">{{ cv.customer.phone }}</a>
+            {% else %}—{% endif %}
+          </td>
+          <td>{{ cv.vehicle.bike_model|default:"—" }}</td>
+          <td style="max-width:220px; font-size:13px; color:#374151;">
+            {% if call.notes %}
+              {{ call.notes|truncatechars:70 }}
+            {% else %}<span style="color:#9CA3AF;">No notes</span>{% endif %}
+          </td>
+          <td>
+            {% if call.next_call_date %}
+            <span style="display:inline-block; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:500;
+              {% if call.next_call_date < today %}background:#FEE2E2; color:#991B1B;
+              {% elif call.next_call_date == today %}background:#FEF3C7; color:#92400E;
+              {% else %}background:#DBEAFE; color:#1E40AF;{% endif %}">
+              {{ call.next_call_date|date:"d M Y" }}
+              {% if call.next_call_date < today %}
+              ({{ today|timesince:call.next_call_date }} ago)
+              {% elif call.next_call_date == today %}TODAY
+              {% endif %}
+            </span>
+            {% else %}—{% endif %}
+          </td>
+          <td>
+            {% with o=call.outcome %}
+            {% if o == 'interested' %}<span class="badge badge-blue">{{ call.get_outcome_display }}</span>
+            {% elif o == 'callback' %}<span class="badge badge-yellow">{{ call.get_outcome_display }}</span>
+            {% elif o == 'booked' %}<span class="badge badge-green">{{ call.get_outcome_display }}</span>
+            {% elif o == 'not_interested' %}<span class="badge badge-red">{{ call.get_outcome_display }}</span>
+            {% else %}<span class="badge badge-gray">{{ call.get_outcome_display }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td>
+            <div class="table-actions">
+              <a href="{% url 'service:call_create_for_cv' cv.pk %}" class="btn btn-primary btn-sm">Log Call</a>
+            </div>
+          </td>
+        </tr>
+        {% endwith %}
+        {% empty %}
+        <tr>
+          <td colspan="7" class="empty-state">
+            {% if period == 'overdue' %}No overdue follow-ups. Great work!
+            {% elif period == 'today' %}No follow-ups due today.
+            {% elif period == 'upcoming' %}No upcoming follow-ups this week.
+            {% else %}No follow-ups recorded yet.{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

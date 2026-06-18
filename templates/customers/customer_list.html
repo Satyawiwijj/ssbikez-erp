@@ -128,6 +128,12 @@ New Customer </a>
                             Edit
                         </a>
 
+                        <form method="post" action="{% url 'customers:customer_delete' customer.pk %}" style="display:inline"
+                              onsubmit="return confirm('Delete customer {{ customer.full_name }}? This cannot be undone.')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+
                     </div>
 
                 </td>

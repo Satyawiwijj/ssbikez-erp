@@ -1,6 +1,21 @@
 from django.db import models
 
 
+def split_gst(gst_amount):
+    """Split a GST amount into (cgst, sgst) using the company's actual rates,
+    instead of assuming an even 50/50 split."""
+    from decimal import Decimal
+    from accounts.models import CompanySettings
+    settings_ = CompanySettings.get_instance()
+    rate_total = (settings_.cgst_rate or 0) + (settings_.sgst_rate or 0)
+    if rate_total:
+        cgst = (gst_amount * settings_.cgst_rate / rate_total).quantize(Decimal('0.01'))
+        sgst = (gst_amount * settings_.sgst_rate / rate_total).quantize(Decimal('0.01'))
+    else:
+        cgst = sgst = (gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    return cgst, sgst
+
+
 class Invoice(models.Model):
     sales_order     = models.OneToOneField(
         'sales.VehicleSalesOrder',

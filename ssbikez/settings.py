@@ -15,10 +15,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY — move all secrets to environment variables in production
 # ---------------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'dev-secret-key-ssbikez-change-in-production'
-)
+_DEFAULT_SECRET = 'dev-secret-key-ssbikez-change-in-production'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', _DEFAULT_SECRET)
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
@@ -26,6 +24,19 @@ ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',
     'localhost,127.0.0.1'
 ).split(',')
+
+# Catch dangerous production misconfigurations at startup
+if not DEBUG:
+    if SECRET_KEY == _DEFAULT_SECRET:
+        raise RuntimeError(
+            'DJANGO_SECRET_KEY environment variable must be set in production. '
+            'Generate one with: python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"'
+        )
+    _prod_hosts = [h for h in ALLOWED_HOSTS if h not in ('localhost', '127.0.0.1', '')]
+    if not _prod_hosts:
+        raise RuntimeError(
+            'ALLOWED_HOSTS must include your production domain when DEBUG=False.'
+        )
 
 # Security headers
 X_FRAME_OPTIONS             = 'DENY'
@@ -145,8 +156,9 @@ USE_TZ        = True
 # Static & media files
 # ---------------------------------------------------------------------------
 
-STATIC_URL  = 'static/'
+STATIC_URL  = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_DIRS = [BASE_DIR / 'static']
 
 # WhiteNoise serves static files efficiently in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -180,6 +192,7 @@ EMAIL_USE_TLS       = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
 EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL  = os.environ.get('DEFAULT_FROM_EMAIL', 'SSBikez ERP <noreply@ssbikez.com>')
+EMAIL_TIMEOUT       = int(os.environ.get('EMAIL_TIMEOUT', 10))
 
 
 # ---------------------------------------------------------------------------

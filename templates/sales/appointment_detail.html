@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:appointment_update' appointment.pk %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-edit me-1"></i> Edit
+</a>
+<form method="post" action="{% url 'sales:appointment_delete' appointment.pk %}" style="display:inline"
+      onsubmit="return confirm('Delete this appointment?')">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-sm btn-outline-danger">
+        <i class="fas fa-trash me-1"></i> Delete
+    </button>
+</form>
+<a href="{% url 'sales:all_appointments' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="detail-grid">
+    <div>
+        <div class="card form-card mb-3">
+            <div class="card-header">Appointment Details</div>
+            <div style="padding:20px;">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Date &amp; Time</label>
+                        <div>{{ appointment.appointment_date|date:"d M Y, H:i" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Status</label>
+                        <div><span class="badge badge-blue">{{ appointment.get_status_display }}</span></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Phone No</label>
+                        <div>{{ appointment.phone_no|default:"—" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Vehicle Code</label>
+                        <div>{{ appointment.vehicle_name|default:"—" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Gender</label>
+                        <div>{{ appointment.gender|default:"—" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Whatsapp No</label>
+                        <div>{{ appointment.whatsapp_no|default:"—" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Purpose</label>
+                        <div>{{ appointment.get_purpose_display|default:"—" }}</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label text-muted small">Cancel / Postponed</label>
+                        <div>{% if appointment.is_cancelled_postponed %}Yes{% else %}No{% endif %}</div>
+                    </div>
+                    {% if appointment.address %}
+                    <div class="form-group span-2">
+                        <label class="form-label text-muted small">Address</label>
+                        <div>{{ appointment.address }}</div>
+                    </div>
+                    {% endif %}
+                    {% if appointment.cancel_reason %}
+                    <div class="form-group span-2">
+                        <label class="form-label text-muted small">Cancel Reason</label>
+                        <div>{{ appointment.cancel_reason }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Linked Enquiry</div>
+            <div style="padding:16px;">
+                <div class="mb-2">
+                    <a href="{% url 'sales:enquiry_detail' appointment.enquiry.pk %}" class="text-primary fw-semibold">
+                        ENQ-{{ appointment.enquiry.pk }}
+                    </a>
+                </div>
+                <div>{{ appointment.enquiry.lead_name }}</div>
+                <div class="text-muted small">{{ appointment.enquiry.lead_phone }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

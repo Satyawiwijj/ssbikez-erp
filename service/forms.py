@@ -1,10 +1,11 @@
 from django import forms
+from django.forms import inlineformset_factory
 from django.utils import timezone
 
 from .models import (BayAssignment, InsuranceEstimation, JobCard, LaborCharge,
                      OutworkEntry, ServiceAppointment, ServiceBay,
                      ServiceDiscountMaster, ServiceEnquiry, ServiceInvoice,
-                     WarrantyClaim)
+                     VehicleServiceMaster, VehicleServiceSchedule, WarrantyClaim)
 
 _DT_WIDGET = forms.DateTimeInput(attrs={'type': 'datetime-local'})
 _DT_FORMATS = ['%Y-%m-%dT%H:%M']
@@ -24,7 +25,20 @@ class ServiceAppointmentForm(forms.ModelForm):
 
     class Meta:
         model  = ServiceAppointment
-        fields = ('service_enquiry', 'appointment_date', 'service_type', 'status')
+        fields = (
+            'service_enquiry', 'appointment_date', 'service_type', 'status',
+            'phone_no', 'whatsapp_no', 'chassis_no', 'vehicle_name',
+            'is_cancelled_postponed',
+        )
+        widgets = {
+            'chassis_no':   forms.TextInput(attrs={'placeholder': 'Chassis number'}),
+            'vehicle_name': forms.TextInput(attrs={'placeholder': 'Vehicle name/model'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('phone_no', 'whatsapp_no', 'chassis_no', 'vehicle_name'):
+            self.fields[f].required = False
 
     def clean_appointment_date(self):
         date = self.cleaned_data.get('appointment_date')
@@ -204,3 +218,29 @@ class ServiceReminderForm(forms.ModelForm):
             'reminder_date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 2}),
         }
+
+
+# ---------------------------------------------------------------------------
+# ERP Alignment — Vehicle Service Master
+# ---------------------------------------------------------------------------
+
+class VehicleServiceMasterForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleServiceMaster
+        fields = ('bike_model', 'vehicle_code')
+
+
+class VehicleServiceScheduleForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleServiceSchedule
+        fields = ('service_type', 'days_from_purchase', 'km_from_purchase')
+        widgets = {
+            'days_from_purchase': forms.NumberInput(attrs={'class': 'form-control'}),
+            'km_from_purchase':   forms.NumberInput(attrs={'class': 'form-control'}),
+        }
+
+
+VehicleServiceScheduleFormSet = inlineformset_factory(
+    VehicleServiceMaster, VehicleServiceSchedule,
+    form=VehicleServiceScheduleForm, extra=1, can_delete=True
+)

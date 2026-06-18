@@ -142,6 +142,12 @@
                                 Edit
                             </a>
 
+                            <form method="post" action="{% url 'spares:item_delete' item.pk %}" style="display:inline"
+                                  onsubmit="return confirm('Delete item {{ item.item_name }}?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            </form>
+
                         </div>
 
                     </td>

@@ -77,13 +77,15 @@ def invoice_detail(request, pk):
         payment_status=Payment.PaymentStatus.COMPLETED
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
     balance    = invoice.final_amount - total_paid
-    gst_half   = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    from .models import split_gst
+    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
     return render(request, 'billing/invoice_detail.html', {
-        'invoice':    invoice,
-        'payments':   payments,
-        'total_paid': total_paid,
-        'balance':    balance,
-        'gst_half':   gst_half,
+        'invoice':     invoice,
+        'payments':    payments,
+        'total_paid':  total_paid,
+        'balance':     balance,
+        'cgst_amount': cgst_amount,
+        'sgst_amount': sgst_amount,
     })
 
 
@@ -103,6 +105,10 @@ def invoice_create(request):
 
 @login_required
 def invoice_update(request, pk):
+    # No ownership field exists on Invoice/Payment/Loan/InsurancePolicy —
+    # "who owns a billing record" is a product decision (sales exec? branch?
+    # cashier?), not something to invent here. Protected only by the
+    # namespace-level role gate (RolePermissionMiddleware) for now.
     invoice = get_object_or_404(Invoice, pk=pk)
     form    = InvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():

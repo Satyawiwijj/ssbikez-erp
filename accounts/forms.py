@@ -44,6 +44,11 @@ class UserCreationForm(BaseUserCreationForm):
                   'role', 'branch', 'phone', 'status',
                   'password1', 'password2')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Login requires an emailed OTP — every user must have an address.
+        self.fields['email'].required = True
+
 
 class UserUpdateForm(forms.ModelForm):
     class Meta:
@@ -54,6 +59,8 @@ class UserUpdateForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['branch'].queryset = Branch.objects.filter(is_active=True)
+        # Login requires an emailed OTP — every user must have an address.
+        self.fields['email'].required = True
 
 
 class ProfileUpdateForm(forms.ModelForm):
@@ -75,7 +82,7 @@ class ProfileUpdateForm(forms.ModelForm):
 class FuelExpenseForm(forms.ModelForm):
     class Meta:
         model  = FuelExpense
-        fields = ('vehicle', 'amount', 'fuel_date', 'voucher_number', 'remarks', 'created_by')
+        fields = ('vehicle', 'amount', 'fuel_date', 'voucher_number', 'remarks')
         widgets = {
             'fuel_date': forms.DateInput(attrs={'type': 'date'}),
             'remarks':   forms.Textarea(attrs={'rows': 3}),

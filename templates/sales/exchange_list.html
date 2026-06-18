@@ -52,6 +52,7 @@ Record Exchange
                 <th>Old Vehicle</th>
                 <th>Registration No</th>
                 <th>Valuation</th>
+                <th>RC Handover</th>
                 <th>Actions</th>
             </tr>
 
@@ -122,6 +123,16 @@ Record Exchange
 
                 <td>
 
+                    {% if ex.rc_handed_over %}
+                    <span class="badge badge-green">Received{% if ex.rc_handover_date %} ({{ ex.rc_handover_date|date:"d M Y" }}){% endif %}</span>
+                    {% else %}
+                    <span class="badge badge-red">Pending</span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
                     <div class="table-actions">
 
                         <a href="{% url 'sales:exchange_update' ex.pk %}"
@@ -142,7 +153,7 @@ Record Exchange
 
             <tr>
 
-                <td colspan="7" class="empty-state">
+                <td colspan="8" class="empty-state">
 
                     <i class="fas fa-exchange-alt mb-2"></i>
 

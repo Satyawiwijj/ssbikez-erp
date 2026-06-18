@@ -110,6 +110,44 @@ def call_list(request):
 
 
 @login_required
+def follow_up_list(request):
+    """CRE follow-up board — calls with a next_call_date, for the logged-in caller."""
+    from datetime import timedelta
+    today  = timezone.now().date()
+    period = request.GET.get('period', 'all')   # overdue | today | upcoming | all
+
+    base = CustomerCall.objects.select_related(
+        'customer_vehicle__customer', 'customer_vehicle__vehicle__bike_model',
+    ).filter(called_by=request.user, next_call_date__isnull=False)
+
+    if period == 'overdue':
+        qs = base.filter(next_call_date__lt=today).order_by('next_call_date')
+    elif period == 'today':
+        qs = base.filter(next_call_date=today).order_by('next_call_date')
+    elif period == 'upcoming':
+        qs = base.filter(
+            next_call_date__gt=today, next_call_date__lte=today + timedelta(days=7),
+        ).order_by('next_call_date')
+    else:
+        qs = base.order_by('-next_call_date')
+
+    overdue_count  = base.filter(next_call_date__lt=today).count()
+    today_count    = base.filter(next_call_date=today).count()
+    upcoming_count = base.filter(
+        next_call_date__gt=today, next_call_date__lte=today + timedelta(days=7),
+    ).count()
+
+    return render(request, 'service/follow_up_list.html', {
+        'followups':      qs,
+        'period':         period,
+        'today':          today,
+        'overdue_count':  overdue_count,
+        'today_count':    today_count,
+        'upcoming_count': upcoming_count,
+    })
+
+
+@login_required
 def call_create(request, cv_pk=None):
     from customer_vehicles.models import CustomerVehicle
     initial = {}

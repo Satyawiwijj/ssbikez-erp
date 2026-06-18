@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Vehicle Service Master — SSBikez ERP{% endblock %}
+{% block page_title %}Vehicle Service Master{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'service:vehicle_service_master_create' %}" class="btn btn-sm btn-primary">
+    <i class="fas fa-plus me-1"></i> New Service Master
+</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Vehicle Service Master</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Vehicle Service Master</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Bike Model</th>
+                    <th>Vehicle Code</th>
+                    <th>Schedule Count</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for master in masters %}
+                <tr>
+                    <td class="fw-semibold">{{ master.bike_model.model_name }}</td>
+                    <td>{{ master.vehicle_code|default:"—" }}</td>
+                    <td>{{ master.schedules.count }}</td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'service:vehicle_service_master_detail' master.pk %}" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-eye me-1"></i>View
+                            </a>
+                            <a href="{% url 'service:vehicle_service_master_update' master.pk %}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="text-center text-muted py-3">No vehicle service masters configured yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

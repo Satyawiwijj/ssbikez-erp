@@ -113,6 +113,46 @@ class SalesEnquiry(models.Model):
         default=Status.OPEN,
         db_index=True,
     )
+    whatsapp_no           = models.CharField(max_length=20, blank=True, default='', verbose_name='WhatsApp No')
+    email                 = models.EmailField(blank=True, default='', verbose_name='Email')
+    purpose               = models.CharField(max_length=100, blank=True, default='', verbose_name='Purpose')
+    expected_purchase_date = models.DateField(null=True, blank=True, verbose_name='Expected Purchase Date')
+    # ERP alignment — customer classification
+    customer_enquiry_date = models.DateField(null=True, blank=True, verbose_name='Customer Enquiry Date')
+    customer_type = models.CharField(
+        max_length=50, blank=True, default='', verbose_name='Customer Type',
+        choices=[('Individual', 'Individual'), ('Corporate', 'Corporate'), ('Fleet', 'Fleet')]
+    )
+    gender = models.CharField(
+        max_length=20, blank=True, default='', verbose_name='Gender',
+        choices=[('Male', 'Male'), ('Female', 'Female'), ('Other', 'Other')]
+    )
+    enquiry_type = models.CharField(
+        max_length=50, blank=True, default='', verbose_name='Enquiry Type',
+        choices=[('New Vehicle', 'New Vehicle'), ('Exchange', 'Exchange'), ('Fleet', 'Fleet'), ('Corporate', 'Corporate')]
+    )
+    test_ride_taken = models.CharField(
+        max_length=10, blank=True, default='', verbose_name='Test Ride Taken',
+        choices=[('Yes', 'Yes'), ('No', 'No')]
+    )
+    payment_type = models.CharField(
+        max_length=50, blank=True, default='', verbose_name='Payment Type',
+        choices=[('Cash', 'Cash'), ('Finance', 'Finance'), ('Exchange', 'Exchange')]
+    )
+    customer_interested_in_exchange = models.CharField(
+        max_length=10, blank=True, default='', verbose_name='Customer Interested in Exchange',
+        choices=[('Yes', 'Yes'), ('No', 'No')]
+    )
+    source_of_information = models.CharField(max_length=100, blank=True, default='', verbose_name='Source of Information')
+    # ERP alignment — address
+    address_line1 = models.CharField(max_length=200, blank=True, default='', verbose_name='Address 1')
+    address_line2 = models.CharField(max_length=200, blank=True, default='', verbose_name='Address 2')
+    address_line3 = models.CharField(max_length=200, blank=True, default='', verbose_name='Address 3')
+    address_line4 = models.CharField(max_length=200, blank=True, default='', verbose_name='Address 4')
+    district = models.CharField(max_length=100, blank=True, default='', verbose_name='District')
+    city     = models.CharField(max_length=100, blank=True, default='', verbose_name='City')
+    state    = models.CharField(max_length=100, blank=True, default='', verbose_name='State')
+    pincode  = models.CharField(max_length=10, blank=True, default='', verbose_name='Pincode')
     remarks         = models.TextField(blank=True, null=True)
     created_at      = models.DateTimeField(auto_now_add=True)
 
@@ -121,9 +161,10 @@ class SalesEnquiry(models.Model):
         verbose_name_plural = 'Sales Enquiries'
 
     def __str__(self):
+        from customers.models import Customer
         try:
             lead = self.customer or self.prospect
-        except Exception:
+        except (Customer.DoesNotExist, Prospect.DoesNotExist):
             lead = f'#{self.customer_id or self.prospect_id}'
         return f"ENQ-{self.pk} | {lead} — {self.bike_model}"
 
@@ -172,30 +213,43 @@ class SalesAppointment(models.Model):
         SHOWROOM_VISIT = 'showroom_visit', 'Showroom Visit'
         DELIVERY       = 'delivery',       'Delivery'
 
-    enquiry          = models.ForeignKey(
+    enquiry                 = models.ForeignKey(
         SalesEnquiry,
         on_delete=models.CASCADE,
         related_name='appointments'
     )
-    appointment_date = models.DateTimeField()
-    purpose          = models.CharField(
+    appointment_date        = models.DateTimeField()
+    purpose                 = models.CharField(
         max_length=50,
         choices=Purpose.choices,
         blank=True, null=True
     )
-    status           = models.CharField(
+    status                  = models.CharField(
         max_length=20,
         choices=Status.choices,
         default=Status.SCHEDULED
     )
-    created_at       = models.DateTimeField(auto_now_add=True)
+    # ERP-matched fields
+    vehicle_code            = models.CharField(max_length=50, blank=True, default='', verbose_name='Vehicle Code')
+    vehicle_name            = models.CharField(max_length=200, blank=True, default='')
+    gender                  = models.CharField(max_length=20, blank=True, default='')
+    phone_no                = models.CharField(max_length=20, blank=True, default='')
+    address                 = models.TextField(blank=True, default='')
+    whatsapp_no             = models.CharField(max_length=20, blank=True, default='')
+    is_cancelled_postponed  = models.BooleanField(default=False, verbose_name='Appointment Cancel/Postponed')
+    cancel_reason           = models.TextField(blank=True, default='', verbose_name='Cancellation / Postpone Reason')
+    created_at              = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-appointment_date']
         verbose_name_plural = 'Sales Appointments'
 
     def __str__(self):
-        return f"APT-{self.pk} | {self.enquiry.lead_name} on {self.appointment_date:%d %b %Y}"
+        try:
+            lead_name = self.enquiry.lead_name
+        except SalesEnquiry.DoesNotExist:
+            lead_name = f'#{self.enquiry_id}'
+        return f"APT-{self.pk} | {lead_name} on {self.appointment_date:%d %b %Y}"
 
 
 # ---------------------------------------------------------------------------
@@ -208,8 +262,20 @@ class SalesFeedback(models.Model):
         on_delete=models.CASCADE,
         related_name='feedback'
     )
+    # CRM workflow link — connects Enquiry → Appointment → Feedback
+    appointment        = models.ForeignKey(
+        SalesAppointment,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='feedback',
+        verbose_name='Sales Appointment'
+    )
     feedback_notes     = models.TextField(blank=True, null=True)
-    next_followup_date = models.DateField(blank=True, null=True)
+    next_followup_date = models.DateField(blank=True, null=True, verbose_name='Feed Back Follow Date')
+    feed_back_date     = models.DateField(blank=True, null=True, verbose_name='Feedback Date')
+    # ERP-matched fields
+    vehicle_name       = models.CharField(max_length=200, blank=True, default='', verbose_name='Vehicle Code')
+    phone_no           = models.CharField(max_length=20, blank=True, default='')
     created_by         = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -282,13 +348,14 @@ class VehicleSalesOrder(models.Model):
         verbose_name_plural = 'Vehicle Sales Orders'
 
     def __str__(self):
+        from customers.models import Customer, VehicleStock
         try:
             cust = self.customer
-        except Exception:
+        except Customer.DoesNotExist:
             cust = f'#{self.customer_id}'
         try:
             veh = self.vehicle
-        except Exception:
+        except VehicleStock.DoesNotExist:
             veh = f'#vehicle_{self.vehicle_id}'
         return f"ORD-{self.pk} | {cust} — {veh}"
 
@@ -340,6 +407,10 @@ class ExchangeVehicle(models.Model):
     old_vehicle_model = models.CharField(max_length=100, blank=True, null=True)
     registration_no   = models.CharField(max_length=50, blank=True, null=True)
     valuation_amount  = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    # RC handover tracking — customer must physically hand over the old
+    # vehicle's RC book as part of the trade-in.
+    rc_handed_over    = models.BooleanField(default=False, verbose_name='RC Book Handed Over')
+    rc_handover_date  = models.DateField(null=True, blank=True, verbose_name='RC Handover Date')
     created_at        = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -630,6 +701,65 @@ class PDIChecklist(models.Model):
                     'tyre_pressure_front','tyre_pressure_rear','headlight_working',
                     'invoice_ready','insurance_done']
         return all(getattr(self, f) for f in critical)
+
+
+# ---------------------------------------------------------------------------
+# ERP Alignment — SalesEnquiry child tables
+# ---------------------------------------------------------------------------
+
+class SalesEnquiryCallLog(models.Model):
+    enquiry    = models.ForeignKey(SalesEnquiry, on_delete=models.CASCADE, related_name='call_logs')
+    unique_id  = models.CharField(max_length=100, blank=True, default='', verbose_name='Unique ID')
+    call_from  = models.CharField(max_length=200, blank=True, default='', verbose_name='Call From')
+    bill_sec   = models.IntegerField(default=0, verbose_name='Bill Sec')
+    start_time = models.DateTimeField(null=True, blank=True, verbose_name='Start Time')
+    audio_url  = models.URLField(blank=True, default='', verbose_name='Audio URL')
+    notes      = models.TextField(blank=True, default='', verbose_name='Notes')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Call Log'
+
+    def __str__(self):
+        return f"CallLog-{self.pk} | ENQ-{self.enquiry_id}"
+
+
+class SalesEnquiryHistory(models.Model):
+    STATUS_CHOICES = [
+        ('Open', 'Open'), ('Follow Up', 'Follow Up'), ('Converted', 'Converted'),
+        ('Lost', 'Lost'), ('Hot', 'Hot'), ('Warm', 'Warm'), ('Cold', 'Cold'),
+    ]
+    enquiry     = models.ForeignKey(SalesEnquiry, on_delete=models.CASCADE, related_name='histories')
+    update_date = models.DateField(verbose_name='Update Date')
+    remarks     = models.TextField(verbose_name='Remarks')
+    status      = models.CharField(max_length=50, choices=STATUS_CHOICES, verbose_name='Status')
+
+    class Meta:
+        ordering = ['-update_date']
+        verbose_name = 'Enquiry History'
+
+    def __str__(self):
+        return f"History-{self.pk} | ENQ-{self.enquiry_id} {self.status}"
+
+
+class SalesFeedbackItem(models.Model):
+    FEEDBACK_TYPE_CHOICES = [
+        ('Product', 'Product'), ('Price', 'Price'), ('Service', 'Service'),
+        ('Competitor', 'Competitor'), ('Finance', 'Finance'), ('Other', 'Other'),
+    ]
+    feedback      = models.ForeignKey(SalesFeedback, on_delete=models.CASCADE, related_name='feedback_items')
+    points        = models.CharField(max_length=500, verbose_name='Points')
+    feedback_type = models.CharField(max_length=100, blank=True, default='', choices=FEEDBACK_TYPE_CHOICES, verbose_name='Type')
+    response      = models.TextField(blank=True, default='', verbose_name='Response')
+    rating        = models.IntegerField(null=True, blank=True, choices=[(i, str(i)) for i in range(1, 6)], verbose_name='Rating')
+
+    class Meta:
+        ordering = ['id']
+        verbose_name = 'Feedback Item'
+
+    def __str__(self):
+        return f"FBItem-{self.pk} | {self.points[:40]}"
 
 
 # ---------------------------------------------------------------------------

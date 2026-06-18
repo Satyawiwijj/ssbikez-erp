@@ -3,8 +3,11 @@ from django.utils import timezone
 
 from customers.models import VehicleStock
 
+from django.forms import inlineformset_factory
+
 from .models import (ExchangeVehicle, Prospect, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, VehicleAllotment, VehicleDelivery,
+                     SalesEnquiry, SalesEnquiryCallLog, SalesEnquiryHistory,
+                     SalesFeedbackItem, VehicleAllotment, VehicleDelivery,
                      VehicleFitting, VehicleSalesOrder)
 
 
@@ -27,10 +30,22 @@ class SalesEnquiryForm(forms.ModelForm):
 
     class Meta:
         model  = SalesEnquiry
-        fields = ('customer', 'sales_executive', 'bike_model', 'branch',
-                  'enquiry_source', 'status', 'remarks')
+        fields = (
+            'customer', 'sales_executive', 'bike_model', 'branch',
+            'enquiry_source', 'status', 'whatsapp_no', 'email',
+            'purpose', 'expected_purchase_date',
+            # ERP alignment
+            'customer_enquiry_date', 'customer_type', 'gender', 'enquiry_type',
+            'test_ride_taken', 'payment_type', 'customer_interested_in_exchange',
+            'source_of_information',
+            'address_line1', 'address_line2', 'address_line3', 'address_line4',
+            'district', 'city', 'state', 'pincode',
+            'remarks',
+        )
         widgets = {
             'remarks': forms.Textarea(attrs={'rows': 3}),
+            'expected_purchase_date':  forms.DateInput(attrs={'type': 'date'}),
+            'customer_enquiry_date':   forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -88,16 +103,27 @@ class SalesEnquiryForm(forms.ModelForm):
 class SalesAppointmentForm(forms.ModelForm):
     class Meta:
         model  = SalesAppointment
-        fields = ('enquiry', 'appointment_date', 'purpose', 'status')
+        fields = (
+            'enquiry', 'appointment_date', 'purpose', 'status',
+            'vehicle_code', 'vehicle_name', 'gender', 'phone_no', 'address',
+            'whatsapp_no', 'is_cancelled_postponed', 'cancel_reason',
+        )
         widgets = {
             'appointment_date': forms.DateTimeInput(
                 attrs={'type': 'datetime-local'}, format='%Y-%m-%dT%H:%M'
             ),
+            'address':       forms.Textarea(attrs={'rows': 2}),
+            'cancel_reason': forms.Textarea(attrs={'rows': 2}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['appointment_date'].input_formats = ['%Y-%m-%dT%H:%M']
+        # Auto-fill phone/vehicle from enquiry on new forms
+        if not self.instance.pk and 'enquiry' not in (self.data or {}):
+            pass
+        for field in ('vehicle_code', 'vehicle_name', 'gender', 'address', 'whatsapp_no', 'cancel_reason'):
+            self.fields[field].required = False
 
     def clean_appointment_date(self):
         date = self.cleaned_data.get('appointment_date')
@@ -112,11 +138,20 @@ class SalesAppointmentForm(forms.ModelForm):
 class SalesFeedbackForm(forms.ModelForm):
     class Meta:
         model  = SalesFeedback
-        fields = ('enquiry', 'feedback_notes', 'next_followup_date', 'created_by')
+        fields = (
+            'enquiry', 'appointment', 'vehicle_name', 'phone_no',
+            'feedback_notes', 'next_followup_date', 'feed_back_date', 'created_by',
+        )
         widgets = {
             'feedback_notes':     forms.Textarea(attrs={'rows': 3}),
             'next_followup_date': forms.DateInput(attrs={'type': 'date'}),
+            'feed_back_date':     forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in ('vehicle_name', 'phone_no', 'feed_back_date', 'appointment'):
+            self.fields[field].required = False
 
 
 class VehicleChoiceField(forms.ModelChoiceField):
@@ -193,9 +228,11 @@ class VehicleDeliveryForm(forms.ModelForm):
 class ExchangeVehicleForm(forms.ModelForm):
     class Meta:
         model  = ExchangeVehicle
-        fields = ('sales_order', 'old_vehicle_model', 'registration_no', 'valuation_amount')
+        fields = ('sales_order', 'old_vehicle_model', 'registration_no', 'valuation_amount',
+                  'rc_handed_over', 'rc_handover_date')
         widgets = {
-            'registration_no': forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
+            'registration_no':  forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
+            'rc_handover_date': forms.DateInput(attrs={'type': 'date'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -258,6 +295,63 @@ class VehicleFittingForm(forms.ModelForm):
         if cost is None or cost < Decimal('0'):
             raise forms.ValidationError('Cost cannot be negative.')
         return cost
+
+
+# ---------------------------------------------------------------------------
+# ERP Alignment — inline formsets for call logs, history, feedback items
+# ---------------------------------------------------------------------------
+
+class CallLogForm(forms.ModelForm):
+    class Meta:
+        model  = SalesEnquiryCallLog
+        fields = ('unique_id', 'call_from', 'bill_sec', 'start_time', 'audio_url', 'notes')
+        widgets = {
+            'unique_id':  forms.TextInput(attrs={'class': 'form-control'}),
+            'call_from':  forms.TextInput(attrs={'class': 'form-control'}),
+            'bill_sec':   forms.NumberInput(attrs={'class': 'form-control'}),
+            'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
+            'audio_url':  forms.URLInput(attrs={'class': 'form-control'}),
+            'notes':      forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+        }
+
+
+class HistoryForm(forms.ModelForm):
+    class Meta:
+        model  = SalesEnquiryHistory
+        fields = ('update_date', 'remarks', 'status')
+        widgets = {
+            'update_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'remarks':     forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'status':      forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+class FeedbackItemForm(forms.ModelForm):
+    class Meta:
+        model  = SalesFeedbackItem
+        fields = ('points', 'feedback_type', 'response', 'rating')
+        widgets = {
+            'points':        forms.TextInput(attrs={'class': 'form-control'}),
+            'feedback_type': forms.Select(attrs={'class': 'form-select'}),
+            'response':      forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'rating':        forms.Select(attrs={'class': 'form-select'}),
+        }
+
+
+CallLogFormSet = inlineformset_factory(
+    SalesEnquiry, SalesEnquiryCallLog,
+    form=CallLogForm, extra=1, can_delete=True
+)
+
+HistoryFormSet = inlineformset_factory(
+    SalesEnquiry, SalesEnquiryHistory,
+    form=HistoryForm, extra=1, can_delete=True
+)
+
+FeedbackItemFormSet = inlineformset_factory(
+    SalesFeedback, SalesFeedbackItem,
+    form=FeedbackItemForm, extra=1, can_delete=True
+)
 
 
 # ---------------------------------------------------------------------------

@@ -12,9 +12,11 @@ from accounts.audit import log_action
 
 from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm, OutworkEntryForm,
                     ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
-                    ServiceInvoiceForm)
+                    ServiceInvoiceForm, VehicleServiceMasterForm,
+                    VehicleServiceScheduleFormSet)
 from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
-                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice)
+                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice,
+                     VehicleServiceMaster)
 
 
 # ---------------------------------------------------------------------------
@@ -228,6 +230,7 @@ def jobcard_detail(request, pk):
     labor_charges    = job_card.labor_charges.all()
     total_labor      = labor_charges.aggregate(total=Sum('labor_cost'))['total'] or Decimal('0.00')
     outwork_entries  = job_card.outwork_entries.all()
+    spares_issues    = _spares_issued_for(job_card)
     # GAP 14, 15, 26, 30, 31
     revisit = getattr(job_card, 'revisit', None)
     service_childs = job_card.service_childs.all() if hasattr(job_card, 'service_childs') else []
@@ -244,7 +247,7 @@ def jobcard_detail(request, pk):
         'bay_assignments': bay_assignments,
         'labor_charges':   labor_charges,
         'total_labor':     total_labor,
-        'spares_issues':   [],
+        'spares_issues':   spares_issues,
         'outwork_entries': outwork_entries,
         'revisit':         revisit,
         'service_childs':  service_childs,
@@ -260,12 +263,19 @@ def jobcard_detail(request, pk):
 
 @login_required
 def jobcard_create(request):
+    from accounts.permissions import user_is_manager
+    is_manager = user_is_manager(request.user)
     initial = {}
     if request.GET.get('cv'):
         initial['customer_vehicle'] = request.GET['cv']
     form = JobCardForm(request.POST or None, initial=initial)
+    if not is_manager:
+        form.fields.pop('service_advisor', None)
     if request.method == 'POST' and form.is_valid():
-        jc = form.save()
+        jc = form.save(commit=False)
+        if not is_manager:
+            jc.service_advisor = request.user
+        jc.save()
         log_action(request, 'Job Card', 'create', jc.pk)
         messages.success(request, 'Job card created successfully.')
         return redirect('service:jobcard_detail', pk=jc.pk)
@@ -275,8 +285,16 @@ def jobcard_create(request):
 
 @login_required
 def jobcard_update(request, pk):
+    from accounts.permissions import user_is_manager, user_owns
+    from django.http import HttpResponseForbidden
     job_card = get_object_or_404(JobCard, pk=pk)
+    if not user_owns(request.user, job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    is_manager = user_is_manager(request.user)
     form     = JobCardForm(request.POST or None, instance=job_card)
+    if not is_manager:
+        form.fields.pop('service_advisor', None)
+        form.fields.pop('service_status', None)
     if request.method == 'POST' and form.is_valid():
         form.save()
         log_action(request, 'Job Card', 'update', pk)
@@ -319,9 +337,22 @@ def jobcard_print(request, pk):
         'job_card':       job_card,
         'labor_charges':  labor_charges,
         'total_labor':    total_labor,
-        'spares_issues':  [],
+        'spares_issues':  _spares_issued_for(job_card),
         'outwork_entries': outwork_entries,
     })
+
+
+def _spares_issued_for(job_card):
+    """
+    SparesIssueAlteration.job_card is a free-text label ('JC-<pk>'), not a
+    real FK — this looks it up by that label and flattens to line items.
+    """
+    from spares.models import SparesIssueAlterationItem
+    return list(
+        SparesIssueAlterationItem.objects
+        .filter(alteration__job_card=f'JC-{job_card.pk}')
+        .select_related('item', 'alteration__created_by')
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -483,7 +514,11 @@ def service_invoice_create(request):
 
 @login_required
 def service_invoice_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     invoice = get_object_or_404(ServiceInvoice, pk=pk)
+    if not user_owns(request.user, invoice.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form    = ServiceInvoiceForm(request.POST or None, instance=invoice)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -506,15 +541,23 @@ def service_invoice_detail(request, pk):
         pk=pk
     )
     labor_charges   = invoice.job_card.labor_charges.all()
-    spares_issues   = []
+    spares_issues   = _spares_issued_for(invoice.job_card)
     outwork_entries = invoice.job_card.outwork_entries.all()
-    gst_half = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    from accounts.models import CompanySettings
+    settings_ = CompanySettings.get_instance()
+    rate_total = (settings_.cgst_rate or 0) + (settings_.sgst_rate or 0)
+    if rate_total:
+        cgst_amount = (invoice.gst_amount * settings_.cgst_rate / rate_total).quantize(Decimal('0.01'))
+        sgst_amount = (invoice.gst_amount * settings_.sgst_rate / rate_total).quantize(Decimal('0.01'))
+    else:
+        cgst_amount = sgst_amount = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
     return render(request, 'service/service_invoice_detail.html', {
         'invoice':         invoice,
         'labor_charges':   labor_charges,
         'spares_issues':   spares_issues,
         'outwork_entries': outwork_entries,
-        'gst_half':        gst_half,
+        'cgst_amount':     cgst_amount,
+        'sgst_amount':     sgst_amount,
     })
 
 
@@ -644,3 +687,118 @@ def technician_report(request):
         'technicians': technicians,
     }
     return render(request, 'service/technician_report.html', context)
+
+
+# ---------------------------------------------------------------------------
+# Delete views — Issue 11
+# ---------------------------------------------------------------------------
+
+@login_required
+@require_POST
+def enquiry_delete(request, pk):
+    from django.db.models import ProtectedError
+    enq = get_object_or_404(ServiceEnquiry, pk=pk)
+    try:
+        enq.delete()
+        log_action(request, 'ServiceEnquiry', 'delete', pk)
+        messages.success(request, f'Service enquiry SENQ-{pk} deleted.')
+    except ProtectedError:
+        messages.error(
+            request,
+            f'Cannot delete SENQ-{pk}: it has linked appointments or job cards.'
+        )
+        return redirect('service:enquiry_detail', pk=pk)
+    return redirect('service:enquiry_list')
+
+
+@login_required
+@require_POST
+def appointment_delete(request, pk):
+    from django.db.models import ProtectedError
+    apt = get_object_or_404(ServiceAppointment, pk=pk)
+    try:
+        apt.delete()
+        log_action(request, 'ServiceAppointment', 'delete', pk)
+        messages.success(request, 'Service appointment deleted.')
+    except ProtectedError:
+        messages.error(request, 'Cannot delete appointment: a job card is linked to it.')
+        return redirect('service:appointment_list')
+    return redirect('service:appointment_list')
+
+
+@login_required
+@require_POST
+def jobcard_delete(request, pk):
+    from django.db.models import ProtectedError
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    jc = get_object_or_404(JobCard, pk=pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if jc.service_status != 'pending':
+        messages.error(
+            request,
+            f'Cannot delete JC-{pk}: status is "{jc.get_service_status_display()}". '
+            'Only Pending job cards can be deleted.'
+        )
+        return redirect('service:jobcard_detail', pk=pk)
+    try:
+        jc.delete()
+        log_action(request, 'JobCard', 'delete', pk)
+        messages.success(request, f'Job card JC-{pk} deleted.')
+    except ProtectedError:
+        messages.error(request, f'Cannot delete JC-{pk}: invoices or other records are linked.')
+        return redirect('service:jobcard_detail', pk=pk)
+    return redirect('service:jobcard_list')
+
+
+# ---------------------------------------------------------------------------
+# Vehicle Service Master — ERP Alignment
+# ---------------------------------------------------------------------------
+
+@login_required
+def vehicle_service_master_list(request):
+    masters = VehicleServiceMaster.objects.select_related('bike_model').prefetch_related('schedules').all()
+    return render(request, 'service/vehicle_service_master_list.html', {'masters': masters})
+
+
+@login_required
+def vehicle_service_master_create(request):
+    form     = VehicleServiceMasterForm(request.POST or None)
+    formset  = VehicleServiceScheduleFormSet(request.POST or None, prefix='schedules')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        master = form.save()
+        formset.instance = master
+        formset.save()
+        log_action(request, 'VehicleServiceMaster', 'create', master.pk)
+        messages.success(request, 'Vehicle service master created.')
+        return redirect('service:vehicle_service_master_detail', pk=master.pk)
+    if request.method == 'POST':
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'service/vehicle_service_master_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Vehicle Service Master',
+    })
+
+
+@login_required
+def vehicle_service_master_detail(request, pk):
+    master = get_object_or_404(VehicleServiceMaster.objects.select_related('bike_model').prefetch_related('schedules'), pk=pk)
+    return render(request, 'service/vehicle_service_master_detail.html', {'master': master})
+
+
+@login_required
+def vehicle_service_master_update(request, pk):
+    master  = get_object_or_404(VehicleServiceMaster, pk=pk)
+    form    = VehicleServiceMasterForm(request.POST or None, instance=master)
+    formset = VehicleServiceScheduleFormSet(request.POST or None, instance=master, prefix='schedules')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        form.save()
+        formset.save()
+        log_action(request, 'VehicleServiceMaster', 'update', pk)
+        messages.success(request, 'Vehicle service master updated.')
+        return redirect('service:vehicle_service_master_detail', pk=master.pk)
+    if request.method == 'POST':
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'service/vehicle_service_master_form.html', {
+        'form': form, 'formset': formset, 'title': 'Edit Vehicle Service Master', 'master': master,
+    })

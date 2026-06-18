@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form 20 — RTO-{{ rto.pk }} — SSBikez ERP</title>
+<style>
+  @media print {
+    .no-print { display: none !important; }
+    body { font-size: 11pt; }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #111; background: #fff; padding: 24px; max-width: 800px; margin: 0 auto; }
+
+  .print-header { display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 14px; border-bottom: 3px solid #2563EB; margin-bottom: 20px; }
+  .print-logo { font-size: 22px; font-weight: 800; color: #2563EB; }
+  .print-logo span { display: block; font-size: 11px; font-weight: 400; color: #6B7280; }
+  .print-title { text-align: right; }
+  .print-title h1 { font-size: 18px; font-weight: 700; }
+  .print-title .sub { font-size: 12px; color: #6B7280; }
+
+  .form-title { text-align: center; font-size: 16px; font-weight: 700; margin: 10px 0 20px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .info-box { border: 1px solid #E5E7EB; border-radius: 6px; padding: 14px; margin-bottom: 16px; }
+  .info-box h3 { font-size: 11px; font-weight: 700; color: #6B7280; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .info-row { display: flex; gap: 8px; padding: 5px 0; border-bottom: 1px solid #F3F4F6; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row dt { width: 160px; font-weight: 500; color: #6B7280; flex-shrink: 0; }
+  .info-row dd { flex: 1; font-weight: 600; }
+
+  .signatures { display: flex; justify-content: space-between; margin-top: 60px; }
+  .sig-block { text-align: center; width: 220px; }
+  .sig-line { border-top: 1px solid #111; margin-bottom: 6px; }
+
+  .btn-print { background: #2563EB; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; cursor: pointer; margin-bottom: 16px; }
+</style>
+</head>
+<body>
+
+<button class="btn-print no-print" onclick="window.print()">Print Form 20</button>
+
+<div class="print-header">
+  <div class="print-logo">
+    {{ company.company_name|default:"SSBikez" }}
+    <span>{{ company.address_line1 }} {{ company.city }} {{ company.state }} {{ company.pincode }}</span>
+    <span>GSTIN: {{ company.gstin|default:"—" }}</span>
+  </div>
+  <div class="print-title">
+    <h1>Form 20</h1>
+    <div class="sub">Application for Registration of a Motor Vehicle</div>
+  </div>
+</div>
+
+<div class="form-title">RTO-{{ rto.pk }}{% if rto.form20_number %} &middot; Form 20 No. {{ rto.form20_number }}{% endif %}</div>
+
+<div class="info-box">
+  <h3>Owner Details</h3>
+  <div class="info-row"><dt>Name</dt><dd>{{ rto.sales_order.customer.full_name }}</dd></div>
+  <div class="info-row"><dt>Phone</dt><dd>{{ rto.sales_order.customer.phone|default:"—" }}</dd></div>
+  <div class="info-row"><dt>Address</dt><dd>{{ rto.sales_order.customer.address|default:"—" }}</dd></div>
+</div>
+
+<div class="info-box">
+  <h3>Vehicle Details</h3>
+  <div class="info-row"><dt>Bike Model</dt><dd>{{ rto.sales_order.vehicle.bike_model|default:"—" }}</dd></div>
+  <div class="info-row"><dt>Chassis No.</dt><dd>{{ rto.sales_order.vehicle.chassis_no|default:"—" }}</dd></div>
+  <div class="info-row"><dt>Engine No.</dt><dd>{{ rto.sales_order.vehicle.engine_no|default:"—" }}</dd></div>
+  <div class="info-row"><dt>Colour</dt><dd>{{ rto.sales_order.vehicle.color|default:"—" }}</dd></div>
+</div>
+
+<div class="info-box">
+  <h3>Registration Details</h3>
+  <div class="info-row"><dt>Form 20 Number</dt><dd>{{ rto.form20_number|default:"Not yet generated" }}</dd></div>
+  <div class="info-row"><dt>Registration Number</dt><dd>{{ rto.registration_number|default:"Pending" }}</dd></div>
+  <div class="info-row"><dt>Status</dt><dd>{{ rto.get_registration_status_display }}</dd></div>
+  <div class="info-row"><dt>Application Date</dt><dd>{{ rto.created_at|date:"d M Y" }}</dd></div>
+</div>
+
+<div class="signatures">
+  <div class="sig-block">
+    <div class="sig-line"></div>
+    Owner's Signature
+  </div>
+  <div class="sig-block">
+    <div class="sig-line"></div>
+    Dealer's Signature &amp; Seal
+  </div>
+</div>
+
+</body>
+</html>

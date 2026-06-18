@@ -38,6 +38,13 @@
 
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {% for error in form.non_field_errors %}<div>{{ error }}</div>{% endfor %}
+    </div>
+    {% endif %}
+
     <div class="detail-grid">
 
         <!-- Main Form -->
@@ -73,31 +80,37 @@
                         <div class="form-group">
                             <label class="form-label">Part Number</label>
                             {{ form.part_number }}
+                            {% if form.part_number.errors %}<div class="form-error">{{ form.part_number.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Brand</label>
                             {{ form.brand }}
+                            {% if form.brand.errors %}<div class="form-error">{{ form.brand.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">HSN / SAC</label>
                             {{ form.hsn_sac }}
+                            {% if form.hsn_sac.errors %}<div class="form-error">{{ form.hsn_sac.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">UOM</label>
                             {{ form.uom }}
+                            {% if form.uom.errors %}<div class="form-error">{{ form.uom.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Sub Group</label>
                             {{ form.item_sub_group }}
+                            {% if form.item_sub_group.errors %}<div class="form-error">{{ form.item_sub_group.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group span-2">
                             <label class="form-label">Description</label>
                             {{ form.description }}
+                            {% if form.description.errors %}<div class="form-error">{{ form.description.errors|join:", " }}</div>{% endif %}
                         </div>
 
                     </div>
@@ -120,31 +133,37 @@
                         <div class="form-group">
                             <label class="form-label">MRP</label>
                             {{ form.mrp }}
+                            {% if form.mrp.errors %}<div class="form-error">{{ form.mrp.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Selling Rate</label>
                             {{ form.standard_selling_rate }}
+                            {% if form.standard_selling_rate.errors %}<div class="form-error">{{ form.standard_selling_rate.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Valuation Rate</label>
                             {{ form.valuation_rate }}
+                            {% if form.valuation_rate.errors %}<div class="form-error">{{ form.valuation_rate.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">Maximum Discount (%)</label>
                             {{ form.max_discount }}
+                            {% if form.max_discount.errors %}<div class="form-error">{{ form.max_discount.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">SGST (%)</label>
                             {{ form.sgst }}
+                            {% if form.sgst.errors %}<div class="form-error">{{ form.sgst.errors|join:", " }}</div>{% endif %}
                         </div>
 
                         <div class="form-group">
                             <label class="form-label">CGST (%)</label>
                             {{ form.cgst }}
+                            {% if form.cgst.errors %}<div class="form-error">{{ form.cgst.errors|join:", " }}</div>{% endif %}
                         </div>
 
                     </div>
@@ -171,21 +190,25 @@
                     <div class="form-group">
                         <label class="form-label">Opening Stock</label>
                         {{ form.opening_stock }}
+                        {% if form.opening_stock.errors %}<div class="form-error">{{ form.opening_stock.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Reorder Level</label>
                         {{ form.reorder_level }}
+                        {% if form.reorder_level.errors %}<div class="form-error">{{ form.reorder_level.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Reorder Quantity</label>
                         {{ form.reorder_qty }}
+                        {% if form.reorder_qty.errors %}<div class="form-error">{{ form.reorder_qty.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">
                         <label class="form-label">Warranty Period (Days)</label>
                         {{ form.warranty_period_days }}
+                        {% if form.warranty_period_days.errors %}<div class="form-error">{{ form.warranty_period_days.errors|join:", " }}</div>{% endif %}
                     </div>
 
                     <div class="form-group">

@@ -98,6 +98,7 @@ urlpatterns = [
     path('calls/',                              views.call_list,              name='call_list'),
     path('calls/create/',                       views.call_create,            name='call_create'),
     path('customer-vehicles/<int:cv_pk>/call/', views.call_create,            name='call_create_for_cv'),
+    path('follow-ups/',                         views.follow_up_list,         name='follow_up_list'),
 
     # GAP 24 — Update Customer from Job Card
     path('jobcards/<int:pk>/update-customer/',  views.jobcard_update_customer, name='jobcard_update_customer'),
@@ -120,4 +121,15 @@ urlpatterns = [
 
     # FEATURE 7 — Technician Report
     path('technician-report/',                  views.technician_report,      name='technician_report'),
+
+    # Delete endpoints
+    path('enquiries/<int:pk>/delete/',          views.enquiry_delete,         name='enquiry_delete'),
+    path('appointments/<int:pk>/delete/',       views.appointment_delete,     name='appointment_delete'),
+    path('jobcards/<int:pk>/delete/',           views.jobcard_delete,         name='jobcard_delete'),
+
+    # Vehicle Service Master — ERP Alignment
+    path('vehicle-service-master/',              views.vehicle_service_master_list,   name='vehicle_service_master_list'),
+    path('vehicle-service-master/create/',       views.vehicle_service_master_create, name='vehicle_service_master_create'),
+    path('vehicle-service-master/<int:pk>/',     views.vehicle_service_master_detail, name='vehicle_service_master_detail'),
+    path('vehicle-service-master/<int:pk>/edit/', views.vehicle_service_master_update, name='vehicle_service_master_update'),
 ]

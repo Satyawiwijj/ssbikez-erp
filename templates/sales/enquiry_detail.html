@@ -19,6 +19,8 @@
     <button type="submit" class="btn btn-sm btn-primary"> Update</button>
 </form>
 <a href="{% url 'sales:enquiry_update' enquiry.pk %}" class="btn btn-sm btn-outline-primary"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'sales:calllog_add' enquiry.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-phone me-1"></i>Add Call Log</a>
+<a href="{% url 'sales:history_add' enquiry.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-history me-1"></i>Add History</a>
 <a href="{% url 'sales:enquiry_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
 {% endblock %}
 
@@ -450,4 +452,62 @@
   {% endif %}
 
 </div>
+
+<!-- CALL LOGS -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-phone me-2"></i>Call Logs</span>
+    <a href="{% url 'sales:calllog_add' enquiry.pk %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>Add Call Log
+    </a>
+  </div>
+  {% if call_logs %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Call From</th><th>Bill Sec</th><th>Start Time</th><th>Notes</th></tr></thead>
+      <tbody>
+        {% for cl in call_logs %}
+        <tr>
+          <td>{{ cl.call_from|default:"—" }}</td>
+          <td>{{ cl.bill_sec }}</td>
+          <td>{{ cl.start_time|date:"d M Y H:i"|default:"—" }}</td>
+          <td>{{ cl.notes|default:"—" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><p class="mb-0">No call logs yet.</p></div>
+  {% endif %}
+</div>
+
+<!-- HISTORY -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-history me-2"></i>Enquiry History</span>
+    <a href="{% url 'sales:history_add' enquiry.pk %}" class="btn btn-primary btn-sm">
+      <i class="fas fa-plus me-1"></i>Add History
+    </a>
+  </div>
+  {% if histories %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Status</th><th>Remarks</th></tr></thead>
+      <tbody>
+        {% for hist in histories %}
+        <tr>
+          <td>{{ hist.update_date|date:"d M Y" }}</td>
+          <td><span class="badge badge-blue">{{ hist.status }}</span></td>
+          <td>{{ hist.remarks }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty-state"><p class="mb-0">No history entries yet.</p></div>
+  {% endif %}
+</div>
+
 {% endblock %}

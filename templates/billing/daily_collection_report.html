@@ -264,7 +264,7 @@
             {% for si in service_invoices %}
             <tr>
 
-                <td>{{ si.invoice_number|default:"SINV-"|add:si.pk }}</td>
+                <td>{% if si.invoice_number %}{{ si.invoice_number }}{% else %}SINV-{{ si.pk }}{% endif %}</td>
 
                 <td>JC-{{ si.job_card_id }}</td>
 

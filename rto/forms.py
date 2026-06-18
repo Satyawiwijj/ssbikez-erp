@@ -4,6 +4,8 @@ from django import forms
 
 from .models import NumberPlateOrder, RCBook, RTORegistration
 
+REGISTRATION_NUMBER_PATTERN = r'^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}$'
+
 
 class RTORegistrationForm(forms.ModelForm):
     class Meta:
@@ -37,7 +39,7 @@ class RTORegistrationForm(forms.ModelForm):
 
     def clean_registration_number(self):
         value = (self.cleaned_data.get('registration_number') or '').strip().upper()
-        if value and not re.match(r'^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}$', value):
+        if value and not re.match(REGISTRATION_NUMBER_PATTERN, value):
             raise forms.ValidationError(
                 'Enter a valid registration number, e.g. TN11CD5678.'
             )
@@ -75,7 +77,7 @@ class NumberPlateOrderForm(forms.ModelForm):
         value = (self.cleaned_data.get('plate_number') or '').strip().upper()
         if not value:
             raise forms.ValidationError('Plate number is required.')
-        if not re.match(r'^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}$', value):
+        if not re.match(REGISTRATION_NUMBER_PATTERN, value):
             raise forms.ValidationError(
                 'Enter a valid registration number for the plate, e.g. TN11CD5678.'
             )

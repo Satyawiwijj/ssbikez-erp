@@ -137,6 +137,12 @@
                             Edit
                         </a>
 
+                        <form method="post" action="{% url 'service:enquiry_delete' enq.pk %}" style="display:inline"
+                              onsubmit="return confirm('Delete SENQ-{{ enq.pk }}?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                        </form>
+
                     </div>
 
                 </td>

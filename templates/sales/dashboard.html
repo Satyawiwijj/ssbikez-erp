@@ -154,10 +154,10 @@
         <span style="font-size:13px;font-weight:600;color:#92400E;display:flex;align-items:center;gap:6px;">
           <span style="width:8px;height:8px;border-radius:50%;background:#F59E0B;display:inline-block;"></span>Due Today
         </span>
-        {% if todays_followups|length %}<span style="background:#F59E0B;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ todays_followups|length }}</span>{% endif %}
+        {% if today_followups|length %}<span style="background:#F59E0B;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ today_followups|length }}</span>{% endif %}
       </div>
-      {% if todays_followups %}
-      {% for fb in todays_followups|slice:":5" %}{% with enq=fb.enquiry %}
+      {% if today_followups %}
+      {% for fb in today_followups|slice:":5" %}{% with enq=fb.enquiry %}
       <div style="padding:11px 16px;border-bottom:1px solid #FFFBEB;{% if forloop.last %}border-bottom:none;{% endif %}">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">
           <div style="min-width:0;flex:1;">

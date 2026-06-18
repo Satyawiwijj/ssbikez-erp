@@ -43,7 +43,9 @@ def payment_reconciliation(request):
 
     if request.method == 'POST' and request.POST.get('reconcile'):
         ids = request.POST.getlist('payment_ids')
-        n = Payment.objects.filter(pk__in=ids).update(
+        # Only reconcile payments that are actually pending AND within the
+        # date range/queryset shown on this page — never trust posted ids alone.
+        n = unreconciled.filter(pk__in=ids).update(
             payment_status=Payment.PaymentStatus.COMPLETED
         )
         messages.success(request, f'{n} payment(s) marked as completed.')

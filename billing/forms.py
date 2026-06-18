@@ -87,14 +87,24 @@ class PaymentForm(forms.ModelForm):
 
     def clean(self):
         from decimal import Decimal
+        from django.db.models import Sum
         cleaned_data = super().clean()
         amount  = cleaned_data.get('amount')
         invoice = cleaned_data.get('invoice')
         if amount is not None and invoice is not None:
-            if amount > invoice.final_amount:
+            existing_paid = invoice.payments.exclude(
+                payment_status=Payment.PaymentStatus.FAILED,
+            )
+            if self.instance and self.instance.pk:
+                existing_paid = existing_paid.exclude(pk=self.instance.pk)
+            existing_paid = existing_paid.aggregate(
+                total=Sum('amount')
+            )['total'] or Decimal('0')
+            outstanding = invoice.final_amount - existing_paid
+            if amount > outstanding:
                 self.add_error('amount',
-                               f'Payment amount (₹{amount}) cannot exceed invoice total '
-                               f'(₹{invoice.final_amount}).')
+                               f'Payment amount (₹{amount}) exceeds the outstanding balance '
+                               f'(₹{outstanding}) on this invoice.')
         return cleaned_data
 
 

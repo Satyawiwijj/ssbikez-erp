@@ -127,8 +127,8 @@ def invoice_pdf(request, pk):
     payments = list(invoice.payments.filter(payment_status='completed').order_by('payment_date'))
     loan     = getattr(order, 'loan', None)
 
-    # GST breakdown: 9% CGST + 9% SGST on ex-showroom (subtotal)
-    gst_half = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    from .models import split_gst
+    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
 
     # Total paid breakdown
     from decimal import Decimal as D
@@ -146,7 +146,8 @@ def invoice_pdf(request, pk):
         'order':         order,
         'payments':      payments,
         'loan':          loan,
-        'gst_half':      gst_half,
+        'cgst_amount':   cgst_amount,
+        'sgst_amount':   sgst_amount,
         'amount_words':  amount_in_words(invoice.final_amount),
         'total_paid':    total_paid,
         'balance':       balance,
@@ -183,10 +184,16 @@ def service_invoice_pdf(request, job_card_id):
     except Exception:
         return HttpResponse('No service invoice found for this job card.', status=404)
 
+    from spares.models import SparesIssueAlterationItem
     labor_charges   = job_card.labor_charges.all()
-    spares_issues   = []
+    spares_issues   = list(
+        SparesIssueAlterationItem.objects
+        .filter(alteration__job_card=f'JC-{job_card.pk}')
+        .select_related('item')
+    )
     outwork_entries = job_card.outwork_entries.all()
-    gst_half        = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    from .models import split_gst
+    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
 
     try:
         from accounts.models import CompanySettings
@@ -200,7 +207,8 @@ def service_invoice_pdf(request, job_card_id):
         'labor_charges':   labor_charges,
         'spares_issues':   spares_issues,
         'outwork_entries': outwork_entries,
-        'gst_half':        gst_half,
+        'cgst_amount':     cgst_amount,
+        'sgst_amount':     sgst_amount,
         'amount_words':    amount_in_words(invoice.final_amount),
         'company':         company,
     }

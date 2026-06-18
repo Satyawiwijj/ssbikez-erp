@@ -132,11 +132,11 @@
   <tbody>
     {% for si in spares_issues %}
     <tr>
-      <td>{{ si.spare_part.part_name }}</td>
-      <td style="font-family:monospace; color:#6B7280;">{{ si.spare_part.part_number|default:"—" }}</td>
-      <td class="text-right">{{ si.quantity_issued }}</td>
-      <td class="text-right">{{ si.quantity_returned }}</td>
-      <td class="text-right" style="font-weight:600;">{{ si.net_quantity }}</td>
+      <td>{{ si.item.item_name }}</td>
+      <td style="font-family:monospace; color:#6B7280;">{{ si.item.part_number|default:"—" }}</td>
+      <td class="text-right">{{ si.quantity }}</td>
+      <td class="text-right">—</td>
+      <td class="text-right" style="font-weight:600;">{{ si.quantity }}</td>
     </tr>
     {% empty %}
     <tr><td colspan="5" class="empty-note">No parts used</td></tr>

@@ -21,6 +21,7 @@ urlpatterns = [
     path('registrations/<int:pk>/',       views.registration_detail),        # alias
     path('<int:pk>/edit/',                views.registration_update,        name='registration_update'),
     path('<int:pk>/status/',              views.registration_status_update, name='registration_status_update'),
+    path('<int:pk>/form20/',              views.form20_print,               name='form20_print'),
 
     # NumberPlateOrder
     path('plates/create/',                views.plate_create,               name='plate_create'),

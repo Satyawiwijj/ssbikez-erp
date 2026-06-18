@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="vsm-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+<a href="{% url 'service:vehicle_service_master_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Cancel
+</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'service:vehicle_service_master_list' %}">Vehicle Service Master</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="vsm-form" novalidate>
+{% csrf_token %}
+
+{% if form.non_field_errors %}
+<div class="alert alert-danger mb-3">{% for e in form.non_field_errors %}<div>{{ e }}</div>{% endfor %}</div>
+{% endif %}
+
+<!-- Header -->
+<div class="card form-card mb-3">
+    <div class="card-header">Vehicle Details</div>
+    <div style="padding:20px;">
+        <div class="form-grid">
+            <div class="form-group">
+                <label class="form-label">Bike Model <span class="text-danger">*</span></label>
+                {{ form.bike_model }}
+                {% if form.bike_model.errors %}<div class="form-error">{{ form.bike_model.errors|join:", " }}</div>{% endif %}
+            </div>
+            <div class="form-group">
+                <label class="form-label">Vehicle Code</label>
+                {{ form.vehicle_code }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Service Schedule -->
+<div class="card mb-3">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title">Service Schedule</span>
+        <button type="button" class="btn btn-sm btn-outline-primary" id="add-schedule-row">
+            <i class="fas fa-plus me-1"></i> Add Row
+        </button>
+    </div>
+    <div style="overflow-x:auto;">
+        {{ formset.management_form }}
+        {% if formset.non_form_errors %}
+        <div class="alert alert-danger m-2">{{ formset.non_form_errors }}</div>
+        {% endif %}
+        <table class="table mb-0" id="schedule-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th style="min-width:180px;">Service Type <span class="text-danger">*</span></th>
+                    <th style="min-width:160px;">Days from Purchase <span class="text-danger">*</span></th>
+                    <th style="min-width:160px;">KM from Purchase <span class="text-danger">*</span></th>
+                    <th>Del</th>
+                </tr>
+            </thead>
+            <tbody id="schedule-body">
+                {% for sched_form in formset %}
+                <tr class="schedule-row" data-form-index="{{ forloop.counter0 }}">
+                    <td>{{ forloop.counter }}</td>
+                    <td>{% for h in sched_form.hidden_fields %}{{ h }}{% endfor %}{{ sched_form.service_type }}</td>
+                    <td>{{ sched_form.days_from_purchase }}</td>
+                    <td>{{ sched_form.km_from_purchase }}</td>
+                    <td style="text-align:center;vertical-align:middle;">
+                        {% if sched_form.instance.pk %}
+                        <label style="cursor:pointer;">{{ sched_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
+                        {% else %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-schedule"><i class="fas fa-trash"></i></button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+
+<script>
+(function(){
+    const btn = document.getElementById('add-schedule-row');
+    const tbody = document.getElementById('schedule-body');
+    const totalForms = document.getElementById('id_schedules-TOTAL_FORMS');
+    if (!btn || !tbody || !totalForms) return;
+    const firstRow = tbody.querySelector('.schedule-row[data-form-index="0"]') || tbody.querySelector('.schedule-row');
+    btn.addEventListener('click', function(){
+        if (!firstRow) return;
+        const idx = parseInt(totalForms.value);
+        const clone = firstRow.cloneNode(true);
+        clone.innerHTML = clone.innerHTML
+            .replace(/schedules-0-/g, 'schedules-' + idx + '-')
+            .replace(/id_schedules-0-/g, 'id_schedules-' + idx + '-');
+        clone.querySelectorAll('input:not([type=hidden]), select').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+        const delCell = clone.querySelector('td:last-child');
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-schedule"><i class="fas fa-trash"></i></button>';
+        delCell.querySelector('.remove-schedule').addEventListener('click', function(){ clone.remove(); });
+        tbody.appendChild(clone);
+        totalForms.value = idx + 1;
+    });
+    tbody.querySelectorAll('.remove-schedule').forEach(b => {
+        b.addEventListener('click', function(){ b.closest('tr').remove(); });
+    });
+})();
+</script>
+{% endblock %}

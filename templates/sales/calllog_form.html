@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="calllog-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i> Save</button>
+<a href="{% url 'sales:enquiry_detail' enquiry.pk %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
+</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:dashboard' %}">Home</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:enquiry_list' %}">Enquiries</a>
+  <span class="bc-sep">/</span>
+  <a href="{% url 'sales:enquiry_detail' enquiry.pk %}">ENQ-{{ enquiry.pk }}</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">Add Call Log</span>
+</nav>
+
+<form method="post" id="calllog-form" novalidate>
+{% csrf_token %}
+<div class="card form-card">
+  <div class="card-header">Call Log Details</div>
+  <div style="padding:20px;">
+    <div class="form-grid">
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}<div class="form-error">{{ field.errors|join:", " }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+</form>
+{% endblock %}

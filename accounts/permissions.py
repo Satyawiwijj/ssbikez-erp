@@ -44,3 +44,52 @@ def user_can_access(user, namespace):
     if '*' in allowed:
         return True
     return namespace in allowed
+
+
+# ---------------------------------------------------------------------------
+# Object-level (IDOR) checks
+#
+# Namespace checks above only gate "can this role open this app at all".
+# These helpers gate "can this specific user mutate this specific record" —
+# used on edit/delete views for records that carry an owner field
+# (created_by / sales_executive / service_advisor / etc).
+# ---------------------------------------------------------------------------
+
+# Roles trusted to manage records they didn't personally create.
+MANAGEMENT_ROLES = {
+    'Managing Director', 'Sales Manager', 'Floor Supervisor',
+    'Service Manager', 'Supervisor',
+}
+
+# Owner fields checked, in order, across the various models in this app.
+_OWNER_FIELDS = ('created_by', 'sales_executive', 'service_advisor', 'assigned_to')
+
+
+def user_is_manager(user):
+    """True for superusers and roles trusted to manage everyone's records."""
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    role = getattr(user, 'role', None)
+    return bool(role and role.role_name in MANAGEMENT_ROLES)
+
+
+def user_owns(user, obj):
+    """
+    True if `user` may mutate `obj`.
+
+    Managers always pass. Otherwise, true if `user` matches any populated
+    owner field on `obj`. If `obj` has none of the recognised owner fields
+    at all, there's no ownership concept for that model — fall back to True
+    (the namespace-level role gate already covers it).
+    """
+    if user_is_manager(user):
+        return True
+    has_owner_field = False
+    for field in _OWNER_FIELDS:
+        if hasattr(obj, f'{field}_id'):
+            has_owner_field = True
+            if getattr(obj, f'{field}_id') == user.pk:
+                return True
+    return not has_owner_field

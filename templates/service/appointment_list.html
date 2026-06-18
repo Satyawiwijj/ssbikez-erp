@@ -47,7 +47,14 @@
               </span>
             </td>
             <td>
-              <a href="{% url 'service:appointment_update' apt.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+              <div class="table-actions">
+                <a href="{% url 'service:appointment_update' apt.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+                <form method="post" action="{% url 'service:appointment_delete' apt.pk %}" style="display:inline"
+                      onsubmit="return confirm('Delete this appointment?')">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
             </td>
           </tr>
           {% empty %}

@@ -44,6 +44,23 @@ class WarehouseForm(forms.ModelForm):
             else:
                 field.widget.attrs['class'] = 'form-control'
 
+    def clean_parent_warehouse(self):
+        parent = self.cleaned_data.get('parent_warehouse')
+        if parent and self.instance and self.instance.pk:
+            if parent.pk == self.instance.pk:
+                raise forms.ValidationError('A warehouse cannot be its own parent.')
+            # Walk up the ancestor chain to reject a cycle.
+            seen = {self.instance.pk}
+            node = parent
+            for _ in range(20):
+                if node.pk in seen:
+                    raise forms.ValidationError('This would create a circular warehouse hierarchy.')
+                seen.add(node.pk)
+                node = node.parent_warehouse
+                if node is None:
+                    break
+        return parent
+
 
 class RackForm(forms.ModelForm):
     class Meta:

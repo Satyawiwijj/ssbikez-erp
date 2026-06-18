@@ -3,13 +3,13 @@
 {% block title %}{{ title }} — SSBikez ERP{% endblock %}
 {% block page_title %}{{ title }}{% endblock %}
 
-{% block topbar_actions %} <button form="enquiry-form"
-     class="btn btn-sm btn-primary"> <i class="fas fa-save me-1"></i>
-Save Enquiry </button>
-
-<a href="{% url 'service:appointment_list' %}"
-class="btn btn-sm btn-outline-secondary"> <i class="fas fa-arrow-left me-1"></i>
-Back </a>
+{% block topbar_actions %}
+<button form="apt-form" class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i> Save
+</button>
+<a href="{% url 'service:appointment_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i> Back
+</a>
 {% endblock %}
 
 {% block content %}
@@ -17,118 +17,117 @@ Back </a>
 <nav class="breadcrumb-bar">
     <a href="{% url 'accounts:dashboard' %}">Home</a>
     <span class="bc-sep">/</span>
-
-<a href="{% url 'service:dashboard' %}">Service</a>
-<span class="bc-sep">/</span>
-
-<a href="{% url 'service:enquiry_list' %}">Enquiries</a>
-<span class="bc-sep">/</span>
-
-<span class="bc-current">{{ title }}</span>
-
+    <a href="{% url 'service:dashboard' %}">Service</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'service:appointment_list' %}">Appointments</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
 </nav>
 
-<form method="post"
-      id="enquiry-form"
-      novalidate>
+<form method="post" id="apt-form" novalidate>
+    {% csrf_token %}
 
-{% csrf_token %}
+    {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-3">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        {% for err in form.non_field_errors %}<div>{{ err }}</div>{% endfor %}
+    </div>
+    {% endif %}
 
-<div class="row g-3">
+    <div class="detail-grid">
 
-    <div class="col-lg-8">
+        <div>
+            <div class="card form-card mb-3">
+                <div class="card-header">Appointment Details</div>
+                <div style="padding:20px;">
+                    <div class="form-grid">
 
-        <div class="card form-card">
-
-            <div class="card-header">
-                <i class="fas fa-clipboard-list me-2"></i>
-                {{ title }}
-            </div>
-
-            <div class="card-body">
-
-                <div class="row g-3">
-
-                    {% for field in form %}
-
-                    <div class="col-md-6">
-
-                        <label class="form-label fw-semibold">
-                            {{ field.label }}
-
-                            {% if field.field.required %}
-                            <span class="text-danger">*</span>
+                        <div class="form-group">
+                            <label class="form-label">Date <span class="text-danger">*</span></label>
+                            {{ form.appointment_date }}
+                            {% if form.appointment_date.errors %}
+                            <div class="form-error">{{ form.appointment_date.errors|join:", " }}</div>
                             {% endif %}
-                        </label>
-
-                        {{ field }}
-
-                        {% if field.errors %}
-                        <div class="text-danger small mt-1">
-                            {% for error in field.errors %}
-                                {{ error }}
-                            {% endfor %}
                         </div>
-                        {% endif %}
 
-                        {% if field.help_text %}
-                        <small class="text-muted">
-                            {{ field.help_text }}
-                        </small>
-                        {% endif %}
+                        <div class="form-group">
+                            <label class="form-label">Service Enquiry ID <span class="text-danger">*</span></label>
+                            {{ form.service_enquiry }}
+                            {% if form.service_enquiry.errors %}
+                            <div class="form-error">{{ form.service_enquiry.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Phone No</label>
+                            {{ form.phone_no }}
+                            {% if form.phone_no.errors %}
+                            <div class="form-error">{{ form.phone_no.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Whatsapp No</label>
+                            {{ form.whatsapp_no }}
+                            {% if form.whatsapp_no.errors %}
+                            <div class="form-error">{{ form.whatsapp_no.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Chassis No</label>
+                            {{ form.chassis_no }}
+                            {% if form.chassis_no.errors %}
+                            <div class="form-error">{{ form.chassis_no.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Vehicle Name</label>
+                            {{ form.vehicle_name }}
+                            {% if form.vehicle_name.errors %}
+                            <div class="form-error">{{ form.vehicle_name.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Service Type</label>
+                            {{ form.service_type }}
+                            {% if form.service_type.errors %}
+                            <div class="form-error">{{ form.service_type.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Status</label>
+                            {{ form.status }}
+                            {% if form.status.errors %}
+                            <div class="form-error">{{ form.status.errors|join:", " }}</div>
+                            {% endif %}
+                        </div>
 
                     </div>
 
-                    {% endfor %}
+                    <div class="mt-3">
+                        <label class="d-flex align-items-center gap-2">
+                            {{ form.is_cancelled_postponed }}
+                            <span>Appointment Cancel / Postponed</span>
+                        </label>
+                    </div>
 
                 </div>
-
             </div>
+        </div>
 
+        <div>
+            <div class="card">
+                <div class="card-header">Notes</div>
+                <div style="padding:16px;" class="text-muted small">
+                    Record service appointment details. Link to an existing Service Enquiry and specify chassis/vehicle details for quick identification.
+                </div>
+            </div>
         </div>
 
     </div>
-
-    <div class="col-lg-4">
-
-        <div class="card">
-
-            <div class="card-header">
-                <i class="fas fa-info-circle me-2"></i>
-                Details
-            </div>
-
-            <div class="card-body">
-
-                <div class="mb-3">
-                    <strong>Module</strong>
-                    <div class="text-muted">
-                        Service Management
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <strong>Section</strong>
-                    <div class="text-muted">
-                        Service Enquiries
-                    </div>
-                </div>
-
-                <div>
-                    <strong>Notes</strong>
-                    <div class="text-muted small">
-                        Record customer complaints, service requests, vehicle issues and follow-up details before creating appointments or job cards.
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
 </form>
-
 {% endblock %}

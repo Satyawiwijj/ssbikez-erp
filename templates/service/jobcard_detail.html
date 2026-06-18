@@ -381,13 +381,13 @@
       <tbody>
         {% for issue in spares_issues %}
         <tr>
-          <td style="font-weight:500;">{{ issue.spare_part.part_name }}</td>
-          <td>{{ issue.quantity_issued }}</td>
-          <td>{{ issue.quantity_returned }}</td>
-          <td style="font-weight:500;">{{ issue.net_quantity }}</td>
-          <td>{{ issue.unit_price|default:"—" }}</td>
-          <td style="font-weight:500;">{{ issue.total_price|default:"—" }}</td>
-          <td style="color:#6B7280; font-size:13px;">{{ issue.issued_by|default:"—" }}</td>
+          <td style="font-weight:500;">{{ issue.item.item_name }}</td>
+          <td>{{ issue.quantity }}</td>
+          <td>—</td>
+          <td style="font-weight:500;">{{ issue.quantity }}</td>
+          <td>{{ issue.rate|default:"—" }}</td>
+          <td style="font-weight:500;">{{ issue.total|default:"—" }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ issue.alteration.created_by|default:"—" }}</td>
           <td><a href="{% url 'spares:issue_alteration_list' %}" class="btn btn-ghost btn-sm">View</a></td>
         </tr>
         {% empty %}
