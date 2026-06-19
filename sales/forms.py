@@ -308,7 +308,7 @@ class CallLogForm(forms.ModelForm):
         widgets = {
             'unique_id':  forms.TextInput(attrs={'class': 'form-control'}),
             'call_from':  forms.TextInput(attrs={'class': 'form-control'}),
-            'bill_sec':   forms.NumberInput(attrs={'class': 'form-control'}),
+            'bill_sec':   forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:70px'}),
             'start_time': forms.DateTimeInput(attrs={'type': 'datetime-local', 'class': 'form-control'}),
             'audio_url':  forms.URLInput(attrs={'class': 'form-control'}),
             'notes':      forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),

@@ -308,6 +308,9 @@ def enquiry_create(request):
     if request.method == 'POST':
         if form.is_valid() and calllog_formset.is_valid() and history_formset.is_valid():
             enquiry = form.save()
+            if not enquiry.sales_executive_id:
+                enquiry.sales_executive = request.user
+                enquiry.save(update_fields=['sales_executive'])
             calllog_formset.instance = enquiry
             calllog_formset.save()
             history_formset.instance = enquiry
@@ -824,11 +827,17 @@ def leaderboard(request):
         target = SalesTarget.objects.filter(
             sales_executive=exec_user, month=today.month, year=today.year
         ).first()
+        month_enquiries = exec_user.month_enquiries or 0
+        month_conversions = exec_user.month_conversions or 0
+        conversion_percent = (
+            round(month_conversions / month_enquiries * 100, 1) if month_enquiries else 0
+        )
         leaderboard_data.append({
             'rank': i, 'user': exec_user, 'target': target,
-            'month_enquiries': exec_user.month_enquiries or 0,
-            'month_conversions': exec_user.month_conversions or 0,
+            'month_enquiries': month_enquiries,
+            'month_conversions': month_conversions,
             'month_revenue': exec_user.month_revenue or 0,
+            'conversion_percent': conversion_percent,
         })
     return render(request, 'sales/leaderboard.html', {
         'leaderboard': leaderboard_data, 'month': today.month, 'year': today.year,

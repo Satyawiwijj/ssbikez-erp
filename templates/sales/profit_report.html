@@ -58,7 +58,7 @@
                 <div style="font-size:13px;color:#64748b;">
                     Total Profit
                 </div>
-                <div style="font-size:24px;font-weight:700;color:#16a34a;">
+                <div style="font-size:24px;font-weight:700;color:{% if total_profit < 0 %}#dc2626{% else %}#16a34a{% endif %};">
                     ₹{{ total_profit|floatformat:0 }}
                 </div>
             </div>
@@ -172,7 +172,7 @@
                         Total Profit
                     </td>
 
-                    <td style="color:#16a34a;">
+                    <td style="color:{% if total_profit < 0 %}#dc2626{% else %}#16a34a{% endif %};">
                         ₹{{ total_profit|floatformat:0 }}
                     </td>
 

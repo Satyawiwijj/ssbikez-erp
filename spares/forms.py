@@ -120,17 +120,17 @@ class PurchaseOrderItemForm(forms.ModelForm):
         fields = ['item', 'warehouse', 'quantity', 'uom', 'rate', 'required_by',
                   'used_qty', 'ordered_qty', 'average', 'stock_qty', 'one_month_qty']
         widgets = {
-            'item':      forms.Select(attrs={'class': 'form-select item-select'}),
-            'warehouse': forms.Select(attrs={'class': 'form-select'}),
-            'quantity':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'uom':       forms.TextInput(attrs={'class': 'form-control'}),
-            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'required_by': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'used_qty':    forms.NumberInput(attrs={'class': 'form-control'}),
-            'ordered_qty': forms.NumberInput(attrs={'class': 'form-control'}),
-            'average':     forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'stock_qty':   forms.NumberInput(attrs={'class': 'form-control'}),
-            'one_month_qty': forms.NumberInput(attrs={'class': 'form-control'}),
+            'item':      forms.Select(attrs={'class': 'form-select item-select', 'style': 'min-width:180px'}),
+            'warehouse': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:140px'}),
+            'quantity':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'style': 'min-width:70px'}),
+            'uom':       forms.TextInput(attrs={'class': 'form-control', 'style': 'min-width:60px'}),
+            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:90px'}),
+            'required_by': forms.DateInput(attrs={'class': 'form-control', 'type': 'date', 'style': 'min-width:130px'}),
+            'used_qty':    forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:70px'}),
+            'ordered_qty': forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:70px'}),
+            'average':     forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:70px'}),
+            'stock_qty':   forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:70px'}),
+            'one_month_qty': forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:70px'}),
         }
 
 
@@ -166,15 +166,15 @@ class PurchaseInvoiceItemForm(forms.ModelForm):
         model = PurchaseInvoiceItem
         fields = ['item', 'warehouse', 'rack', 'bin', 'quantity', 'uom', 'rate', 'sgst', 'cgst']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
-            'warehouse': forms.Select(attrs={'class': 'form-select'}),
-            'rack': forms.Select(attrs={'class': 'form-select'}),
-            'bin': forms.Select(attrs={'class': 'form-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'uom': forms.TextInput(attrs={'class': 'form-control'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'sgst': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'cgst': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'item': forms.Select(attrs={'class': 'form-select item-select', 'style': 'min-width:180px'}),
+            'warehouse': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:140px'}),
+            'rack': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'bin': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'style': 'min-width:70px'}),
+            'uom': forms.TextInput(attrs={'class': 'form-control', 'style': 'min-width:60px'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:90px'}),
+            'sgst': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:70px'}),
+            'cgst': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:70px'}),
         }
 
 
@@ -207,12 +207,12 @@ class CounterSaleItemForm(forms.ModelForm):
         model = CounterSaleItem
         fields = ['item', 'rack', 'bin', 'quantity', 'rate', 'gst_percent']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
-            'rack': forms.Select(attrs={'class': 'form-select'}),
-            'bin': forms.Select(attrs={'class': 'form-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'gst_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'item': forms.Select(attrs={'class': 'form-select item-select', 'style': 'min-width:180px'}),
+            'rack': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'bin': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'style': 'min-width:70px'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:90px'}),
+            'gst_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:70px'}),
         }
 
 
@@ -240,9 +240,9 @@ class CounterSaleReturnItemForm(forms.ModelForm):
         model = CounterSaleReturnItem
         fields = ['item', 'quantity', 'rate']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'item': forms.Select(attrs={'class': 'form-select item-select', 'style': 'min-width:180px'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'style': 'min-width:70px'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:90px'}),
         }
 
 
@@ -271,12 +271,12 @@ class SparesIssueAlterationItemForm(forms.ModelForm):
         model = SparesIssueAlterationItem
         fields = ['item', 'quantity', 'rack', 'bin', 'rate', 'discount_percent']
         widgets = {
-            'item': forms.Select(attrs={'class': 'form-select item-select'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001'}),
-            'rack': forms.Select(attrs={'class': 'form-select'}),
-            'bin': forms.Select(attrs={'class': 'form-select'}),
-            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'discount_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'item': forms.Select(attrs={'class': 'form-select item-select', 'style': 'min-width:180px'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.001', 'style': 'min-width:70px'}),
+            'rack': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'bin': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:80px'}),
+            'rate': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:90px'}),
+            'discount_percent': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:70px'}),
         }
 
 

@@ -235,8 +235,8 @@ class VehicleServiceScheduleForm(forms.ModelForm):
         model  = VehicleServiceSchedule
         fields = ('service_type', 'days_from_purchase', 'km_from_purchase')
         widgets = {
-            'days_from_purchase': forms.NumberInput(attrs={'class': 'form-control'}),
-            'km_from_purchase':   forms.NumberInput(attrs={'class': 'form-control'}),
+            'days_from_purchase': forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:90px'}),
+            'km_from_purchase':   forms.NumberInput(attrs={'class': 'form-control', 'style': 'min-width:90px'}),
         }
 
 
