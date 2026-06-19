@@ -1,0 +1,4 @@
+item_name,part_number,category,hsn_sac,mrp,selling_rate,sgst,cgst,reorder_level
+Brake Pad Front,BP-001-F,Brakes,87083000,450.00,380.00,9,9,10
+Engine Oil 1L,EO-10W30-1L,Lubricants,27101981,520.00,460.00,9,9,20
+Air Filter,AF-205,Filters,84212300,280.00,235.00,9,9,15
