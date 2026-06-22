@@ -119,3 +119,29 @@ These were not in the original report and would not have been caught without scr
 ## 7. What's left
 
 Nothing on the code side. Section 1 is the only remaining work, and it requires the client's Render account access — it cannot be done from this side.
+
+---
+
+## 8. Response to the Test Server review report (22-06-2026)
+
+The interns' review listed 15 issues from testing on the Test Server. We went through every one against the actual code, fixed what was real, and traced the rest to their actual cause rather than guessing.
+
+**The headline finding: issues #1–6 ("Vehicle Master Missing," "Customer Vehicle Creation," "Sales Order Creation," "Exchange Vehicle Creation," "RTO Registration Blocked," "Sales Enquiry Creation") were not code bugs.** All six trace back to one thing: the Test Server's Vehicle Master had **zero vehicles in stock**. Sales Orders, Customer Vehicles, and everything downstream of them require picking a vehicle from stock — with none available, every one of those screens looked broken even though the code underneath was working correctly. We confirmed this by re-running the exact same flows with stock present: every one of them works.
+
+**This is the part that matters going forward — to stop this from recurring:**
+- **Before testing on any fresh/Test Server environment, seed at least a few vehicles into stock first.** We added a one-command way to do this: `python manage.py seed_vehicle_master` — it creates a handful of demo Bike Models and available Vehicle Stock units, safe to re-run. Whoever sets up a Test Server for the interns (or for future QA rounds) should run this once right after deploy, before anyone starts testing transactions.
+- An empty database is not a bug report — it's a setup step that was skipped. Worth telling the QA team this explicitly so the next round doesn't re-flag the same six items as "broken."
+
+**Issues that were real and are now fixed:**
+
+| # | Issue | Fix |
+|---|---|---|
+| 7 | Search by Number Plate not working | Global search only matched chassis/engine number, never the vehicle's registration number. Now matches registration number too, with its own result section. |
+| 13 | Sales Order/Invoice needs a multi-item table like Purchase Order | The "add one fitting at a time on a separate page" flow is now an inline multi-row table (add/remove rows, running total, save together) — same pattern as Purchase Order's item table. |
+| 15 | Role permissions work, but no page/module-level access control | Added a "Module Access" screen (Admin → Module Access) where a Managing Director can hide individual sidebar modules per role, on top of the existing role permissions — without touching code. |
+| 9 | Record Delivery missing vehicle details | Found while re-verifying this report: the delivery page showed only the bike model name. Added chassis no, engine no, color, and the 5-item handover checklist (insurance, RC book, warranty card, toolkit, accessories) that was being captured but never displayed. |
+| — | Dashboard showed action buttons for modules a role couldn't access (e.g. a Sales Executive saw "New Job Card") | Found during this round's QA, not in the original report. Clicking did correctly get blocked (403) — but the buttons shouldn't have been visible at all. Dashboard quick actions are now hidden per-role, consistent with the sidebar. |
+
+**Issues that were already working, not bugs:** #8 (module sequence — both sections use the same permission check, order doesn't block anything), #10 (Supplier fields — already complete), #11 (Journal Entry fields — already complete), #12 (duplicate Appointment menu — intentional, Sales and Service have separate appointment types), #14 (Purchase tax table — CGST/SGST already present).
+
+**How this was verified:** every fix above was driven through a real headless browser end-to-end — not just read in code — and the full regression suite (live-browser QA, deep visual QA, data-integrity checks, and model-level workflow tests; ~1,200 checks in total across all suites) was re-run clean after each change.

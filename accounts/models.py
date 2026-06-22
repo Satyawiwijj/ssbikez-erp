@@ -228,3 +228,45 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.level}] {self.title}"
+
+
+# ---------------------------------------------------------------------------
+# ModulePermission — page/module-level access on top of role permissions
+# ---------------------------------------------------------------------------
+
+MODULE_CHOICES = (
+    ('sales',          'Sales'),
+    ('customers',      'Customers'),
+    ('finance',        'Finance / Billing'),
+    ('rto',            'RTO'),
+    ('service',        'Service'),
+    ('spares',         'Spares'),
+    ('vas',            'Value Added Services'),
+    ('vehicle_master', 'Vehicle Master'),
+    ('masters',        'Masters'),
+    ('reports',        'Reports'),
+    ('admin',          'Admin'),
+)
+
+
+class ModulePermission(models.Model):
+    """
+    Per-role override for sidebar module visibility.
+
+    A role's base access comes from accounts.permissions.ROLE_PERMISSIONS.
+    A row here narrows that further: if a (role, module) row exists with
+    can_view=False, the module is hidden for that role even if the role
+    would otherwise see it. Absence of a row means "use the role default".
+    """
+    role      = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='module_permissions')
+    module    = models.CharField(max_length=30, choices=MODULE_CHOICES)
+    can_view  = models.BooleanField(default=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('role', 'module')
+        ordering = ['role__role_name', 'module']
+        verbose_name_plural = 'Module Permissions'
+
+    def __str__(self):
+        return f"{self.role} — {self.get_module_display()}: {'View' if self.can_view else 'Hidden'}"

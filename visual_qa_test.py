@@ -4,7 +4,7 @@ os.environ['DJANGO_ALLOW_ASYNC_UNSAFE'] = 'true'
 
 from playwright.sync_api import sync_playwright
 
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = 'http://127.0.0.1:8010'
 SS_DIR = r'C:\Users\Satya\ssbikez-erp\visual_qa'
 os.makedirs(SS_DIR, exist_ok=True)
 
@@ -652,7 +652,7 @@ with sync_playwright() as pw:
                     fail('RTO', f'RTO detail: {item}', 'Not visible', f'059_rto_{item}_fail', page)
 
             try:
-                go(page, f'/rto/rc-books/create/?rto={rto_pk}')
+                go(page, f'/rto/{rto_pk}/rc-book/')
                 check_page_visual(page, 'RTO', '060_rcbook_create')
                 rc_num = page.query_selector('input[name="rc_number"]')
                 if rc_num: rc_num.fill('TN11VQA001')
@@ -762,7 +762,7 @@ with sync_playwright() as pw:
         jc.refresh_from_db()
         ok('Service', f'Job card status advanced (now: {jc.service_status})', '073_jc_status', page)
 
-        go(page, f'/service/labour/create/?job_card={jc_pk}')
+        go(page, f'/service/labor-charges/create/?jc={jc_pk}')
         check_page_visual(page, 'Service', '074_labour_create')
         sname = page.query_selector('input[name="service_name"]')
         if sname: sname.fill('VQA Engine Oil Change')
@@ -778,7 +778,7 @@ with sync_playwright() as pw:
         jc.save()
         page.wait_for_timeout(500)
 
-        go(page, f'/service/service-invoice/create/?jc={jc_pk}')
+        go(page, f'/service/invoices/create/?jc={jc_pk}')
         check_page_visual(page, 'Service', '076_service_invoice_create')
         select_first(page, 'job_card')
         sinv_num = page.query_selector('input[name="invoice_number"]')
@@ -791,7 +791,7 @@ with sync_playwright() as pw:
         if si:
             ok('Service', 'Service invoice created', '077_sinv_ok', page)
 
-            go(page, f'/service/service-invoice/{jc_pk}/')
+            go(page, f'/service/invoices/{si.pk}/')
             check_page_visual(page, 'Service', '078_service_invoice_detail')
             ss(page, '078_sinv_detail_full')
 
@@ -902,7 +902,7 @@ with sync_playwright() as pw:
     ss(page, '096_counter_sale_created')
     ok('Spares', 'Counter sale initiated', '096_cs_ok', page)
 
-    go(page, '/spares/reports/stock/')
+    go(page, '/spares/stock/')
     check_page_visual(page, 'Spares', '097_stock_report')
 
     go(page, '/spares/reports/parts-consumption/')

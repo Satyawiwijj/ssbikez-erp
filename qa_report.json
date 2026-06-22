@@ -1,8 +1,8 @@
 {
   "summary": {
-    "total": 86,
-    "passed": 84,
-    "issues": 2
+    "total": 93,
+    "passed": 93,
+    "issues": 0
   },
   "results": [
     {
@@ -141,11 +141,9 @@
       "step": "Detail tab/section: Finance"
     },
     {
-      "status": "ISSUE",
+      "status": "OK",
       "flow": "Order",
-      "step": "Detail section: Documents",
-      "detail": "'Documents' not found on order detail",
-      "screenshot": ""
+      "step": "Detail tab/section: Documents"
     },
     {
       "status": "OK",
@@ -156,6 +154,36 @@
       "status": "OK",
       "flow": "Order",
       "step": "PDI created (28 checkboxes)"
+    },
+    {
+      "status": "OK",
+      "flow": "Fittings",
+      "step": "Formset page loads with item table"
+    },
+    {
+      "status": "OK",
+      "flow": "Fittings",
+      "step": "Formset saved (2 rows)"
+    },
+    {
+      "status": "OK",
+      "flow": "Fittings",
+      "step": "Both fittings visible on order detail"
+    },
+    {
+      "status": "OK",
+      "flow": "ModuleAccess",
+      "step": "Edit page loads for a role"
+    },
+    {
+      "status": "OK",
+      "flow": "ModuleAccess",
+      "step": "Module visibility toggle saved"
+    },
+    {
+      "status": "OK",
+      "flow": "ModuleAccess",
+      "step": "Restored original module state"
     },
     {
       "status": "OK",
@@ -328,11 +356,9 @@
       "step": "e2e_sales login succeeded"
     },
     {
-      "status": "ISSUE",
+      "status": "OK",
       "flow": "RBAC",
-      "step": "Billing visible to e2e_sales",
-      "detail": "Finance/Billing links visible in sidebar for Sales role",
-      "screenshot": ""
+      "step": "Billing sidebar hidden for e2e_sales"
     },
     {
       "status": "OK",
@@ -367,7 +393,7 @@
     {
       "status": "OK",
       "flow": "Notifications",
-      "step": "Notification list has 35 items/rows"
+      "step": "Notification list has 54 items/rows"
     },
     {
       "status": "OK",
@@ -388,6 +414,11 @@
       "status": "OK",
       "flow": "Search",
       "step": "Clicking result navigates correctly"
+    },
+    {
+      "status": "OK",
+      "flow": "Search",
+      "step": "Search by registration number \"TN09BZ1234\" returns Customer Vehicles result"
     },
     {
       "status": "OK",

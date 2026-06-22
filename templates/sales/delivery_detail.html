@@ -36,6 +36,11 @@ Back to Order
             <div class="fw-semibold">
                 {{ delivery.sales_order.vehicle.bike_model }}
             </div>
+            {% if delivery.sales_order.vehicle.chassis_no %}
+            <div class="text-muted small">
+                Chassis: {{ delivery.sales_order.vehicle.chassis_no }}
+            </div>
+            {% endif %}
         </div>
         <div class="col-md-4">
             <div class="text-muted small fw-semibold">
@@ -80,6 +85,24 @@ Back to Order
                 </td>
             </tr>
             <tr>
+                <th>Chassis No</th>
+                <td>
+                    {{ delivery.sales_order.vehicle.chassis_no|default:"—" }}
+                </td>
+            </tr>
+            <tr>
+                <th>Engine No</th>
+                <td>
+                    {{ delivery.sales_order.vehicle.engine_no|default:"—" }}
+                </td>
+            </tr>
+            <tr>
+                <th>Color</th>
+                <td>
+                    {{ delivery.sales_order.vehicle.color|default:"—" }}
+                </td>
+            </tr>
+            <tr>
                 <th>Delivery Date</th>
                 <td>
                     {{ delivery.delivery_date|date:"d M Y" }}
@@ -101,6 +124,71 @@ Back to Order
                 <th>Created On</th>
                 <td>
                     {{ delivery.created_at|date:"d M Y" }}
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</div>
+
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-clipboard-check me-2"></i>
+        Handover Checklist
+    </span>
+</div>
+<div class="table-wrapper">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Insurance Policy Handed Over</th>
+                <td>
+                    {% if delivery.checklist_insurance %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>RC Book / Temp Reg Handed Over</th>
+                <td>
+                    {% if delivery.checklist_rc_book %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Warranty Card Handed Over</th>
+                <td>
+                    {% if delivery.checklist_warranty %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Toolkit &amp; Owner Manual Handed Over</th>
+                <td>
+                    {% if delivery.checklist_toolkit %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
+                </td>
+            </tr>
+            <tr>
+                <th>Accessories Fitted &amp; Verified</th>
+                <td>
+                    {% if delivery.checklist_accessories %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
                 </td>
             </tr>
         </tbody>

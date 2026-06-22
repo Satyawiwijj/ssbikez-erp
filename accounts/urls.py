@@ -24,6 +24,9 @@ urlpatterns = [
     path('roles/create/',        views.role_create, name='role_create'),
     path('roles/<int:pk>/edit/', views.role_update, name='role_update'),
 
+    path('module-access/',               views.module_access_list, name='module_access_list'),
+    path('module-access/<int:role_pk>/', views.module_access_edit, name='module_access_edit'),
+
     path('fuel-expenses/',               views.fuel_expense_list,   name='fuel_expense_list'),
     path('fuel-expenses/create/',        views.fuel_expense_create, name='fuel_expense_create'),
     path('fuel-expenses/<int:pk>/edit/', views.fuel_expense_update, name='fuel_expense_update'),

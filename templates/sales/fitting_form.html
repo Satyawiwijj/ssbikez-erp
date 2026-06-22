@@ -9,7 +9,7 @@
         class="btn btn-sm btn-primary">
 
     <i class="fas fa-save me-1"></i>
-    Add Fitting
+    Save Fittings
 
 </button>
 
@@ -33,105 +33,134 @@
   <span class="bc-current">{{ title }}</span>
 </nav>
 
-<form method="post"
-      id="fitting-form"
-      novalidate>
-
+<form method="post" id="fitting-form" novalidate>
     {% csrf_token %}
+    {{ formset.management_form }}
+    {% if formset.non_form_errors %}
+    <div class="alert alert-danger">{{ formset.non_form_errors }}</div>
+    {% endif %}
 
-    <div class="row g-3">
-
-        <div class="col-lg-8">
-
-            <div class="card form-card">
-
-                <div class="card-header">
-
-                    <i class="fas fa-tools me-2"></i>
-                    Add Fitting / Accessory
-
-                </div>
-
-                <div class="card-body">
-
-                    <div class="row g-3">
-
-                        {% for field in form %}
-
-                        <div class="col-md-6">
-
-                            <label class="form-label fw-semibold">
-
-                                {{ field.label }}
-
-                                {% if field.field.required %}
-                                <span class="text-danger">*</span>
-                                {% endif %}
-
+    <div class="card mb-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title"><i class="fas fa-tools me-2"></i>Fittings / Accessories</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-fitting-row">
+                <i class="fas fa-plus me-1"></i> Add Row
+            </button>
+        </div>
+        <div style="overflow-x:auto;">
+            <table class="table mb-0" id="fitting-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:220px;">Fitting Name <span class="text-danger">*</span></th>
+                        <th style="min-width:260px;">Description</th>
+                        <th style="min-width:120px;">Cost</th>
+                        <th style="width:50px;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="formset-body">
+                    {% for line_form in formset %}
+                    <tr class="fitting-row" data-form-index="{{ forloop.counter0 }}">
+                        <td>
+                            {% for hidden in line_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ line_form.fitting_name }}
+                            {% if line_form.fitting_name.errors %}<div class="form-error">{{ line_form.fitting_name.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>{{ line_form.description }}</td>
+                        <td>
+                            {{ line_form.cost }}
+                            {% if line_form.cost.errors %}<div class="form-error">{{ line_form.cost.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td style="text-align:center;vertical-align:middle;">
+                            {% if line_form.instance.pk %}
+                            <label style="display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+                                {{ line_form.DELETE }}
+                                <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
                             </label>
-
-                            {{ field }}
-
-                            {% if field.errors %}
-                            <div class="text-danger small mt-1">
-                                {{ field.errors }}
-                            </div>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                                <i class="fas fa-trash"></i>
+                            </button>
                             {% endif %}
-
-                        </div>
-
-                        {% endfor %}
-
-                    </div>
-
-                </div>
-
-            </div>
-
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f9fafb;font-weight:600;">
+                        <td colspan="2" style="text-align:right;padding:10px 12px;">Total</td>
+                        <td id="grand-total-cell" style="padding:10px 12px;">—</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
         </div>
-
-        <div class="col-lg-4">
-
-            <div class="card">
-
-                <div class="card-header">
-
-                    <i class="fas fa-info-circle me-2"></i>
-                    Details
-
-                </div>
-
-                <div class="card-body">
-
-                    <div class="mb-3">
-                        <strong>Order</strong>
-                        <div class="text-muted">
-                            ORD-{{ order.pk }}
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <strong>Customer</strong>
-                        <div class="text-muted">
-                            {{ order.customer.full_name }}
-                        </div>
-                    </div>
-
-                    <div>
-                        <strong>Notes</strong>
-                        <div class="text-muted small">
-                            Record accessories and additional fittings installed for this vehicle.
-                        </div>
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
     </div>
-
 </form>
+
+<script>
+(function () {
+    const totalForms = document.getElementById('id_fittings-TOTAL_FORMS');
+    const tbody       = document.getElementById('formset-body');
+
+    const firstRow = tbody.querySelector('.fitting-row[data-form-index="0"]') ||
+                      tbody.querySelector('.fitting-row');
+
+    document.getElementById('add-fitting-row').addEventListener('click', function () {
+        if (!firstRow) return;
+        const idx   = parseInt(totalForms.value);
+        const clone = firstRow.cloneNode(true);
+
+        clone.innerHTML = clone.innerHTML
+            .replace(/fittings-0-/g, `fittings-${idx}-`)
+            .replace(/id_fittings-0-/g, `id_fittings-${idx}-`);
+
+        clone.querySelectorAll('input:not([type=hidden]), textarea, select').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+
+        const delCell = clone.querySelector('td:last-child');
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-trash"></i></button>';
+        delCell.querySelector('.remove-row').addEventListener('click', function () {
+            clone.remove();
+            recalc();
+        });
+
+        tbody.appendChild(clone);
+        totalForms.value = idx + 1;
+
+        bindRowCalc(clone);
+        recalc();
+    });
+
+    tbody.querySelectorAll('.remove-row').forEach(btn => {
+        btn.addEventListener('click', function () {
+            btn.closest('tr').remove();
+            recalc();
+        });
+    });
+
+    function bindRowCalc(row) {
+        const cost = row.querySelector('input[name$="-cost"]');
+        if (!cost) return;
+        cost.addEventListener('input', recalc);
+    }
+
+    function recalc() {
+        let total = 0;
+        tbody.querySelectorAll('tr.fitting-row').forEach(row => {
+            const delCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (delCheckbox && delCheckbox.checked) return;
+            const cost = row.querySelector('input[name$="-cost"]');
+            if (cost) total += parseFloat(cost.value) || 0;
+        });
+        document.getElementById('grand-total-cell').textContent = '₹ ' + total.toFixed(2);
+    }
+
+    tbody.querySelectorAll('.fitting-row').forEach(bindRowCalc);
+    tbody.querySelectorAll('input[name$="-DELETE"]').forEach(cb => cb.addEventListener('change', recalc));
+    recalc();
+})();
+</script>
 
 {% endblock %}

@@ -246,11 +246,27 @@
                 class="btn btn-primary btn-sm">
 
                     <i class="fas fa-plus me-1"></i>
-                    Add Fitting
+                    {% if order.fittings.all %}Manage Fittings{% else %}Add Fitting{% endif %}
 
                 </a>
             </div>
 
+            {% if order.fittings.all %}
+            <div class="table-wrapper">
+                <table class="table mb-0">
+                    <thead><tr><th>Fitting</th><th>Description</th><th>Cost</th></tr></thead>
+                    <tbody>
+                        {% for fit in order.fittings.all %}
+                        <tr>
+                            <td style="font-weight:500;">{{ fit.fitting_name }}</td>
+                            <td>{{ fit.description|default:"—" }}</td>
+                            <td>&#x20B9; {{ fit.cost }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
             <div class="empty-state">
 
                 <p class="mb-2">
@@ -262,6 +278,7 @@
                 </small>
 
             </div>
+            {% endif %}
         </div>
 
     </div>

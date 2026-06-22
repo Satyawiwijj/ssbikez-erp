@@ -512,6 +512,46 @@ def role_update(request, pk):
 
 
 # ---------------------------------------------------------------------------
+# ModulePermission — page/module-level access per role
+# ---------------------------------------------------------------------------
+
+@login_required
+def module_access_list(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    roles = Role.objects.all()
+    return render(request, 'accounts/module_access_list.html', {'roles': roles})
+
+
+@login_required
+def module_access_edit(request, role_pk):
+    from .models import MODULE_CHOICES, ModulePermission
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+
+    role = get_object_or_404(Role, pk=role_pk)
+    overrides = {mp.module: mp.can_view for mp in role.module_permissions.all()}
+
+    if request.method == 'POST':
+        for key, _label in MODULE_CHOICES:
+            can_view = request.POST.get(f'module_{key}') == 'on'
+            ModulePermission.objects.update_or_create(
+                role=role, module=key, defaults={'can_view': can_view}
+            )
+        log_action(request, 'ModulePermission', 'update', role.pk)
+        messages.success(request, f'Module access updated for {role.role_name}.')
+        return redirect('accounts:module_access_list')
+
+    rows = [
+        {'key': key, 'label': label, 'can_view': overrides.get(key, True)}
+        for key, label in MODULE_CHOICES
+    ]
+    return render(request, 'accounts/module_access_edit.html', {'role': role, 'rows': rows})
+
+
+# ---------------------------------------------------------------------------
 # FuelExpense
 # ---------------------------------------------------------------------------
 
@@ -582,6 +622,7 @@ def password_change(request):
 def global_search(request):
     from billing.models import Invoice
     from customers.models import Customer, VehicleStock
+    from customer_vehicles.models import CustomerVehicle
     from sales.models import SalesEnquiry, VehicleSalesOrder
     from service.models import JobCard
     try:
@@ -602,6 +643,12 @@ def global_search(request):
         results['vehicle_stock'] = list(
             VehicleStock.objects.select_related('bike_model').filter(
                 Q(chassis_no__icontains=q) | Q(engine_no__icontains=q)
+            )[:5]
+        )
+
+        results['customer_vehicles'] = list(
+            CustomerVehicle.objects.select_related('customer', 'vehicle__bike_model').filter(
+                Q(registration_no__icontains=q)
             )[:5]
         )
 

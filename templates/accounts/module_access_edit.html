@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+
+{% block title %}Module Access — {{ role.role_name }}{% endblock %}
+{% block page_title %}Module Access{% endblock %}
+
+{% block topbar_actions %}
+<button form="module-access-form" class="btn btn-sm btn-primary">
+    <i class="fas fa-save me-1"></i>
+    Save
+</button>
+<a href="{% url 'accounts:module_access_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb-bar">
+  <a href="{% url 'accounts:module_access_list' %}">Module Access</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">{{ role.role_name }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Modules visible to: {{ role.role_name }}</span>
+    </div>
+    <div class="card-body">
+        <p class="text-muted" style="font-size:13px;">
+            Unchecking a module hides it for this role even if the role would otherwise see it.
+            This only narrows access — it never grants access the role doesn't already have.
+        </p>
+        <form method="post" id="module-access-form">
+            {% csrf_token %}
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead><tr><th>Module</th><th style="width:100px;">Visible</th></tr></thead>
+                    <tbody>
+                        {% for row in rows %}
+                        <tr>
+                            <td>{{ row.label }}</td>
+                            <td>
+                                <input type="checkbox" name="module_{{ row.key }}" {% if row.can_view %}checked{% endif %}>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

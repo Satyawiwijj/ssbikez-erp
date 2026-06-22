@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Module Access — SSBikez ERP{% endblock %}
+{% block page_title %}Module Access{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Module Access</h1>
+        <p class="page-subtitle">
+            Hide individual sidebar modules per role, on top of the base role permissions.
+        </p>
+    </div>
+</div>
+
+<div class="card">
+
+    <div class="card-header">
+        <span class="card-title">
+            Roles
+            <span class="badge badge-gray ms-2">{{ roles|length }}</span>
+        </span>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Role Name</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for role in roles %}
+                <tr>
+                    <td><span class="badge badge-purple">{{ role.role_name }}</span></td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="{% url 'accounts:module_access_edit' role.pk %}"
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-sliders-h me-1"></i>
+                                Manage Modules
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">
+                        <div class="empty-state">
+                            <p>No roles found.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+{% endblock %}

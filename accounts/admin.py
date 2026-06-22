@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 
-from .models import AuditLog, Branch, FuelExpense, Role, User
+from .models import AuditLog, Branch, FuelExpense, ModulePermission, Role, User
 
 
 @admin.register(Branch)
@@ -30,6 +30,13 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ('Profile', {'fields': ('role', 'branch', 'phone', 'status')}),
     )
+
+
+@admin.register(ModulePermission)
+class ModulePermissionAdmin(admin.ModelAdmin):
+    list_display   = ('role', 'module', 'can_view', 'updated_at')
+    list_filter    = ('role', 'module', 'can_view')
+    list_editable  = ('can_view',)
 
 
 @admin.register(FuelExpense)

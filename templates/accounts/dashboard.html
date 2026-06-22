@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load rbac_tags %}
 {% block title %}Dashboard — SSBikez ERP{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
@@ -266,7 +267,11 @@
 </div>
 
 <!-- QUICK ACTIONS + RECENT ACTIVITY -->
+{% can_see_module 'sales' 'Sales Executive' 'Managing Director' as show_qa_sales %}
+{% can_see_module 'service' 'Floor Supervisor' 'Service Advisor' 'CRE Telecaller' 'Managing Director' as show_qa_service %}
+{% if show_qa_sales or show_qa_service %}
 <div class="grid-2col" style="margin-bottom:25px;">
+  {% if show_qa_sales %}
   <div class="card" style="margin-bottom:0;">
     <div class="card-header" >
       <span class="card-title"><i class="fas fa-clipboard-list"></i> Quick Actions — Sales</span>
@@ -278,6 +283,8 @@
       <a href="{% url 'sales:delivery_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Record Delivery</a>
     </div>
   </div>
+  {% endif %}
+  {% if show_qa_service %}
   <div class="card" style="margin-bottom:0;">
     <div class="card-header">
       <span class="card-title"><i class="fas fa-tools"></i>Quick Actions — Service</span>
@@ -285,11 +292,16 @@
     <div style="display:flex; flex-direction:column; gap:15px; padding-top: 15px;">
       <a href="{% url 'service:enquiry_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Service Enquiry</a>
       <a href="{% url 'service:jobcard_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">New Job Card</a>
+      {% can_access_ns 'spares' as can_qa_spares %}
+      {% if can_qa_spares %}
       <a href="{% url 'spares:issue_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Issue Spare Part</a>
       <a href="{% url 'spares:counter_sale_create' %}" class="btn btn-secondary" style="justify-content:flex-start; width:100%;">Counter Sale</a>
+      {% endif %}
     </div>
   </div>
+  {% endif %}
 </div>
+{% endif %}
 
 <!-- RECENT ACTIVITY -->
 <div class="card">

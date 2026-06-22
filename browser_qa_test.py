@@ -17,7 +17,7 @@ DB_PATH    = BASE_DIR / 'db.sqlite3'
 SS_DIR     = BASE_DIR / 'qa_screenshots'
 SS_DIR.mkdir(exist_ok=True)
 REPORT     = []
-BASE_URL   = 'http://127.0.0.1:8000'
+BASE_URL   = 'http://127.0.0.1:8010'
 
 # ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -534,6 +534,111 @@ def flow_vehicle_stock_and_order(page):
         log_ok('Order', f"PDI created ({len(checkboxes)} checkboxes)")
     else:
         log_issue('Order', 'PDI', 'No Create PDI link on order detail')
+
+
+def _find_live_test_order_id():
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT so.id FROM sales_vehiclesalesorder so
+            JOIN customers_customer c ON c.id = so.customer_id
+            WHERE c.phone = '9500000099'
+            ORDER BY so.id DESC LIMIT 1
+        """)
+        row = cur.fetchone()
+        conn.close()
+        return row[0] if row else None
+    except Exception:
+        return None
+
+
+def flow_fittings(page):
+    print("\n[FLOW 4b: VEHICLE FITTINGS (inline formset)]")
+    order_id = _find_live_test_order_id()
+    if not order_id:
+        log_issue('Fittings', 'Find test order', 'No LIVE-TEST order found — skipping')
+        return
+
+    if not go(page, f'/sales/orders/{order_id}/fittings/add/', 'Fittings', 'Formset page'):
+        return
+    ss(page, '04b_fittings_form')
+
+    if not page.query_selector('#fitting-table'):
+        log_issue('Fittings', 'Formset table', 'No #fitting-table on fittings page')
+        return
+    log_ok('Fittings', 'Formset page loads with item table')
+
+    rows = page.query_selector_all('tr.fitting-row')
+    if len(rows) < 1:
+        log_issue('Fittings', 'Formset rows', 'No fitting-row elements rendered')
+        return
+
+    # Fill the first two rows directly (formset renders extra=2 blank rows)
+    page.fill('input[name="fittings-0-fitting_name"]', 'LIVE-TEST Crash Guard')
+    page.fill('input[name="fittings-0-cost"]', '1200')
+    if len(rows) >= 2:
+        page.fill('input[name="fittings-1-fitting_name"]', 'LIVE-TEST Seat Cover')
+        page.fill('input[name="fittings-1-cost"]', '500')
+    else:
+        page.click('#add-fitting-row')
+        page.fill('input[name="fittings-1-fitting_name"]', 'LIVE-TEST Seat Cover')
+        page.fill('input[name="fittings-1-cost"]', '500')
+    ss(page, '04b_fittings_filled')
+
+    click_submit(page)
+    page.wait_for_load_state('domcontentloaded', timeout=10000)
+    ss(page, '04b_fittings_saved')
+    if not check_page(page, 'Fittings', 'Formset submit'):
+        return
+    log_ok('Fittings', 'Formset saved (2 rows)')
+
+    # Verify both rows persisted and render on the order detail page
+    content = page.content()
+    if 'LIVE-TEST Crash Guard' in content and 'LIVE-TEST Seat Cover' in content:
+        log_ok('Fittings', 'Both fittings visible on order detail')
+    else:
+        log_issue('Fittings', 'Order detail display', 'Saved fittings not shown on order detail page')
+
+
+def flow_module_access(page):
+    print("\n[FLOW 4c: MODULE ACCESS (admin)]")
+    if not go(page, '/accounts/module-access/', 'ModuleAccess', 'List page'):
+        return
+    ss(page, '04c_module_access_list')
+
+    manage_link = page.query_selector("a:has-text('Manage Modules')")
+    if not manage_link:
+        log_issue('ModuleAccess', 'Role row', 'No "Manage Modules" link found')
+        return
+    manage_link.click()
+    page.wait_for_load_state('domcontentloaded', timeout=10000)
+    ss(page, '04c_module_access_edit')
+    log_ok('ModuleAccess', 'Edit page loads for a role')
+    edit_url = page.url
+
+    vas_checkbox = page.query_selector('input[name="module_vas"]')
+    if not vas_checkbox:
+        log_issue('ModuleAccess', 'VAS checkbox', 'module_vas checkbox not found')
+        return
+
+    was_checked = vas_checkbox.is_checked()
+    vas_checkbox.uncheck()
+    click_submit(page)
+    page.wait_for_load_state('domcontentloaded', timeout=10000)
+    ss(page, '04c_module_access_saved')
+    log_ok('ModuleAccess', 'Module visibility toggle saved')
+
+    # Restore to its original state so we don't leave a permanent side effect
+    page.goto(edit_url)
+    page.wait_for_load_state('domcontentloaded', timeout=10000)
+    if was_checked:
+        vas_again = page.query_selector('input[name="module_vas"]')
+        if vas_again and not vas_again.is_checked():
+            vas_again.check()
+            click_submit(page)
+            page.wait_for_load_state('domcontentloaded', timeout=10000)
+    log_ok('ModuleAccess', 'Restored original module state')
 
 
 def flow_billing(page):
@@ -1117,6 +1222,35 @@ def flow_search(page):
     else:
         log_issue('Search', 'Click result', 'No clickable result found in search page')
 
+    # Registration-number ("number plate") search
+    reg_no = None
+    try:
+        conn = sqlite3.connect(str(DB_PATH))
+        cur = conn.cursor()
+        cur.execute("SELECT registration_no FROM customer_vehicles_customervehicle "
+                    "WHERE registration_no IS NOT NULL AND registration_no != '' LIMIT 1")
+        row = cur.fetchone()
+        conn.close()
+        reg_no = row[0] if row else None
+    except Exception as e:
+        log_issue('Search', 'Find reg no', str(e))
+
+    if reg_no:
+        go(page, '/accounts/dashboard/', 'Search', 'Dashboard (reg search)')
+        search2 = page.query_selector('input[name="q"]')
+        if search2:
+            search2.fill(reg_no)
+            search2.press('Enter')
+            page.wait_for_load_state('domcontentloaded', timeout=10000)
+            ss(page, '12_search_by_regno')
+            content2 = page.content()
+            if reg_no in content2 and 'Customer Vehicles' in content2:
+                log_ok('Search', f'Search by registration number "{reg_no}" returns Customer Vehicles result')
+            else:
+                log_issue('Search', 'Registration number search', f'"{reg_no}" not found in search results')
+    else:
+        log_issue('Search', 'Registration number search', 'No CustomerVehicle with a registration_no to test against')
+
 
 def flow_masters(page):
     print("\n[FLOW 13: MASTERS]")
@@ -1186,7 +1320,7 @@ def flow_vas(page):
 def start_server():
     import urllib.request
     proc = subprocess.Popen(
-        [sys.executable, 'manage.py', 'runserver', '--noreload'],
+        [sys.executable, 'manage.py', 'runserver', '127.0.0.1:8010', '--noreload'],
         cwd=str(BASE_DIR),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -1225,6 +1359,8 @@ def run_all(headed: bool = False):
                 flow_customer_creation,
                 flow_sales_enquiry,
                 flow_vehicle_stock_and_order,
+                flow_fittings,
+                flow_module_access,
                 flow_billing,
                 flow_rto,
                 flow_service,

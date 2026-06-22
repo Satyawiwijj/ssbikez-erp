@@ -572,7 +572,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'accounts:home' %}" class="sidebar-link" data-href="/accounts/home/"><i class="nav-icon fas fa-home"></i> Home</a>
   <a href="{% url 'accounts:dashboard' %}" class="sidebar-link" data-href="/accounts/dashboard/"><i class="nav-icon fas fa-chart-line"></i> Dashboard</a>
 
-  {% can_see_section 'Sales Executive' 'Managing Director' as show_sales %}
+  {% can_see_module 'sales' 'Sales Executive' 'Managing Director' as show_sales %}
   {% if show_sales %}
   <div class="sidebar-section">Sales</div>
   <a href="{% url 'sales:dashboard' %}" class="sidebar-link" data-href="/sales/"><i class="nav-icon fas fa-chart-line"></i>SALES Dashboard</a>
@@ -588,7 +588,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'sales:profit_report' %}" class="sidebar-link" data-href="/sales/profit-report/"><i class="nav-icon fas fa-chart-pie"></i> Profit Report</a>
   {% endif %}
 
-  {% can_see_section 'Sales Executive' 'Managing Director' as show_customers %}
+  {% can_see_module 'customers' 'Sales Executive' 'Managing Director' as show_customers %}
   {% if show_customers %}
   <div class="sidebar-section">Customers</div>
   <a href="{% url 'customers:customer_list' %}" class="sidebar-link" data-href="/customers/"><i class="nav-icon fas fa-users"></i> Customers</a>
@@ -597,7 +597,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Stock</a>
   {% endif %}
 
-  {% can_see_section 'Cashier' 'Accounts' 'Managing Director' as show_finance %}
+  {% can_see_module 'finance' 'Cashier' 'Accounts' 'Managing Director' as show_finance %}
   {% if show_finance %}
   <div class="sidebar-section">Finance</div>
   <a href="{% url 'billing:dashboard' %}" class="sidebar-link" data-href="/billing/dashboard/"><i class="nav-icon fas fa-chart-line"></i>FINANCE Dashboard</a>
@@ -612,7 +612,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'billing:general_ledger' %}" class="sidebar-link" data-href="/billing/ledger/"><i class="nav-icon fas fa-list"></i> General Ledger</a>
   {% endif %}
 
-  {% can_see_section 'Cashier' 'Managing Director' as show_rto %}
+  {% can_see_module 'rto' 'Cashier' 'Managing Director' as show_rto %}
   {% if show_rto %}
   <div class="sidebar-section">RTO</div>
   <a href="{% url 'rto:dashboard' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-tachometer-alt"></i>RTO Dashboard</a>
@@ -621,7 +621,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
   {% endif %}
 
-  {% can_see_section 'Floor Supervisor' 'Service Advisor' 'CRE Telecaller' 'Managing Director' as show_service %}
+  {% can_see_module 'service' 'Floor Supervisor' 'Service Advisor' 'CRE Telecaller' 'Managing Director' as show_service %}
   {% if show_service %}
   <div class="sidebar-section">Service</div>
   <a href="{% url 'service:dashboard' %}" class="sidebar-link" data-href="/service/dashboard/"><i class="nav-icon fas fa-chart-line"></i> SERVICE Dashboard</a>
@@ -640,7 +640,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'service:technician_report' %}" class="sidebar-link" data-href="/service/technician-report/"><i class="nav-icon fas fa-user-cog"></i> Technician Report</a>
   {% endif %}
 
-  {% can_see_section 'Spares' 'Managing Director' as show_spares %}
+  {% can_see_module 'spares' 'Spares' 'Managing Director' as show_spares %}
   {% if show_spares %}
   <div class="sidebar-section">Spares</div>
   <a href="{% url 'spares:dashboard' %}" class="sidebar-link" data-href="/spares/"><i class="nav-icon fas fa-chart-line"></i> SPARES Dashboard</a>
@@ -657,7 +657,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'spares:parts_consumption_report' %}" class="sidebar-link" data-href="/spares/reports/parts-consumption/"><i class="nav-icon fas fa-chart-pie"></i>Parts Consumption</a>
   {% endif %}
 
-  {% can_see_section 'Sales Executive' 'Managing Director' as show_vas %}
+  {% can_see_module 'vas' 'Sales Executive' 'Managing Director' as show_vas %}
   {% if show_vas %}
   <div class="sidebar-section">VAS</div>
   <a href="{% url 'vas:dashboard' %}" class="sidebar-link" data-href="/vas/"><i class="nav-icon fas fa-chart-pie"></i>VAS Dashboard</a>
@@ -666,7 +666,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
   {% endif %}
 
-  {% can_see_section 'Sales Executive' 'Floor Supervisor' 'Service Advisor' 'Spares' 'Managing Director' as show_vehicle_master %}
+  {% can_see_module 'vehicle_master' 'Sales Executive' 'Floor Supervisor' 'Service Advisor' 'Spares' 'Managing Director' as show_vehicle_master %}
   {% if show_vehicle_master %}
   <div class="sidebar-section">Vehicle Master</div>
   <a href="{% url 'customers:bike_model_list' %}" class="sidebar-link" data-href="/customers/bikes/"><i class="nav-icon fas fa-motorcycle"></i> Bike Models</a>
@@ -675,7 +675,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'service:vehicle_service_master_list' %}" class="sidebar-link" data-href="/service/vehicle-service-master/"><i class="nav-icon fas fa-tools"></i> Service Master</a>
   {% endif %}
 
-  {% can_see_section 'Managing Director' as show_masters %}
+  {% can_see_module 'masters' 'Managing Director' as show_masters %}
   {% if show_masters %}
   <div class="sidebar-section">Masters</div>
   <a href="{% url 'masters:supplier_list' %}" class="sidebar-link" data-href="/masters/suppliers/"><i class="nav-icon fas fa-truck-loading"></i> Suppliers</a>
@@ -685,7 +685,7 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="nav-icon fas fa-tags"></i> Categories</a>
   {% endif %}
 
-  {% can_see_section 'Accounts' 'Managing Director' as show_reports %}
+  {% can_see_module 'reports' 'Accounts' 'Managing Director' as show_reports %}
   {% if show_reports %}
   <div class="sidebar-section">Reports</div>
   <a href="{% url 'accounts:sales_report' %}" class="sidebar-link" data-href="/accounts/reports/sales/"><i class="nav-icon fas fa-chart-bar"></i> Sales Report</a>
@@ -699,6 +699,7 @@ setInterval(loadNotificationCount, 60000);
   <div class="sidebar-section">Admin</div>
   <a href="{% url 'accounts:user_list' %}" class="sidebar-link" data-href="/accounts/users/"><i class="nav-icon fas fa-users-cog"></i> Users</a>
   <a href="{% url 'accounts:role_list' %}" class="sidebar-link" data-href="/accounts/roles/"><i class="nav-icon fas fa-user-tag"></i> Roles</a>
+  <a href="{% url 'accounts:module_access_list' %}" class="sidebar-link" data-href="/accounts/module-access/"><i class="nav-icon fas fa-sliders-h"></i> Module Access</a>
   <a href="{% url 'accounts:branch_list' %}" class="sidebar-link" data-href="/accounts/branches/"><i class="nav-icon fas fa-building"></i> Branches</a>
   <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="nav-icon fas fa-gas-pump"></i> Fuel Expenses</a>
   <a href="{% url 'accounts:insurance_expiry_list' %}" class="sidebar-link" data-href="/accounts/insurance-expiry/"><i class="nav-icon fas fa-exclamation-triangle"></i> Insurance Expiry</a>

@@ -716,17 +716,16 @@ def allotment_create(request, order_pk):
 
 @login_required
 def fitting_create(request, order_pk):
-    from .forms import VehicleFittingForm
+    from .forms import VehicleFittingFormSet
     order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
-    initial = {'sales_order': order.pk}
-    form = VehicleFittingForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        fitting = form.save()
-        log_action(request, 'Vehicle Fitting', 'create', fitting.pk)
-        messages.success(request, 'Fitting added successfully.')
+    formset = VehicleFittingFormSet(request.POST or None, instance=order, prefix='fittings')
+    if request.method == 'POST' and formset.is_valid():
+        formset.save()
+        log_action(request, 'Vehicle Fitting', 'update', order.pk)
+        messages.success(request, 'Fittings saved successfully.')
         return redirect('sales:order_detail', pk=order.pk)
     return render(request, 'sales/fitting_form.html', {
-        'form': form, 'order': order, 'title': 'Add Fitting',
+        'formset': formset, 'order': order, 'title': 'Add / Edit Fittings',
     })
 
 

@@ -73,6 +73,27 @@
 </div>
 {% endif %}
 
+{% if results.customer_vehicles %}
+<div class="card" style="margin-bottom:16px;">
+  <div class="card-header"><span class="card-title">&#x1F6F5; Customer Vehicles ({{ results.customer_vehicles|length }})</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Reg. No</th><th>Customer</th><th>Model</th><th></th></tr></thead>
+      <tbody>
+        {% for cv in results.customer_vehicles %}
+        <tr>
+          <td style="font-family:monospace;">{{ cv.registration_no|default:"—" }}</td>
+          <td style="font-weight:500;">{{ cv.customer.full_name }}</td>
+          <td>{{ cv.vehicle.bike_model }}</td>
+          <td><a href="{% url 'customer_vehicles:customervehicle_detail' cv.pk %}" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
 {% if results.enquiries %}
 <div class="card" style="margin-bottom:16px;">
   <div class="card-header"><span class="card-title">&#x1F4CB; Sales Enquiries ({{ results.enquiries|length }})</span></div>

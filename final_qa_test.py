@@ -8,7 +8,7 @@ django.setup()
 from playwright.sync_api import sync_playwright
 from django.utils import timezone
 
-BASE_URL = 'http://127.0.0.1:8000'
+BASE_URL = 'http://127.0.0.1:8010'
 SS_DIR = r'C:\Users\Satya\ssbikez-erp\final_qa'
 os.makedirs(SS_DIR, exist_ok=True)
 
@@ -557,12 +557,12 @@ with sync_playwright() as pw:
         for doc in ['Invoice','RC Book','Insurance','Delivery']:
             chk(page,'Sales',f'Documents hub: {doc} quadrant', has(page,doc))
 
-        # Fitting
+        # Fitting — inline formset (fittings-0-*, fittings-1-*, ...)
         go(page, f'/sales/orders/{order_pk}/fittings/add/')
         ss(page,'037_fitting_create')
         render_ok(page,'Sales','037_fitting_form')
-        fill(page,'input[name="fitting_name"]','FQA Seat Cover')
-        fill(page,'input[name="cost"]','800')
+        fill(page,'input[name="fittings-0-fitting_name"]','FQA Seat Cover')
+        fill(page,'input[name="fittings-0-cost"]','800')
         submit(page)
         ss(page,'038_fitting_result')
         fit = VehicleFitting.objects.filter(sales_order_id=order_pk, fitting_name='FQA Seat Cover').first()
@@ -849,6 +849,7 @@ with sync_playwright() as pw:
 
             # RC Book
             for rc_url in [
+                f'/rto/{rto_pk}/rc-book/',
                 f'/rto/registrations/{rto_pk}/rc-book/create/',
                 f'/rto/rc-books/create/?rto={rto_pk}',
             ]:
@@ -984,6 +985,7 @@ with sync_playwright() as pw:
 
         # Labour charge
         for labour_url in [
+            f'/service/labor-charges/create/?jc={jc_pk}',
             f'/service/labor-charges/create/?job_card={jc_pk}',
             f'/service/jobcards/{jc_pk}/labour/add/',
         ]:
@@ -1577,8 +1579,14 @@ with sync_playwright() as pw:
     print('\n--------- 13. RBAC ---------')
 
     # --- Sales Executive ---
+    # Prefer the known QA fixture account (password 'Test@123') over an
+    # arbitrary same-role user — .first() picked unrelated seed data with an
+    # unknown password before this fix.
     sales_role = Role.objects.filter(role_name='Sales Executive').first()
-    sales_user = User.objects.filter(role=sales_role, is_superuser=False).first() if sales_role else None
+    sales_user = (
+        User.objects.filter(role=sales_role, username__in=['sales.test', 'e2e_sales']).first()
+        or (User.objects.filter(role=sales_role, is_superuser=False).first() if sales_role else None)
+    )
 
     if sales_user:
         go(page, '/accounts/logout/')
@@ -1596,9 +1604,21 @@ with sync_playwright() as pw:
         for section in ['sales','customers','vas']:
             chk(page,'RBAC',f'Sales exec sidebar: {section.upper()} visible', section in sidebar)
 
-        # Sections HIDDEN from Sales Executive
-        for section in ['finance','service','spares','rto','masters']:
-            chk(page,'RBAC',f'Sales exec sidebar: {section.upper()} hidden', section not in sidebar)
+        # Sections HIDDEN from Sales Executive.
+        # 'service' can't be a bare substring check: Sales Executive legitimately
+        # sees the "Service Master" link under the Vehicle Master section (a
+        # vehicle-master submodule, not the Service operations module), so we
+        # look for service-operations-specific phrases instead.
+        hidden_checks = {
+            'finance': ['finance'],
+            'service': ['job card', 'service enquir', 'service appointment', 'service invoice'],
+            'spares':  ['spares'],
+            'rto':     ['rto'],
+            'masters': ['masters'],
+        }
+        for section, phrases in hidden_checks.items():
+            chk(page,'RBAC',f'Sales exec sidebar: {section.upper()} hidden',
+                not any(p in sidebar for p in phrases))
 
         # URL-level blocking
         for url, name in [
@@ -1642,7 +1662,10 @@ with sync_playwright() as pw:
 
     # --- Cashier ---
     cashier_role = Role.objects.filter(role_name='Cashier').first()
-    cashier_user = User.objects.filter(role=cashier_role, is_superuser=False).first() if cashier_role else None
+    cashier_user = (
+        User.objects.filter(role=cashier_role, username__in=['e2e_cashier', 'cashier.test']).first()
+        or (User.objects.filter(role=cashier_role, is_superuser=False).first() if cashier_role else None)
+    )
 
     if cashier_user:
         go(page, '/accounts/logout/')

@@ -1,26 +1,26 @@
 {
   "summary": {
     "total": 228,
-    "pass": 225,
+    "pass": 226,
     "fail": 0,
-    "warn": 1,
+    "warn": 0,
     "skip": 2
   },
   "db_counts": {
-    "Customers": 10,
-    "Bike Models": 10,
-    "Vehicle Stock": 11,
+    "Customers": 14,
+    "Bike Models": 26,
+    "Vehicle Stock": 29,
     "Customer Vehicles": 8,
-    "Sales Enquiries": 8,
-    "Sales Orders": 7,
-    "Job Cards": 7,
-    "Spares Items": 9,
-    "Invoices": 5,
-    "RTO Registrations": 6,
-    "Service Reminders": 3,
-    "Test Rides": 2,
-    "PDI Checklists": 1,
-    "Sales Targets": 2
+    "Sales Enquiries": 23,
+    "Sales Orders": 12,
+    "Job Cards": 9,
+    "Spares Items": 53,
+    "Invoices": 12,
+    "RTO Registrations": 13,
+    "Service Reminders": 5,
+    "Test Rides": 8,
+    "PDI Checklists": 8,
+    "Sales Targets": 3
   },
   "pass": [
     {
@@ -896,6 +896,10 @@
       "detail": ""
     },
     {
+      "name": "Sales Exec - blocked from User Management",
+      "detail": ""
+    },
+    {
       "name": "Service Advisor - can access Service module",
       "detail": ""
     },
@@ -925,12 +929,7 @@
     }
   ],
   "fail": [],
-  "warn": [
-    {
-      "name": "Sales Exec - user management",
-      "detail": "No RBAC block detected"
-    }
-  ],
+  "warn": [],
   "skip": [
     {
       "name": "Test Ride Return",

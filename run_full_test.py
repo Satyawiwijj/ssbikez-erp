@@ -105,9 +105,11 @@ print("\nSSBikez ERP - Comprehensive Test Suite")
 print("="*60)
 
 # ── Setup ─────────────────────────────────────────────────────
+# Note: 'admin' is intentionally excluded — it's the real persistent
+# superuser account other QA scripts and manual testing rely on with a
+# known password; resetting it here as a side effect broke those scripts.
 section("0. Setup")
 for uname, pwd in {
-    "admin": "Admin@123",
     "arjun.kumar": "Admin@123",
     "divya.cre": "Admin@123",
     "meena.cashier": "Admin@123",
@@ -153,7 +155,7 @@ anon = Client()
 r = anon.get("/accounts/login/")
 record("PASS" if r.status_code == 200 else "FAIL", "Login page accessible (anon)")
 
-r = anon.post("/accounts/login/", {"username": "admin", "password": "Admin@123"}, follow=False)
+r = anon.post("/accounts/login/", {"username": "admin", "password": "SSBikez@2026"}, follow=False)
 if r.status_code in (301, 302) and "verify-otp" in (r.get("Location") or ""):
     record("PASS", "Login POST redirects to OTP page")
     # Verify OTP record was created
@@ -168,7 +170,7 @@ if r.status_code in (301, 302) and "verify-otp" in (r.get("Location") or ""):
             record("FAIL", "Correct OTP verification", f"HTTP {r2.status_code}")
         # Try wrong OTP on new login
         anon2 = Client()
-        anon2.post("/accounts/login/", {"username": "admin", "password": "Admin@123"}, follow=False)
+        anon2.post("/accounts/login/", {"username": "admin", "password": "SSBikez@2026"}, follow=False)
         r3 = anon2.post("/accounts/verify-otp/", {"otp_code": "000000"}, follow=False)
         r3b = anon2.get("/accounts/verify-otp/", follow=True)  # re-render with error
         if b"Invalid" in r3b.content or b"expired" in r3b.content or r3.status_code == 200:

@@ -297,6 +297,23 @@ class VehicleFittingForm(forms.ModelForm):
         return cost
 
 
+class VehicleFittingLineForm(forms.ModelForm):
+    class Meta:
+        model  = VehicleFitting
+        fields = ('fitting_name', 'description', 'cost')
+        widgets = {
+            'fitting_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Crash Guard, Seat Cover, Side Box'}),
+            'description':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional details'}),
+            'cost':         forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+VehicleFittingFormSet = inlineformset_factory(
+    VehicleSalesOrder, VehicleFitting,
+    form=VehicleFittingLineForm, extra=2, can_delete=True
+)
+
+
 # ---------------------------------------------------------------------------
 # ERP Alignment — inline formsets for call logs, history, feedback items
 # ---------------------------------------------------------------------------
