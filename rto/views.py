@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import NumberPlateOrderForm, RTORegistrationForm
 from .models import NumberPlateOrder, RTORegistration
@@ -102,6 +103,7 @@ def form20_print(request, pk):
 
 
 @login_required
+@require_module_action('rto', 'create')
 def registration_create(request):
     initial = {}
     if request.GET.get('order'):
@@ -117,6 +119,7 @@ def registration_create(request):
 
 
 @login_required
+@require_module_action('rto', 'edit')
 def registration_update(request, pk):
     rto  = get_object_or_404(RTORegistration, pk=pk)
     form = RTORegistrationForm(request.POST or None, instance=rto)
@@ -131,6 +134,7 @@ def registration_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('rto', 'edit')
 def registration_status_update(request, pk):
     rto        = get_object_or_404(RTORegistration, pk=pk)
     new_status = request.POST.get('registration_status')
@@ -143,6 +147,7 @@ def registration_status_update(request, pk):
 
 
 @login_required
+@require_module_action('rto', 'create')
 def plate_create(request):
     initial = {}
     if request.GET.get('rto'):
@@ -158,6 +163,7 @@ def plate_create(request):
 
 
 @login_required
+@require_module_action('rto', 'edit')
 def plate_update(request, pk):
     plate = get_object_or_404(NumberPlateOrder, pk=pk)
     form  = NumberPlateOrderForm(request.POST or None, instance=plate)
@@ -184,6 +190,7 @@ def rc_book_list(request):
 
 
 @login_required
+@require_module_action('rto', 'create')
 def rc_book_create(request, rto_pk):
     from .forms import RCBookForm
     from .models import RCBook

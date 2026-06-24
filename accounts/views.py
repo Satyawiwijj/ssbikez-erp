@@ -243,7 +243,7 @@ def dashboard(request):
     ) if hasattr(request.user, 'role') and request.user.role else False
 
     # ── FEATURE 10: Enhanced dashboard additions ──────────────────────────
-    from customers.models import VehicleStock
+    from customers.models import BikeModel, Customer, VehicleStock
 
     try:
         from sales.models import TestRideLog as _TRL, SalesTarget as _ST
@@ -298,6 +298,31 @@ def dashboard(request):
         ).count()
     except Exception:
         pending_reminders = 0
+
+    # ── Home Page Structure: "Your Shortcuts" setup checklist ─────────────
+    # New installs land on an empty dashboard with nothing to act on, which
+    # is what the client's review report flagged as "incomplete" — the real
+    # gap was that no master data existed yet, not missing features. This
+    # surfaces the master-data setup steps (and their live counts) so a new
+    # branch knows what to create first, and hides itself once done.
+    try:
+        from masters.models import Supplier
+        branch_count   = Branch.objects.count()
+        bike_model_count = BikeModel.objects.count()
+        vehicle_stock_count = VehicleStock.objects.count()
+        supplier_count = Supplier.objects.count()
+        customer_count = Customer.objects.count()
+        setup_steps = [
+            {'label': 'Add a Branch',        'count': branch_count,       'url': 'accounts:branch_create'},
+            {'label': 'Add a Bike Model',     'count': bike_model_count,   'url': 'customers:bike_model_create'},
+            {'label': 'Add Vehicle Stock',    'count': vehicle_stock_count,'url': 'customers:vehicle_stock_create'},
+            {'label': 'Add a Supplier',       'count': supplier_count,     'url': 'masters:supplier_create'},
+            {'label': 'Add a Customer',       'count': customer_count,     'url': 'customers:customer_create'},
+        ]
+        setup_incomplete = any(step['count'] == 0 for step in setup_steps)
+    except Exception:
+        setup_steps = []
+        setup_incomplete = False
 
     return render(request, 'accounts/dashboard.html', {
         'user':                        request.user,
@@ -524,6 +549,9 @@ def module_access_list(request):
     return render(request, 'accounts/module_access_list.html', {'roles': roles})
 
 
+_MODULE_ACTIONS = ('can_view', 'can_create', 'can_edit', 'can_delete')
+
+
 @login_required
 def module_access_edit(request, role_pk):
     from .models import MODULE_CHOICES, ModulePermission
@@ -532,22 +560,31 @@ def module_access_edit(request, role_pk):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
 
     role = get_object_or_404(Role, pk=role_pk)
-    overrides = {mp.module: mp.can_view for mp in role.module_permissions.all()}
+    overrides = {mp.module: mp for mp in role.module_permissions.all()}
 
     if request.method == 'POST':
         for key, _label in MODULE_CHOICES:
-            can_view = request.POST.get(f'module_{key}') == 'on'
+            defaults = {
+                action: request.POST.get(f'module_{key}_{action}') == 'on'
+                for action in _MODULE_ACTIONS
+            }
             ModulePermission.objects.update_or_create(
-                role=role, module=key, defaults={'can_view': can_view}
+                role=role, module=key, defaults=defaults
             )
         log_action(request, 'ModulePermission', 'update', role.pk)
         messages.success(request, f'Module access updated for {role.role_name}.')
         return redirect('accounts:module_access_list')
 
-    rows = [
-        {'key': key, 'label': label, 'can_view': overrides.get(key, True)}
-        for key, label in MODULE_CHOICES
-    ]
+    rows = []
+    for key, label in MODULE_CHOICES:
+        existing = overrides.get(key)
+        rows.append({
+            'key': key, 'label': label,
+            'can_view':   existing.can_view if existing else True,
+            'can_create': existing.can_create if existing else True,
+            'can_edit':   existing.can_edit if existing else True,
+            'can_delete': existing.can_delete if existing else True,
+        })
     return render(request, 'accounts/module_access_edit.html', {'role': role, 'rows': rows})
 
 
@@ -680,7 +717,7 @@ def global_search(request):
             results['spare_parts'] = list(
                 SparesItem.objects.filter(
                     Q(item_name__icontains=q) | Q(part_number__icontains=q) | Q(item_code__icontains=q)
-                )[:5]
+                ).annotate(total_stock=Sum('stock__quantity'))[:5]
             )
         else:
             results['spare_parts'] = []

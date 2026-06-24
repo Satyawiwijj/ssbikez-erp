@@ -4,6 +4,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import AMCPackageForm, ProtectionPlusPackageForm, RSAPackageForm
 from .models import AMCPackage, ProtectionPlusPackage, RSAPackage
@@ -76,6 +77,7 @@ def amc_detail(request, pk):
 
 
 @login_required
+@require_module_action('vas', 'create')
 def amc_create(request):
     initial = {}
     if request.GET.get('cv'):
@@ -91,6 +93,7 @@ def amc_create(request):
 
 
 @login_required
+@require_module_action('vas', 'edit')
 def amc_update(request, pk):
     package = get_object_or_404(AMCPackage, pk=pk)
     form    = AMCPackageForm(request.POST or None, instance=package)
@@ -143,6 +146,7 @@ def rsa_detail(request, pk):
 
 
 @login_required
+@require_module_action('vas', 'create')
 def rsa_create(request):
     initial = {}
     if request.GET.get('cv'):
@@ -158,6 +162,7 @@ def rsa_create(request):
 
 
 @login_required
+@require_module_action('vas', 'edit')
 def rsa_update(request, pk):
     package = get_object_or_404(RSAPackage, pk=pk)
     form    = RSAPackageForm(request.POST or None, instance=package)
@@ -210,6 +215,7 @@ def pp_detail(request, pk):
 
 
 @login_required
+@require_module_action('vas', 'create')
 def pp_create(request):
     initial = {}
     if request.GET.get('cv'):
@@ -225,6 +231,7 @@ def pp_create(request):
 
 
 @login_required
+@require_module_action('vas', 'edit')
 def pp_update(request, pk):
     package = get_object_or_404(ProtectionPlusPackage, pk=pk)
     form    = ProtectionPlusPackageForm(request.POST or None, instance=package)

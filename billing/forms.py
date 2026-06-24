@@ -212,7 +212,9 @@ class FinanceLoanForm(forms.ModelForm):
 # GAP 18, 25 forms
 # ===========================================================================
 
-from .models import JournalEntry, RefundAdvance
+from django.forms import inlineformset_factory
+
+from .models import JournalEntry, JournalEntryLine, RefundAdvance
 
 
 class RefundAdvanceForm(forms.ModelForm):
@@ -226,9 +228,38 @@ class RefundAdvanceForm(forms.ModelForm):
 class JournalEntryForm(forms.ModelForm):
     class Meta:
         model = JournalEntry
-        fields = ('entry_date', 'account_name', 'entry_type', 'amount',
-                  'description', 'reference')
+        fields = ('entry_date', 'description', 'is_vehicle_purchase', 'company_gstin',
+                  'reference_doctype', 'reference_docname', 'reference_number',
+                  'reference_date', 'number_plate_amount', 'multi_currency', 'reference')
         widgets = {
-            'entry_date': forms.DateInput(attrs={'type': 'date'}),
-            'description': forms.Textarea(attrs={'rows': 2}),
+            'entry_date':          forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'description':         forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'is_vehicle_purchase': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'company_gstin':       forms.TextInput(attrs={'class': 'form-control'}),
+            'reference_doctype':   forms.TextInput(attrs={'class': 'form-control'}),
+            'reference_docname':   forms.TextInput(attrs={'class': 'form-control'}),
+            'reference_number':    forms.TextInput(attrs={'class': 'form-control'}),
+            'reference_date':      forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'number_plate_amount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'multi_currency':      forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'reference':           forms.TextInput(attrs={'class': 'form-control'}),
         }
+
+
+class JournalEntryLineForm(forms.ModelForm):
+    class Meta:
+        model = JournalEntryLine
+        fields = ('account', 'party_type', 'party', 'debit', 'credit')
+        widgets = {
+            'account':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Account name'}),
+            'party_type': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. Customer, Supplier'}),
+            'party':      forms.TextInput(attrs={'class': 'form-control'}),
+            'debit':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'credit':     forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+JournalEntryLineFormSet = inlineformset_factory(
+    JournalEntry, JournalEntryLine,
+    form=JournalEntryLineForm, extra=2, can_delete=True,
+)

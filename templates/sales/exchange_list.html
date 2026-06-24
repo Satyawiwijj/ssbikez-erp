@@ -53,6 +53,7 @@ Record Exchange
                 <th>Registration No</th>
                 <th>Valuation</th>
                 <th>RC Handover</th>
+                <th>Payment Status</th>
                 <th>Actions</th>
             </tr>
 
@@ -133,6 +134,16 @@ Record Exchange
 
                 <td>
 
+                    {% if ex.payment_status == 'paid' %}
+                    <span class="badge badge-green">Paid</span>
+                    {% else %}
+                    <span class="badge badge-red">Pending</span>
+                    {% endif %}
+
+                </td>
+
+                <td>
+
                     <div class="table-actions">
 
                         <a href="{% url 'sales:exchange_update' ex.pk %}"
@@ -153,7 +164,7 @@ Record Exchange
 
             <tr>
 
-                <td colspan="8" class="empty-state">
+                <td colspan="9" class="empty-state">
 
                     <i class="fas fa-exchange-alt mb-2"></i>
 

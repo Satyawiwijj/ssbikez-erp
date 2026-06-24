@@ -78,11 +78,13 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Account</th>
-                    <th>Type</th>
-                    <th>Amount</th>
                     <th>Description</th>
+                    <th>Lines</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
+                    <th>Balanced</th>
                     <th>Reference</th>
+                    <th></th>
                 </tr>
             </thead>
 
@@ -96,33 +98,36 @@
                     </td>
 
                     <td style="font-weight:500;">
-                        {{ e.account_name }}
-                    </td>
-
-                    <td>
-
-                        {% if e.entry_type == 'debit' %}
-                            <span class="badge badge-blue">
-                                {{ e.get_entry_type_display }}
-                            </span>
-                        {% else %}
-                            <span class="badge badge-green">
-                                {{ e.get_entry_type_display }}
-                            </span>
-                        {% endif %}
-
-                    </td>
-
-                    <td style="font-weight:600;">
-                        ₹ {{ e.amount }}
-                    </td>
-
-                    <td>
                         {{ e.description|default:"—" }}
+                        {% if e.is_vehicle_purchase %}<span class="badge badge-gray">Vehicle Purchase</span>{% endif %}
+                    </td>
+
+                    <td>
+                        {{ e.lines.all|length }}
+                    </td>
+
+                    <td style="font-weight:600;color:#2563EB;">
+                        ₹ {{ e.total_debit }}
+                    </td>
+
+                    <td style="font-weight:600;color:#16A34A;">
+                        ₹ {{ e.total_credit }}
+                    </td>
+
+                    <td>
+                        {% if e.is_balanced %}
+                            <span class="badge badge-green">Balanced</span>
+                        {% else %}
+                            <span class="badge badge-red">Unbalanced</span>
+                        {% endif %}
                     </td>
 
                     <td style="color:#6B7280;">
                         {{ e.reference|default:"—" }}
+                    </td>
+
+                    <td>
+                        <a href="{% url 'billing:journal_entry_detail' e.pk %}" class="btn btn-ghost btn-sm">View</a>
                     </td>
 
                 </tr>
@@ -130,7 +135,7 @@
                 {% empty %}
 
                 <tr>
-                    <td colspan="6">
+                    <td colspan="8">
 
                         <div class="empty-state">
 

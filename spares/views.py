@@ -8,6 +8,7 @@ from django.db.models import Sum, Count, Q
 from django.utils import timezone
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 from masters.models import Warehouse, Rack, Bin, Supplier
 from .models import (
     SparesItem, ItemRackBin, StockLedger,
@@ -20,9 +21,9 @@ from .models import (
 )
 from .forms import (
     SparesItemForm,
-    SupplierQuoteForm, SupplierQuoteItemFormSet,
-    PurchaseOrderForm, PurchaseOrderItemFormSet,
-    PurchaseInvoiceForm, PurchaseInvoiceItemFormSet,
+    SupplierQuoteForm, SupplierQuoteItemFormSet, SupplierQuoteTaxFormSet,
+    PurchaseOrderForm, PurchaseOrderItemFormSet, PurchaseOrderTaxFormSet,
+    PurchaseInvoiceForm, PurchaseInvoiceItemFormSet, PurchaseInvoiceTaxFormSet,
     CounterSaleForm, CounterSaleItemFormSet,
     CounterSaleReturnForm, CounterSaleReturnItemFormSet,
     SparesIssueAlterationForm, SparesIssueAlterationItemFormSet,
@@ -84,6 +85,7 @@ def item_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def item_create(request):
     form = SparesItemForm(request.POST or None)
     if form.is_valid():
@@ -96,6 +98,7 @@ def item_create(request):
 
 
 @login_required
+@require_module_action('spares', 'edit')
 def item_update(request, pk):
     obj = get_object_or_404(SparesItem, pk=pk)
     form = SparesItemForm(request.POST or None, instance=obj)
@@ -140,29 +143,35 @@ def quote_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def quote_create(request):
     form = SupplierQuoteForm(request.POST or None)
     formset = SupplierQuoteItemFormSet(request.POST or None, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    tax_formset = SupplierQuoteTaxFormSet(request.POST or None, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
         with transaction.atomic():
             obj = form.save(commit=False)
             obj.created_by = request.user
             obj.save()
             formset.instance = obj
             formset.save()
+            tax_formset.instance = obj
+            tax_formset.save()
             items = obj.items.all()
             obj.total_quantity = sum(i.quantity for i in items)
             obj.total_amount = sum(i.amount for i in items)
-            obj.grand_total = obj.total_amount - obj.additional_discount_amount
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
+            obj.grand_total = obj.total_amount - obj.additional_discount_amount + obj.total_taxes
             obj.save()
         messages.success(request, f'Quote {obj.quote_no} created.')
         return redirect('spares:quote_detail', pk=obj.pk)
     return render(request, 'spares/quote_form.html', {
-        'form': form, 'formset': formset, 'title': 'New Supplier Quote'
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'New Supplier Quote'
     })
 
 
 @login_required
+@require_module_action('spares', 'edit')
 def quote_update(request, pk):
     from accounts.permissions import user_owns
     from django.http import HttpResponseForbidden
@@ -171,19 +180,22 @@ def quote_update(request, pk):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = SupplierQuoteForm(request.POST or None, instance=obj)
     formset = SupplierQuoteItemFormSet(request.POST or None, instance=obj, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    tax_formset = SupplierQuoteTaxFormSet(request.POST or None, instance=obj, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
         with transaction.atomic():
             form.save()
             formset.save()
+            tax_formset.save()
             items = obj.items.all()
             obj.total_quantity = sum(i.quantity for i in items)
             obj.total_amount = sum(i.amount for i in items)
-            obj.grand_total = obj.total_amount - obj.additional_discount_amount
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
+            obj.grand_total = obj.total_amount - obj.additional_discount_amount + obj.total_taxes
             obj.save()
         messages.success(request, 'Quote updated.')
         return redirect('spares:quote_detail', pk=pk)
     return render(request, 'spares/quote_form.html', {
-        'form': form, 'formset': formset, 'title': 'Edit Quote', 'object': obj
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'Edit Quote', 'object': obj
     })
 
 
@@ -210,29 +222,35 @@ def order_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def order_create(request):
     form = PurchaseOrderForm(request.POST or None)
     formset = PurchaseOrderItemFormSet(request.POST or None, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    tax_formset = PurchaseOrderTaxFormSet(request.POST or None, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
         with transaction.atomic():
             obj = form.save(commit=False)
             obj.created_by = request.user
             obj.save()
             formset.instance = obj
             formset.save()
+            tax_formset.instance = obj
+            tax_formset.save()
             items = obj.items.all()
             obj.total_quantity = sum(i.quantity for i in items)
             obj.total_amount = sum(i.amount for i in items)
-            obj.grand_total = obj.total_amount
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
+            obj.grand_total = obj.total_amount + obj.total_taxes
             obj.save()
         messages.success(request, f'PO {obj.po_no} created.')
         return redirect('spares:order_detail', pk=obj.pk)
     return render(request, 'spares/po_form.html', {
-        'form': form, 'formset': formset, 'title': 'New Purchase Order'
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'New Purchase Order'
     })
 
 
 @login_required
+@require_module_action('spares', 'edit')
 def order_update(request, pk):
     from accounts.permissions import user_owns
     from django.http import HttpResponseForbidden
@@ -241,19 +259,22 @@ def order_update(request, pk):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = PurchaseOrderForm(request.POST or None, instance=obj)
     formset = PurchaseOrderItemFormSet(request.POST or None, instance=obj, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    tax_formset = PurchaseOrderTaxFormSet(request.POST or None, instance=obj, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
         with transaction.atomic():
             form.save()
             formset.save()
+            tax_formset.save()
             items = obj.items.all()
             obj.total_quantity = sum(i.quantity for i in items)
             obj.total_amount = sum(i.amount for i in items)
-            obj.grand_total = obj.total_amount
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
+            obj.grand_total = obj.total_amount + obj.total_taxes
             obj.save()
         messages.success(request, 'PO updated.')
         return redirect('spares:order_detail', pk=pk)
     return render(request, 'spares/po_form.html', {
-        'form': form, 'formset': formset, 'title': 'Edit PO', 'object': obj
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'Edit PO', 'object': obj
     })
 
 
@@ -273,22 +294,28 @@ def invoice_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def invoice_create(request):
     form = PurchaseInvoiceForm(request.POST or None)
     formset = PurchaseInvoiceItemFormSet(request.POST or None, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    tax_formset = PurchaseInvoiceTaxFormSet(request.POST or None, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
         with transaction.atomic():
             obj = form.save(commit=False)
             obj.created_by = request.user
             obj.save()
             formset.instance = obj
             formset.save()
+            tax_formset.instance = obj
+            tax_formset.save()
             all_items = obj.items.all()
             obj.total_quantity = sum(i.quantity for i in all_items)
             obj.total_amount = sum(i.amount for i in all_items)
             obj.total_sgst = sum(i.sgst_amount for i in all_items)
             obj.total_cgst = sum(i.cgst_amount for i in all_items)
-            obj.total_taxes = obj.total_sgst + obj.total_cgst
+            # Document-level tax table (below) is the authoritative source for
+            # grand_total — item-level SGST/CGST above remain informational.
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
             obj.grand_total = obj.total_amount + obj.total_taxes
             obj.save()
             if obj.status == 'submitted':
@@ -305,7 +332,7 @@ def invoice_create(request):
         messages.success(request, f'Invoice {obj.invoice_no} created.')
         return redirect('spares:invoice_detail', pk=obj.pk)
     return render(request, 'spares/invoice_form.html', {
-        'form': form, 'formset': formset, 'title': 'New Purchase Invoice'
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'New Purchase Invoice'
     })
 
 
@@ -325,6 +352,7 @@ def counter_sale_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def counter_sale_create(request):
     form = CounterSaleForm(request.POST or None)
     formset = CounterSaleItemFormSet(request.POST or None, prefix='items')
@@ -362,6 +390,7 @@ def counter_return_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def counter_return_create(request):
     form = CounterSaleReturnForm(request.POST or None)
     formset = CounterSaleReturnItemFormSet(request.POST or None, prefix='items')
@@ -400,6 +429,7 @@ def issue_alteration_detail(request, pk):
 
 
 @login_required
+@require_module_action('spares', 'create')
 def issue_alteration_create(request):
     form = SparesIssueAlterationForm(request.POST or None)
     formset = SparesIssueAlterationItemFormSet(request.POST or None, prefix='items')
@@ -665,6 +695,7 @@ from django.views.decorators.http import require_POST
 
 @login_required
 @require_POST
+@require_module_action('spares', 'delete')
 def item_delete(request, pk):
     from django.db.models import ProtectedError
     item = get_object_or_404(SparesItem, pk=pk)
@@ -684,6 +715,7 @@ def item_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('spares', 'delete')
 def purchase_order_delete(request, pk):
     from accounts.permissions import user_owns
     from django.http import HttpResponseForbidden

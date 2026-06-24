@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from accounts.permissions import require_module_action
 from .models import SparesCategory, Supplier, Warehouse, Rack, Bin
 from .forms import SparesCategoryForm, SupplierForm, WarehouseForm, RackForm, BinForm
 
@@ -14,6 +15,7 @@ def category_list(request):
 
 
 @login_required
+@require_module_action('masters', 'create')
 def category_create(request):
     form = SparesCategoryForm(request.POST or None)
     if form.is_valid():
@@ -24,6 +26,7 @@ def category_create(request):
 
 
 @login_required
+@require_module_action('masters', 'edit')
 def category_update(request, pk):
     obj = get_object_or_404(SparesCategory, pk=pk)
     form = SparesCategoryForm(request.POST or None, instance=obj)
@@ -49,6 +52,7 @@ def supplier_detail(request, pk):
 
 
 @login_required
+@require_module_action('masters', 'create')
 def supplier_create(request):
     form = SupplierForm(request.POST or None)
     if form.is_valid():
@@ -61,6 +65,7 @@ def supplier_create(request):
 
 
 @login_required
+@require_module_action('masters', 'edit')
 def supplier_update(request, pk):
     obj = get_object_or_404(Supplier, pk=pk)
     form = SupplierForm(request.POST or None, instance=obj)
@@ -80,6 +85,7 @@ def warehouse_list(request):
 
 
 @login_required
+@require_module_action('masters', 'create')
 def warehouse_create(request):
     form = WarehouseForm(request.POST or None)
     if form.is_valid():
@@ -90,6 +96,7 @@ def warehouse_create(request):
 
 
 @login_required
+@require_module_action('masters', 'edit')
 def warehouse_update(request, pk):
     obj = get_object_or_404(Warehouse, pk=pk)
     form = WarehouseForm(request.POST or None, instance=obj)
@@ -109,6 +116,7 @@ def rack_list(request):
 
 
 @login_required
+@require_module_action('masters', 'create')
 def rack_create(request):
     form = RackForm(request.POST or None)
     if form.is_valid():
@@ -119,6 +127,7 @@ def rack_create(request):
 
 
 @login_required
+@require_module_action('masters', 'edit')
 def rack_update(request, pk):
     obj = get_object_or_404(Rack, pk=pk)
     form = RackForm(request.POST or None, instance=obj)
@@ -138,6 +147,7 @@ def bin_list(request):
 
 
 @login_required
+@require_module_action('masters', 'create')
 def bin_create(request):
     form = BinForm(request.POST or None)
     if form.is_valid():
@@ -148,6 +158,7 @@ def bin_create(request):
 
 
 @login_required
+@require_module_action('masters', 'edit')
 def bin_update(request, pk):
     obj = get_object_or_404(Bin, pk=pk)
     form = BinForm(request.POST or None, instance=obj)

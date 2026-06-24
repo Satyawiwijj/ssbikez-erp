@@ -119,6 +119,42 @@ Back </a>
 
                     <div class="col-md-4">
                         <label class="form-label fw-semibold">
+                            {{ form.country.label }}
+                        </label>
+                        {{ form.country }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.supplier_type.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.supplier_type }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ form.supplier_limit_amount.label }}
+                        </label>
+                        {{ form.supplier_limit_amount }}
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            {{ form.is_transporter }}
+                            <label class="form-check-label">{{ form.is_transporter.label }}</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            {{ form.is_prepaid_supplier }}
+                            <label class="form-check-label">{{ form.is_prepaid_supplier.label }}</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
                             {{ form.phone.label }}
                         </label>
                         {{ form.phone }}

@@ -17,16 +17,20 @@ class SupplierForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         text_fields = [
-            'supplier_name', 'supplier_group', 'contact_person', 'phone', 'gstin', 'gst_category',
-            'address_line1', 'address_line2', 'city', 'state', 'pincode', 'place_of_supply'
+            'supplier_name', 'supplier_group', 'country', 'contact_person', 'phone', 'gstin', 'gst_category',
+            'address_line1', 'address_line2', 'city', 'state', 'pincode', 'place_of_supply',
+            'supplier_limit_amount',
         ]
         for f in text_fields:
             if f in self.fields:
                 self.fields[f].widget.attrs['class'] = 'form-control'
         if 'email' in self.fields:
             self.fields['email'].widget.attrs['class'] = 'form-control'
-        if 'is_active' in self.fields:
-            self.fields['is_active'].widget.attrs['class'] = 'form-check-input'
+        if 'supplier_type' in self.fields:
+            self.fields['supplier_type'].widget.attrs['class'] = 'form-select'
+        for f in ('is_active', 'is_transporter', 'is_prepaid_supplier'):
+            if f in self.fields:
+                self.fields[f].widget.attrs['class'] = 'form-check-input'
 
 
 class WarehouseForm(forms.ModelForm):

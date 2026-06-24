@@ -6,6 +6,7 @@ from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentForm
 from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
@@ -90,6 +91,7 @@ def invoice_detail(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'create')
 def invoice_create(request):
     initial = {}
     if request.GET.get('order'):
@@ -104,6 +106,7 @@ def invoice_create(request):
 
 
 @login_required
+@require_module_action('finance', 'edit')
 def invoice_update(request, pk):
     # No ownership field exists on Invoice/Payment/Loan/InsurancePolicy —
     # "who owns a billing record" is a product decision (sales exec? branch?
@@ -120,6 +123,7 @@ def invoice_update(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'create')
 def payment_create(request):
     from django.utils import timezone
     initial = {'payment_date': timezone.now().date()}
@@ -135,6 +139,7 @@ def payment_create(request):
 
 
 @login_required
+@require_module_action('finance', 'edit')
 def payment_update(request, pk):
     payment = get_object_or_404(Payment, pk=pk)
     form    = PaymentForm(request.POST or None, instance=payment)
@@ -249,6 +254,7 @@ def insurance_policy_detail(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'create')
 def insurance_policy_create(request):
     initial = {}
     if request.GET.get('order'):
@@ -264,6 +270,7 @@ def insurance_policy_create(request):
 
 
 @login_required
+@require_module_action('finance', 'edit')
 def insurance_policy_update(request, pk):
     policy = get_object_or_404(InsurancePolicy, pk=pk)
     form   = InsurancePolicyForm(request.POST or None, instance=policy)
@@ -277,6 +284,7 @@ def insurance_policy_update(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'create')
 def loan_create(request):
     initial = {}
     if request.GET.get('order'):
@@ -291,6 +299,7 @@ def loan_create(request):
 
 
 @login_required
+@require_module_action('finance', 'edit')
 def loan_update(request, pk):
     loan = get_object_or_404(FinanceLoan, pk=pk)
     form = FinanceLoanForm(request.POST or None, instance=loan)

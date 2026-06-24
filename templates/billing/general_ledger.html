@@ -69,8 +69,9 @@
             <thead>
                 <tr>
                     <th>Date</th>
-                    <th>Type</th>
-                    <th>Amount</th>
+                    <th>Party</th>
+                    <th>Debit</th>
+                    <th>Credit</th>
                     <th>Description</th>
                     <th>Reference</th>
                 </tr>
@@ -78,38 +79,32 @@
 
             <tbody>
 
-                {% for e in account.entries %}
+                {% for line in account.entries %}
 
                 <tr>
 
                     <td style="color:#6B7280;font-size:13px;">
-                        {{ e.entry_date|date:"d M Y" }}
+                        {{ line.entry.entry_date|date:"d M Y" }}
                     </td>
 
                     <td>
-
-                        {% if e.entry_type == 'debit' %}
-                            <span class="badge badge-blue">
-                                {{ e.get_entry_type_display }}
-                            </span>
-                        {% else %}
-                            <span class="badge badge-green">
-                                {{ e.get_entry_type_display }}
-                            </span>
-                        {% endif %}
-
+                        {{ line.party|default:"—" }}
                     </td>
 
-                    <td style="font-weight:600;">
-                        ₹ {{ e.amount }}
+                    <td style="font-weight:600;color:#2563EB;">
+                        {% if line.debit %}₹ {{ line.debit }}{% else %}—{% endif %}
+                    </td>
+
+                    <td style="font-weight:600;color:#16A34A;">
+                        {% if line.credit %}₹ {{ line.credit }}{% else %}—{% endif %}
                     </td>
 
                     <td>
-                        {{ e.description|default:"—" }}
+                        {{ line.entry.description|default:"—" }}
                     </td>
 
                     <td style="color:#6B7280;">
-                        {{ e.reference|default:"—" }}
+                        {{ line.entry.reference|default:"—" }}
                     </td>
 
                 </tr>
@@ -117,7 +112,7 @@
                 {% empty %}
 
                 <tr>
-                    <td colspan="5">
+                    <td colspan="6">
 
                         <div class="empty-state">
 

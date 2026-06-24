@@ -251,17 +251,23 @@ MODULE_CHOICES = (
 
 class ModulePermission(models.Model):
     """
-    Per-role override for sidebar module visibility.
+    Per-role override for module-level access, at Create/Read(Display)/
+    Edit/Delete granularity — matches the reference ERP's per-role
+    permission matrix (Display / Edit / Create / Delete checkboxes per
+    module).
 
     A role's base access comes from accounts.permissions.ROLE_PERMISSIONS.
-    A row here narrows that further: if a (role, module) row exists with
-    can_view=False, the module is hidden for that role even if the role
-    would otherwise see it. Absence of a row means "use the role default".
+    A row here narrows that further: any flag set to False here blocks that
+    action for that role even if the role would otherwise have it. Absence
+    of a row, or an absent flag, means "use the role default" (allowed).
     """
-    role      = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='module_permissions')
-    module    = models.CharField(max_length=30, choices=MODULE_CHOICES)
-    can_view  = models.BooleanField(default=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    role        = models.ForeignKey(Role, on_delete=models.CASCADE, related_name='module_permissions')
+    module      = models.CharField(max_length=30, choices=MODULE_CHOICES)
+    can_view    = models.BooleanField(default=True, verbose_name='Display')
+    can_create  = models.BooleanField(default=True, verbose_name='Create')
+    can_edit    = models.BooleanField(default=True, verbose_name='Edit')
+    can_delete  = models.BooleanField(default=True, verbose_name='Delete')
+    updated_at  = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('role', 'module')
@@ -269,4 +275,10 @@ class ModulePermission(models.Model):
         verbose_name_plural = 'Module Permissions'
 
     def __str__(self):
-        return f"{self.role} — {self.get_module_display()}: {'View' if self.can_view else 'Hidden'}"
+        flags = ', '.join(
+            label for label, val in (
+                ('Display', self.can_view), ('Create', self.can_create),
+                ('Edit', self.can_edit), ('Delete', self.can_delete),
+            ) if val
+        ) or 'No access'
+        return f"{self.role} — {self.get_module_display()}: {flags}"

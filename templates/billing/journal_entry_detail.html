@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+
+{% block title %}JE-{{ entry.pk }} — SSBikez ERP{% endblock %}
+{% block page_title %}Journal Entry{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'billing:journal_entry_list' %}" class="btn btn-sm btn-outline-secondary">
+    <i class="fas fa-arrow-left me-1"></i>
+    Back
+</a>
+{% endblock %}
+
+{% block content %}
+
+<nav class="breadcrumb-bar">
+  <a href="{% url 'billing:journal_entry_list' %}">Journal Entries</a>
+  <span class="bc-sep">/</span>
+  <span class="bc-current">JE-{{ entry.pk }}</span>
+</nav>
+
+<div class="row g-3">
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title"><i class="fas fa-book me-2"></i>Accounting Entries</span>
+      </div>
+      <div class="table-wrapper">
+        <table class="table">
+          <thead><tr><th>Account</th><th>Party Type</th><th>Party</th><th>Debit</th><th>Credit</th></tr></thead>
+          <tbody>
+            {% for line in entry.lines.all %}
+            <tr>
+              <td style="font-weight:500;">{{ line.account }}</td>
+              <td>{{ line.party_type|default:"—" }}</td>
+              <td>{{ line.party|default:"—" }}</td>
+              <td style="color:#2563EB;font-weight:600;">{% if line.debit %}₹ {{ line.debit }}{% else %}—{% endif %}</td>
+              <td style="color:#16A34A;font-weight:600;">{% if line.credit %}₹ {{ line.credit }}{% else %}—{% endif %}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-state">No lines on this entry.</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr style="background:#f9fafb;font-weight:600;">
+              <td colspan="3" style="text-align:right;">Total</td>
+              <td style="color:#2563EB;">₹ {{ entry.total_debit }}</td>
+              <td style="color:#16A34A;">₹ {{ entry.total_credit }}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-4">
+    <div class="card">
+      <div class="card-header"><span class="card-title">Details</span></div>
+      <div class="card-body">
+        <div class="mb-3"><strong>Date</strong><div class="text-muted">{{ entry.entry_date|date:"d M Y" }}</div></div>
+        <div class="mb-3"><strong>Description</strong><div class="text-muted">{{ entry.description|default:"—" }}</div></div>
+        <div class="mb-3"><strong>Status</strong><div>
+          {% if entry.is_balanced %}<span class="badge badge-green">Balanced</span>{% else %}<span class="badge badge-red">Unbalanced</span>{% endif %}
+        </div></div>
+        <div class="mb-3"><strong>Reference</strong><div class="text-muted">{{ entry.reference|default:"—" }}</div></div>
+        {% if entry.is_vehicle_purchase %}
+        <div class="mb-3"><strong>Vehicle Purchase</strong><div class="text-muted">Yes{% if entry.number_plate_amount %} — Number Plate Amount: ₹ {{ entry.number_plate_amount }}{% endif %}</div></div>
+        {% endif %}
+        {% if entry.company_gstin %}<div class="mb-3"><strong>Company GSTIN</strong><div class="text-muted">{{ entry.company_gstin }}</div></div>{% endif %}
+        {% if entry.reference_doctype or entry.reference_docname %}
+        <div class="mb-3"><strong>Reference Doc</strong><div class="text-muted">{{ entry.reference_doctype|default:"—" }} {{ entry.reference_docname }}</div></div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

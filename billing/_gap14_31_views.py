@@ -9,8 +9,10 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
-from .forms import JournalEntryForm, RefundAdvanceForm
-from .models import Invoice, JournalEntry, Payment, RefundAdvance
+from accounts.permissions import require_module_action
+
+from .forms import JournalEntryForm, JournalEntryLineFormSet, RefundAdvanceForm
+from .models import Invoice, JournalEntry, JournalEntryLine, Payment, RefundAdvance
 
 
 # --- GAP 16: Payment Reconciliation ----------------------------------------
@@ -113,6 +115,7 @@ def refund_advance_list(request):
 
 
 @login_required
+@require_module_action('finance', 'create')
 def refund_advance_create(request):
     form = RefundAdvanceForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -134,7 +137,7 @@ def refund_advance_detail(request, pk):
 
 @login_required
 def journal_entry_list(request):
-    entries = JournalEntry.objects.all()
+    entries = JournalEntry.objects.prefetch_related('lines')
     start = request.GET.get('start', '').strip()
     end = request.GET.get('end', '').strip()
     if start:
@@ -153,30 +156,53 @@ def journal_entry_list(request):
 
 
 @login_required
+def journal_entry_detail(request, pk):
+    entry = get_object_or_404(JournalEntry.objects.prefetch_related('lines'), pk=pk)
+    return render(request, 'billing/journal_entry_detail.html', {'entry': entry})
+
+
+@login_required
+@require_module_action('finance', 'create')
 def journal_entry_create(request):
+    from django.db import transaction
     form = JournalEntryForm(request.POST or None)
-    if request.method == 'POST' and form.is_valid():
-        obj = form.save(commit=False)
-        obj.created_by = request.user
-        obj.save()
-        messages.success(request, 'Journal entry created.')
-        return redirect('billing:journal_entry_list')
-    return render(request, 'billing/journal_entry_form.html', {'form': form})
+    formset = JournalEntryLineFormSet(request.POST or None, prefix='lines')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        total_debit  = sum((f.cleaned_data.get('debit') or Decimal('0'))
+                            for f in formset.forms if not f.cleaned_data.get('DELETE'))
+        total_credit = sum((f.cleaned_data.get('credit') or Decimal('0'))
+                            for f in formset.forms if not f.cleaned_data.get('DELETE'))
+        if total_debit != total_credit:
+            messages.error(
+                request,
+                f'Journal entry is not balanced — total debit (₹{total_debit}) '
+                f'must equal total credit (₹{total_credit}).'
+            )
+        elif total_debit == 0:
+            messages.error(request, 'Add at least one debit and one credit line.')
+        else:
+            with transaction.atomic():
+                obj = form.save(commit=False)
+                obj.created_by = request.user
+                obj.save()
+                formset.instance = obj
+                formset.save()
+            messages.success(request, 'Journal entry created.')
+            return redirect('billing:journal_entry_list')
+    return render(request, 'billing/journal_entry_form.html', {'form': form, 'formset': formset})
 
 
 @login_required
 def general_ledger(request):
     accounts = {}
-    for entry in JournalEntry.objects.order_by('account_name', 'entry_date'):
-        a = accounts.setdefault(entry.account_name, {
-            'name': entry.account_name, 'debit': Decimal('0'),
+    for line in JournalEntryLine.objects.select_related('entry').order_by('account', 'entry__entry_date'):
+        a = accounts.setdefault(line.account, {
+            'name': line.account, 'debit': Decimal('0'),
             'credit': Decimal('0'), 'entries': [],
         })
-        if entry.entry_type == 'debit':
-            a['debit'] += entry.amount
-        else:
-            a['credit'] += entry.amount
-        a['entries'].append(entry)
+        a['debit']  += line.debit
+        a['credit'] += line.credit
+        a['entries'].append(line)
     for a in accounts.values():
         a['balance'] = a['debit'] - a['credit']
     accounts_list = sorted(accounts.values(), key=lambda x: x['name'])

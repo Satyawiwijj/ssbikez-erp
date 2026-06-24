@@ -34,9 +34,9 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(ModulePermission)
 class ModulePermissionAdmin(admin.ModelAdmin):
-    list_display   = ('role', 'module', 'can_view', 'updated_at')
-    list_filter    = ('role', 'module', 'can_view')
-    list_editable  = ('can_view',)
+    list_display   = ('role', 'module', 'can_view', 'can_create', 'can_edit', 'can_delete', 'updated_at')
+    list_filter    = ('role', 'module')
+    list_editable  = ('can_view', 'can_create', 'can_edit', 'can_delete')
 
 
 @admin.register(FuelExpense)

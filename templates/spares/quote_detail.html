@@ -262,4 +262,53 @@
 
 {% endif %}
 
+<div class="card">
+
+<div class="card-header">
+    <span class="card-title">
+        Purchase Taxes and Charges
+    </span>
+</div>
+
+<div class="table-wrapper">
+
+    <table class="table">
+
+        <thead>
+            <tr>
+                <th>Type</th>
+                <th>Account Head</th>
+                <th>Tax Rate</th>
+                <th>Amount</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for t in quote.taxes.all %}
+            <tr>
+                <td>{{ t.get_apply_type_display }}</td>
+                <td style="font-weight:600;">{{ t.account_head }}</td>
+                <td>{{ t.tax_rate }}%</td>
+                <td>₹ {{ t.amount }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="empty-state">No tax rows added.</td></tr>
+            {% endfor %}
+
+        </tbody>
+
+        <tfoot>
+            <tr style="background:#f9fafb;font-weight:600;">
+                <td colspan="3" style="text-align:right;">Total Taxes and Charges</td>
+                <td>₹ {{ quote.total_taxes }}</td>
+            </tr>
+        </tfoot>
+
+    </table>
+
+</div>
+
+</div>
+
 {% endblock %}

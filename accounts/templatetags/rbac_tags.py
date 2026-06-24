@@ -55,6 +55,20 @@ def can_see_module(context, module_key, *allowed_roles):
 
 
 @register.simple_tag(takes_context=True)
+def can_perform(context, module_key, action):
+    """
+    True if the current user may perform `action` ('create'/'edit'/'delete')
+    in `module_key`, per the Module Access Create/Edit/Delete matrix.
+    Use to hide action buttons (Add/Edit/Delete) a user has no permission for.
+    """
+    request = context.get('request')
+    if not request:
+        return False
+    from accounts.permissions import user_can_perform
+    return user_can_perform(request.user, module_key, action)
+
+
+@register.simple_tag(takes_context=True)
 def can_access_ns(context, namespace):
     """
     True if the current user may access the given URL namespace, per the

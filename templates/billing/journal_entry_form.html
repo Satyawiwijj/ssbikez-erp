@@ -103,6 +103,68 @@
 
             </div>
 
+            <div class="card mb-3">
+                <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+                    <span class="card-title">Accounting Entries</span>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-je-line-row">
+                        <i class="fas fa-plus me-1"></i> Add Row
+                    </button>
+                </div>
+                <div style="overflow-x:auto;">
+                    {{ formset.management_form }}
+                    {% if formset.non_form_errors %}
+                    <div class="alert alert-danger m-2">{{ formset.non_form_errors }}</div>
+                    {% endif %}
+                    <table class="table mb-0" id="je-line-table">
+                        <thead>
+                            <tr>
+                                <th style="min-width:180px;">Account <span class="text-danger">*</span></th>
+                                <th style="min-width:140px;">Party Type</th>
+                                <th style="min-width:160px;">Party</th>
+                                <th style="min-width:110px;">Debit</th>
+                                <th style="min-width:110px;">Credit</th>
+                                <th style="width:50px;">Del</th>
+                            </tr>
+                        </thead>
+                        <tbody id="je-formset-body">
+                            {% for line_form in formset %}
+                            <tr class="je-line-row" data-form-index="{{ forloop.counter0 }}">
+                                <td>
+                                    {% for hidden in line_form.hidden_fields %}{{ hidden }}{% endfor %}
+                                    {{ line_form.account }}
+                                    {% if line_form.account.errors %}<div class="form-error">{{ line_form.account.errors|join:", " }}</div>{% endif %}
+                                </td>
+                                <td>{{ line_form.party_type }}</td>
+                                <td>{{ line_form.party }}</td>
+                                <td>{{ line_form.debit }}</td>
+                                <td>{{ line_form.credit }}</td>
+                                <td style="text-align:center;vertical-align:middle;">
+                                    {% if line_form.instance.pk %}
+                                    <label style="display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+                                        {{ line_form.DELETE }}
+                                        <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
+                                    </label>
+                                    {% else %}
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-je-row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr style="background:#f9fafb;font-weight:600;">
+                                <td colspan="3" style="text-align:right;padding:10px 12px;">Total</td>
+                                <td id="je-total-debit" style="padding:10px 12px;color:#2563EB;">0.00</td>
+                                <td id="je-total-credit" style="padding:10px 12px;color:#16A34A;">0.00</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
         <!-- Information Panel -->
@@ -160,5 +222,80 @@
     </div>
 
 </form>
+
+<script>
+(function () {
+    const totalForms = document.getElementById('id_lines-TOTAL_FORMS');
+    const tbody       = document.getElementById('je-formset-body');
+
+    const firstRow = tbody.querySelector('.je-line-row[data-form-index="0"]') ||
+                      tbody.querySelector('.je-line-row');
+
+    document.getElementById('add-je-line-row').addEventListener('click', function () {
+        if (!firstRow) return;
+        const idx   = parseInt(totalForms.value);
+        const clone = firstRow.cloneNode(true);
+
+        clone.innerHTML = clone.innerHTML
+            .replace(/lines-0-/g, `lines-${idx}-`)
+            .replace(/id_lines-0-/g, `id_lines-${idx}-`);
+
+        clone.querySelectorAll('input:not([type=hidden]), select').forEach(el => {
+            if (el.tagName === 'SELECT') el.selectedIndex = 0;
+            else el.value = '';
+        });
+
+        const delCell = clone.querySelector('td:last-child');
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-je-row"><i class="fas fa-trash"></i></button>';
+        delCell.querySelector('.remove-je-row').addEventListener('click', function () {
+            clone.remove();
+            recalcJE();
+        });
+
+        tbody.appendChild(clone);
+        totalForms.value = idx + 1;
+
+        bindJERowCalc(clone);
+        recalcJE();
+    });
+
+    tbody.querySelectorAll('.remove-je-row').forEach(btn => {
+        btn.addEventListener('click', function () {
+            btn.closest('tr').remove();
+            recalcJE();
+        });
+    });
+
+    function bindJERowCalc(row) {
+        const debit  = row.querySelector('input[name$="-debit"]');
+        const credit = row.querySelector('input[name$="-credit"]');
+        if (debit)  debit.addEventListener('input', recalcJE);
+        if (credit) credit.addEventListener('input', recalcJE);
+    }
+
+    function recalcJE() {
+        let totalDebit = 0, totalCredit = 0;
+        tbody.querySelectorAll('tr.je-line-row').forEach(row => {
+            const delCheckbox = row.querySelector('input[name$="-DELETE"]');
+            if (delCheckbox && delCheckbox.checked) return;
+            const debit  = row.querySelector('input[name$="-debit"]');
+            const credit = row.querySelector('input[name$="-credit"]');
+            totalDebit  += parseFloat(debit && debit.value) || 0;
+            totalCredit += parseFloat(credit && credit.value) || 0;
+        });
+        const debitCell  = document.getElementById('je-total-debit');
+        const creditCell = document.getElementById('je-total-credit');
+        debitCell.textContent  = totalDebit.toFixed(2);
+        creditCell.textContent = totalCredit.toFixed(2);
+        const balanced = Math.abs(totalDebit - totalCredit) < 0.005;
+        debitCell.style.color  = balanced ? '#2563EB' : '#DC2626';
+        creditCell.style.color = balanced ? '#16A34A' : '#DC2626';
+    }
+
+    tbody.querySelectorAll('.je-line-row').forEach(bindJERowCalc);
+    tbody.querySelectorAll('input[name$="-DELETE"]').forEach(cb => cb.addEventListener('change', recalcJE));
+    recalcJE();
+})();
+</script>
 
 {% endblock %}

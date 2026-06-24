@@ -318,6 +318,139 @@
 
     </div>
 
+    <!-- Purchase Taxes and Charges -->
+    <div class="card mb-3">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+            <span class="card-title">Purchase Taxes and Charges</span>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="add-tax-row">
+                <i class="fas fa-plus me-1"></i> Add Row
+            </button>
+        </div>
+        <div style="overflow-x:auto;">
+            {{ tax_formset.management_form }}
+            {% if tax_formset.non_form_errors %}
+            <div class="alert alert-danger m-2">{{ tax_formset.non_form_errors }}</div>
+            {% endif %}
+            <table class="table mb-0" id="tax-table">
+                <thead>
+                    <tr>
+                        <th style="min-width:60px;">No.</th>
+                        <th style="min-width:170px;">Type</th>
+                        <th style="min-width:200px;">Account Head <span class="text-danger">*</span></th>
+                        <th style="min-width:90px;">Tax Rate</th>
+                        <th style="min-width:110px;">Amount</th>
+                        <th style="min-width:110px;">Total</th>
+                        <th style="width:50px;">Del</th>
+                    </tr>
+                </thead>
+                <tbody id="tax-formset-body">
+                    {% for tax_form in tax_formset %}
+                    <tr class="tax-row" data-form-index="{{ forloop.counter0 }}">
+                        <td class="tax-row-no">{{ forloop.counter }}</td>
+                        <td>
+                            {% for hidden in tax_form.hidden_fields %}{{ hidden }}{% endfor %}
+                            {{ tax_form.apply_type }}
+                        </td>
+                        <td>
+                            {{ tax_form.account_head }}
+                            {% if tax_form.account_head.errors %}<div class="form-error">{{ tax_form.account_head.errors|join:", " }}</div>{% endif %}
+                        </td>
+                        <td>{{ tax_form.tax_rate }}</td>
+                        <td>{{ tax_form.amount }}</td>
+                        <td class="tax-row-total" style="font-weight:600;">0.00</td>
+                        <td style="text-align:center;vertical-align:middle;">
+                            {% if tax_form.instance.pk %}
+                            <label style="display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
+                                {{ tax_form.DELETE }}
+                                <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
+                            </label>
+                            {% else %}
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-tax-row">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr style="background:#f9fafb;font-weight:600;">
+                        <td colspan="5" style="text-align:right;padding:10px 12px;">Total Taxes and Charges (INR)</td>
+                        <td id="tax-grand-total-cell" colspan="2" style="padding:10px 12px;">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const taxTotalForms = document.getElementById('id_taxes-TOTAL_FORMS');
+        const taxTbody      = document.getElementById('tax-formset-body');
+        const taxFirstRow   = taxTbody.querySelector('.tax-row[data-form-index="0"]') ||
+                               taxTbody.querySelector('.tax-row');
+
+        document.getElementById('add-tax-row').addEventListener('click', function () {
+            if (!taxFirstRow) return;
+            const idx   = parseInt(taxTotalForms.value);
+            const clone = taxFirstRow.cloneNode(true);
+
+            clone.innerHTML = clone.innerHTML
+                .replace(/taxes-0-/g, `taxes-${idx}-`)
+                .replace(/id_taxes-0-/g, `id_taxes-${idx}-`);
+
+            clone.querySelectorAll('input:not([type=hidden]), select').forEach(el => {
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                else el.value = '';
+            });
+            clone.querySelector('.tax-row-total').textContent = '0.00';
+
+            const delCell = clone.querySelector('td:last-child');
+            delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-tax-row"><i class="fas fa-trash"></i></button>';
+            delCell.querySelector('.remove-tax-row').addEventListener('click', function () {
+                clone.remove();
+                recalcTax();
+            });
+
+            taxTbody.appendChild(clone);
+            taxTotalForms.value = idx + 1;
+
+            bindTaxRowCalc(clone);
+            recalcTax();
+        });
+
+        taxTbody.querySelectorAll('.remove-tax-row').forEach(btn => {
+            btn.addEventListener('click', function () {
+                btn.closest('tr').remove();
+                recalcTax();
+            });
+        });
+
+        function bindTaxRowCalc(row) {
+            const amount = row.querySelector('input[name$="-amount"]');
+            if (!amount) return;
+            amount.addEventListener('input', recalcTax);
+        }
+
+        function recalcTax() {
+            let runningTotal = 0;
+            taxTbody.querySelectorAll('tr.tax-row').forEach(row => {
+                const delCheckbox = row.querySelector('input[name$="-DELETE"]');
+                if (delCheckbox && delCheckbox.checked) return;
+                const amount = row.querySelector('input[name$="-amount"]');
+                const amt = parseFloat(amount && amount.value) || 0;
+                runningTotal += amt;
+                row.querySelector('.tax-row-total').textContent = runningTotal.toFixed(2);
+            });
+            document.getElementById('tax-grand-total-cell').textContent = runningTotal.toFixed(2);
+        }
+
+        taxTbody.querySelectorAll('.tax-row').forEach(bindTaxRowCalc);
+        taxTbody.querySelectorAll('input[name$="-DELETE"]').forEach(cb => cb.addEventListener('change', recalcTax));
+        recalcTax();
+    })();
+    </script>
+
     <div class="form-actions">
 
         <button type="submit"

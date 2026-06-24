@@ -11,6 +11,31 @@
   </div>
 </div>
 
+<!-- ══ YOUR SHORTCUTS — setup checklist for master data ══ -->
+{% if setup_steps %}
+<div class="card" style="margin-bottom:20px;{% if setup_incomplete %} border-left:4px solid #F59E0B;{% endif %}">
+  <div class="card-header" {% if setup_incomplete %}style="background:#FFFBEB;"{% endif %}>
+    <span class="card-title"><i class="fas fa-list-check"></i> Your Shortcuts</span>
+    {% if setup_incomplete %}
+    <span class="text-muted" style="font-size:12px;">Set up these masters first — the modules below depend on them</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <div class="grid-5col" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+      {% for step in setup_steps %}
+      <a href="{% url step.url %}" class="shortcut-tile" style="display:block;padding:12px;border:1px solid {% if step.count == 0 %}#FCD34D{% else %}#E5E7EB{% endif %};border-radius:8px;text-decoration:none;color:inherit;{% if step.count == 0 %}background:#FFFBEB;{% endif %}">
+        <div style="font-size:20px;font-weight:600;">{{ step.count }}</div>
+        <div style="font-size:13px;color:#374151;">{{ step.label }}</div>
+        {% if step.count == 0 %}
+        <div style="font-size:11px;color:#B45309;margin-top:4px;"><i class="fas fa-arrow-right"></i> Create now</div>
+        {% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <!-- ══ CRE INSURANCE EXPIRY ALERTS ══ -->
 {% if is_cre %}
 <div class="grid-3col" style="margin-bottom:20px;">

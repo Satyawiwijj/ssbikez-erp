@@ -16,8 +16,19 @@ class SparesCategory(models.Model):
 
 
 class Supplier(models.Model):
+    class SupplierType(models.TextChoices):
+        COMPANY    = 'company',    'Company'
+        INDIVIDUAL = 'individual', 'Individual'
+        PARTNERSHIP = 'partnership', 'Partnership'
+
     supplier_name = models.CharField(max_length=200)
     supplier_group = models.CharField(max_length=100, blank=True, help_text='Supplier group e.g. OEM, Local, Distributor')
+    country = models.CharField(max_length=100, default='India')
+    supplier_type = models.CharField(max_length=20, choices=SupplierType.choices, default=SupplierType.COMPANY)
+    is_transporter = models.BooleanField(default=False, verbose_name='Is Transporter')
+    is_prepaid_supplier = models.BooleanField(default=False, verbose_name='Is Prepaid Supplier')
+    supplier_limit_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True,
+                                                  verbose_name='Supplier Limit Amount')
     contact_person = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)

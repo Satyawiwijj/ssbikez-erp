@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import (CallLogFormSet, ExchangeVehicleForm, FeedbackItemFormSet,
                     HistoryFormSet, SalesAppointmentForm, SalesFeedbackForm,
@@ -301,6 +302,7 @@ def enquiry_detail(request, pk):
 
 
 @login_required
+@require_module_action('sales', 'create')
 def enquiry_create(request):
     form              = SalesEnquiryForm(request.POST or None)
     calllog_formset   = CallLogFormSet(request.POST or None, prefix='calllogs')
@@ -328,6 +330,7 @@ def enquiry_create(request):
 
 
 @login_required
+@require_module_action('sales', 'edit')
 def enquiry_update(request, pk):
     from accounts.permissions import user_owns
     enquiry           = get_object_or_404(SalesEnquiry, pk=pk)
@@ -356,6 +359,7 @@ def enquiry_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'edit')
 def enquiry_status_update(request, pk):
     enquiry    = get_object_or_404(SalesEnquiry, pk=pk)
     new_status = request.POST.get('status')
@@ -382,6 +386,7 @@ def appointment_list(request, enquiry_pk):
 
 
 @login_required
+@require_module_action('sales', 'create')
 def appointment_create(request):
     initial    = {}
     enquiry_pk = request.GET.get('enquiry')
@@ -400,6 +405,7 @@ def appointment_create(request):
 
 
 @login_required
+@require_module_action('sales', 'edit')
 def appointment_update(request, pk):
     from accounts.permissions import user_owns
     apt  = get_object_or_404(SalesAppointment, pk=pk)
@@ -420,6 +426,7 @@ def appointment_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'edit')
 def appointment_cancel(request, pk):
     apt        = get_object_or_404(SalesAppointment, pk=pk)
     apt.status = SalesAppointment.Status.CANCELLED
@@ -434,6 +441,7 @@ def appointment_cancel(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('sales', 'create')
 def feedback_create(request):
     initial    = {}
     enquiry_pk = request.GET.get('enquiry')
@@ -534,6 +542,7 @@ def order_detail(request, pk):
 
 
 @login_required
+@require_module_action('sales', 'create')
 def order_create(request):
     initial  = {}
     enquiry  = None
@@ -591,6 +600,7 @@ def order_create(request):
 
 
 @login_required
+@require_module_action('sales', 'edit')
 def order_update(request, pk):
     from accounts.permissions import user_is_manager, user_owns
     order = get_object_or_404(VehicleSalesOrder, pk=pk)
@@ -613,6 +623,7 @@ def order_update(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('sales', 'create')
 def delivery_create(request):
     initial = {}
     if request.GET.get('order'):
@@ -630,6 +641,7 @@ def delivery_create(request):
 
 
 @login_required
+@require_module_action('sales', 'edit')
 def delivery_update(request, pk):
     delivery = get_object_or_404(VehicleDelivery, pk=pk)
     form     = VehicleDeliveryForm(request.POST or None, instance=delivery)
@@ -655,6 +667,7 @@ def delivery_detail(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('sales', 'create')
 def exchange_create(request):
     initial = {}
     if request.GET.get('sales_order'):
@@ -672,6 +685,7 @@ def exchange_create(request):
 
 
 @login_required
+@require_module_action('sales', 'edit')
 def exchange_update(request, pk):
     exchange = get_object_or_404(ExchangeVehicle, pk=pk)
     form     = ExchangeVehicleForm(request.POST or None, instance=exchange)
@@ -689,6 +703,7 @@ def exchange_update(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('sales', 'create')
 def allotment_create(request, order_pk):
     from .forms import VehicleAllotmentForm
     from .models import VehicleAllotment
@@ -715,6 +730,7 @@ def allotment_create(request, order_pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('sales', 'create')
 def fitting_create(request, order_pk):
     from .forms import VehicleFittingFormSet
     order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
@@ -730,6 +746,7 @@ def fitting_create(request, order_pk):
 
 
 @login_required
+@require_module_action('sales', 'delete')
 def fitting_delete(request, pk):
     from .models import VehicleFitting
     fit = get_object_or_404(VehicleFitting, pk=pk)
@@ -761,6 +778,7 @@ def target_list(request):
 
 
 @login_required
+@require_module_action('sales', 'create')
 def target_create(request):
     from django.utils import timezone as _tz
     from accounts.permissions import user_is_manager
@@ -864,6 +882,7 @@ def test_ride_list(request):
 
 
 @login_required
+@require_module_action('sales', 'create')
 def test_ride_create(request):
     enquiry_id = request.GET.get('enquiry')
     initial = {}
@@ -906,6 +925,7 @@ def test_ride_return(request, pk):
 # ============================================================
 
 @login_required
+@require_module_action('sales', 'create')
 def pdi_create(request, pk):
     order = get_object_or_404(VehicleSalesOrder, pk=pk)
     if hasattr(order, 'pdi_checklist'):
@@ -1056,6 +1076,7 @@ def history_add(request, enquiry_pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'delete')
 def enquiry_delete(request, pk):
     from django.db.models import ProtectedError
     from accounts.permissions import user_owns
@@ -1080,6 +1101,7 @@ def enquiry_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'delete')
 def appointment_delete(request, pk):
     from accounts.permissions import user_owns
     apt = get_object_or_404(SalesAppointment, pk=pk)
@@ -1094,6 +1116,7 @@ def appointment_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'delete')
 def feedback_delete(request, pk):
     from accounts.permissions import user_owns
     fb = get_object_or_404(SalesFeedback, pk=pk)
@@ -1108,6 +1131,7 @@ def feedback_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'delete')
 def order_delete(request, pk):
     from django.db.models import ProtectedError
     from accounts.permissions import user_owns

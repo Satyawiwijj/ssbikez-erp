@@ -399,6 +399,16 @@ class VehicleDelivery(models.Model):
 # ---------------------------------------------------------------------------
 
 class ExchangeVehicle(models.Model):
+    class VehicleCategory(models.TextChoices):
+        MOTORCYCLE = 'motorcycle', 'Motorcycle'
+        SCOOTER    = 'scooter',    'Scooter'
+        MOPED      = 'moped',      'Moped'
+        OTHER      = 'other',      'Other'
+
+    class PaymentStatus(models.TextChoices):
+        PENDING = 'pending', 'Pending'
+        PAID    = 'paid',    'Paid'
+
     sales_order       = models.OneToOneField(
         VehicleSalesOrder,
         on_delete=models.CASCADE,
@@ -411,6 +421,27 @@ class ExchangeVehicle(models.Model):
     # vehicle's RC book as part of the trade-in.
     rc_handed_over    = models.BooleanField(default=False, verbose_name='RC Book Handed Over')
     rc_handover_date  = models.DateField(null=True, blank=True, verbose_name='RC Handover Date')
+
+    manufacturing_company = models.CharField(max_length=100, blank=True, verbose_name='Manufacturing Company')
+    colour                = models.CharField(max_length=50, blank=True, verbose_name='Colour')
+    engine_no             = models.CharField(max_length=50, blank=True, verbose_name='Engine Number')
+    chassis_no            = models.CharField(max_length=50, blank=True, verbose_name='Chassis No')
+    year_of_make          = models.PositiveIntegerField(null=True, blank=True, verbose_name='Year of Make')
+    hp_endorsement        = models.BooleanField(default=False, verbose_name='HP Endorsement')
+    sub_group             = models.CharField(max_length=100, blank=True, verbose_name='Sub Group')
+    vehicle_category      = models.CharField(
+        max_length=20, choices=VehicleCategory.choices, blank=True, verbose_name='Vehicle Category'
+    )
+    target_warehouse      = models.ForeignKey(
+        'masters.Warehouse', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='exchange_vehicles', verbose_name='Target Warehouse'
+    )
+    insurance_valid_upto  = models.DateField(null=True, blank=True, verbose_name='Insurance Valid Upto')
+    payment_status        = models.CharField(
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING,
+        verbose_name='Payment Status'
+    )
+
     created_at        = models.DateTimeField(auto_now_add=True)
 
     class Meta:

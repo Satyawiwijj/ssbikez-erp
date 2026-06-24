@@ -393,16 +393,32 @@
             <thead>
                 <tr>
                     <th>Old Model</th>
+                    <th>Manufacturer</th>
+                    <th>Colour</th>
                     <th>Registration No</th>
+                    <th>Chassis No</th>
+                    <th>Year of Make</th>
                     <th>Valuation</th>
+                    <th>Payment Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
                     <td>{{ exchange.old_vehicle_model|default:"—" }}</td>
+                    <td>{{ exchange.manufacturing_company|default:"—" }}</td>
+                    <td>{{ exchange.colour|default:"—" }}</td>
                     <td>{{ exchange.registration_no|default:"—" }}</td>
+                    <td>{{ exchange.chassis_no|default:"—" }}</td>
+                    <td>{{ exchange.year_of_make|default:"—" }}</td>
                     <td>₹ {{ exchange.valuation_amount|default:"—" }}</td>
+                    <td>
+                        {% if exchange.payment_status == 'paid' %}
+                        <span class="badge badge-green">Paid</span>
+                        {% else %}
+                        <span class="badge badge-red">Pending</span>
+                        {% endif %}
+                    </td>
                     <td><a href="{% url 'sales:exchange_update' exchange.pk %}" class="btn btn-outline-primary btn-sm">Edit</a></td>
                 </tr>
             </tbody>

@@ -168,13 +168,13 @@
       <tbody>
         {% for p in results.spare_parts %}
         <tr>
-          <td style="font-weight:500;">{{ p.part_name }}</td>
-          <td style="font-family:monospace; color:#6B7280;">{{ p.part_number|default:"—" }}</td>
+          <td style="font-weight:500;">{{ p.item_name }}</td>
+          <td style="font-family:monospace; color:#6B7280;">{{ p.part_number|default:p.item_code }}</td>
           <td>
-            {% if p.stock_quantity < 5 %}
-            <span class="badge badge-red">{{ p.stock_quantity }}</span>
+            {% if p.total_stock and p.total_stock < 5 %}
+            <span class="badge badge-red">{{ p.total_stock }}</span>
             {% else %}
-            {{ p.stock_quantity }}
+            {{ p.total_stock|default:0 }}
             {% endif %}
           </td>
           <td>{% if p.mrp %}&#x20B9; {{ p.mrp }}{% else %}—{% endif %}</td>

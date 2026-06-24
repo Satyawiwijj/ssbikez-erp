@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import BikeModelForm, CustomerForm, VehicleStockForm
 from .models import BikeModel, Customer, VehicleStock
@@ -50,6 +51,7 @@ def customer_detail(request, pk):
 
 
 @login_required
+@require_module_action('customers', 'create')
 def customer_create(request):
     form = CustomerForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -62,6 +64,7 @@ def customer_create(request):
 
 
 @login_required
+@require_module_action('customers', 'edit')
 def customer_update(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     form = CustomerForm(request.POST or None, instance=customer)
@@ -89,6 +92,7 @@ def bike_model_detail(request, pk):
 
 
 @login_required
+@require_module_action('vehicle_master', 'create')
 def bike_model_create(request):
     form = BikeModelForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -100,6 +104,7 @@ def bike_model_create(request):
 
 
 @login_required
+@require_module_action('vehicle_master', 'edit')
 def bike_model_update(request, pk):
     bike_model = get_object_or_404(BikeModel, pk=pk)
     form = BikeModelForm(request.POST or None, instance=bike_model)
@@ -126,6 +131,7 @@ def vehicle_stock_detail(request, pk):
 
 
 @login_required
+@require_module_action('vehicle_master', 'create')
 def vehicle_stock_create(request):
     form = VehicleStockForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -138,6 +144,7 @@ def vehicle_stock_create(request):
 
 
 @login_required
+@require_module_action('vehicle_master', 'edit')
 def vehicle_stock_update(request, pk):
     stock = get_object_or_404(VehicleStock, pk=pk)
     form = VehicleStockForm(request.POST or None, instance=stock)
@@ -189,6 +196,7 @@ def stock_aging(request):
 
 @login_required
 @require_POST
+@require_module_action('customers', 'delete')
 def customer_delete(request, pk):
     customer = get_object_or_404(Customer, pk=pk)
     # Guard: block if related records exist to prevent silent data loss

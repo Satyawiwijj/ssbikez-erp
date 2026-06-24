@@ -185,6 +185,17 @@ for _phone in ['9500000071','9500000072','9500000073']:
             except: pass
         _cur.execute('DELETE FROM customers_customer WHERE id=?', (_cid,))
 _cur.execute("DELETE FROM customers_vehiclestock WHERE chassis_no LIKE 'FQA%'")
+# Sweep any orphans the hand-written deletes above missed (tables added later).
+for _ in range(10):
+    _orphans = _cur.execute('PRAGMA foreign_key_check').fetchall()
+    if not _orphans:
+        break
+    _seen = set()
+    for _tbl, _rowid, _p, _f in _orphans:
+        if (_tbl, _rowid) in _seen:
+            continue
+        _seen.add((_tbl, _rowid))
+        _cur.execute(f'DELETE FROM {_tbl} WHERE rowid = ?', (_rowid,))
 _db.commit()
 _db.close()
 print('Test data cleaned.')

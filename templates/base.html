@@ -576,10 +576,10 @@ setInterval(loadNotificationCount, 60000);
   {% if show_sales %}
   <div class="sidebar-section">Sales</div>
   <a href="{% url 'sales:dashboard' %}" class="sidebar-link" data-href="/sales/"><i class="nav-icon fas fa-chart-line"></i>SALES Dashboard</a>
-  <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="nav-icon fas fa-clipboard-list"></i> Enquiries</a>
+  <a href="{% url 'sales:enquiry_list' %}" class="sidebar-link" data-href="/sales/enquiries/"><i class="nav-icon fas fa-clipboard-list"></i> Sales Enquiries</a>
   <a href="{% url 'sales:follow_up_list' %}" class="sidebar-link" data-href="/sales/follow-ups/"><i class="nav-icon fas fa-phone-alt"></i> Follow-Ups</a>
   <a href="{% url 'sales:feedback_all' %}" class="sidebar-link" data-href="/sales/feedback/"><i class="nav-icon fas fa-comments"></i>Feedback</a>
-  <a href="{% url 'sales:all_appointments' %}" class="sidebar-link" data-href="/sales/all-appointments/"><i class="nav-icon fas fa-calendar-check"></i> Appointments</a>
+  <a href="{% url 'sales:all_appointments' %}" class="sidebar-link" data-href="/sales/all-appointments/"><i class="nav-icon fas fa-calendar-check"></i> Sales Appointments</a>
   <a href="{% url 'sales:test_ride_list' %}" class="sidebar-link"><i class="nav-icon fas fa-motorcycle"></i> Test Rides</a>
   <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="nav-icon fas fa-shopping-cart"></i> Orders</a>
   <a href="{% url 'sales:exchange_list' %}" class="sidebar-link" data-href="/sales/exchange-list/"><i class="nav-icon fas fa-exchange-alt"></i>Exchange Vehicles</a>
@@ -625,9 +625,9 @@ setInterval(loadNotificationCount, 60000);
   {% if show_service %}
   <div class="sidebar-section">Service</div>
   <a href="{% url 'service:dashboard' %}" class="sidebar-link" data-href="/service/dashboard/"><i class="nav-icon fas fa-chart-line"></i> SERVICE Dashboard</a>
-  <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Enquiries</a>
+  <a href="{% url 'service:enquiry_list' %}" class="sidebar-link" data-href="/service/"><i class="nav-icon fas fa-clipboard"></i> Service Enquiries</a>
   <a href="{% url 'service:enquiry_bulk_import' %}" class="sidebar-link" data-href="/service/bulk-import/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
-  <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="nav-icon fas fa-calendar-alt"></i> Appointments</a>
+  <a href="{% url 'service:appointment_list' %}" class="sidebar-link" data-href="/service/appointments/"><i class="nav-icon fas fa-calendar-alt"></i> Service Appointments</a>
   <a href="{% url 'service:reminder_list' %}" class="sidebar-link" data-href="/service/reminders/"><i class="nav-icon fas fa-bell"></i> Service Reminders</a>
   <a href="{% url 'service:jobcard_list' %}" class="sidebar-link" data-href="/service/jobcards/"><i class="nav-icon fas fa-file-alt"></i> Job Cards</a>
   <a href="{% url 'service:labor_charge_list' %}" class="sidebar-link" data-href="/service/labor-charges/"><i class="nav-icon fas fa-tools"></i> Labour Charges</a>
@@ -714,9 +714,23 @@ setInterval(loadNotificationCount, 60000);
   <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:320px; margin: 0 12px;">
     <div style="position:relative;">
       <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
-      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…" style="padding-left:32px;width:100%;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;height:36px;background:#f9fafb;">
+      <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…"
+             id="topbar-search-input"
+             data-on-search-page="{% if request.resolver_match.url_name == 'search' %}1{% endif %}"
+             style="padding-left:32px;width:100%;border-radius:8px;border:1px solid #e5e7eb;font-size:13px;height:36px;background:#f9fafb;">
     </div>
   </form>
+  <script>
+    (function () {
+      var input = document.getElementById('topbar-search-input');
+      if (!input || input.dataset.onSearchPage !== '1') return;
+      input.addEventListener('input', function () {
+        if (input.value.trim() === '') {
+          window.location.href = "{% url 'accounts:dashboard' %}";
+        }
+      });
+    })();
+  </script>
   <div class="topbar-actions">
     {% block topbar_actions %}{% endblock %}
     <div class="topbar-user" id="userMenuBtn">

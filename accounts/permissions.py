@@ -93,3 +93,68 @@ def user_owns(user, obj):
             if getattr(obj, f'{field}_id') == user.pk:
                 return True
     return not has_owner_field
+
+
+# ---------------------------------------------------------------------------
+# Module-level Create/Read/Edit/Delete permission matrix
+#
+# Layered on top of the namespace-level ROLE_PERMISSIONS check above: that
+# gate decides "can this role open this app at all"; ModulePermission rows
+# (managed from Admin -> Module Access) narrow it further to "can this role
+# Create/Edit/Delete within a specific module" — matching the reference
+# ERP's per-role permission matrix (Display/Edit/Create/Delete checkboxes).
+# ---------------------------------------------------------------------------
+
+_ACTION_FIELD = {
+    'view':   'can_view',
+    'create': 'can_create',
+    'edit':   'can_edit',
+    'delete': 'can_delete',
+}
+
+
+def user_can_perform(user, module, action):
+    """
+    True if `user` may perform `action` ('view'/'create'/'edit'/'delete')
+    within `module` (a ModulePermission.MODULE_CHOICES key).
+
+    Superusers always pass. Absence of a ModulePermission row for the
+    user's role + module means "allowed" (only an explicit False on the
+    matching field narrows access) — consistent with can_see_module.
+    """
+    if not user or not user.is_authenticated:
+        return False
+    if user.is_superuser:
+        return True
+    role = getattr(user, 'role', None)
+    if not role:
+        return False
+
+    from accounts.models import ModulePermission
+    override = ModulePermission.objects.filter(role=role, module=module).first()
+    if override is None:
+        return True
+    field = _ACTION_FIELD.get(action, 'can_view')
+    return getattr(override, field, True)
+
+
+def require_module_action(module, action):
+    """
+    View decorator: 403s unless user_can_perform(request.user, module, action).
+    Use on create/update/delete views to enforce the Module Access matrix
+    at the action level, beyond the namespace-level @login_required gate.
+    """
+    from functools import wraps
+    from django.http import HttpResponseForbidden
+
+    def decorator(view_func):
+        @wraps(view_func)
+        def wrapped(request, *args, **kwargs):
+            if not user_can_perform(request.user, module, action):
+                return HttpResponseForbidden(
+                    f'<h1>403 — Access Denied</h1><p>Your role does not have '
+                    f'"{action}" permission for this module.</p>'
+                )
+            return view_func(request, *args, **kwargs)
+        return wrapped
+    return decorator

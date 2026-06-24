@@ -104,6 +104,23 @@ for (sia_id, jc_str) in sia_rows:
             cur.execute('DELETE FROM spares_sparesissuealteration WHERE id=?', (sia_id,))
 
 cur.execute("UPDATE customers_vehiclestock SET stock_status='available' WHERE chassis_no IN ('E2E-CHASSIS-001','E2E-CHASSIS-002')")
+
+# Final safety net: the manual cascade deletes above only cover tables known
+# at the time they were written. Sweep any remaining orphans (e.g. from
+# models added later) so this script never leaves the DB in a state that
+# fails Django's FK integrity check on the next migration.
+for _ in range(10):
+    orphans = cur.execute('PRAGMA foreign_key_check').fetchall()
+    if not orphans:
+        break
+    seen = set()
+    for table, rowid, _parent, _fkid in orphans:
+        key = (table, rowid)
+        if key in seen:
+            continue
+        seen.add(key)
+        cur.execute(f'DELETE FROM {table} WHERE rowid = ?', (rowid,))
+
 db.commit()
 db.close()
 print('  [OK] Stale test data cleaned')
@@ -120,7 +137,7 @@ from sales.models import (SalesEnquiry, SalesAppointment, SalesFeedback,
     VehicleSalesOrder, ExchangeVehicle, VehicleAllotment, VehicleFitting,
     VehicleDelivery, Prospect, SalesTarget, TestRideLog, PDIChecklist)
 from billing.models import (Invoice, Payment, FinanceLoan, InsurancePolicy,
-    RefundAdvance, JournalEntry)
+    RefundAdvance, JournalEntry, JournalEntryLine)
 from rto.models import RTORegistration, NumberPlateOrder, RCBook, RegPayment, RTOIncome
 from vas.models import AMCPackage, RSAPackage, ProtectionPlusPackage
 from service.models import (ServiceEnquiry, ServiceAppointment, ServiceBay,
@@ -662,13 +679,15 @@ ins_policy, _ = InsurancePolicy.objects.get_or_create(
               'start_date': today, 'end_date': today + timedelta(days=365)})
 check('Insurance policy created', ins_policy.pk is not None)
 
-je, _ = JournalEntry.objects.get_or_create(
+je, je_created = JournalEntry.objects.get_or_create(
     description='E2E-TEST Vehicle Sale Income',
-    defaults={'entry_date': today, 'account_name': 'Vehicle Sales Revenue',
-              'entry_type': 'credit', 'amount': Decimal('75000'),
-              'reference': inv.invoice_number, 'created_by': cashier_user})
+    defaults={'entry_date': today, 'reference': inv.invoice_number, 'created_by': cashier_user})
+if je_created:
+    JournalEntryLine.objects.create(entry=je, account='Cash', debit=Decimal('75000'))
+    JournalEntryLine.objects.create(entry=je, account='Vehicle Sales Revenue', credit=Decimal('75000'))
 check('Journal entry created', je.pk is not None)
-check('Journal entry type = credit', je.entry_type == 'credit')
+check('Journal entry is balanced (debit = credit)', je.is_balanced)
+check('Journal entry has 2 lines', je.lines.count() == 2)
 
 # ═══════════════════════════════════════════════════════
 # WORKFLOW 7 — RTO

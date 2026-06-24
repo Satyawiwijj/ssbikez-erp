@@ -54,6 +54,7 @@ urlpatterns = [
     # GAP 25 — Journal & General Ledger
     path('journal/', views.journal_entry_list, name='journal_entry_list'),
     path('journal/create/', views.journal_entry_create, name='journal_entry_create'),
+    path('journal/<int:pk>/', views.journal_entry_detail, name='journal_entry_detail'),
     path('ledger/', views.general_ledger, name='general_ledger'),
 
     # GAP 27 — Payment Receipt PDF

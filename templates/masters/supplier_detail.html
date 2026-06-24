@@ -123,6 +123,31 @@ Back </a>
         </div>
 
         <div class="detail-row">
+            <dt>Supplier Type</dt>
+            <dd>{{ supplier.get_supplier_type_display }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Country</dt>
+            <dd>{{ supplier.country|default:"—" }}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Is Transporter</dt>
+            <dd>{% if supplier.is_transporter %}Yes{% else %}No{% endif %}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Is Prepaid Supplier</dt>
+            <dd>{% if supplier.is_prepaid_supplier %}Yes{% else %}No{% endif %}</dd>
+        </div>
+
+        <div class="detail-row">
+            <dt>Supplier Limit Amount</dt>
+            <dd>{% if supplier.supplier_limit_amount %}₹ {{ supplier.supplier_limit_amount }}{% else %}—{% endif %}</dd>
+        </div>
+
+        <div class="detail-row">
             <dt>Contact Person</dt>
             <dd>{{ supplier.contact_person|default:"—" }}</dd>
         </div>

@@ -1,9 +1,9 @@
 from django import forms
 from django.forms import inlineformset_factory
 from .models import (
-    SparesItem, SupplierQuote, SupplierQuoteItem,
-    PurchaseOrder, PurchaseOrderItem,
-    PurchaseInvoice, PurchaseInvoiceItem,
+    SparesItem, SupplierQuote, SupplierQuoteItem, SupplierQuoteTax,
+    PurchaseOrder, PurchaseOrderItem, PurchaseOrderTax,
+    PurchaseInvoice, PurchaseInvoiceItem, PurchaseInvoiceTax,
     CounterSale, CounterSaleItem,
     CounterSaleReturn, CounterSaleReturnItem,
     SparesIssueAlteration, SparesIssueAlterationItem,
@@ -60,7 +60,7 @@ class SupplierQuoteForm(forms.ModelForm):
     class Meta:
         model = SupplierQuote
         exclude = ['quote_no', 'created_at', 'updated_at', 'created_by',
-                   'total_quantity', 'total_amount', 'grand_total']
+                   'total_quantity', 'total_amount', 'total_taxes', 'grand_total']
         widgets = {
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'valid_till': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -90,6 +90,28 @@ class SupplierQuoteItemForm(forms.ModelForm):
 SupplierQuoteItemFormSet = inlineformset_factory(
     SupplierQuote, SupplierQuoteItem,
     form=SupplierQuoteItemForm, extra=1, can_delete=True
+)
+
+
+class _TaxChargeLineFormBase(forms.ModelForm):
+    class Meta:
+        fields = ['apply_type', 'account_head', 'tax_rate', 'amount']
+        widgets = {
+            'apply_type':   forms.Select(attrs={'class': 'form-select', 'style': 'min-width:160px'}),
+            'account_head': forms.TextInput(attrs={'class': 'form-control', 'style': 'min-width:200px', 'placeholder': 'e.g. Input Tax CGST'}),
+            'tax_rate':     forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:80px'}),
+            'amount':       forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'style': 'min-width:100px'}),
+        }
+
+
+class SupplierQuoteTaxForm(_TaxChargeLineFormBase):
+    class Meta(_TaxChargeLineFormBase.Meta):
+        model = SupplierQuoteTax
+
+
+SupplierQuoteTaxFormSet = inlineformset_factory(
+    SupplierQuote, SupplierQuoteTax,
+    form=SupplierQuoteTaxForm, extra=1, can_delete=True
 )
 
 
@@ -140,6 +162,17 @@ PurchaseOrderItemFormSet = inlineformset_factory(
 )
 
 
+class PurchaseOrderTaxForm(_TaxChargeLineFormBase):
+    class Meta(_TaxChargeLineFormBase.Meta):
+        model = PurchaseOrderTax
+
+
+PurchaseOrderTaxFormSet = inlineformset_factory(
+    PurchaseOrder, PurchaseOrderTax,
+    form=PurchaseOrderTaxForm, extra=1, can_delete=True
+)
+
+
 class PurchaseInvoiceForm(forms.ModelForm):
     class Meta:
         model = PurchaseInvoice
@@ -181,6 +214,17 @@ class PurchaseInvoiceItemForm(forms.ModelForm):
 PurchaseInvoiceItemFormSet = inlineformset_factory(
     PurchaseInvoice, PurchaseInvoiceItem,
     form=PurchaseInvoiceItemForm, extra=1, can_delete=True
+)
+
+
+class PurchaseInvoiceTaxForm(_TaxChargeLineFormBase):
+    class Meta(_TaxChargeLineFormBase.Meta):
+        model = PurchaseInvoiceTax
+
+
+PurchaseInvoiceTaxFormSet = inlineformset_factory(
+    PurchaseInvoice, PurchaseInvoiceTax,
+    form=PurchaseInvoiceTaxForm, extra=1, can_delete=True
 )
 
 

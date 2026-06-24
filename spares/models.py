@@ -87,6 +87,7 @@ class SupplierQuote(models.Model):
     is_reverse_charge = models.BooleanField(default=False)
     total_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_taxes = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     additional_discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     additional_discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -175,6 +176,37 @@ class PurchaseOrder(models.Model):
         ordering = ['-date']
 
 
+class TaxChargeLine(models.Model):
+    """
+    Document-level tax/charge breakup row — shown as its own table on the
+    document (e.g. CGST/SGST on the net total), separate from any per-item
+    tax fields. Mirrors the reference ERP's "Purchase Taxes and Charges"
+    table on Purchase Order / Purchase Invoice / Supplier Quotation.
+    """
+    class ApplyType(models.TextChoices):
+        NET_TOTAL  = 'on_net_total', 'On Net Total'
+        PREV_ROW   = 'on_previous_row_amount', 'On Previous Row Amount'
+        PREV_TOTAL = 'on_previous_row_total', 'On Previous Row Total'
+        ACTUAL     = 'actual', 'Actual'
+
+    apply_type   = models.CharField(max_length=30, choices=ApplyType.choices,
+                                     default=ApplyType.NET_TOTAL, verbose_name='Type')
+    account_head = models.CharField(max_length=200)
+    tax_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    amount       = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        abstract = True
+        ordering = ['pk']
+
+    def __str__(self):
+        return f"{self.account_head} | {self.tax_rate}% | Rs.{self.amount}"
+
+
+class PurchaseOrderTax(TaxChargeLine):
+    order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='taxes')
+
+
 class PurchaseOrderItem(models.Model):
     order = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
     item = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
@@ -243,6 +275,14 @@ class PurchaseInvoice(models.Model):
 
     class Meta:
         ordering = ['-date']
+
+
+class PurchaseInvoiceTax(TaxChargeLine):
+    invoice = models.ForeignKey(PurchaseInvoice, on_delete=models.CASCADE, related_name='taxes')
+
+
+class SupplierQuoteTax(TaxChargeLine):
+    quote = models.ForeignKey(SupplierQuote, on_delete=models.CASCADE, related_name='taxes')
 
 
 class PurchaseInvoiceItem(models.Model):

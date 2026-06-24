@@ -173,6 +173,17 @@ cur.execute("DELETE FROM customers_vehiclestock WHERE chassis_no LIKE 'VQA%'")
 cur.execute("DELETE FROM rto_rtoregistration WHERE form20_number LIKE 'VQA%'")
 cur.execute("DELETE FROM rto_rcbook WHERE rc_number='TN11VQA001'")
 cur.execute("DELETE FROM spares_sparesitem WHERE part_number='VQA-OIL-001'")
+# Sweep any orphans the hand-written deletes above missed (tables added later).
+for _ in range(10):
+    orphans = cur.execute('PRAGMA foreign_key_check').fetchall()
+    if not orphans:
+        break
+    seen = set()
+    for tbl, rowid, _p, _f in orphans:
+        if (tbl, rowid) in seen:
+            continue
+        seen.add((tbl, rowid))
+        cur.execute(f'DELETE FROM {tbl} WHERE rowid = ?', (rowid,))
 db.commit()
 db.close()
 print('Test data cleaned.\n')

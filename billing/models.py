@@ -220,23 +220,60 @@ class RefundAdvance(models.Model):
 # ---------------------------------------------------------------------------
 
 class JournalEntry(models.Model):
-    class EntryType(models.TextChoices):
-        DEBIT  = 'debit',  'Debit'
-        CREDIT = 'credit', 'Credit'
-
-    entry_date   = models.DateField()
-    description  = models.TextField()
-    account_name = models.CharField(max_length=200, db_index=True)
-    entry_type   = models.CharField(max_length=10, choices=EntryType.choices)
-    amount       = models.DecimalField(max_digits=12, decimal_places=2)
-    reference    = models.CharField(max_length=200, blank=True)
-    created_by   = models.ForeignKey(
+    """
+    Double-entry journal voucher — a header with one or more JournalEntryLine
+    rows (account + debit/credit). Total debit must equal total credit
+    across the lines (see clean()), matching standard double-entry
+    accounting and the reference ERP's Journal Entry document.
+    """
+    entry_date          = models.DateField()
+    description         = models.TextField()
+    reference            = models.CharField(max_length=200, blank=True)
+    is_vehicle_purchase = models.BooleanField(default=False, verbose_name='Vehicle Purchase')
+    company_gstin       = models.CharField(max_length=20, blank=True, verbose_name='Company GSTIN')
+    reference_doctype   = models.CharField(max_length=100, blank=True)
+    reference_docname   = models.CharField(max_length=100, blank=True)
+    reference_number    = models.CharField(max_length=100, blank=True)
+    reference_date      = models.DateField(null=True, blank=True)
+    number_plate_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    multi_currency      = models.BooleanField(default=False)
+    created_by          = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
     )
-    created_at   = models.DateTimeField(auto_now_add=True)
+    created_at          = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-entry_date', '-created_at']
+        verbose_name_plural = 'Journal Entries'
+
+    @property
+    def total_debit(self):
+        from decimal import Decimal
+        return self.lines.aggregate(t=models.Sum('debit'))['t'] or Decimal('0')
+
+    @property
+    def total_credit(self):
+        from decimal import Decimal
+        return self.lines.aggregate(t=models.Sum('credit'))['t'] or Decimal('0')
+
+    @property
+    def is_balanced(self):
+        return self.total_debit == self.total_credit
 
     def __str__(self):
-        return f"JE-{self.pk} | {self.account_name} {self.entry_type} Rs.{self.amount}"
+        return f"JE-{self.pk} | {self.entry_date} | Dr/Cr Rs.{self.total_debit}"
+
+
+class JournalEntryLine(models.Model):
+    entry      = models.ForeignKey(JournalEntry, on_delete=models.CASCADE, related_name='lines')
+    account    = models.CharField(max_length=200, db_index=True)
+    party_type = models.CharField(max_length=100, blank=True)
+    party      = models.CharField(max_length=200, blank=True)
+    debit      = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    credit     = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    class Meta:
+        ordering = ['pk']
+
+    def __str__(self):
+        return f"{self.account} | Dr {self.debit} / Cr {self.credit}"

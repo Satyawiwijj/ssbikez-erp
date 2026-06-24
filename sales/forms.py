@@ -167,7 +167,8 @@ class VehicleChoiceField(forms.ModelChoiceField):
 class VehicleSalesOrderForm(forms.ModelForm):
     vehicle = VehicleChoiceField(
         queryset=VehicleStock.objects.none(),
-        help_text='Only available (unsold) vehicles are listed.',
+        required=False,
+        help_text='Only available (unsold) vehicles are listed. Leave blank for orders that are not for a specific vehicle (e.g. spares/accessories-only orders).',
     )
 
     class Meta:
@@ -228,11 +229,15 @@ class VehicleDeliveryForm(forms.ModelForm):
 class ExchangeVehicleForm(forms.ModelForm):
     class Meta:
         model  = ExchangeVehicle
-        fields = ('sales_order', 'old_vehicle_model', 'registration_no', 'valuation_amount',
-                  'rc_handed_over', 'rc_handover_date')
+        fields = ('sales_order', 'old_vehicle_model', 'manufacturing_company', 'colour',
+                  'vehicle_category', 'sub_group', 'registration_no', 'chassis_no', 'engine_no',
+                  'year_of_make', 'valuation_amount', 'hp_endorsement', 'rc_handed_over',
+                  'rc_handover_date', 'insurance_valid_upto', 'target_warehouse', 'payment_status')
         widgets = {
-            'registration_no':  forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
-            'rc_handover_date': forms.DateInput(attrs={'type': 'date'}),
+            'registration_no':      forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
+            'rc_handover_date':     forms.DateInput(attrs={'type': 'date'}),
+            'insurance_valid_upto': forms.DateInput(attrs={'type': 'date'}),
+            'year_of_make':         forms.NumberInput(attrs={'placeholder': 'e.g. 2019'}),
         }
 
     def __init__(self, *args, **kwargs):

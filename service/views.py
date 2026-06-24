@@ -9,6 +9,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 
 from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm, OutworkEntryForm,
                     ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
@@ -112,6 +113,7 @@ def enquiry_detail(request, pk):
 
 
 @login_required
+@require_module_action('service', 'create')
 def enquiry_create(request):
     initial = {}
     if request.GET.get('cv'):
@@ -127,6 +129,7 @@ def enquiry_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def enquiry_update(request, pk):
     enquiry = get_object_or_404(ServiceEnquiry, pk=pk)
     form    = ServiceEnquiryForm(request.POST or None, instance=enquiry)
@@ -144,6 +147,7 @@ def enquiry_update(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('service', 'create')
 def appointment_create(request):
     initial = {}
     if request.GET.get('enquiry'):
@@ -159,6 +163,7 @@ def appointment_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def appointment_update(request, pk):
     appt = get_object_or_404(ServiceAppointment, pk=pk)
     form = ServiceAppointmentForm(request.POST or None, instance=appt)
@@ -173,6 +178,7 @@ def appointment_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('service', 'edit')
 def appointment_cancel(request, pk):
     appt        = get_object_or_404(ServiceAppointment, pk=pk)
     appt.status = ServiceAppointment.Status.CANCELLED
@@ -262,6 +268,7 @@ def jobcard_detail(request, pk):
 
 
 @login_required
+@require_module_action('service', 'create')
 def jobcard_create(request):
     from accounts.permissions import user_is_manager
     is_manager = user_is_manager(request.user)
@@ -284,6 +291,7 @@ def jobcard_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def jobcard_update(request, pk):
     from accounts.permissions import user_is_manager, user_owns
     from django.http import HttpResponseForbidden
@@ -306,6 +314,7 @@ def jobcard_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('service', 'edit')
 def jobcard_status_update(request, pk):
     job_card   = get_object_or_404(JobCard, pk=pk)
     new_status = request.POST.get('service_status')
@@ -366,6 +375,7 @@ def bay_list(request):
 
 
 @login_required
+@require_module_action('service', 'create')
 def bay_create(request):
     form = ServiceBayForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
@@ -377,6 +387,7 @@ def bay_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def bay_update(request, pk):
     bay  = get_object_or_404(ServiceBay, pk=pk)
     form = ServiceBayForm(request.POST or None, instance=bay)
@@ -393,6 +404,7 @@ def bay_update(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('service', 'create')
 def bay_assignment_create(request):
     initial = {}
     if request.GET.get('jc'):
@@ -408,6 +420,7 @@ def bay_assignment_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def bay_assignment_update(request, pk):
     assignment = get_object_or_404(BayAssignment, pk=pk)
     form       = BayAssignmentForm(request.POST or None, instance=assignment)
@@ -425,6 +438,7 @@ def bay_assignment_update(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('service', 'create')
 def labor_charge_create(request):
     initial = {}
     if request.GET.get('jc'):
@@ -440,6 +454,7 @@ def labor_charge_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def labor_charge_update(request, pk):
     charge = get_object_or_404(LaborCharge, pk=pk)
     form   = LaborChargeForm(request.POST or None, instance=charge)
@@ -454,6 +469,7 @@ def labor_charge_update(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('service', 'delete')
 def labor_charge_delete(request, pk):
     charge = get_object_or_404(LaborCharge, pk=pk)
     jc_pk  = charge.job_card_id
@@ -468,6 +484,7 @@ def labor_charge_delete(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('service', 'create')
 def service_invoice_create(request):
     initial = {}
     jc_pk = request.GET.get('jc')
@@ -513,6 +530,7 @@ def service_invoice_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def service_invoice_update(request, pk):
     from accounts.permissions import user_owns
     from django.http import HttpResponseForbidden
@@ -566,6 +584,7 @@ def service_invoice_detail(request, pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('service', 'create')
 def outwork_create(request):
     initial = {}
     if request.GET.get('jc'):
@@ -581,6 +600,7 @@ def outwork_create(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def outwork_update(request, pk):
     entry = get_object_or_404(OutworkEntry, pk=pk)
     form  = OutworkEntryForm(request.POST or None, instance=entry)
@@ -643,6 +663,7 @@ def reminder_list(request):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def reminder_update(request, pk):
     reminder = get_object_or_404(ServiceReminder, pk=pk)
     if request.method == 'POST':
@@ -695,6 +716,7 @@ def technician_report(request):
 
 @login_required
 @require_POST
+@require_module_action('service', 'delete')
 def enquiry_delete(request, pk):
     from django.db.models import ProtectedError
     enq = get_object_or_404(ServiceEnquiry, pk=pk)
@@ -713,6 +735,7 @@ def enquiry_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('service', 'delete')
 def appointment_delete(request, pk):
     from django.db.models import ProtectedError
     apt = get_object_or_404(ServiceAppointment, pk=pk)
@@ -728,6 +751,7 @@ def appointment_delete(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('service', 'delete')
 def jobcard_delete(request, pk):
     from django.db.models import ProtectedError
     from accounts.permissions import user_owns
@@ -763,6 +787,7 @@ def vehicle_service_master_list(request):
 
 
 @login_required
+@require_module_action('service', 'create')
 def vehicle_service_master_create(request):
     form     = VehicleServiceMasterForm(request.POST or None)
     formset  = VehicleServiceScheduleFormSet(request.POST or None, prefix='schedules')
@@ -787,6 +812,7 @@ def vehicle_service_master_detail(request, pk):
 
 
 @login_required
+@require_module_action('service', 'edit')
 def vehicle_service_master_update(request, pk):
     master  = get_object_or_404(VehicleServiceMaster, pk=pk)
     form    = VehicleServiceMasterForm(request.POST or None, instance=master)

@@ -245,7 +245,9 @@ def flow_customer_creation(page):
     print("\n[FLOW 2: CUSTOMER CREATION]")
     PHONE = '9500000099'
 
-    # Clean prior run — cascade delete to avoid orphaned FK references
+    # Clean prior run — cascade delete to avoid orphaned FK references.
+    # Followed by a PRAGMA foreign_key_check sweep so any table not listed
+    # here by hand still gets cleaned up instead of left as an orphan.
     try:
         conn = sqlite3.connect(str(DB_PATH))
         conn.execute("""DELETE FROM sales_vehiclesalesorder WHERE customer_id IN
@@ -253,6 +255,16 @@ def flow_customer_creation(page):
         conn.execute("""DELETE FROM sales_salesenquiry WHERE customer_id IN
             (SELECT id FROM customers_customer WHERE phone=?)""", (PHONE,))
         conn.execute("DELETE FROM customers_customer WHERE phone=?", (PHONE,))
+        for _ in range(10):
+            orphans = conn.execute('PRAGMA foreign_key_check').fetchall()
+            if not orphans:
+                break
+            seen = set()
+            for tbl, rowid, _p, _f in orphans:
+                if (tbl, rowid) in seen:
+                    continue
+                seen.add((tbl, rowid))
+                conn.execute(f'DELETE FROM {tbl} WHERE rowid = ?', (rowid,))
         conn.commit(); conn.close()
     except Exception:
         pass
