@@ -27,3 +27,10 @@ files.zip
 # OS
 .DS_Store
 Thumbs.db
+
+# Reference-server extract — contains a third-party (TeleCMI) API secret in
+# its raw client-script dump; kept as local research material only, never committed
+reference_erp_spec/
+
+# graphify knowledge-graph build output (generated artifacts, not source)
+graphify-out/
