@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="uv-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'used_vehicles:sale_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="uv-form" novalidate>
+{% csrf_token %}
+{{ fittings_formset.management_form }}
+{{ items_formset.management_form }}
+{{ advance_formset.management_form }}
+
+{% if form.errors or fittings_formset.errors or items_formset.errors or advance_formset.errors %}
+<div class="alert alert-danger">Please correct the errors below.</div>
+{% endif %}
+
+<div class="card form-card">
+    <div class="card-header"><i class="fas fa-file-invoice me-2"></i>{{ title }}</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Fittings
+        <button type="button" id="add-fittings-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item Code</th><th>Item Name</th><th>Qty</th><th>Rate</th><th>Amount</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="fittings-formset-body">
+                {% for f in fittings_formset %}
+                <tr class="formset-row fittings-row">
+                    {{ f.id }}
+                    <td>{{ f.item_code }}</td>
+                    <td>{{ f.item_name }}</td>
+                    <td>{{ f.quantity }}</td>
+                    <td>{{ f.rate }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Items
+        <button type="button" id="add-items-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item Name</th><th>Rate</th><th>Qty</th><th>Amount</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="items-formset-body">
+                {% for f in items_formset %}
+                <tr class="formset-row items-row">
+                    {{ f.id }}
+                    <td>{{ f.item_name }}</td>
+                    <td>{{ f.rate }}</td>
+                    <td>{{ f.quantity }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Advance Payment Details
+        <button type="button" id="add-advance-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Mode of Payment</th><th>Date</th><th>Amount</th><th>To Account</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="advance-formset-body">
+                {% for f in advance_formset %}
+                <tr class="formset-row advance-row">
+                    {{ f.id }}
+                    <td>{{ f.mode_of_payment }}</td>
+                    <td>{{ f.date }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>{{ f.to_account }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function makeAdder(prefix, addBtnId, tbodyId, rowClass) {
+        const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(tbodyId);
+        const addBtn = document.getElementById(addBtnId);
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.' + rowClass);
+            const newRow = firstRow.cloneNode(true);
+            newRow.innerHTML = newRow.innerHTML.replace(new RegExp(prefix + '-\\d+', 'g'), prefix + '-' + formCount);
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow);
+        });
+    }
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const deleteField = row.querySelector('[id$="-DELETE"]');
+            if (deleteField) { deleteField.checked = true; row.style.display = 'none'; }
+            else { row.remove(); }
+        });
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    makeAdder('fittings', 'add-fittings-row', 'fittings-formset-body', 'fittings-row');
+    makeAdder('items', 'add-items-row', 'items-formset-body', 'items-row');
+    makeAdder('advance', 'add-advance-row', 'advance-formset-body', 'advance-row');
+})();
+</script>
+{% endblock %}

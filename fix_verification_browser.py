@@ -56,7 +56,10 @@ def get_otp():
     db.close()
     return row[0] if row else None
 
-def login(page, username='admin', password='SSBikez@2026'):
+def login(page, username='admin', password=None):
+    password = password or os.environ.get('QA_ADMIN_PASSWORD')
+    if not password:
+        raise RuntimeError('Set the QA_ADMIN_PASSWORD environment variable before running this script.')
     go(page, '/accounts/login/')
     page.fill('input[name="username"]', username)
     page.fill('input[name="password"]', password)
@@ -303,7 +306,7 @@ with sync_playwright() as pw:
         go(page, '/accounts/logout/')
         page.wait_for_timeout(800)
 
-        login(page, username=sales_user.username, password='Test@123')
+        login(page, username=sales_user.username, password=os.environ.get('QA_FIXTURE_PASSWORD'))
         ss(page, '011_sales_exec_logged_in')
 
         blocked_admin_urls = [

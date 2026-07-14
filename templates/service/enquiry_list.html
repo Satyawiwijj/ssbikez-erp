@@ -91,7 +91,7 @@
                         font-size:13px;
                         font-weight:600;
                     ">
-                        {{ enq.customer_vehicle.registration_no }}
+                        {{ enq.customer_vehicle.registration_no|default:"—" }}
                     </span>
                 </td>
 
@@ -140,7 +140,7 @@
                         <form method="post" action="{% url 'service:enquiry_delete' enq.pk %}" style="display:inline"
                               onsubmit="return confirm('Delete SENQ-{{ enq.pk }}?')">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete SENQ-{{ enq.pk }}"><i class="fas fa-trash"></i></button>
                         </form>
 
                     </div>

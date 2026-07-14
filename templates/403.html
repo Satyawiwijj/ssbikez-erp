@@ -12,7 +12,7 @@
     Your role does not have permission to access this section.
   </p>
   {% if role_name %}
-  <p style="font-size:13px;color:#9ca3af;margin-bottom:24px;">
+  <p style="font-size:13px;color:#6B7280;margin-bottom:24px;">
     Signed in as <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
     (<em>{{ role_name }}</em>){% if namespace %} · attempted: <code>{{ namespace }}</code>{% endif %}
   </p>
@@ -21,7 +21,7 @@
     <a href="{% url 'accounts:home' %}" class="btn btn-primary">&#8592; Go Home</a>
     <a href="{% url 'accounts:dashboard' %}" class="btn btn-secondary">Dashboard</a>
   </div>
-  <p style="margin-top:24px;font-size:12px;color:#9ca3af;">
+  <p style="margin-top:24px;font-size:12px;color:#6B7280;">
     If you believe this is a mistake, contact your administrator to update your role.
   </p>
 </div>

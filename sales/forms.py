@@ -1,17 +1,23 @@
 from django import forms
+from accounts.forms import AccessibleFormMixin
 from django.utils import timezone
 
 from customers.models import VehicleStock
 
 from django.forms import inlineformset_factory
 
-from .models import (ExchangeVehicle, Prospect, SalesAppointment, SalesFeedback,
-                     SalesEnquiry, SalesEnquiryCallLog, SalesEnquiryHistory,
-                     SalesFeedbackItem, VehicleAllotment, VehicleDelivery,
-                     VehicleFitting, VehicleSalesOrder)
+from .models import (AdditionalVehicleFitting, DeliveryNoteAdvancePayment,
+                     DeliveryNoteItem, DeliveryNotePaymentEntry, ExchangeVehicle,
+                     Prospect, SalesAppointment, SalesFeedback, SalesEnquiry,
+                     SalesEnquiryCallLog, SalesEnquiryHistory, SalesFeedbackItem,
+                     SalesOrderAdvancePayment, VehicleAllotment, VehicleDelivery,
+                     VehicleFitting, VehicleSalesOrder, VehicleSaleItem,
+                     Dealer, ExchangeVehicleDealer, ExchangeVehicleDealerItem,
+                     ExchangeDealerPayment, ExchangeDealerPaymentItem,
+                     DealerRCHandOver, DealerRCHandOverItem)
 
 
-class SalesEnquiryForm(forms.ModelForm):
+class SalesEnquiryForm(AccessibleFormMixin, forms.ModelForm):
     """
     Handles both:
       • New prospect enquiry  — fill prospect_name + prospect_phone (customer optional)
@@ -41,6 +47,10 @@ class SalesEnquiryForm(forms.ModelForm):
             'address_line1', 'address_line2', 'address_line3', 'address_line4',
             'district', 'city', 'state', 'pincode',
             'remarks',
+            # Trade-in pre-assessment
+            'exchange_type', 'exchange_vehicle_model_and_make', 'exchange_year_of_manufacturing',
+            'exchange_owner_type', 'exchange_valid_insurance', 'exchange_original_rc_available',
+            'exchange_customer_expected_price', 'exchange_price_offer_by_dealer',
         )
         widgets = {
             'remarks': forms.Textarea(attrs={'rows': 3}),
@@ -100,7 +110,7 @@ class SalesEnquiryForm(forms.ModelForm):
         return instance
 
 
-class SalesAppointmentForm(forms.ModelForm):
+class SalesAppointmentForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = SalesAppointment
         fields = (
@@ -135,7 +145,7 @@ class SalesAppointmentForm(forms.ModelForm):
         return date
 
 
-class SalesFeedbackForm(forms.ModelForm):
+class SalesFeedbackForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = SalesFeedback
         fields = (
@@ -164,7 +174,7 @@ class VehicleChoiceField(forms.ModelChoiceField):
         return ' — '.join(parts)
 
 
-class VehicleSalesOrderForm(forms.ModelForm):
+class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
     vehicle = VehicleChoiceField(
         queryset=VehicleStock.objects.none(),
         required=False,
@@ -173,8 +183,22 @@ class VehicleSalesOrderForm(forms.ModelForm):
 
     class Meta:
         model  = VehicleSalesOrder
-        fields = ('enquiry', 'customer', 'vehicle', 'sales_executive', 'branch',
-                  'booking_amount', 'discount_amount', 'total_amount', 'sales_status')
+        fields = (
+            'enquiry', 'customer', 'vehicle', 'sales_executive', 'branch',
+            'order_form_series',
+            'insurance_name', 'sales_finance', 'gst_category', 'delivery_date',
+            'special_helmet', 'helmet_name', 'helmet_price', 'special_helmet_warehouse', 'default_helmet',
+            'has_vehicle_exchange', 'finance_closing', 'exchange_amount',
+            'temp_charges_applied', 'temp_charges', 'temp_area',
+            'booking_amount', 'discount_amount', 'total_amount', 'sales_status',
+            'invoice_discount', 'is_finance_done', 'table_charges_total', 'delivery_discount',
+            'finance_amount', 'additional_discount_amount', 'payment_reference',
+            'number_plate_amount', 'balance_payment', 'payment_status', 'customer_refund',
+        )
+        widgets = {
+            'delivery_date': forms.DateInput(attrs={'type': 'date'}),
+            'temp_area':     forms.TextInput(attrs={'placeholder': 'e.g. within city / outstation'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -184,6 +208,7 @@ class VehicleSalesOrderForm(forms.ModelForm):
         self.fields['total_amount'].help_text  = 'Full on-road / ex-showroom price. Minimum ₹50,000.'
         self.fields['booking_amount'].help_text = 'Advance collected at booking. Minimum ₹1,000.'
         self.fields['discount_amount'].help_text = 'Maximum discount is 20% of total amount.'
+        self.fields['order_form_series'].required = False
 
     def clean(self):
         from decimal import Decimal
@@ -203,6 +228,9 @@ class VehicleSalesOrderForm(forms.ModelForm):
                 self.add_error('booking_amount',
                                'Booking amount cannot exceed the total order amount.')
 
+        if discount_amount is not None and discount_amount < 0:
+            self.add_error('discount_amount', 'Discount amount cannot be negative.')
+
         if discount_amount is not None and total_amount is not None and total_amount > 0:
             max_discount = total_amount * Decimal('0.20')
             if discount_amount > max_discount:
@@ -212,13 +240,18 @@ class VehicleSalesOrderForm(forms.ModelForm):
         return cleaned_data
 
 
-class VehicleDeliveryForm(forms.ModelForm):
+class VehicleDeliveryForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = VehicleDelivery
         fields = (
             'sales_order', 'delivery_date', 'delivered_by', 'remarks',
             'checklist_insurance', 'checklist_rc_book', 'checklist_warranty',
-            'checklist_toolkit', 'checklist_accessories',
+            'checklist_toolkit', 'checklist_accessories', 'issue_gate_pass',
+            'manager_approval_requested', 'manager_approved', 'finance_approved',
+            'offer_petrol', 'petrol_type', 'petrol_litre', 'petrol_amount', 'bunk_name',
+            'total_quantity', 'invoice_discount', 'table_charges_total', 'finance_amount',
+            'additional_discount', 'total_amount', 'sales_order_additional_discount',
+            'pending_amount', 'advance_amount', 'refund_amount', 'payment_status',
         )
         widgets = {
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
@@ -226,7 +259,7 @@ class VehicleDeliveryForm(forms.ModelForm):
         }
 
 
-class ExchangeVehicleForm(forms.ModelForm):
+class ExchangeVehicleForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = ExchangeVehicle
         fields = ('sales_order', 'old_vehicle_model', 'manufacturing_company', 'colour',
@@ -269,7 +302,7 @@ class ExchangeVehicleForm(forms.ModelForm):
         return amount
 
 
-class VehicleAllotmentForm(forms.ModelForm):
+class VehicleAllotmentForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = VehicleAllotment
         fields = ('sales_order', 'vehicle', 'notes')
@@ -285,7 +318,7 @@ class VehicleAllotmentForm(forms.ModelForm):
         ).select_related('bike_model')
 
 
-class VehicleFittingForm(forms.ModelForm):
+class VehicleFittingForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = VehicleFitting
         fields = ('sales_order', 'fitting_name', 'description', 'cost')
@@ -302,7 +335,7 @@ class VehicleFittingForm(forms.ModelForm):
         return cost
 
 
-class VehicleFittingLineForm(forms.ModelForm):
+class VehicleFittingLineForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = VehicleFitting
         fields = ('fitting_name', 'description', 'cost')
@@ -320,10 +353,123 @@ VehicleFittingFormSet = inlineformset_factory(
 
 
 # ---------------------------------------------------------------------------
+# Reference-parity child tables — Additional Fittings, Items, Advance Payments
+# (Sales Order) and Delivery Note Items / Advance Payments / Payment Entries
+# (Vehicle Delivery)
+# ---------------------------------------------------------------------------
+
+class AdditionalVehicleFittingLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = AdditionalVehicleFitting
+        fields = ('item_code', 'item_name', 'quantity', 'rate')
+        widgets = {
+            'item_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'item_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+AdditionalVehicleFittingFormSet = inlineformset_factory(
+    VehicleSalesOrder, AdditionalVehicleFitting,
+    form=AdditionalVehicleFittingLineForm, extra=1, can_delete=True
+)
+
+
+class VehicleSaleItemLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = VehicleSaleItem
+        fields = ('item_name', 'quantity', 'rate')
+        widgets = {
+            'item_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'quantity':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+VehicleSaleItemFormSet = inlineformset_factory(
+    VehicleSalesOrder, VehicleSaleItem,
+    form=VehicleSaleItemLineForm, extra=1, can_delete=True
+)
+
+
+class SalesOrderAdvancePaymentLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = SalesOrderAdvancePayment
+        fields = ('mode_of_payment', 'draft_type', 'date', 'amount', 'to_account')
+        widgets = {
+            'mode_of_payment': forms.TextInput(attrs={'class': 'form-control'}),
+            'draft_type':      forms.TextInput(attrs={'class': 'form-control'}),
+            'date':            forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'amount':          forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'to_account':      forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+SalesOrderAdvancePaymentFormSet = inlineformset_factory(
+    VehicleSalesOrder, SalesOrderAdvancePayment,
+    form=SalesOrderAdvancePaymentLineForm, extra=1, can_delete=True
+)
+
+
+class DeliveryNoteItemLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = DeliveryNoteItem
+        fields = ('item_code', 'warranty_rsa_amc', 'rate', 'actual_amount')
+        widgets = {
+            'item_code':        forms.TextInput(attrs={'class': 'form-control'}),
+            'warranty_rsa_amc': forms.Select(attrs={'class': 'form-select'}),
+            'rate':             forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'actual_amount':    forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+DeliveryNoteItemFormSet = inlineformset_factory(
+    VehicleDelivery, DeliveryNoteItem,
+    form=DeliveryNoteItemLineForm, extra=1, can_delete=True
+)
+
+
+class DeliveryNoteAdvancePaymentLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = DeliveryNoteAdvancePayment
+        fields = ('mode_of_payment', 'date', 'amount', 'to_account')
+        widgets = {
+            'mode_of_payment': forms.TextInput(attrs={'class': 'form-control'}),
+            'date':            forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'amount':          forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'to_account':      forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+DeliveryNoteAdvancePaymentFormSet = inlineformset_factory(
+    VehicleDelivery, DeliveryNoteAdvancePayment,
+    form=DeliveryNoteAdvancePaymentLineForm, extra=1, can_delete=True
+)
+
+
+class DeliveryNotePaymentEntryLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = DeliveryNotePaymentEntry
+        fields = ('date', 'amount', 'mode_of_payment')
+        widgets = {
+            'date':            forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'amount':          forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'mode_of_payment': forms.TextInput(attrs={'class': 'form-control'}),
+        }
+
+
+DeliveryNotePaymentEntryFormSet = inlineformset_factory(
+    VehicleDelivery, DeliveryNotePaymentEntry,
+    form=DeliveryNotePaymentEntryLineForm, extra=1, can_delete=True
+)
+
+
+# ---------------------------------------------------------------------------
 # ERP Alignment — inline formsets for call logs, history, feedback items
 # ---------------------------------------------------------------------------
 
-class CallLogForm(forms.ModelForm):
+class CallLogForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = SalesEnquiryCallLog
         fields = ('unique_id', 'call_from', 'bill_sec', 'start_time', 'audio_url', 'notes')
@@ -337,7 +483,7 @@ class CallLogForm(forms.ModelForm):
         }
 
 
-class HistoryForm(forms.ModelForm):
+class HistoryForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = SalesEnquiryHistory
         fields = ('update_date', 'remarks', 'status')
@@ -348,7 +494,7 @@ class HistoryForm(forms.ModelForm):
         }
 
 
-class FeedbackItemForm(forms.ModelForm):
+class FeedbackItemForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = SalesFeedbackItem
         fields = ('points', 'feedback_type', 'response', 'rating')
@@ -383,7 +529,7 @@ FeedbackItemFormSet = inlineformset_factory(
 from .models import SalesTarget, TestRideLog, PDIChecklist
 
 
-class SalesTargetForm(forms.ModelForm):
+class SalesTargetForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = SalesTarget
         fields = ('sales_executive', 'month', 'year', 'target_enquiries',
@@ -394,7 +540,7 @@ class SalesTargetForm(forms.ModelForm):
         }
 
 
-class TestRideLogForm(forms.ModelForm):
+class TestRideLogForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = TestRideLog
         fields = ('enquiry', 'vehicle', 'rider_name', 'rider_phone',
@@ -406,9 +552,88 @@ class TestRideLogForm(forms.ModelForm):
         }
 
 
-class PDIChecklistForm(forms.ModelForm):
+class PDIChecklistForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = PDIChecklist
         exclude = ('sales_order', 'inspected_by', 'inspection_date',
                    'is_approved', 'approved_by')
         widgets = {'overall_remarks': forms.Textarea(attrs={'rows': 3})}
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 -- Dealer sub-module
+# ---------------------------------------------------------------------------
+
+class DealerForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = Dealer
+        fields = ('dealer_name', 'gstin', 'mobile_number', 'gst_category', 'warehouse',
+                  'email', 'branch', 'address_type', 'address_line1', 'state', 'country',
+                  'citytown', 'pincode')
+
+
+class ExchangeVehicleDealerForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = ExchangeVehicleDealer
+        fields = ('date', 'from_warehouse', 'to_warehouse', 'dealer', 'branch',
+                  'hp_endorsement', 'insurance_received')
+        widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
+
+
+class ExchangeVehicleDealerItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = ExchangeVehicleDealerItem
+        fields = ('vehicle_name', 'engine_number', 'registration_number', 'party_name',
+                  'rc_book_received', 'rc_book_number', 'noc', 'to_received',
+                  'vehicle_amount', 'color', 'vehicle_value', 'vehicle_code')
+
+
+ExchangeVehicleDealerItemFormSet = inlineformset_factory(
+    ExchangeVehicleDealer, ExchangeVehicleDealerItem, form=ExchangeVehicleDealerItemForm,
+    extra=1, can_delete=True
+)
+
+
+class ExchangeDealerPaymentForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = ExchangeDealerPayment
+        fields = ('date', 'dealer', 'exchange_vehicle_dealer', 'branch', 'payment_mode',
+                  'total_amount', 'pending_amount', 'payment_status')
+        widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['exchange_vehicle_dealer'].required = False
+
+
+class ExchangeDealerPaymentItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = ExchangeDealerPaymentItem
+        fields = ('register_number', 'vehicle_name', 'vehicle_amount', 'allow_permission', 'date')
+        widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
+
+
+ExchangeDealerPaymentItemFormSet = inlineformset_factory(
+    ExchangeDealerPayment, ExchangeDealerPaymentItem, form=ExchangeDealerPaymentItemForm,
+    extra=1, can_delete=True
+)
+
+
+class DealerRCHandOverForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = DealerRCHandOver
+        fields = ('dealer',)
+
+
+class DealerRCHandOverItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = DealerRCHandOverItem
+        fields = ('register_number', 'noc', 'to_received', 'rc_book_received',
+                  'vehicle_received', 'rc_book_number', 'date')
+        widgets = {'date': forms.DateInput(attrs={'type': 'date'})}
+
+
+DealerRCHandOverItemFormSet = inlineformset_factory(
+    DealerRCHandOver, DealerRCHandOverItem, form=DealerRCHandOverItemForm,
+    extra=1, can_delete=True
+)

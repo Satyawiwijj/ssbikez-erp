@@ -52,7 +52,7 @@
                     <div class="form-grid">
 
                         <div class="form-group">
-                            <label class="form-label">Customer Name *</label>
+                            <label class="form-label" for="{{ form.customer.id_for_label }}">Customer Name *</label>
                             {{ form.customer }}
                             {% if form.customer.errors %}
                             <div class="form-error">{{ form.customer.errors }}</div>
@@ -60,7 +60,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Mobile *</label>
+                            <label class="form-label" for="{{ form.mobile.id_for_label }}">Mobile *</label>
                             {{ form.mobile }}
                             {% if form.mobile.errors %}
                             <div class="form-error">{{ form.mobile.errors }}</div>
@@ -68,7 +68,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Date *</label>
+                            <label class="form-label" for="{{ form.date.id_for_label }}">Date *</label>
                             {{ form.date }}
                             {% if form.date.errors %}
                             <div class="form-error">{{ form.date.errors }}</div>
@@ -76,7 +76,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Godown *</label>
+                            <label class="form-label" for="{{ form.godown.id_for_label }}">Godown *</label>
                             {{ form.godown }}
                             {% if form.godown.errors %}
                             <div class="form-error">{{ form.godown.errors }}</div>
@@ -84,32 +84,77 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">GST Category</label>
+                            <label class="form-label" for="{{ form.gst_category.id_for_label }}">GST Category</label>
                             {{ form.gst_category }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Payment Type</label>
+                            <label class="form-label" for="{{ form.pay_type.id_for_label }}">Payment Type</label>
                             {{ form.pay_type }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Status</label>
+                            <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                             {{ form.status }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Discount Amount</label>
+                            <label class="form-label" for="{{ form.discount_amount.id_for_label }}">Discount Amount</label>
                             {{ form.discount_amount }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.sale_type.id_for_label }}">Type</label>
+                            {{ form.sale_type }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.ledger_voucher_no.id_for_label }}">Ledger Voucher No</label>
+                            {{ form.ledger_voucher_no }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.accounts_from.id_for_label }}">Accounts From</label>
+                            {{ form.accounts_from }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.accounts_to.id_for_label }}">Accounts To</label>
+                            {{ form.accounts_to }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.bank_ref_no.id_for_label }}">Bank Ref No</label>
+                            {{ form.bank_ref_no }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.bank_ref_date.id_for_label }}">Bank Ref Date</label>
+                            {{ form.bank_ref_date }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.balance_delivery_qty.id_for_label }}">Balance Delivery Qty</label>
+                            {{ form.balance_delivery_qty }}
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="{{ form.counter_sale_balance.id_for_label }}">Counter Sale Balance</label>
+                            {{ form.counter_sale_balance }}
                         </div>
 
                     </div>
 
-                    <div style="margin-top:16px;">
+                    <div style="margin-top:16px;display:flex;gap:20px;flex-wrap:wrap;">
 
                         <label style="display:flex;align-items:center;gap:8px;">
                             {{ form.is_warranty }}
                             <span>Warranty Sale</span>
+                        </label>
+
+                        <label style="display:flex;align-items:center;gap:8px;">
+                            {{ form.spot_sale }}
+                            <span>Spot Sale</span>
                         </label>
 
                     </div>
@@ -150,7 +195,10 @@
                                 <th>Qty</th>
                                 <th>Rate</th>
                                 <th>GST %</th>
-                                <th></th>
+                                <th>Delivery Balance Qty</th>
+                                <th>Stock Qty</th>
+                                <th>Issued</th>
+                                <th><span class="visually-hidden">Actions</span></th>
                             </tr>
                         </thead>
 
@@ -187,6 +235,12 @@
                                 <td>{{ f.rate }}</td>
 
                                 <td>{{ f.gst_percent }}</td>
+
+                                <td>{{ f.delivery_balance_qty }}</td>
+
+                                <td>{{ f.stock_qty }}</td>
+
+                                <td>{{ f.issue_status }}</td>
 
                                 <td>
 

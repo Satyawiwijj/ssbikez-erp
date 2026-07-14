@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Dealers — SSBikez ERP{% endblock %}
+{% block page_title %}Dealers{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:dealer_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>New Dealer</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Dealer Name</th><th>Mobile</th><th>Warehouse</th><th>Branch</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for d in dealers %}
+                <tr>
+                    <td style="font-weight:600;">{{ d.dealer_name }}</td>
+                    <td>{{ d.mobile_number }}</td>
+                    <td>{{ d.warehouse }}</td>
+                    <td>{{ d.branch }}</td>
+                    <td><a href="{% url 'sales:dealer_detail' d.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No dealers yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

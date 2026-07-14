@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Purchase Invoice{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:purchase_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:purchase_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'used_vehicles:purchase_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:purchase_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-truck-loading me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Supplier</th><td>{{ obj.supplier|default:"—" }}</td></tr>
+                <tr><th>Purchase Receipt</th><td>{% if obj.purchase_receipt %}<a href="{% url 'used_vehicles:purchase_receipt_detail' pk=obj.purchase_receipt_id %}">{{ obj.purchase_receipt }}</a>{% else %}<span class="text-muted">— (own-purchase, no PO/Receipt)</span>{% endif %}</td></tr>
+                <tr><th>Own Purchase</th><td>{% if obj.own_purchase %}Yes ({{ obj.customer_name }}){% else %}No{% endif %}</td></tr>
+                <tr><th>Branch</th><td>{{ obj.branch|default:"—" }}</td></tr>
+                <tr><th>Payment Type</th><td>{{ obj.get_payment_type_display|default:"—" }}</td></tr>
+                <tr><th>Invoice Date</th><td>{{ obj.invoice_date }}</td></tr>
+                <tr><th>Target Warehouse</th><td>{{ obj.target_warehouse|default:"—" }}</td></tr>
+                <tr><th>Total Quantity</th><td>{{ obj.total_quantity }}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Discount</th><td>&#x20B9; {{ obj.discount }}</td></tr>
+                <tr><th>Grand Total</th><td>&#x20B9; {{ obj.grand_total }}</td></tr>
+                <tr><th>Payment Status</th><td>{{ obj.get_payment_status_display }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Purchase Items</div>
+    {% if obj.items.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Vehicle</th><th>Reg No</th><th>Chassis No</th><th>Engine No</th><th>Color</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+            <tbody>
+                {% for i in obj.items.all %}
+                <tr>
+                    <td>{{ i.used_vehicle }}</td>
+                    <td>{{ i.registration_no|default:"—" }}</td>
+                    <td>{{ i.chassis_no|default:"—" }}</td>
+                    <td>{{ i.engine_no|default:"—" }}</td>
+                    <td>{{ i.color|default:"—" }}</td>
+                    <td>{{ i.quantity }}</td>
+                    <td>&#x20B9; {{ i.rate }}</td>
+                    <td>&#x20B9; {{ i.amount }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No items recorded.</div>
+    {% endif %}
+</div>
+{% endblock %}

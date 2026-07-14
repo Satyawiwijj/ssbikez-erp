@@ -114,7 +114,7 @@ New Job Card </a>
 
                 <td>
                     <span class="badge badge-gray">
-                        {{ jc.customer_vehicle.registration_no }}
+                        {{ jc.customer_vehicle.registration_no|default:"—" }}
                     </span>
                 </td>
 

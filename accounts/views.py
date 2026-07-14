@@ -1,7 +1,9 @@
 import datetime
+import hmac
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.core.paginator import Paginator
@@ -23,12 +25,52 @@ from .models import AuditLog, Branch, FuelExpense, Role, User
 from .models import OTPVerification
 from django.utils import timezone
 
+MAX_FAILED_LOGIN_ATTEMPTS = 5
+LOGIN_LOCKOUT_MINUTES     = 15
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('accounts:home')
+
+    # Form validation always runs first, for every submission, regardless of
+    # lockout state -- this keeps response timing identical whether or not an
+    # account is locked, closing a timing-based username-enumeration channel.
     form = LoginForm(request, data=request.POST or None)
+
+    if request.method == 'POST' and not form.is_valid():
+        submitted_username = (request.POST.get('username') or '').strip()
+        failed_user = User.objects.filter(username=submitted_username).first()
+        if failed_user:
+            now = timezone.now()
+            if failed_user.locked_until and failed_user.locked_until <= now:
+                # A previous lockout window has already expired -- this failed
+                # attempt starts a fresh count, not a continuation of the old one.
+                User.objects.filter(pk=failed_user.pk).update(failed_login_attempts=0, locked_until=None)
+            # F()-based update so concurrent failed attempts for the same
+            # account can't collide into a single lost increment.
+            User.objects.filter(pk=failed_user.pk).update(failed_login_attempts=F('failed_login_attempts') + 1)
+            failed_user.refresh_from_db(fields=['failed_login_attempts', 'locked_until'])
+            if failed_user.failed_login_attempts >= MAX_FAILED_LOGIN_ATTEMPTS and not failed_user.locked_until:
+                User.objects.filter(pk=failed_user.pk).update(
+                    locked_until=now + datetime.timedelta(minutes=LOGIN_LOCKOUT_MINUTES)
+                )
+
     if request.method == 'POST' and form.is_valid():
         user = form.get_user()
+        # Only reveal an active lockout once the submitted credentials are
+        # actually correct -- revealing it for a wrong-password guess would
+        # let an attacker enumerate which usernames exist and are locked.
+        if user.locked_until and user.locked_until > timezone.now():
+            messages.error(
+                request,
+                'Too many failed login attempts. Please try again in a few minutes.'
+            )
+            return render(request, 'accounts/login.html', {'form': LoginForm(request)})
+        if user.failed_login_attempts or user.locked_until:
+            user.failed_login_attempts = 0
+            user.locked_until = None
+            user.save(update_fields=['failed_login_attempts', 'locked_until'])
         next_url = request.GET.get('next', 'accounts:home')
 
         # Every user — including superusers — must verify an emailed OTP
@@ -65,7 +107,7 @@ def verify_otp(request):
         otp_code = request.POST.get('otp_code', '').strip()
         try:
             otp_record = OTPVerification.objects.get(user_id=user_id, action='login', is_verified=False)
-            if otp_record.otp_code == otp_code and otp_record.expires_at > timezone.now():
+            if hmac.compare_digest(otp_record.otp_code, otp_code) and otp_record.expires_at > timezone.now():
                 otp_record.is_verified = True
                 otp_record.save()
 
@@ -100,6 +142,49 @@ def verify_otp(request):
 def logout_view(request):
     logout(request)
     return redirect('accounts:login')
+
+
+PASSWORD_RESET_REQUEST_COOLDOWN_MINUTES = 2
+
+
+class RateLimitedPasswordResetView(auth_views.PasswordResetView):
+    """
+    Django's stock PasswordResetView has no throttling on the request step —
+    an unauthenticated caller can trigger unlimited reset emails to any known
+    address. Skips the actual send (silently, so the response is identical
+    either way and doesn't leak whether a cooldown is active) if this user
+    was already sent a reset link within the cooldown window.
+    """
+    def form_valid(self, form):
+        users = list(form.get_users(form.cleaned_data['email']))
+        now = timezone.now()
+        cooldown = datetime.timedelta(minutes=PASSWORD_RESET_REQUEST_COOLDOWN_MINUTES)
+
+        due_users = [
+            u for u in users
+            if not u.last_password_reset_request_at
+            or (now - u.last_password_reset_request_at) >= cooldown
+        ]
+        if not due_users:
+            # Every matching account is still in cooldown -- redirect to the
+            # same success page without sending anything, matching Django's
+            # own no-enumeration behavior for a non-matching email.
+            return redirect(self.get_success_url())
+
+        User.objects.filter(pk__in=[u.pk for u in due_users]).update(
+            last_password_reset_request_at=now
+        )
+        # PasswordResetForm.save() re-resolves recipients via form.get_users(),
+        # which would otherwise re-fetch and email every account matching the
+        # address again -- including ones still in cooldown, if the address
+        # is shared across more than one account. Scope the send to exactly
+        # the due accounts already computed above.
+        original_get_users = form.get_users
+        form.get_users = lambda email: due_users
+        try:
+            return super().form_valid(form)
+        finally:
+            form.get_users = original_get_users
 
 
 # ---------------------------------------------------------------------------
@@ -942,6 +1027,43 @@ def company_settings(request):
     return render(request, 'accounts/company_settings.html', {
         'form':    form,
         'company': instance,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Phase 8d — Discount Percentage Master & Ledger Creation Date Master
+# (both singletons, combined on one settings page)
+# ---------------------------------------------------------------------------
+
+@login_required
+def admin_settings(request):
+    if not _can_manage_settings(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    from .forms import DiscountPercentageMasterForm, LedgerCreationDateMasterForm
+    from .models import DiscountPercentageMaster, LedgerCreationDateMaster
+    discount_instance = DiscountPercentageMaster.get_instance()
+    ledger_instance = LedgerCreationDateMaster.get_instance()
+    is_discount_save = request.method == 'POST' and 'save_discount' in request.POST
+    is_ledger_save = request.method == 'POST' and 'save_ledger' in request.POST
+    discount_form = DiscountPercentageMasterForm(
+        request.POST if is_discount_save else None, instance=discount_instance, prefix='discount',
+    )
+    ledger_form = LedgerCreationDateMasterForm(
+        request.POST if is_ledger_save else None, instance=ledger_instance, prefix='ledger',
+    )
+    if is_discount_save and discount_form.is_valid():
+        discount_form.save()
+        log_action(request, 'Discount Percentage Master', 'update', discount_instance.pk)
+        messages.success(request, 'Discount Percentage Master saved.')
+        return redirect('accounts:admin_settings')
+    if is_ledger_save and ledger_form.is_valid():
+        ledger_form.save()
+        log_action(request, 'Ledger Creation Date Master', 'update', ledger_instance.pk)
+        messages.success(request, 'Ledger Creation Date Master saved.')
+        return redirect('accounts:admin_settings')
+    return render(request, 'accounts/admin_settings.html', {
+        'discount_form': discount_form, 'ledger_form': ledger_form,
     })
 
 

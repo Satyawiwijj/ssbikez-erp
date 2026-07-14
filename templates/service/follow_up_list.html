@@ -54,7 +54,7 @@
         <tr>
           <td>
             <span style="font-weight:600;">{{ cv.customer.full_name|default:"—" }}</span>
-            <div style="font-size:11px; color:#9CA3AF;">CV-{{ cv.pk }}</div>
+            <div style="font-size:11px; color:#6B7280;">CV-{{ cv.pk }}</div>
           </td>
           <td>
             {% if cv.customer.phone %}
@@ -65,7 +65,7 @@
           <td style="max-width:220px; font-size:13px; color:#374151;">
             {% if call.notes %}
               {{ call.notes|truncatechars:70 }}
-            {% else %}<span style="color:#9CA3AF;">No notes</span>{% endif %}
+            {% else %}<span style="color:#6B7280;">No notes</span>{% endif %}
           </td>
           <td>
             {% if call.next_call_date %}

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Request Supplier Quotes — SSBikez ERP{% endblock %}
+{% block page_title %}Request Supplier Quotes{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:request_supplier_quote_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Request Supplier Quote</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">Request Supplier Quotes</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Request Supplier Quotes</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>RSQ No</th><th>Date</th><th>Suppliers</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.rsq_no }}</td>
+                    <td>{{ o.date|date:"d M Y" }}</td>
+                    <td>{% for s in o.suppliers.all %}{{ s.supplier_name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</td>
+                    <td>
+                        {% if o.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif o.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'spares:request_supplier_quote_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No requests found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

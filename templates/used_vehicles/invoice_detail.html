@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Invoice{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:invoice_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:invoice_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:sale_detail' pk=obj.sale_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Sale</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-file-invoice-dollar me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Sale</th><td><a href="{% url 'used_vehicles:sale_detail' pk=obj.sale_id %}">{{ obj.sale }}</a></td></tr>
+                <tr><th>Subtotal</th><td>&#x20B9; {{ obj.subtotal }}</td></tr>
+                <tr><th>GST Amount</th><td>&#x20B9; {{ obj.gst_amount }}</td></tr>
+                <tr><th>Discount</th><td>&#x20B9; {{ obj.discount_amount }}</td></tr>
+                <tr><th>Final Amount</th><td>&#x20B9; {{ obj.final_amount }}</td></tr>
+                <tr><th>Invoice Date</th><td>{{ obj.invoice_date }}</td></tr>
+                <tr><th>Payment Type</th><td>{{ obj.get_payment_type_display|default:"—" }}</td></tr>
+                <tr><th>Status</th><td>{{ obj.get_status_display }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><i class="fas fa-user-check me-2"></i>MD Approval</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>MD Approval Requested</th><td>{% if obj.md_approval_requested %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-gray">No</span>{% endif %}</td></tr>
+                <tr><th>MD Approved</th><td>{% if obj.md_approved %}<span class="badge badge-green">Yes — {{ obj.md_approved_by }} on {{ obj.md_approved_at|date:"d M Y H:i" }}</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+    {% if obj.docstatus == 0 and obj.md_approval_requested and not obj.md_approved %}
+    <div class="card-body text-muted small">
+        MD approval is required before this invoice can be submitted.
+        <form method="post" action="{% url 'used_vehicles:invoice_md_approve' obj.pk %}" style="display:inline;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary btn-sm">Approve as MD</button>
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Items</div>
+    {% if obj.items.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item Code</th><th>Rate</th><th>Discount</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for i in obj.items.all %}
+                <tr><td>{{ i.item_code|default:"—" }}</td><td>&#x20B9; {{ i.rate }}</td><td>&#x20B9; {{ i.discount }}</td><td>&#x20B9; {{ i.total }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No items recorded.</div>
+    {% endif %}
+</div>
+{% endblock %}

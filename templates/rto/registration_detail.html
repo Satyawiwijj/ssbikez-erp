@@ -566,5 +566,52 @@ Back
 
 </div>
 
+<!-- Phase 6: new-vehicle RTO stage documents -->
+<div class="card mt-3">
+  <div class="card-header"><span class="card-title"><i class="fas fa-stream me-2"></i>RTO Documents</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Document</th><th>Instance(s)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>RC Hand Over</td>
+          <td>{% for d in rc_hand_overs %}<a href="{% url 'rto:rc_hand_over_detail' pk=d.pk %}">RCH-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:rc_hand_over_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Form 20 Creation</td>
+          <td>{% for d in form20_creations %}<a href="{% url 'rto:form20_creation_detail' pk=d.pk %}">FORM20-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:form20_creation_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Registration No Creation</td>
+          <td>{% for d in registration_no_creations %}<a href="{% url 'rto:registration_no_creation_detail' pk=d.pk %}">REGNO-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:registration_no_creation_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>RTO Payment</td>
+          <td>{% for d in rto_payments %}<a href="{% url 'rto:rto_payment_detail' pk=d.pk %}">RTOPAY-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:rto_payment_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Regpay Creation</td>
+          <td>{% for d in regpay_creations %}<a href="{% url 'rto:regpay_creation_detail' pk=d.pk %}">REGPAY-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:regpay_creation_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Number Order Entry</td>
+          <td>{% for d in number_order_entries %}<a href="{% url 'rto:number_order_entry_detail' pk=d.pk %}">NUMORD-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:number_order_entry_create' %}?order={{ rto.sales_order.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>RC Book Creation</td>
+          <td>{% for d in rc_book_creations %}<a href="{% url 'rto:rc_book_creation_detail' pk=d.pk %}">RCBC-{{ d.pk }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'rto:rc_book_creation_create' %}?rto={{ rto.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
 {% endblock %}
 

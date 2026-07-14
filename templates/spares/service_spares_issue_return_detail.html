@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.return_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Service Spares Issue Return Detail{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:service_spares_issue_return_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:service_spares_issue_return_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this return?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:service_spares_issue_return_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:service_spares_issue_return_list' %}">Service Spares Issue Returns</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.return_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.return_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Spares Issue</dt><dd style="font-weight:600;"><a href="{% url 'spares:issue_alteration_detail' obj.spares_issue.pk %}">SIA-{{ obj.spares_issue_id|stringformat:"05d" }}</a></dd></div>
+        <div class="detail-row"><dt>Job Card</dt><dd>{{ obj.job_card|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Party Name</dt><dd>{{ obj.party_name|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Phone Number</dt><dd>{{ obj.phone_number|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Frame No / Register No</dt><dd>{{ obj.frame_no|default:"—" }} / {{ obj.register_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Spares Issue Date</dt><dd>{{ obj.spares_issue_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Godown</dt><dd>{{ obj.godown|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Stock Return Done</dt><dd>{% if obj.stock_return_done %}&#x2705;{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Total Qty / Amount</dt><dd style="font-weight:700;color:#2563EB;">{{ obj.total_qty }} / &#x20B9; {{ obj.total_amount }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Return Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Return Qty</th><th>Rate</th><th>Total</th><th>Returned</th><th>Stock Balance</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>{{ i.return_qty }}</td>
+                    <td>&#x20B9; {{ i.rate }}</td>
+                    <td>&#x20B9; {{ i.total }}</td>
+                    <td>{% if i.is_returned %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{{ i.stock_balance }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

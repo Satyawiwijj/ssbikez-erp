@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.transfer_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Stock Transfer {{ obj.transfer_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:stock_transfer_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:stock_transfer_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this transfer?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:stock_transfer_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:stock_transfer_list' %}">Stock Transfers</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.transfer_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.transfer_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Date &amp; Time</dt><dd>{{ obj.date_and_time|date:"d M Y H:i" }}</dd></div>
+        <div class="detail-row"><dt>From Warehouse</dt><dd style="font-weight:600;">{{ obj.warehouse.name }}</dd></div>
+        <div class="detail-row"><dt>Branch</dt><dd>{{ obj.branch|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Transfer Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>From</th><th>To Warehouse</th><th>To</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>{{ i.quantity }}</td>
+                    <td>&#x20B9; {{ i.rate }}</td>
+                    <td>{{ i.from_rack|default:"—" }} / {{ i.from_bin|default:"—" }}</td>
+                    <td>{{ i.to_warehouse.name }}</td>
+                    <td>{{ i.to_rack|default:"—" }} / {{ i.to_bin|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

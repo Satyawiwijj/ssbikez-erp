@@ -97,37 +97,37 @@
                     <div class="form-grid">
 
                         <div class="form-group">
-                            <label class="form-label">Supplier *</label>
+                            <label class="form-label" for="{{ form.supplier.id_for_label }}">Supplier *</label>
                             {{ form.supplier }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Date *</label>
+                            <label class="form-label" for="{{ form.date.id_for_label }}">Date *</label>
                             {{ form.date }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Required By</label>
+                            <label class="form-label" for="{{ form.required_by.id_for_label }}">Required By</label>
                             {{ form.required_by }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Status</label>
+                            <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                             {{ form.status }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Supplier GSTIN</label>
+                            <label class="form-label" for="{{ form.supplier_gstin.id_for_label }}">Supplier GSTIN</label>
                             {{ form.supplier_gstin }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">GST Category</label>
+                            <label class="form-label" for="{{ form.gst_category.id_for_label }}">GST Category</label>
                             {{ form.gst_category }}
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Place of Supply</label>
+                            <label class="form-label" for="{{ form.place_of_supply.id_for_label }}">Place of Supply</label>
                             {{ form.place_of_supply }}
                         </div>
 
@@ -139,12 +139,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Supplier Quote</label>
+                            <label class="form-label" for="{{ form.supplier_quote.id_for_label }}">Supplier Quote</label>
                             {{ form.supplier_quote }}
                         </div>
 
                         <div class="form-group span-2">
-                            <label class="form-label">Terms & Conditions</label>
+                            <label class="form-label" for="{{ form.terms_and_conditions.id_for_label }}">Terms & Conditions</label>
                             {{ form.terms_and_conditions }}
                         </div>
 
@@ -262,7 +262,7 @@
                                     {% endif %}
 
                                     <button type="button"
-                                            class="btn btn-sm btn-outline-danger remove-row">
+                                            class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row">
                                         <i class="fas fa-trash"></i>
                                     </button>
 

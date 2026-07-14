@@ -94,6 +94,21 @@
                 <dd>{{ invoice.payment_status }}</dd>
             </div>
 
+            <div class="detail-row">
+                <dt>Payment Type</dt>
+                <dd>{{ invoice.get_payment_type_display|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Cash Account / Pay Mode</dt>
+                <dd>{{ invoice.cash_account|default:"—" }} / {{ invoice.pay_mode|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>TCS</dt>
+                <dd>{% if invoice.has_tcs %}&#x20B9; {{ invoice.tcs_total }}{% else %}—{% endif %}</dd>
+            </div>
+
             {% if invoice.purchase_order %}
             <div class="detail-row">
                 <dt>Purchase Order</dt>
@@ -200,6 +215,8 @@
                     <th>SGST</th>
                     <th>CGST</th>
                     <th>Total</th>
+                    <th>Item Category</th>
+                    <th>Part No.</th>
                 </tr>
             </thead>
 
@@ -237,13 +254,16 @@
                         ₹ {{ i.total }}
                     </td>
 
+                    <td>{{ i.item_category|default:"—" }}</td>
+                    <td>{{ i.part_no|default:"—" }}</td>
+
                 </tr>
 
                 {% empty %}
 
                 <tr>
 
-                    <td colspan="7">
+                    <td colspan="9">
 
                         <div class="empty-state">
 

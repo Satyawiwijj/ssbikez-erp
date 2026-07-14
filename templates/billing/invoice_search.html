@@ -11,11 +11,11 @@
     </div>
 </div>
 <form method="get" style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;align-items:end;margin-bottom:14px;">
-  <div><label class="form-label">Search</label><input name="q" value="{{ q }}" class="form-control" placeholder="Invoice no / customer"></div>
-  <div><label class="form-label">From</label><input type="date" name="start" value="{{ start }}" class="form-control"></div>
-  <div><label class="form-label">To</label><input type="date" name="end" value="{{ end }}" class="form-control"></div>
-  <div><label class="form-label">Min ₹</label><input type="number" step="0.01" name="amount_min" value="{{ amount_min }}" class="form-control"></div>
-  <div><label class="form-label">Max ₹</label><input type="number" step="0.01" name="amount_max" value="{{ amount_max }}" class="form-control"></div>
+  <div><label class="form-label" for="id_q">Search</label><input id="id_q" name="q" value="{{ q }}" class="form-control" placeholder="Invoice no / customer"></div>
+  <div><label class="form-label" for="id_start">From</label><input id="id_start" type="date" name="start" value="{{ start }}" class="form-control"></div>
+  <div><label class="form-label" for="id_end">To</label><input id="id_end" type="date" name="end" value="{{ end }}" class="form-control"></div>
+  <div><label class="form-label" for="id_amount_min">Min ₹</label><input id="id_amount_min" type="number" step="0.01" name="amount_min" value="{{ amount_min }}" class="form-control"></div>
+  <div><label class="form-label" for="id_amount_max">Max ₹</label><input id="id_amount_max" type="number" step="0.01" name="amount_max" value="{{ amount_max }}" class="form-control"></div>
   <div style="grid-column:span 5;display:flex;gap:8px;">
     <button type="submit" class="btn btn-primary">
         <i class="fas fa-search me-1"></i>
@@ -43,7 +43,7 @@
         </span>
     </div>
     <table class="table">
-      <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Amount</th><th></th></tr></thead>
+      <thead><tr><th>Invoice #</th><th>Date</th><th>Customer</th><th>Amount</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for inv in invoices %}
         <tr>

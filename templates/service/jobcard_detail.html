@@ -45,7 +45,7 @@
     <!-- Quick status update -->
     <form method="post" action="{% url 'service:jobcard_status_update' job_card.pk %}" style="display:flex; gap:6px; align-items:center;">
       {% csrf_token %}
-      <select name="service_status" style="width:auto; padding:7px 10px; font-size:13px;">
+      <select name="service_status" aria-label="Update service status" style="width:auto; padding:7px 10px; font-size:13px;">
         {% for val, label in job_card.ServiceStatus.choices %}
         <option value="{{ val }}" {% if val == job_card.service_status %}selected{% endif %}>{{ label }}</option>
         {% endfor %}
@@ -121,6 +121,128 @@
   {% endif %}
 </div>
 
+<!-- Phase 2: reference-parity workshop stage documents -->
+<div class="card mt-3">
+  <div class="card-header"><span class="card-title"><i class="fas fa-stream me-2"></i>Workshop Stage Documents</span></div>
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Stage</th><th>Document(s)</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Water Wash Done</td>
+          <td>{% for w in job_card.water_wash_entries.all %}<a href="{% url 'service:water_wash_detail' pk=w.pk %}">{{ w }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:water_wash_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Bay In Creation</td>
+          <td>{% for b in job_card.bay_in_entries.all %}<a href="{% url 'service:bay_in_detail' pk=b.pk %}">{{ b }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:bay_in_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Labor Charges Alteration</td>
+          <td>{% for l in job_card.labor_alterations.all %}<a href="{% url 'service:labor_alteration_detail' pk=l.pk %}">{{ l }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:labor_alteration_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Spares Issue Alteration</td>
+          <td>{% for s in job_card.spares_issue_alterations.all %}<a href="{% url 'spares:issue_alteration_detail' pk=s.pk %}">{{ s }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'spares:issue_alteration_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Outwork Entry Issue</td>
+          <td>{% for o in job_card.outwork_issues.all %}<a href="{% url 'service:outwork_issue_detail' pk=o.pk %}">{{ o }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:outwork_issue_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Bay Out Creation</td>
+          <td>{% for b in job_card.bay_out_entries.all %}<a href="{% url 'service:bay_out_detail' pk=b.pk %}">{{ b }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:bay_out_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+        <tr>
+          <td>Final Inspection</td>
+          <td>{% for f in job_card.final_inspections.all %}<a href="{% url 'service:final_inspection_detail' pk=f.pk %}">{{ f }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+          <td><a href="{% url 'service:final_inspection_create' %}?jc={{ job_card.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Phase 4: inspection-checklist child tables -->
+<div class="card mt-3">
+  <div class="card-header"><span class="card-title"><i class="fas fa-clipboard-check me-2"></i>Inspection Checklist</span></div>
+  <div class="table-wrapper">
+    <strong style="padding:10px 16px;display:block;">Complaint Details</strong>
+    <table class="table">
+      <thead><tr><th>Complaint</th><th>Details</th><th>Status</th><th>Checked</th><th>Est. Amount</th></tr></thead>
+      <tbody>
+        {% for c in complaint_details %}
+        <tr><td>{{ c.customer_complaint }}</td><td>{{ c.details|default:"—" }}</td><td>{{ c.get_status_display }}</td><td>{% if c.complaint_check_box %}&#x2705;{% else %}—{% endif %}</td><td>&#x20B9;{{ c.estimated_amount }}</td></tr>
+        {% empty %}
+        <tr><td colspan="5" class="empty-state">None recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <strong style="padding:10px 16px;display:block;">Supervisor Observation</strong>
+    <table class="table">
+      <thead><tr><th>Observation</th><th>Details</th><th>Checked</th><th>Est. Amount</th></tr></thead>
+      <tbody>
+        {% for o in supervisor_observations %}
+        <tr><td>{{ o.complaint }}</td><td>{{ o.details|default:"—" }}</td><td>{% if o.complaint_check_box %}&#x2705;{% else %}—{% endif %}</td><td>&#x20B9;{{ o.estimated_amount }}</td></tr>
+        {% empty %}
+        <tr><td colspan="4" class="empty-state">None recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <strong style="padding:10px 16px;display:block;">Engine Details</strong>
+    <table class="table">
+      <thead><tr><th>Item</th><th>Variant</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Area</th></tr></thead>
+      <tbody>
+        {% for e in engine_details %}
+        <tr><td>{{ e.items }}</td><td>{{ e.get_variant_display }}</td><td>{% if e.yes %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.no %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.ok %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.high %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.low %}&#x2705;{% else %}—{% endif %}</td><td>{{ e.area_mention|default:"—" }}</td></tr>
+        {% empty %}
+        <tr><td colspan="8" class="empty-state">None recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <strong style="padding:10px 16px;display:block;">All Lights</strong>
+    <table class="table">
+      <thead><tr><th>Item</th><th>Yes</th><th>No</th></tr></thead>
+      <tbody>
+        {% for l in light_details %}
+        <tr><td>{{ l.items }}</td><td>{% if l.yes %}&#x2705;{% else %}—{% endif %}</td><td>{% if l.no %}&#x2705;{% else %}—{% endif %}</td></tr>
+        {% empty %}
+        <tr><td colspan="3" class="empty-state">None recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <strong style="padding:10px 16px;display:block;">Chasis Details</strong>
+    <table class="table">
+      <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Good</th><th>Bad</th><th>NA</th></tr></thead>
+      <tbody>
+        {% for c in chasis_details %}
+        <tr>
+          <td>{{ c.items }}</td>
+          <td>{% if c.yes %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.no %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.ok %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.high %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.low %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.good %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.bad %}&#x2705;{% else %}—{% endif %}</td>
+          <td>{% if c.na %}&#x2705;{% else %}—{% endif %}</td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="empty-state">None recorded.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 
 <div class="detail-grid">
   <div class="card">
@@ -129,7 +251,7 @@
       <div class="detail-row"><dt>Customer</dt><dd>{{ job_card.customer_vehicle.customer.full_name }}</dd></div>
       <div class="detail-row"><dt>Phone</dt><dd>{{ job_card.customer_vehicle.customer.phone }}</dd></div>
       <div class="detail-row"><dt>Vehicle</dt><dd>{{ job_card.customer_vehicle.vehicle.bike_model }}</dd></div>
-      <div class="detail-row"><dt>Reg. No.</dt><dd><span class="badge badge-gray">{{ job_card.customer_vehicle.registration_no }}</span></dd></div>
+      <div class="detail-row"><dt>Reg. No.</dt><dd><span class="badge badge-gray">{{ job_card.customer_vehicle.registration_no|default:"—" }}</span></dd></div>
       <div class="detail-row"><dt>Odometer</dt><dd>{{ job_card.odometer_reading|default:"—" }} km</dd></div>
       <div class="detail-row"><dt>Problem</dt><dd>{{ job_card.problem_description|default:"—" }}</dd></div>
     </dl>
@@ -151,7 +273,7 @@
   <div class="card-header"><span class="card-title">&#x1F6E1; Warranty Claims</span>
     <a href="{% url 'service:warranty_claim_create_for_jc' job_card.pk %}" class="btn btn-sm btn-primary">+ New</a></div>
   <div class="table-wrapper"><table class="table">
-    <thead><tr><th>Claim #</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Claim #</th><th>Date</th><th>Claimed</th><th>Approved</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
     <tbody>{% for c in job_card.warranty_claims.all %}
       <tr><td>{{ c.claim_number }}</td><td>{{ c.claim_date|date:"d M Y" }}</td>
       <td>&#x20B9; {{ c.claimed_amount }}</td><td>&#x20B9; {{ c.approved_amount }}</td>
@@ -237,7 +359,7 @@
 
       <p>No insurance estimations created yet.</p>
 
-      <small style="color:#9CA3AF;">
+      <small style="color:#6B7280;">
         Create an estimation before submitting an insurance claim.
       </small>
     </div>
@@ -264,7 +386,7 @@
       {% if job_card.service_status == 'ready' or job_card.service_status == 'invoiced' %}
       <a href="{% url 'service:service_invoice_create' %}?jc={{ job_card.pk }}" class="btn btn-primary btn-sm">+ Create Invoice</a>
       {% else %}
-      <span style="font-size:12px; color:#9CA3AF;padding: 10px;">Available when status is &ldquo;Ready&rdquo;</span>
+      <span style="font-size:12px; color:#6B7280;padding: 10px;">Available when status is &ldquo;Ready&rdquo;</span>
       {% endif %}
     {% endif %}
     {% endwith %}
@@ -292,7 +414,7 @@
     <a href="{% url 'service:service_invoice_update' invoice.pk %}" class="btn btn-ghost btn-sm">Edit</a>
   </div>
   {% else %}
-  <p style="color:#9CA3AF; font-size:14px;padding-left: 20px;">No service invoice created yet.{% if job_card.service_status != 'ready' and job_card.service_status != 'invoiced' %} Mark the job card as <strong>Ready</strong> to create an invoice.{% endif %}</p>
+  <p style="color:#6B7280; font-size:14px;padding-left: 20px;">No service invoice created yet.{% if job_card.service_status != 'ready' and job_card.service_status != 'invoiced' %} Mark the job card as <strong>Ready</strong> to create an invoice.{% endif %}</p>
   {% endif %}
   {% endwith %}
 </div>
@@ -460,7 +582,7 @@
               {% if child.status == 'completed' %}&#x2705;{% else %}&#x2B1C;{% endif %}
             </button>
           </form>
-          <span style="{% if child.status == 'completed' %}text-decoration:line-through;color:#9ca3af;{% endif %}">
+          <span style="{% if child.status == 'completed' %}text-decoration:line-through;color:#6B7280;{% endif %}">
             <strong>{{ child.task_name }}</strong>
             {% if child.description %} &mdash; {{ child.description }}{% endif %}
           </span>
@@ -471,7 +593,7 @@
         </div>
       </div>
     {% empty %}
-      <div style="color:#9ca3af;padding:8px;">No sub-tasks added.</div>
+      <div style="color:#6B7280;padding:8px;">No sub-tasks added.</div>
     {% endfor %}
   </div>
 </div>
@@ -525,7 +647,7 @@
   </div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Claim #</th><th>Insurance Co</th><th>Policy</th><th>Claim Amount</th><th>Approved</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Claim #</th><th>Insurance Co</th><th>Policy</th><th>Claim Amount</th><th>Approved</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for c in insurance_claims %}
         <tr>

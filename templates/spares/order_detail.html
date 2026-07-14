@@ -150,6 +150,25 @@ Back </a>
             <dd>{{ order.supplier_quote|default:"—" }}</dd>
         </div>
 
+        <div class="detail-row">
+            <dt>Load Status</dt>
+            <dd>{{ order.load_status|default:"—" }}</dd>
+        </div>
+
+        {% if order.get_customer_order %}
+        <div class="detail-row">
+            <dt>Customer Order</dt>
+            <dd>{{ order.customer_order|default:"—" }}</dd>
+        </div>
+        {% endif %}
+
+        {% if order.get_estimation %}
+        <div class="detail-row">
+            <dt>Estimation</dt>
+            <dd>{% if order.estimation %}<a href="{% url 'spares:estimation_detail' order.estimation.pk %}">{{ order.estimation }}</a>{% else %}—{% endif %}</dd>
+        </div>
+        {% endif %}
+
     </dl>
 
 </div>
@@ -192,6 +211,9 @@ Back </a>
                 <th>Rate</th>
                 <th>Amount</th>
                 <th>Received Qty</th>
+                <th>Part No.</th>
+                <th>Delivery Need Qty</th>
+                <th>Branch</th>
             </tr>
         </thead>
 
@@ -225,12 +247,16 @@ Back </a>
                     {{ i.received_qty }}
                 </td>
 
+                <td>{{ i.part_no|default:"—" }}</td>
+                <td>{{ i.delivery_need_qty }}</td>
+                <td>{{ i.branch|default:"—" }}</td>
+
             </tr>
 
             {% empty %}
 
             <tr>
-                <td colspan="6">
+                <td colspan="9">
 
                     <div class="empty-state">
 

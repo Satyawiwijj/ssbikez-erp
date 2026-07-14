@@ -190,7 +190,7 @@ Clear </a>
           <form method="post" action="{% url 'sales:enquiry_delete' enq.pk %}" style="display:inline"
                 onsubmit="return confirm('Delete ENQ-{{ enq.pk }}?')">
             {% csrf_token %}
-            <button type="submit" class="btn btn-sm btn-outline-danger">
+            <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete ENQ-{{ enq.pk }}">
               <i class="fas fa-trash"></i>
             </button>
           </form>

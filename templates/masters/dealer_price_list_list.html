@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Dealer Price List — Masters{% endblock %}
+{% block page_title %}Dealer Price List{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:dealer_price_list_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Dealer Price</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Dealer Price List</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Dealer Price List</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>ID</th><th>Dealer</th><th>Vehicle</th><th>Color</th><th>Total Amount</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.id_name }}</td>
+                    <td>{{ o.dealer_name }}</td>
+                    <td>{{ o.model_name|default:"—" }}</td>
+                    <td>{{ o.color|default:"—" }}</td>
+                    <td>&#x20B9; {{ o.total_amount }}</td>
+                    <td><a href="{% url 'masters:dealer_price_list_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

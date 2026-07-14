@@ -2,13 +2,17 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
 
-from .forms import FinanceLoanForm, InsurancePolicyForm, InvoiceForm, PaymentForm
+from django.views.decorators.http import require_POST
+
+from .forms import (FinanceLoanForm, InsurancePolicyForm, InvoiceForm,
+                    InvoiceItemFormSet, PaymentForm)
 from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
 
 
@@ -53,7 +57,9 @@ def loan_list(request):
             Q(sales_order__customer__full_name__icontains=q) |
             Q(sales_order__customer__phone__icontains=q)
         )
-    return render(request, 'billing/loan_list.html', {'loans': qs, 'q': q})
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'billing/loan_list.html', {'loans': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -65,7 +71,9 @@ def invoice_list(request):
             Q(invoice_number__icontains=q) |
             Q(sales_order__customer__full_name__icontains=q)
         )
-    return render(request, 'billing/invoice_list.html', {'invoices': qs, 'q': q})
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'billing/invoice_list.html', {'invoices': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -97,12 +105,19 @@ def invoice_create(request):
     if request.GET.get('order'):
         initial['sales_order'] = request.GET['order']
     form = InvoiceForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        invoice = form.save()
-        log_action(request, 'Invoice', 'create', invoice.pk)
-        messages.success(request, 'Invoice created successfully.')
-        return redirect('billing:invoice_detail', pk=invoice.pk)
-    return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Create Invoice'})
+    items_formset = InvoiceItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST':
+        if form.is_valid() and items_formset.is_valid():
+            invoice = form.save()
+            items_formset.instance = invoice
+            items_formset.save()
+            log_action(request, 'Invoice', 'create', invoice.pk)
+            messages.success(request, 'Invoice created successfully.')
+            return redirect('billing:invoice_detail', pk=invoice.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'billing/invoice_form.html', {
+        'form': form, 'title': 'Create Invoice', 'items_formset': items_formset,
+    })
 
 
 @login_required
@@ -113,13 +128,117 @@ def invoice_update(request, pk):
     # cashier?), not something to invent here. Protected only by the
     # namespace-level role gate (RolePermissionMiddleware) for now.
     invoice = get_object_or_404(Invoice, pk=pk)
-    form    = InvoiceForm(request.POST or None, instance=invoice)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
+    if invoice.docstatus != Invoice.DocStatus.DRAFT:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+    form = InvoiceForm(request.POST or None, instance=invoice)
+    items_formset = InvoiceItemFormSet(request.POST or None, instance=invoice, prefix='items')
+    if request.method == 'POST':
+        if form.is_valid() and items_formset.is_valid():
+            form.save()
+            items_formset.save()
+            log_action(request, 'Invoice', 'update', pk)
+            messages.success(request, 'Invoice updated successfully.')
+            return redirect('billing:invoice_detail', pk=invoice.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'billing/invoice_form.html', {
+        'form': form, 'title': 'Edit Invoice', 'items_formset': items_formset,
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('finance', 'edit')
+def invoice_md_approve(request, pk):
+    from accounts.permissions import user_is_manager
+    from django.utils import timezone
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if not user_is_manager(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    invoice.md_approved = True
+    invoice.md_approved_by = request.user
+    invoice.md_approved_at = timezone.now()
+    invoice.save(update_fields=['md_approved', 'md_approved_by', 'md_approved_at'])
+    log_action(request, 'Invoice', 'update', pk)
+    messages.success(request, 'MD approval recorded.')
+    return redirect('billing:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('finance', 'edit')
+def invoice_md_reject(request, pk):
+    from accounts.permissions import user_is_manager
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if not user_is_manager(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    invoice.md_approved = False
+    invoice.md_approved_by = None
+    invoice.md_approved_at = None
+    invoice.save(update_fields=['md_approved', 'md_approved_by', 'md_approved_at'])
+    log_action(request, 'Invoice', 'update', pk)
+    messages.success(request, 'MD approval rejected.')
+    return redirect('billing:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('finance', 'edit')
+def invoice_submit(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if invoice.md_approval_requested and not invoice.md_approved:
+        messages.error(request, 'MD approval is required before submitting this invoice.')
+        return redirect('billing:invoice_detail', pk=pk)
+    try:
+        invoice.submit(request.user)
         log_action(request, 'Invoice', 'update', pk)
-        messages.success(request, 'Invoice updated successfully.')
-        return redirect('billing:invoice_detail', pk=invoice.pk)
-    return render(request, 'billing/invoice_form.html', {'form': form, 'title': 'Edit Invoice'})
+        messages.success(request, f'{invoice.invoice_number} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('billing:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('finance', 'edit')
+def invoice_cancel(request, pk):
+    from accounts.permissions import user_is_manager
+    invoice = get_object_or_404(Invoice, pk=pk)
+    if not user_is_manager(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        invoice.cancel(request.user)
+        log_action(request, 'Invoice', 'update', pk)
+        messages.success(request, f'{invoice.invoice_number} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('billing:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('finance', 'create')
+def invoice_amend(request, pk):
+    invoice = get_object_or_404(Invoice, pk=pk)
+    try:
+        # invoice_number is unique — the amended copy needs a fresh one
+        original_number = invoice.invoice_number
+        new_invoice = invoice.amend()
+        new_invoice.invoice_number = f'{original_number}-AMD-{new_invoice.pk}'
+        new_invoice.save(update_fields=['invoice_number'])
+        for item in invoice.items.all():
+            item.pk = None
+            item.invoice = new_invoice
+            item.save()
+        log_action(request, 'Invoice', 'create', new_invoice.pk)
+        messages.success(request, f'Amended as {new_invoice.invoice_number}.')
+        return redirect('billing:invoice_detail', pk=new_invoice.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('billing:invoice_detail', pk=pk)
 
 
 @login_required
@@ -242,7 +361,9 @@ def insurance_policy_list(request):
             Q(provider_name__icontains=q) |
             Q(sales_order__customer__full_name__icontains=q)
         )
-    return render(request, 'billing/insurance_policy_list.html', {'policies': qs, 'q': q})
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'billing/insurance_policy_list.html', {'policies': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required

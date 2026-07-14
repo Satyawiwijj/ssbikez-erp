@@ -145,7 +145,7 @@
                             <form method="post" action="{% url 'spares:item_delete' item.pk %}" style="display:inline"
                                   onsubmit="return confirm('Delete item {{ item.item_name }}?')">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete item {{ item.item_name }}"><i class="fas fa-trash"></i></button>
                             </form>
 
                         </div>
@@ -189,6 +189,8 @@
             </tbody>
 
         </table>
+
+        {% include 'partials/pagination.html' %}
 
     </div>
 

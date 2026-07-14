@@ -99,6 +99,74 @@
 
             </div>
 
+            <!-- Delivery Note Items -->
+            <div class="card form-card mt-4">
+                <div class="card-header"><i class="fas fa-box me-2"></i>Delivery Note Items</div>
+                <div class="card-body p-3" style="overflow-x:auto;">
+                    {{ items_formset.management_form }}
+                    {% if items_formset.non_form_errors %}<div class="alert alert-danger">{{ items_formset.non_form_errors }}</div>{% endif %}
+                    <table class="table mb-0">
+                        <thead><tr><th>Item Code</th><th>Warranty/RSA/AMC</th><th>Rate</th><th>Actual Amount</th><th>Del</th></tr></thead>
+                        <tbody>
+                            {% for line_form in items_formset %}
+                            <tr>
+                                <td>{% for h in line_form.hidden_fields %}{{ h }}{% endfor %}{{ line_form.item_code }}</td>
+                                <td>{{ line_form.warranty_rsa_amc }}</td>
+                                <td>{{ line_form.rate }}</td>
+                                <td>{{ line_form.actual_amount }}</td>
+                                <td>{% if line_form.instance.pk %}<label>{{ line_form.DELETE }}</label>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Advance Payment Details -->
+            <div class="card form-card mt-4">
+                <div class="card-header"><i class="fas fa-money-bill-wave me-2"></i>Advance Payment Details</div>
+                <div class="card-body p-3" style="overflow-x:auto;">
+                    {{ advance_formset.management_form }}
+                    {% if advance_formset.non_form_errors %}<div class="alert alert-danger">{{ advance_formset.non_form_errors }}</div>{% endif %}
+                    <table class="table mb-0">
+                        <thead><tr><th>Mode of Payment</th><th>Date</th><th>Amount</th><th>To Account</th><th>Del</th></tr></thead>
+                        <tbody>
+                            {% for line_form in advance_formset %}
+                            <tr>
+                                <td>{% for h in line_form.hidden_fields %}{{ h }}{% endfor %}{{ line_form.mode_of_payment }}</td>
+                                <td>{{ line_form.date }}</td>
+                                <td>{{ line_form.amount }}</td>
+                                <td>{{ line_form.to_account }}</td>
+                                <td>{% if line_form.instance.pk %}<label>{{ line_form.DELETE }}</label>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Delivery Note Payment Entry -->
+            <div class="card form-card mt-4">
+                <div class="card-header"><i class="fas fa-receipt me-2"></i>Delivery Note Payment Entry</div>
+                <div class="card-body p-3" style="overflow-x:auto;">
+                    {{ payment_formset.management_form }}
+                    {% if payment_formset.non_form_errors %}<div class="alert alert-danger">{{ payment_formset.non_form_errors }}</div>{% endif %}
+                    <table class="table mb-0">
+                        <thead><tr><th>Date</th><th>Amount</th><th>Mode of Payment</th><th>Del</th></tr></thead>
+                        <tbody>
+                            {% for line_form in payment_formset %}
+                            <tr>
+                                <td>{% for h in line_form.hidden_fields %}{{ h }}{% endfor %}{{ line_form.date }}</td>
+                                <td>{{ line_form.amount }}</td>
+                                <td>{{ line_form.mode_of_payment }}</td>
+                                <td>{% if line_form.instance.pk %}<label>{{ line_form.DELETE }}</label>{% endif %}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
         </div>
 
         <div class="col-lg-4">

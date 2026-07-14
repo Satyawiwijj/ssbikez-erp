@@ -23,12 +23,20 @@ def generate_notifications(user):
             from spares.models import SparesItem, StockLedger
             from django.db.models import Sum, F, ExpressionWrapper, DecimalField
 
-            items = SparesItem.objects.filter(maintain_stock=True, is_active=True)
+            items = list(SparesItem.objects.filter(maintain_stock=True, is_active=True))
+            item_ids = [i.pk for i in items]
+
+            # One batched, grouped aggregate instead of 2 queries per item (N+1).
+            stock_by_item = {}
+            for row in StockLedger.objects.filter(item_id__in=item_ids).values(
+                'item_id', 'entry_type'
+            ).annotate(t=Sum('quantity')):
+                stock_by_item.setdefault(row['item_id'], {'in': 0, 'out': 0})[row['entry_type']] = row['t'] or 0
+
             for item in items:
-                total_in  = StockLedger.objects.filter(item=item, entry_type='in').aggregate(
-                    t=Sum('quantity'))['t'] or 0
-                total_out = StockLedger.objects.filter(item=item, entry_type='out').aggregate(
-                    t=Sum('quantity'))['t'] or 0
+                totals = stock_by_item.get(item.pk, {'in': 0, 'out': 0})
+                total_in  = totals.get('in', 0) or 0
+                total_out = totals.get('out', 0) or 0
                 stock = total_in - total_out
                 if item.reorder_level and stock <= item.reorder_level:
                     key = f'low_stock_{item.pk}'

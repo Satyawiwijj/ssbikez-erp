@@ -132,7 +132,10 @@ def get_otp():
     db.close()
     return row[0] if row else None
 
-def login(page, user='admin', pwd='SSBikez@2026'):
+def login(page, user='admin', pwd=None):
+    pwd = pwd or os.environ.get('QA_ADMIN_PASSWORD')
+    if not pwd:
+        raise RuntimeError('Set the QA_ADMIN_PASSWORD environment variable before running this script.')
     go(page, '/accounts/login/')
     fill(page, 'input[name="username"]', user)
     fill(page, 'input[name="password"]', pwd)
@@ -1637,7 +1640,7 @@ with sync_playwright() as pw:
     page.wait_for_timeout(1000)
     ss(page, '145_logged_out')
 
-    login(page, 'e2e_sales', 'Test@123')
+    login(page, 'e2e_sales', os.environ.get('QA_FIXTURE_PASSWORD'))
     ss(page, '146_sales_exec_login')
 
     go(page, '/accounts/dashboard/')
@@ -1680,7 +1683,7 @@ with sync_playwright() as pw:
     # Re-login as admin
     go(page, '/accounts/logout/')
     page.wait_for_timeout(500)
-    login(page, 'admin', 'SSBikez@2026')
+    login(page, 'admin')
     ss(page, '150_admin_relogin')
     if 'login' not in page.url and 'otp' not in page.url:
         log_ok('RBAC', 'Admin re-login successful', page, '150_admin_login_ok')

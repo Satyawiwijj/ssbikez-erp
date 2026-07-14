@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Exchange Dealer Payment{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'sales:exchange_dealer_payment_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'sales:exchange_dealer_payment_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'sales:exchange_dealer_payment_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'sales:exchange_dealer_payment_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-money-bill-wave me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Date</th><td>{{ obj.date }}</td></tr>
+                <tr><th>Dealer</th><td>{{ obj.dealer }}</td></tr>
+                <tr><th>Transfer</th><td>{% if obj.exchange_vehicle_dealer %}<a href="{% url 'sales:exchange_vehicle_dealer_detail' pk=obj.exchange_vehicle_dealer_id %}">{{ obj.exchange_vehicle_dealer }}</a>{% else %}—{% endif %}</td></tr>
+                <tr><th>Branch</th><td>{{ obj.branch|default:"—" }}</td></tr>
+                <tr><th>Pay Type</th><td>{{ obj.get_payment_mode_display|default:"—" }}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Pending Amount</th><td>&#x20B9; {{ obj.pending_amount }}</td></tr>
+                <tr><th>Payment Status</th><td>{{ obj.payment_status|default:"—" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Vehicle Details</div>
+    {% if items %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Register No</th><th>Vehicle Name</th><th>Vehicle Amount</th><th>Allow Permission</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td>{{ i.register_number }}</td>
+                    <td>{{ i.vehicle_name|default:"—" }}</td>
+                    <td>&#x20B9; {{ i.vehicle_amount }}</td>
+                    <td>{% if i.allow_permission %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+                    <td>{{ i.date|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No vehicles recorded.</div>{% endif %}
+</div>
+{% endblock %}

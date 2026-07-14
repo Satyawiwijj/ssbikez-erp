@@ -79,21 +79,21 @@
         <dt>Sanctioned Date</dt>
         <dd>
           {% if loan.sanctioned_date %}<strong>{{ loan.sanctioned_date|date:"d M Y" }}</strong>
-          {% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}
+          {% else %}<span style="color:#6B7280;">Not recorded</span>{% endif %}
         </dd>
       </div>
       <div class="detail-row">
         <dt>First EMI Date</dt>
         <dd>
           {% if loan.first_emi_date %}<strong>{{ loan.first_emi_date|date:"d M Y" }}</strong>
-          {% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}
+          {% else %}<span style="color:#6B7280;">Not recorded</span>{% endif %}
         </dd>
       </div>
       <div class="detail-row">
         <dt>Loan End Date</dt>
         <dd>
           {% if loan.loan_end_date %}<strong>{{ loan.loan_end_date|date:"d M Y" }}</strong>
-          {% else %}<span style="color:#9CA3AF;">
+          {% else %}<span style="color:#6B7280;">
             {% if loan.first_emi_date %}Set tenure to calculate{% else %}Set first EMI date + tenure{% endif %}
           </span>{% endif %}
         </dd>
@@ -167,15 +167,15 @@
       {% endif %}
       <div class="detail-row">
         <dt>Submission Date</dt>
-        <dd>{% if loan.hp_submission_date %}<strong>{{ loan.hp_submission_date|date:"d M Y" }}</strong>{% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}</dd>
+        <dd>{% if loan.hp_submission_date %}<strong>{{ loan.hp_submission_date|date:"d M Y" }}</strong>{% else %}<span style="color:#6B7280;">Not recorded</span>{% endif %}</dd>
       </div>
       <div class="detail-row">
         <dt>Endorsement Date</dt>
-        <dd>{% if loan.hp_endorsement_date %}<strong>{{ loan.hp_endorsement_date|date:"d M Y" }}</strong>{% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}</dd>
+        <dd>{% if loan.hp_endorsement_date %}<strong>{{ loan.hp_endorsement_date|date:"d M Y" }}</strong>{% else %}<span style="color:#6B7280;">Not recorded</span>{% endif %}</dd>
       </div>
       <div class="detail-row">
         <dt>Release Date</dt>
-        <dd>{% if loan.hp_release_date %}<strong>{{ loan.hp_release_date|date:"d M Y" }}</strong>{% else %}<span style="color:#9CA3AF;">Not recorded</span>{% endif %}</dd>
+        <dd>{% if loan.hp_release_date %}<strong>{{ loan.hp_release_date|date:"d M Y" }}</strong>{% else %}<span style="color:#6B7280;">Not recorded</span>{% endif %}</dd>
       </div>
     </dl>
   </div>

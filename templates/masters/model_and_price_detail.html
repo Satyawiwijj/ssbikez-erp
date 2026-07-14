@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.price_no }} — Masters{% endblock %}
+{% block page_title %}{{ obj.price_no }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:model_and_price_update' obj.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'masters:model_and_price_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'masters:model_and_price_list' %}">Model and Price</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.price_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">{{ obj.price_no }}</span></div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Vehicle</dt><dd style="font-weight:600;">{{ obj.model_name }}</dd></div>
+        <div class="detail-row"><dt>Sub Group</dt><dd>{{ obj.sub_group|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Color / Code</dt><dd>{{ obj.color|default:"—" }} / {{ obj.color_code|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Percentage</dt><dd>{{ obj.percentage }}%</dd></div>
+        <div class="detail-row"><dt>Ex Showroom</dt><dd>&#x20B9; {{ obj.ex_show_room }}</dd></div>
+        <div class="detail-row"><dt>PDI</dt><dd>&#x20B9; {{ obj.pdi }}</dd></div>
+        <div class="detail-row"><dt>RSA</dt><dd>&#x20B9; {{ obj.rsa }}</dd></div>
+        <div class="detail-row"><dt>Insurance</dt><dd>&#x20B9; {{ obj.insurance }}</dd></div>
+        <div class="detail-row"><dt>Updated Insurance Rate</dt><dd>&#x20B9; {{ obj.updated_insurance_rate }}</dd></div>
+        <div class="detail-row"><dt>AMC</dt><dd>&#x20B9; {{ obj.amc }}</dd></div>
+        <div class="detail-row"><dt>Protection Plus</dt><dd>&#x20B9; {{ obj.warranty }}</dd></div>
+        <div class="detail-row"><dt>Charge 1 / 2 / 3</dt><dd>&#x20B9; {{ obj.charge_1 }} / &#x20B9; {{ obj.charge_2 }} / &#x20B9; {{ obj.charge_3 }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+{% endblock %}

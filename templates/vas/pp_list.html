@@ -97,8 +97,7 @@
                     <th>PP ID</th>
                     <th>Customer</th>
                     <th>Reg. No.</th>
-                    <th>Package</th>
-                    <th>Provider</th>
+                    <th>Warranty Type</th>
                     <th>Start Date</th>
                     <th>End Date</th>
                     <th>Amount</th>
@@ -146,13 +145,7 @@
 
                     <td>
 
-                        {{ pkg.package_name|default:"—" }}
-
-                    </td>
-
-                    <td style="color:#6B7280;font-size:13px;">
-
-                        {{ pkg.provider_name|default:"—" }}
+                        {{ pkg.warranty_type|default:"—" }}
 
                     </td>
 

@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="uv-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'sales:dealer_rc_handover_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="uv-form" novalidate>
+{% csrf_token %}
+{{ formset.management_form }}
+
+{% if form.errors or formset.errors %}
+<div class="alert alert-danger">Please correct the errors below.</div>
+{% endif %}
+
+<div class="card form-card">
+    <div class="card-header"><i class="fas fa-file-signature me-2"></i>{{ title }}</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">
+        Items
+        <button type="button" id="add-item-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Register No</th><th>NOC</th><th>T.O. Received</th><th>RC Book Received</th><th>Vehicle Received</th><th>RC Book No</th><th>Date</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="items-formset-body">
+                {% for f in formset %}
+                <tr class="formset-row item-row">
+                    {{ f.id }}
+                    <td>{{ f.register_number }}</td>
+                    <td>{{ f.noc }}</td>
+                    <td>{{ f.to_received }}</td>
+                    <td>{{ f.rc_book_received }}</td>
+                    <td>{{ f.vehicle_received }}</td>
+                    <td>{{ f.rc_book_number }}</td>
+                    <td>{{ f.date }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+    const tbody = document.getElementById('items-formset-body');
+    const addBtn = document.getElementById('add-item-row');
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const deleteField = row.querySelector('[id$="-DELETE"]');
+            if (deleteField) { deleteField.checked = true; row.style.display = 'none'; }
+            else { row.remove(); }
+        });
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    if (addBtn) {
+        addBtn.addEventListener('click', function () {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.item-row');
+            const newRow = firstRow.cloneNode(true);
+            newRow.innerHTML = newRow.innerHTML.replace(/items-\d+/g, 'items-' + formCount);
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow);
+        });
+    }
+})();
+</script>
+{% endblock %}

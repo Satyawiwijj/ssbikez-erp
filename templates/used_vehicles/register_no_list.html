@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Stock — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Stock (Register No){% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:register_no_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Stock</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Registration No</th><th>Vehicle</th><th>Color</th><th>Chassis No</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for s in stock %}
+                <tr>
+                    <td>{{ s.registration_no }}</td>
+                    <td>{{ s.used_vehicle }}</td>
+                    <td>{{ s.color|default:"—" }}</td>
+                    <td>{{ s.chassis_no|default:"—" }}</td>
+                    <td>
+                        {% if s.stock_status == 'available' %}<span class="badge badge-green">Available</span>
+                        {% elif s.stock_status == 'reserved' %}<span class="badge badge-yellow">Reserved</span>
+                        {% else %}<span class="badge badge-gray">Sold</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No stock yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

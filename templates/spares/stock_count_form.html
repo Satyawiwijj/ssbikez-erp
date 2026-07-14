@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="sc-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save Stock Count</button>
+<a href="{% url 'spares:stock_count_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:stock_count_list' %}">Stock Count Updates</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="sc-form" novalidate>
+{% csrf_token %}
+{{ formset.management_form }}
+
+{% if form.errors or formset.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">Please correct the following errors:</h4>
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+            {% for field in form %}{% for error in field.errors %}<li><strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}
+            {% for f in formset %}{% for field in f %}{% for error in field.errors %}<li>Item Row — <strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="detail-grid">
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Stock Count Information</div>
+            <div style="padding:20px;">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.date_and_time.id_for_label }}">Date *</label>
+                        {{ form.date_and_time }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.warehouse.id_for_label }}">Warehouse *</label>
+                        {{ form.warehouse }}
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="{{ form.branch.id_for_label }}">Branch</label>
+                        {{ form.branch }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="card">
+            <div class="card-header"><span class="card-title">Details</span></div>
+            <div style="padding:20px;">
+                <div style="margin-bottom:14px;"><strong>Module</strong><div class="text-muted">Spares Management</div></div>
+                <div><strong>Purpose</strong><div class="text-muted">Record a physical stock count for reconciliation. "Update Quantity" is the counted value — submitting corrects the system stock to match.</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <span class="card-title">Count Items</span>
+        <button type="button" id="add-row" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Item</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Rack</th><th>Bin</th><th>Rate</th><th>Update Quantity (Counted)</th><th>Action</th></tr></thead>
+            <tbody id="formset-body">
+                {% for f in formset %}
+                <tr class="formset-row">
+                    <td>{{ f.item }}{{ f.id }}</td>
+                    <td>{{ f.rack }}</td>
+                    <td>{{ f.bin }}</td>
+                    <td>{{ f.rate }}</td>
+                    <td>{{ f.counted_qty }}</td>
+                    <td>
+                        {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+    const tbody = document.getElementById('formset-body');
+    const firstRow = tbody.querySelector('.formset-row');
+    document.getElementById('add-row').addEventListener('click', function() {
+        const n = parseInt(totalForms.value);
+        const row = firstRow.cloneNode(true);
+        row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
+        row.querySelectorAll('input, select, textarea').forEach(function(el) { el.value = ''; });
+        tbody.appendChild(row);
+        totalForms.value = n + 1;
+        bindRemove(row);
+    });
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const del = row.querySelector('[id$="-DELETE"]');
+                if (del) { del.checked = true; row.style.display = 'none'; } else { row.remove(); }
+            });
+        }
+    }
+    tbody.querySelectorAll('.formset-row').forEach(bindRemove);
+})();
+</script>
+{% endblock %}

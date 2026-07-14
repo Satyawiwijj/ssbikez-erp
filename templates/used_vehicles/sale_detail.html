@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Sale{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:sale_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:sale_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'used_vehicles:sale_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:sale_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-file-invoice me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+        <span class="badge badge-blue">{{ obj.get_sale_status_display }}</span>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Customer</th><td>{{ obj.customer }}</td></tr>
+                <tr><th>Vehicle</th><td>{{ obj.vehicle_number }}</td></tr>
+                <tr><th>Branch</th><td>{{ obj.branch|default:"—" }}</td></tr>
+                <tr><th>Delivery Date</th><td>{{ obj.delivery_date }}</td></tr>
+                <tr><th>Sale Amount</th><td>&#x20B9; {{ obj.sale_amount }}</td></tr>
+                <tr><th>Has Exchange</th><td>{% if obj.has_exchange %}Yes — &#x20B9;{{ obj.exchange_amount }}{% else %}No{% endif %}</td></tr>
+                <tr><th>Advance Payment</th><td>&#x20B9; {{ obj.advance_payment }}</td></tr>
+                <tr><th>Balance Amount</th><td>&#x20B9; {{ obj.balance_amount }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="row g-4 mt-1">
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Fittings</div>
+            {% if obj.fittings.all %}
+            <div class="table-wrapper">
+                <table class="table"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead>
+                <tbody>{% for f in obj.fittings.all %}<tr><td>{{ f.item_name }}</td><td>{{ f.quantity }}</td><td>&#x20B9; {{ f.amount }}</td></tr>{% endfor %}</tbody></table>
+            </div>
+            {% else %}<div class="card-body text-muted small">No fittings.</div>{% endif %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Items</div>
+            {% if obj.items.all %}
+            <div class="table-wrapper">
+                <table class="table"><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead>
+                <tbody>{% for i in obj.items.all %}<tr><td>{{ i.item_name }}</td><td>{{ i.quantity }}</td><td>&#x20B9; {{ i.amount }}</td></tr>{% endfor %}</tbody></table>
+            </div>
+            {% else %}<div class="card-body text-muted small">No items.</div>{% endif %}
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">Advance Payments</div>
+            {% if obj.advance_payments.all %}
+            <div class="table-wrapper">
+                <table class="table"><thead><tr><th>Mode</th><th>Date</th><th>Amount</th></tr></thead>
+                <tbody>{% for a in obj.advance_payments.all %}<tr><td>{{ a.mode_of_payment }}</td><td>{{ a.date }}</td><td>&#x20B9; {{ a.amount }}</td></tr>{% endfor %}</tbody></table>
+            </div>
+            {% else %}<div class="card-body text-muted small">No advance payments.</div>{% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><i class="fas fa-stream me-2"></i>Documents</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Document</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Finance Loan</td>
+                    <td>{% if obj.loan %}{{ obj.loan.bank_name }} — {{ obj.loan.get_loan_status_display }}{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if not obj.loan %}<a href="{% url 'used_vehicles:loan_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Delivery</td>
+                    <td>{% if obj.delivery %}<a href="{% url 'used_vehicles:delivery_detail' pk=obj.delivery.pk %}">{{ obj.delivery }}</a>{% else %}<span class="text-muted">—</span>{% endif %}</td>
+                    <td>{% if not obj.delivery %}<a href="{% url 'used_vehicles:delivery_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a>{% endif %}</td>
+                </tr>
+                <tr>
+                    <td>Invoice</td>
+                    <td>{% for inv in obj.invoices.all %}<a href="{% url 'used_vehicles:invoice_detail' pk=inv.pk %}">{{ inv }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:invoice_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>RC Hand Over</td>
+                    <td>{% for r in obj.rc_hand_overs.all %}{{ r.get_status_display }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:rc_handover_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>RC Book Issue</td>
+                    <td>{% for r in obj.rc_book_issues.all %}{{ r.get_status_display }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:rc_book_issue_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

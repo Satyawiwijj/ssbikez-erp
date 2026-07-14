@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Masters{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="map-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'masters:model_and_price_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'masters:model_and_price_list' %}">Model and Price</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="map-form" novalidate>
+{% csrf_token %}
+{% if form.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">Please correct the following errors:</h4>
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+            {% for field in form %}{% for error in field.errors %}<li><strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="card form-card">
+    <div class="card-header">Model and Price</div>
+    <div style="padding:20px;">
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="{{ form.model_code.id_for_label }}">Vehicle Code *</label>{{ form.model_code }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.sub_group.id_for_label }}">Sub Group</label>{{ form.sub_group }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.color.id_for_label }}">Color</label>{{ form.color }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.color_code.id_for_label }}">Color Code</label>{{ form.color_code }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.percentage.id_for_label }}">Percentage</label>{{ form.percentage }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.ex_show_room.id_for_label }}">Ex Showroom</label>{{ form.ex_show_room }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.pdi.id_for_label }}">PDI</label>{{ form.pdi }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.rsa.id_for_label }}">RSA</label>{{ form.rsa }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.insurance.id_for_label }}">Insurance</label>{{ form.insurance }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.updated_insurance_rate.id_for_label }}">Updated Insurance Rate</label>{{ form.updated_insurance_rate }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.amc.id_for_label }}">AMC</label>{{ form.amc }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.warranty.id_for_label }}">Protection Plus</label>{{ form.warranty }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.charge_1.id_for_label }}">Charge 1</label>{{ form.charge_1 }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.charge_2.id_for_label }}">Charge 2</label>{{ form.charge_2 }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.charge_3.id_for_label }}">Charge 3</label>{{ form.charge_3 }}</div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+@media (max-width:768px){.form-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}

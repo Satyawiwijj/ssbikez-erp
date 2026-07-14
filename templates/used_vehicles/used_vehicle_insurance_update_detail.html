@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Insurance Update{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<a href="{% url 'used_vehicles:used_vehicle_insurance_update_update' obj.pk %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit me-1"></i>Edit</a>
+<form method="post" action="{% url 'used_vehicles:used_vehicle_insurance_update_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:used_vehicle_insurance_update_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:used_vehicle_insurance_update_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to List</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-shield-alt me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Register No</th><td>{{ obj.register_no }}</td></tr>
+                <tr><th>Insurance Status</th><td>{{ obj.get_insurance_status_display }}</td></tr>
+                <tr><th>Insurance Supplier</th><td>{{ obj.insurance_name }}</td></tr>
+                <tr><th>Policy Number</th><td>{{ obj.policy_number }}</td></tr>
+                <tr><th>Start Date</th><td>{{ obj.start_date|date:"d M Y" }}</td></tr>
+                <tr><th>End Date</th><td>{{ obj.end_date|date:"d M Y" }}</td></tr>
+                <tr><th>Amount</th><td>&#x20B9; {{ obj.amount }}</td></tr>
+                <tr><th>Payment Method</th><td>{{ obj.get_payment_method_display }}</td></tr>
+                <tr><th>From Account</th><td>{{ obj.from_account|default:"—" }}</td></tr>
+                <tr><th>To Account</th><td>{{ obj.to_account|default:"—" }}</td></tr>
+                <tr><th>Ref No</th><td>{{ obj.ref_no|default:"—" }}</td></tr>
+                <tr><th>Ref Date</th><td>{{ obj.ref_date|date:"d M Y"|default:"—" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

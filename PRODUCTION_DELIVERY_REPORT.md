@@ -47,7 +47,7 @@ This was not in the original report but was found during a full security audit o
   - **Fix:** added a shared ownership policy (`accounts/permissions.py`) and applied it to every edit/delete view across sales, service, spares, and accounts. Verified with real cross-user attempts: non-owners get a clean 403, owners and designated managers get through.
 - **OTP brute-force:** no limit on wrong-code attempts. Fixed — locks out after 5 attempts, forces a fresh login.
 - **Privilege escalation:** a "Sales Manager"-level user could edit any user's role field, including promoting themselves or others to Managing Director. Fixed — role/activation changes now require Managing-Director-level access.
-- **Hardcoded default superuser password** (`SSBikez@2026`) baked into the deploy script. Removed — now generates a random one-time password if none is set via environment variable.
+- **Hardcoded default superuser password** baked into the deploy script. Removed — now generates a random one-time password if none is set via environment variable.
 - **Mass-assignment gaps:** fuel expense `created_by`, sales order `sales_executive`, job card `service_advisor` could all be set to an arbitrary user via form tampering. Fixed.
 - **CSV/Excel import:** no file size cap (DoS risk) and no formula-injection sanitization (a malicious cell starting with `=`, `+`, `-`, `@` could execute as a formula if re-opened in Excel). Both fixed.
 - **Financial logic bugs:** payment validation only checked the invoice total, not the actual outstanding balance (allowed accepting payments past what was owed); payment reconciliation trusted unvalidated record IDs from the request; CGST/SGST was hardcoded to a 50/50 split instead of using the company's real configured tax rates. All fixed.

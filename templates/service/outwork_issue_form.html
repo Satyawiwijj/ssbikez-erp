@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="stage-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'service:jobcard_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="stage-form" novalidate>
+{% csrf_token %}
+{{ work_formset.management_form }}
+{{ spares_formset.management_form }}
+
+{% if form.errors or work_formset.errors or spares_formset.errors %}
+<div class="alert alert-danger">Please correct the errors below.</div>
+{% endif %}
+
+<div class="row g-3">
+    <div class="col-lg-9">
+        <div class="card form-card">
+            <div class="card-header"><i class="fas fa-truck-loading me-2"></i>{{ title }}</div>
+            <div class="card-body">
+                <div class="row g-3">
+                    {% for field in form %}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">
+                            {{ field.label }}
+                            {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.errors %}
+                        <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                Work Details
+                <button type="button" id="add-work-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead><tr><th>Work Name</th><th>Party</th><th>Qty</th><th>Amount</th><th>Tax %</th><th>Total</th><th style="width:60px;">Action</th></tr></thead>
+                    <tbody id="work-formset-body">
+                        {% for f in work_formset %}
+                        <tr class="formset-row work-row">
+                            {{ f.id }}
+                            <td>{{ f.work_name }}</td>
+                            <td>{{ f.party }}</td>
+                            <td>{{ f.quantity }}</td>
+                            <td>{{ f.amount }}</td>
+                            <td>{{ f.tax }}</td>
+                            <td>{{ f.total_amount }}</td>
+                            <td>
+                                {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                                <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                Outwork Spares
+                <button type="button" id="add-spares-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+            </div>
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead><tr><th>Item</th><th>Rack</th><th>Bin</th><th>Qty</th><th>Rate</th><th>SGST</th><th>CGST</th><th>Total</th><th style="width:60px;">Action</th></tr></thead>
+                    <tbody id="spares-formset-body">
+                        {% for f in spares_formset %}
+                        <tr class="formset-row spares-row">
+                            {{ f.id }}
+                            <td>{{ f.item }}</td>
+                            <td>{{ f.rack }}</td>
+                            <td>{{ f.bin }}</td>
+                            <td>{{ f.quantity }}</td>
+                            <td>{{ f.rate }}</td>
+                            <td>{{ f.sgst }}</td>
+                            <td>{{ f.cgst }}</td>
+                            <td>{{ f.total }}</td>
+                            <td>
+                                {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                                <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card">
+            <div class="card-header"><i class="fas fa-info-circle me-2"></i>Details</div>
+            <div class="card-body">
+                <div class="mb-3"><strong>Module</strong><div class="text-muted">Service Management</div></div>
+                <div class="mb-3"><strong>Stage</strong><div class="text-muted">Outwork</div></div>
+                <div><strong>Notes</strong><div class="text-muted small">Send outsourced work to a vendor. Submitting advances the job card to Outwork stage.</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function makeAdder(prefix, addBtnId, tbodyId, rowClass) {
+        const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(tbodyId);
+        const addBtn = document.getElementById(addBtnId);
+        if (!addBtn) return;
+        addBtn.addEventListener('click', function () {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.' + rowClass);
+            const newRow = firstRow.cloneNode(true);
+            newRow.innerHTML = newRow.innerHTML.replace(new RegExp(prefix + '-\\d+', 'g'), prefix + '-' + formCount);
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow);
+        });
+    }
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const deleteField = row.querySelector('[id$="-DELETE"]');
+            if (deleteField) { deleteField.checked = true; row.style.display = 'none'; }
+            else { row.remove(); }
+        });
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    makeAdder('work', 'add-work-row', 'work-formset-body', 'work-row');
+    makeAdder('spares', 'add-spares-row', 'spares-formset-body', 'spares-row');
+})();
+</script>
+{% endblock %}

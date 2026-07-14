@@ -56,11 +56,11 @@
 
                 <div class="mb-3">
 
-                    <label class="form-label">
+                    <label class="form-label" for="id_status">
                         Status
                     </label>
 
-                    <select name="status" class="form-control">
+                    <select name="status" id="id_status" class="form-control">
 
                         {% for val, label in reminder.Status.choices %}
 
@@ -77,11 +77,12 @@
 
                 <div class="mb-3">
 
-                    <label class="form-label">
+                    <label class="form-label" for="id_notes">
                         Notes
                     </label>
 
                     <textarea name="notes"
+                              id="id_notes"
                               rows="4"
                               class="form-control">{{ reminder.notes }}</textarea>
 
@@ -142,7 +143,7 @@
                     </div>
 
                     <div class="text-muted">
-                        {{ reminder.customer_vehicle.registration_no }}
+                        {{ reminder.customer_vehicle.registration_no|default:"—" }}
                     </div>
                 </div>
 

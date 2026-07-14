@@ -40,8 +40,9 @@
 
     {% csrf_token %}
     {{ formset.management_form }}
+    {{ deleted_formset.management_form }}
 
-    {% if form.errors or formset.errors %}
+    {% if form.errors or formset.errors or deleted_formset.errors %}
     <div class="alert alert-danger mb-3">
         <strong>Please correct the errors below before saving.</strong>
     </div>
@@ -109,7 +110,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="{{ form.job_type.id_for_label }}">
                                 Job Type
                             </label>
 
@@ -123,7 +124,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="{{ form.discount.id_for_label }}">
                                 Discount
                             </label>
 
@@ -134,6 +135,51 @@
                                 {{ form.discount.errors }}
                             </div>
                             {% endif %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.engine_no.id_for_label }}">Engine No</label>
+                            {{ form.engine_no }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.register_no.id_for_label }}">Register No</label>
+                            {{ form.register_no }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.frame_no.id_for_label }}">Frame No</label>
+                            {{ form.frame_no }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.model.id_for_label }}">Vehicle Model</label>
+                            {{ form.model }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.vehicle_code.id_for_label }}">Vehicle Code</label>
+                            {{ form.vehicle_code }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.phone_no.id_for_label }}">Phone No</label>
+                            {{ form.phone_no }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.user.id_for_label }}">User</label>
+                            {{ form.user }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.service_invoice_discount.id_for_label }}">Service Invoice Discount</label>
+                            {{ form.service_invoice_discount }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.brand.id_for_label }}">Brand</label>
+                            {{ form.brand }}
                         </div>
 
                     </div>
@@ -166,12 +212,17 @@
 
                         <thead>
                             <tr>
-                                <th style="width:30%">Item</th>
+                                <th style="width:22%">Item</th>
                                 <th>Quantity</th>
                                 <th>Rack</th>
                                 <th>Bin</th>
                                 <th>Rate</th>
                                 <th>Discount %</th>
+                                <th>Last Return Qty</th>
+                                <th>Tax Rate</th>
+                                <th>Ref Qty</th>
+                                <th>Stock Balance</th>
+                                <th>Returned</th>
                                 <th style="width:70px;">Action</th>
                             </tr>
                         </thead>
@@ -210,6 +261,12 @@
 
                                 <td>{{ f.discount_percent }}</td>
 
+                                <td>{{ f.last_return_quantity }}</td>
+                                <td>{{ f.tax_rate }}</td>
+                                <td>{{ f.ref_quantity }}</td>
+                                <td>{{ f.stock_balance }}</td>
+                                <td>{{ f.is_returned }}</td>
+
                                 <td>
 
                                     {% if f.instance.pk %}
@@ -219,10 +276,84 @@
                                     {% endif %}
 
                                     <button type="button"
-                                            class="btn btn-sm btn-danger remove-row">
+                                            class="btn btn-sm btn-danger remove-row" aria-label="Remove row">
                                         <i class="fas fa-trash"></i>
                                     </button>
 
+                                </td>
+
+                            </tr>
+
+                            {% endfor %}
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <!-- Deleted Spares List ("New Spares List" in the reference) -->
+            <div class="card form-card mt-3">
+
+                <div class="card-header d-flex justify-content-between align-items-center">
+
+                    <span>
+                        Deleted Spares List
+                    </span>
+
+                    <button type="button"
+                            id="add-deleted-row"
+                            class="btn btn-sm btn-light">
+                        <i class="fas fa-plus me-1"></i>
+                        Add Row
+                    </button>
+
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table class="table">
+
+                        <thead>
+                            <tr>
+                                <th style="width:30%">Item</th>
+                                <th>Quantity</th>
+                                <th>Rack</th>
+                                <th>Bin</th>
+                                <th>Rate</th>
+                                <th>UOM</th>
+                                <th style="width:70px;">Action</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="deleted-formset-body">
+
+                            {% for f in deleted_formset %}
+
+                            <tr class="deleted-formset-row">
+
+                                {{ f.id }}
+
+                                <td>{{ f.item }}</td>
+                                <td>{{ f.quantity }}</td>
+                                <td>{{ f.rack }}</td>
+                                <td>{{ f.bin }}</td>
+                                <td>{{ f.rate }}</td>
+                                <td>{{ f.uom }}</td>
+
+                                <td>
+                                    {% if f.instance.pk %}
+                                    <div style="display:none;">
+                                        {{ f.DELETE }}
+                                    </div>
+                                    {% endif %}
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-danger remove-deleted-row" aria-label="Remove row">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </td>
 
                             </tr>
@@ -289,80 +420,53 @@
 <script>
 (function () {
 
-    const totalForms =
-        document.querySelector('[name$="-TOTAL_FORMS"]');
+    function makeAdder(prefix, addBtnId, tbodyId, rowClass, removeClass) {
+        const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(tbodyId);
+        const addBtn = document.getElementById(addBtnId);
+        if (!addBtn || !tbody || !totalForms) return;
 
-    const tbody =
-        document.getElementById('formset-body');
+        addBtn.addEventListener('click', function () {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.' + rowClass);
+            const newRow = firstRow.cloneNode(true);
 
-    const addBtn =
-        document.getElementById('add-row');
-
-    addBtn.addEventListener('click', function () {
-
-        const formCount = parseInt(totalForms.value);
-
-        const firstRow =
-            tbody.querySelector('.formset-row');
-
-        const newRow =
-            firstRow.cloneNode(true);
-
-        newRow.innerHTML =
-            newRow.innerHTML.replace(
-                /items-\d+/g,
-                'items-' + formCount
+            newRow.innerHTML = newRow.innerHTML.replace(
+                new RegExp(prefix + '-\\d+', 'g'),
+                prefix + '-' + formCount
             );
 
-        newRow.querySelectorAll(
-            'input, select, textarea'
-        ).forEach(function (field) {
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
 
-            if (field.type !== 'hidden') {
-                field.value = '';
-            }
-
-            if (field.type === 'checkbox') {
-                field.checked = false;
-            }
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow, removeClass);
         });
 
-        tbody.appendChild(newRow);
+        tbody.querySelectorAll('.' + rowClass).forEach(function (row) {
+            bindRemove(row, removeClass);
+        });
+    }
 
-        totalForms.value =
-            formCount + 1;
-
-        bindRemove(newRow);
-    });
-
-    function bindRemove(row) {
-
-        const btn =
-            row.querySelector('.remove-row');
-
+    function bindRemove(row, removeClass) {
+        const btn = row.querySelector('.' + removeClass);
         if (!btn) return;
-
         btn.addEventListener('click', function () {
-
-            const deleteField =
-                row.querySelector('[id$="-DELETE"]');
-
+            const deleteField = row.querySelector('[id$="-DELETE"]');
             if (deleteField) {
-
                 deleteField.checked = true;
                 row.style.display = 'none';
-
             } else {
-
                 row.remove();
-
             }
         });
     }
 
-    document
-        .querySelectorAll('.formset-row')
-        .forEach(bindRemove);
+    makeAdder('items', 'add-row', 'formset-body', 'formset-row', 'remove-row');
+    makeAdder('deleted', 'add-deleted-row', 'deleted-formset-body', 'deleted-formset-row', 'remove-deleted-row');
 
 })();
 </script>

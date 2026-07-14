@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Register Numbers — RTO{% endblock %}
+{% block page_title %}Register Number Master{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'rto:register_number_master_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Register Number</a>
+{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a><span class="bc-sep">/</span>
+    <span class="bc-current">Register Number Master</span>
+</nav>
+<div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title"><i class="fas fa-list-ol me-2"></i>Register Number Master</span>
+        <span class="badge badge-blue">{{ objs|length }}</span>
+    </div>
+    <div class="table-wrapper">
+        {% if objs %}
+        <table class="table">
+            <thead><tr><th>Register Number</th><th>Used</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr><td style="font-family:monospace;font-weight:600;">{{ o.register_number }}</td><td>{% if o.is_used %}&#x2705;{% else %}—{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fas fa-list-ol mb-2"></i><div>No register numbers found.</div></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

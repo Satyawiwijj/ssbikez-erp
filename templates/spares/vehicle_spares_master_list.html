@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Vehicle Spares Master — SSBikez ERP{% endblock %}
+{% block page_title %}Vehicle Spares Master{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:vehicle_spares_master_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Entry</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">Vehicle Spares Master</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Vehicle Spares Master</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Profit %</th><th>Purchase Rate</th><th>MRP Rate</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.spare.item_code }} — {{ o.spare.item_name }}</td>
+                    <td>{{ o.profit_percentage }}%</td>
+                    <td>&#x20B9; {{ o.purchase_rate }}</td>
+                    <td>&#x20B9; {{ o.mrp_rate }}</td>
+                    <td>&#x20B9; {{ o.total }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No entries found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

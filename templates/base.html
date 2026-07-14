@@ -229,7 +229,7 @@
     }
     .formset-delete-btn {
       position: absolute; top: 8px; right: 8px;
-      background: none; border: none; color: #ef4444; cursor: pointer; font-size: 14px;
+      background: none; border: none; color: #DC2626; cursor: pointer; font-size: 14px;
     }
     .add-row-btn {
       border: 2px dashed #d1d5db; background: #fff; color: #6b7280;
@@ -258,7 +258,7 @@
     .topbar-title { font-size: 16px; font-weight: 600; color: #111; }
 
     /* ── EMPTY STATE ── */
-    .empty-state { text-align: center; padding: 48px 24px; color: #9ca3af; }
+    .empty-state { text-align: center; padding: 48px 24px; color: #6B7280; }
     .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; }
     .empty-state p { font-size: 14px; }
 
@@ -400,7 +400,7 @@
 
     /* ── STATUS BAR ── */
     .status-bar { display: flex; align-items: center; gap: 0; background: #fff; border-radius: 10px; padding: 12px 20px; box-shadow: 0 1px 3px rgba(0,0,0,.08); margin-bottom: 20px; overflow-x: auto; }
-    .status-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #9ca3af; white-space: nowrap; padding: 4px 10px; }
+    .status-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6B7280; white-space: nowrap; padding: 4px 10px; }
     .status-step.done { color: #065f46; }
     .status-step.current { background: #dbeafe; color: #1d4ed8; border-radius: 20px; font-weight: 600; }
     .status-step-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
@@ -443,7 +443,7 @@
     .topbar-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 6px; color: #6b7280; font-size: 20px; }
 
     /* ── BREADCRUMBS ── */
-    .breadcrumb-bar { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #9ca3af; margin-bottom: 16px; flex-wrap: wrap; }
+    .breadcrumb-bar { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #6B7280; margin-bottom: 16px; flex-wrap: wrap; }
     .breadcrumb-bar a { color: #6b7280; text-decoration: none; }
     .breadcrumb-bar a:hover { color: #2563eb; text-decoration: underline; }
     .breadcrumb-bar .bc-sep { color: #d1d5db; }
@@ -559,7 +559,7 @@ setInterval(loadNotificationCount, 60000);
 {% if user.is_authenticated %}
 
 <!-- ═══ SIDEBAR ═══ -->
-<nav class="sidebar" id="sidebar">
+<nav class="sidebar" id="sidebar" aria-label="Main navigation">
   <a class="sidebar-brand" href="{% url 'accounts:home' %}">
     <div class="brand-icon"><i class="fas fa-motorcycle"></i></div>
     <div>
@@ -583,6 +583,10 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'sales:test_ride_list' %}" class="sidebar-link"><i class="nav-icon fas fa-motorcycle"></i> Test Rides</a>
   <a href="{% url 'sales:order_list' %}" class="sidebar-link" data-href="/sales/orders/"><i class="nav-icon fas fa-shopping-cart"></i> Orders</a>
   <a href="{% url 'sales:exchange_list' %}" class="sidebar-link" data-href="/sales/exchange-list/"><i class="nav-icon fas fa-exchange-alt"></i>Exchange Vehicles</a>
+  <a href="{% url 'sales:dealer_list' %}" class="sidebar-link" data-href="/sales/dealers/"><i class="nav-icon fas fa-store"></i> Dealers</a>
+  <a href="{% url 'sales:exchange_vehicle_dealer_list' %}" class="sidebar-link" data-href="/sales/exchange-vehicle-dealer/"><i class="nav-icon fas fa-dolly"></i> Exchange Vehicle Dealer</a>
+  <a href="{% url 'sales:exchange_dealer_payment_list' %}" class="sidebar-link" data-href="/sales/exchange-dealer-payment/"><i class="nav-icon fas fa-money-bill-wave"></i> Exchange Dealer Payment</a>
+  <a href="{% url 'sales:dealer_rc_handover_list' %}" class="sidebar-link" data-href="/sales/dealer-rc-handover/"><i class="nav-icon fas fa-file-signature"></i> Dealer RC Hand Over</a>
   <a href="{% url 'sales:delivery_list' %}" class="sidebar-link" data-href="/sales/delivery-list/"><i class="nav-icon fas fa-truck"></i> Deliveries</a>
   <a href="{% url 'sales:target_list' %}" class="sidebar-link" data-href="/sales/targets/"><i class="nav-icon fas fa-bullseye"></i> Sales Targets</a>
   <a href="{% url 'sales:profit_report' %}" class="sidebar-link" data-href="/sales/profit-report/"><i class="nav-icon fas fa-chart-pie"></i> Profit Report</a>
@@ -619,6 +623,9 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'rto:registration_list' %}" class="sidebar-link" data-href="/rto/"><i class="nav-icon fas fa-id-card"></i> Registrations</a>
   <a href="{% url 'rto:plate_list' %}" class="sidebar-link" data-href="/rto/plates/"><i class="nav-icon fas fa-hashtag"></i> Number Plates</a>
   <a href="{% url 'rto:rc_book_list' %}" class="sidebar-link" data-href="/rto/rc-books/"><i class="nav-icon fas fa-book"></i> RC Books</a>
+  <a href="{% url 'rto:registration_area_list' %}" class="sidebar-link" data-href="/rto/registration-areas/"><i class="nav-icon fas fa-map-marker-alt"></i> Registration Areas</a>
+  <a href="{% url 'rto:regpay_base_amount_list' %}" class="sidebar-link" data-href="/rto/regpay-base-amounts/"><i class="nav-icon fas fa-rupee-sign"></i> RegPay Base Amounts</a>
+  <a href="{% url 'rto:register_number_master_list' %}" class="sidebar-link" data-href="/rto/register-numbers/"><i class="nav-icon fas fa-list-ol"></i> Register Number Master</a>
   {% endif %}
 
   {% can_see_module 'service' 'Floor Supervisor' 'Service Advisor' 'CRE Telecaller' 'Managing Director' as show_service %}
@@ -645,16 +652,25 @@ setInterval(loadNotificationCount, 60000);
   <div class="sidebar-section">Spares</div>
   <a href="{% url 'spares:dashboard' %}" class="sidebar-link" data-href="/spares/"><i class="nav-icon fas fa-chart-line"></i> SPARES Dashboard</a>
   <a href="{% url 'spares:item_list' %}" class="sidebar-link" data-href="/spares/items/"><i class="nav-icon fas fa-boxes"></i> Items</a>
+  <a href="{% url 'spares:request_supplier_quote_list' %}" class="sidebar-link" data-href="/spares/request-quotes/"><i class="nav-icon fas fa-paper-plane"></i> Request Supplier Quotes</a>
   <a href="{% url 'spares:quote_list' %}" class="sidebar-link" data-href="/spares/quotes/"><i class="nav-icon fas fa-file-signature"></i> Supplier Quotes</a>
+  <a href="{% url 'spares:estimation_list' %}" class="sidebar-link" data-href="/spares/estimations/"><i class="nav-icon fas fa-calculator"></i> Purchase Estimations</a>
   <a href="{% url 'spares:order_list' %}" class="sidebar-link" data-href="/spares/orders/"><i class="nav-icon fas fa-shopping-bag"></i> Purchase Orders</a>
   <a href="{% url 'spares:invoice_list' %}" class="sidebar-link" data-href="/spares/invoices/"><i class="nav-icon fas fa-file-invoice-dollar"></i> Purchase Invoices</a>
   <a href="{% url 'spares:counter_sale_list' %}" class="sidebar-link" data-href="/spares/counter-sales/"><i class="nav-icon fas fa-cash-register"></i> Counter Sales</a>
   <a href="{% url 'spares:counter_return_list' %}" class="sidebar-link" data-href="/spares/counter-returns/"><i class="nav-icon fas fa-undo-alt"></i> Counter Returns</a>
   <a href="{% url 'spares:issue_alteration_list' %}" class="sidebar-link" data-href="/spares/issue-alterations/"><i class="nav-icon fas fa-share-square"></i> Issue Alterations</a>
+  <a href="{% url 'spares:service_spares_issue_return_list' %}" class="sidebar-link" data-href="/spares/service-spares-returns/"><i class="nav-icon fas fa-undo"></i> Service Spares Issue Returns</a>
   <a href="{% url 'spares:stock_report' %}" class="sidebar-link" data-href="/spares/stock/"><i class="nav-icon fas fa-chart-bar"></i> Stock Report</a>
+  <a href="{% url 'spares:stock_transfer_list' %}" class="sidebar-link" data-href="/spares/stock-transfers/"><i class="nav-icon fas fa-exchange-alt"></i> Stock Transfers</a>
+  <a href="{% url 'spares:stock_count_list' %}" class="sidebar-link" data-href="/spares/stock-counts/"><i class="nav-icon fas fa-clipboard-check"></i> Stock Count (Reconciliation)</a>
   <a href="{% url 'spares:bulk_insert' %}" class="sidebar-link" data-href="/spares/bulk-insert/"><i class="nav-icon fas fa-file-import"></i> Bulk Import</a>
   <a href="{% url 'spares:po_used_qty_report' %}" class="sidebar-link" data-href="/spares/reports/po-used-qty/"><i class="nav-icon fas fa-chart-line"></i> PO Used Qty Report</a>
   <a href="{% url 'spares:parts_consumption_report' %}" class="sidebar-link" data-href="/spares/reports/parts-consumption/"><i class="nav-icon fas fa-chart-pie"></i>Parts Consumption</a>
+  <a href="{% url 'spares:vehicle_spares_master_list' %}" class="sidebar-link" data-href="/spares/vehicle-spares-master/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Spares Master</a>
+  <a href="{% url 'spares:mrp_revision_list' %}" class="sidebar-link" data-href="/spares/mrp-revisions/"><i class="nav-icon fas fa-tags"></i> MRP Price Revisions</a>
+  <a href="{% url 'spares:service_spares_warranty_list' %}" class="sidebar-link" data-href="/spares/service-spares-warranties/"><i class="nav-icon fas fa-shield-alt"></i> Service Spares Warranty</a>
+  <a href="{% url 'spares:spares_settings' %}" class="sidebar-link" data-href="/spares/settings/"><i class="nav-icon fas fa-sliders-h"></i> Spares Settings</a>
   {% endif %}
 
   {% can_see_module 'vas' 'Sales Executive' 'Managing Director' as show_vas %}
@@ -664,6 +680,11 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'vas:amc_list' %}" class="sidebar-link" data-href="/vas/amc/"><i class="nav-icon fas fa-cog"></i> AMC Packages</a>
   <a href="{% url 'vas:rsa_list' %}" class="sidebar-link" data-href="/vas/rsa/"><i class="nav-icon fas fa-ambulance"></i> RSA Packages</a>
   <a href="{% url 'vas:pp_list' %}" class="sidebar-link" data-href="/vas/protection-plus/"><i class="nav-icon fas fa-shield-alt"></i> Protection Plus</a>
+  <a href="{% url 'vas:amc_type_list' %}" class="sidebar-link" data-href="/vas/amc-types/"><i class="nav-icon fas fa-list"></i> AMC Types</a>
+  <a href="{% url 'vas:rsa_type_list' %}" class="sidebar-link" data-href="/vas/rsa-types/"><i class="nav-icon fas fa-list"></i> RSA Types</a>
+  <a href="{% url 'vas:warranty_type_list' %}" class="sidebar-link" data-href="/vas/warranty-types/"><i class="nav-icon fas fa-list"></i> Warranty Types</a>
+  <a href="{% url 'vas:rsa_creation_list' %}" class="sidebar-link" data-href="/vas/rsa-creation/"><i class="nav-icon fas fa-truck"></i> RSA Creation</a>
+  <a href="{% url 'vas:vas_invoice_list' %}" class="sidebar-link" data-href="/vas/supplier-invoice/"><i class="nav-icon fas fa-file-invoice"></i> VAS Supplier Invoices</a>
   {% endif %}
 
   {% can_see_module 'vehicle_master' 'Sales Executive' 'Floor Supervisor' 'Service Advisor' 'Spares' 'Managing Director' as show_vehicle_master %}
@@ -673,6 +694,22 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'customers:bike_model_create' %}" class="sidebar-link" data-href="/customers/bikes/create/"><i class="nav-icon fas fa-plus-circle"></i> Add Bike Model</a>
   <a href="{% url 'customers:vehicle_stock_list' %}" class="sidebar-link" data-href="/customers/stock/"><i class="nav-icon fas fa-list"></i> Vehicle Stock</a>
   <a href="{% url 'service:vehicle_service_master_list' %}" class="sidebar-link" data-href="/service/vehicle-service-master/"><i class="nav-icon fas fa-tools"></i> Service Master</a>
+  <a href="{% url 'customers:vehicle_master_settings_list' %}" class="sidebar-link" data-href="/customers/vehicle-master-settings/"><i class="nav-icon fas fa-boxes"></i> Vehicle Master Settings</a>
+  {% endif %}
+
+  {% can_see_module 'used_vehicles' 'Managing Director' as show_used_vehicles %}
+  {% if show_used_vehicles %}
+  <div class="sidebar-section">Used Vehicles</div>
+  <a href="{% url 'used_vehicles:dashboard' %}" class="sidebar-link" data-href="/used-vehicles/"><i class="nav-icon fas fa-chart-pie"></i> Dashboard</a>
+  <a href="{% url 'used_vehicles:model_list' %}" class="sidebar-link" data-href="/used-vehicles/models/"><i class="nav-icon fas fa-motorcycle"></i> Vehicle Models</a>
+  <a href="{% url 'used_vehicles:register_no_list' %}" class="sidebar-link" data-href="/used-vehicles/register-no/"><i class="nav-icon fas fa-list"></i> Stock (Register No)</a>
+  <a href="{% url 'used_vehicles:purchase_order_list' %}" class="sidebar-link" data-href="/used-vehicles/purchase-orders/"><i class="nav-icon fas fa-file-invoice"></i> Purchase Orders</a>
+  <a href="{% url 'used_vehicles:purchase_receipt_list' %}" class="sidebar-link" data-href="/used-vehicles/purchase-receipts/"><i class="nav-icon fas fa-dolly"></i> Purchase Receipts</a>
+  <a href="{% url 'used_vehicles:purchase_list' %}" class="sidebar-link" data-href="/used-vehicles/purchases/"><i class="nav-icon fas fa-truck-loading"></i> Purchase Invoices</a>
+  <a href="{% url 'used_vehicles:sale_list' %}" class="sidebar-link" data-href="/used-vehicles/sales/"><i class="nav-icon fas fa-file-invoice"></i> Sales</a>
+  <a href="{% url 'used_vehicles:used_vehicle_master_settings_list' %}" class="sidebar-link" data-href="/used-vehicles/master-settings/"><i class="nav-icon fas fa-boxes"></i> Master Settings</a>
+  <a href="{% url 'used_vehicles:used_vehicle_sales_setting_list' %}" class="sidebar-link" data-href="/used-vehicles/sales-settings/"><i class="nav-icon fas fa-percent"></i> Sales Settings</a>
+  <a href="{% url 'used_vehicles:used_vehicle_insurance_update_list' %}" class="sidebar-link" data-href="/used-vehicles/insurance-updates/"><i class="nav-icon fas fa-shield-alt"></i> Insurance Updates</a>
   {% endif %}
 
   {% can_see_module 'masters' 'Managing Director' as show_masters %}
@@ -683,6 +720,12 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'masters:rack_list' %}" class="sidebar-link" data-href="/masters/racks/"><i class="nav-icon fas fa-th-large"></i> Racks</a>
   <a href="{% url 'masters:bin_list' %}" class="sidebar-link" data-href="/masters/bins/"><i class="nav-icon fas fa-box"></i>Bins</a>
   <a href="{% url 'masters:category_list' %}" class="sidebar-link" data-href="/masters/categories/"><i class="nav-icon fas fa-tags"></i> Categories</a>
+  <a href="{% url 'masters:order_form_settings' %}" class="sidebar-link" data-href="/masters/order-form-settings/"><i class="nav-icon fas fa-list-ol"></i> Order Form Settings</a>
+  <a href="{% url 'masters:order_form_series_list' %}" class="sidebar-link" data-href="/masters/order-form-series/"><i class="nav-icon fas fa-hashtag"></i> Order Form Series</a>
+  <a href="{% url 'masters:model_and_price_list' %}" class="sidebar-link" data-href="/masters/model-and-price/"><i class="nav-icon fas fa-rupee-sign"></i> Model and Price</a>
+  <a href="{% url 'masters:customer_price_list' %}" class="sidebar-link" data-href="/masters/customer-price/"><i class="nav-icon fas fa-tags"></i> Customer Price List</a>
+  <a href="{% url 'masters:dealer_price_list_list' %}" class="sidebar-link" data-href="/masters/dealer-price-list/"><i class="nav-icon fas fa-handshake"></i> Dealer Price List</a>
+  <a href="{% url 'masters:vehicle_fitting_spares_list' %}" class="sidebar-link" data-href="/masters/vehicle-fitting-spares/"><i class="nav-icon fas fa-cogs"></i> Vehicle Fitting Spares</a>
   {% endif %}
 
   {% can_see_module 'reports' 'Accounts' 'Managing Director' as show_reports %}
@@ -704,16 +747,17 @@ setInterval(loadNotificationCount, 60000);
   <a href="{% url 'accounts:fuel_expense_list' %}" class="sidebar-link" data-href="/accounts/fuel-expenses/"><i class="nav-icon fas fa-gas-pump"></i> Fuel Expenses</a>
   <a href="{% url 'accounts:insurance_expiry_list' %}" class="sidebar-link" data-href="/accounts/insurance-expiry/"><i class="nav-icon fas fa-exclamation-triangle"></i> Insurance Expiry</a>
   <a href="{% url 'accounts:company_settings' %}" class="sidebar-link" data-href="/accounts/company-settings/"><i class="nav-icon fas fa-cogs"></i>Company Settings</a>
+  <a href="{% url 'accounts:admin_settings' %}" class="sidebar-link" data-href="/accounts/admin-settings/"><i class="nav-icon fas fa-percent"></i>Admin Settings</a>
   {% endif %}
 </nav>
 
 <!-- ═══ TOPBAR ═══ -->
 <header class="topbar">
   <button class="topbar-hamburger" id="hamburger" aria-label="Toggle menu"><i class="fas fa-bars"></i></button>
-  <div class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</div>
+  <h1 class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</h1>
   <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:320px; margin: 0 12px;">
     <div style="position:relative;">
-      <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#9ca3af;font-size:13px;"></i>
+      <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6B7280;font-size:13px;"></i>
       <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…"
              id="topbar-search-input"
              data-on-search-page="{% if request.resolver_match.url_name == 'search' %}1{% endif %}"
@@ -741,7 +785,7 @@ setInterval(loadNotificationCount, 60000);
         <div class="user-name">{{ request.user.get_full_name|default:request.user.username }}</div>
         <div class="user-role">{{ request.user.role|default:"User" }}</div>
       </div>
-      <span style="color:#9ca3af;font-size:12px;margin-left:4px;"><i class="fas fa-chevron-down"></i></span>
+      <span style="color:#6B7280;font-size:12px;margin-left:4px;"><i class="fas fa-chevron-down"></i></span>
       <div class="user-dropdown" id="userDropdown">
         <a href="{% url 'accounts:profile' %}"><i class="fas fa-user me-2"></i>My Profile</a>
         <a href="{% url 'accounts:password_change' %}"><i class="fas fa-key me-2"></i>Change Password</a>
@@ -758,7 +802,7 @@ setInterval(loadNotificationCount, 60000);
 </header>
 
 <!-- ═══ MAIN CONTENT ═══ -->
-<div class="main-content">
+<main class="main-content">
   {% if messages %}
   <div class="mb-3">
     {% for message in messages %}
@@ -770,7 +814,7 @@ setInterval(loadNotificationCount, 60000);
   </div>
   {% endif %}
   {% block content %}{% endblock %}
-</div>
+</main>
 
 <!-- Legacy .layout/.main/.content wrapper support -->
 <div style="display:none" id="legacy-layout-shim"></div>

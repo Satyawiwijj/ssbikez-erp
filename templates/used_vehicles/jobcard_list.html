@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Job Cards — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Job Cards{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:jobcard_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Job Card</th><th>Register No</th><th>Customer</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for jc in jobcards %}
+                <tr>
+                    <td><a href="{% url 'used_vehicles:jobcard_detail' pk=jc.pk %}">{{ jc }}</a></td>
+                    <td>{{ jc.register_no }}</td>
+                    <td>{{ jc.customer_name|default:"—" }}</td>
+                    <td>{{ jc.get_service_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No job cards yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

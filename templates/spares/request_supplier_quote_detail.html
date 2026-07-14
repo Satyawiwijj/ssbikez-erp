@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.rsq_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Request Supplier Quote {{ obj.rsq_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:request_supplier_quote_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:request_supplier_quote_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this request?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:request_supplier_quote_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:request_supplier_quote_list' %}">Request Supplier Quotes</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.rsq_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.rsq_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Date</dt><dd>{{ obj.date|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Suppliers</dt><dd>{% for s in obj.suppliers.all %}{{ s.supplier_name }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Requested Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Spare</th><th>Qty</th><th>UOM</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.spare.item_name }}</td>
+                    <td>{{ i.qty }}</td>
+                    <td>{{ i.uom }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">Supplier Quotes Received</span>
+        {% if obj.docstatus == 1 %}
+        <a href="{% url 'spares:quote_create' %}?request_quotation={{ obj.pk }}" class="btn btn-sm btn-primary">+ Add Supplier Quote</a>
+        {% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Quote No</th><th>Supplier</th><th>Grand Total</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for q in supplier_quotes %}
+                <tr>
+                    <td style="font-weight:600;">{{ q.quote_no }}</td>
+                    <td>{{ q.supplier }}</td>
+                    <td>&#x20B9; {{ q.grand_total }}</td>
+                    <td>{{ q.get_status_display }}</td>
+                    <td><a href="{% url 'spares:quote_detail' q.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No supplier quotes linked yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

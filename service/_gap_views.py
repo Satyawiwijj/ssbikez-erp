@@ -8,6 +8,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.permissions import require_module_action
 from .models import JobCard
 
 
@@ -16,15 +17,20 @@ from .models import JobCard
 # ---------------------------------------------------------------------------
 
 _WORKFLOW_ORDER = [
-    'pending', 'water_wash', 'in_bay', 'in_progress',
+    'pending', 'water_wash', 'in_bay', 'in_progress', 'outwork',
     'final_inspection', 'ready', 'invoiced',
 ]
 
 
 @login_required
 @require_POST
+@require_module_action('service', 'edit')
 def jobcard_advance_status(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     jc = get_object_or_404(JobCard, pk=pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     current = jc.service_status
     try:
         idx = _WORKFLOW_ORDER.index(current)
@@ -77,9 +83,8 @@ def jobcard_issue_spare(request, pk):
             messages.error(request, 'No warehouse configured. Add one in Masters.')
             return redirect('service:jobcard_detail', pk=pk)
 
-        jc_label = 'JC-' + str(jc.pk)
         sia, _ = SparesIssueAlteration.objects.get_or_create(
-            job_card=jc_label,
+            job_card=jc,
             defaults={
                 'godown': warehouse,
                 'job_type': 'service',

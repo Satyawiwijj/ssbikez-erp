@@ -1,11 +1,12 @@
 from django import forms
+from accounts.forms import AccessibleFormMixin
 
 from customers.models import VehicleStock
 
 from .models import CustomerVehicle
 
 
-class CustomerVehicleForm(forms.ModelForm):
+class CustomerVehicleForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = CustomerVehicle
         fields = ('customer', 'vehicle', 'registration_no', 'purchase_date', 'insurance_expiry')

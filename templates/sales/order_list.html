@@ -101,7 +101,7 @@
               <form method="post" action="{% url 'sales:order_delete' order.pk %}" style="display:inline"
                     onsubmit="return confirm('Delete ORD-{{ order.pk }}?')">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete ORD-{{ order.pk }}"><i class="fas fa-trash"></i></button>
               </form>
             </div>
           </td>

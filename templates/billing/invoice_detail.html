@@ -14,10 +14,25 @@
   <div>
     <h1 class="page-title">{{ invoice.invoice_number }}</h1>
     <p class="page-subtitle">{{ invoice.invoice_date|date:"d M Y" }}</p>
+    {% if invoice.docstatus == 0 %}<span class="badge" style="background:#e5e7eb;color:#374151;">Draft</span>
+    {% elif invoice.docstatus == 1 %}<span class="badge" style="background:#dcfce7;color:#166534;">Submitted</span>
+    {% elif invoice.docstatus == 2 %}<span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>{% endif %}
   </div>
   <div class="page-header-actions">
     <a href="{% url 'billing:invoice_pdf' invoice.pk %}" class="btn btn-primary" target="_blank"><i class="fas fa-download me-1"></i> Download PDF</a>
-    <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
+    {% if invoice.docstatus == 0 %}
+      <a href="{% url 'billing:invoice_update' invoice.pk %}" class="btn btn-secondary">Edit</a>
+      {% if invoice.md_approval_requested and not invoice.md_approved %}
+        <form method="post" action="{% url 'billing:invoice_md_approve' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-success" type="submit">MD Approve</button></form>
+      {% elif invoice.md_approved %}
+        <form method="post" action="{% url 'billing:invoice_md_reject' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-warning" type="submit">Revoke MD Approval</button></form>
+      {% endif %}
+      <form method="post" action="{% url 'billing:invoice_submit' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary" type="submit">Submit</button></form>
+    {% elif invoice.docstatus == 1 %}
+      <form method="post" action="{% url 'billing:invoice_cancel' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger" type="submit" onclick="return confirm('Cancel this invoice?');">Cancel</button></form>
+    {% elif invoice.docstatus == 2 %}
+      <form method="post" action="{% url 'billing:invoice_amend' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary" type="submit">Amend (New Draft)</button></form>
+    {% endif %}
     <a href="{% url 'billing:invoice_list' %}" class="btn btn-ghost">&#8592; Back</a>
   </div>
 </div>
@@ -172,5 +187,59 @@
       </tbody>
     </table>
   </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-user-check me-2"></i>MD Approval</span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>MD Approval Requested</th>
+          <td>{% if invoice.md_approval_requested %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-gray">No</span>{% endif %}</td>
+        </tr>
+        <tr>
+          <th>MD Approved</th>
+          <td>{% if invoice.md_approved %}<span class="badge badge-green">Yes — {{ invoice.md_approved_by }} on {{ invoice.md_approved_at|date:"d M Y H:i" }}</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  {% if invoice.docstatus == 0 and invoice.md_approval_requested and not invoice.md_approved %}
+  <div class="card-body text-muted small">
+    MD approval is required before this invoice can be submitted.
+    <form method="post" action="{% url 'billing:invoice_md_approve' invoice.pk %}" style="display:inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-primary btn-sm">Approve as MD</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div class="card" style="margin-top:20px;">
+  <div class="card-header">
+    <span class="card-title"><i class="fas fa-box me-2"></i>Items</span>
+  </div>
+  {% if invoice.items.all %}
+  <div class="table-wrapper">
+    <table class="table">
+      <thead><tr><th>Item Code</th><th>Rate</th><th>Discount</th><th>Total</th></tr></thead>
+      <tbody>
+        {% for item in invoice.items.all %}
+        <tr>
+          <td>{{ item.item_code|default:"—" }}</td>
+          <td>&#x20B9; {{ item.rate }}</td>
+          <td>&#x20B9; {{ item.discount }}</td>
+          <td>&#x20B9; {{ item.total }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card-body text-muted small">No items recorded.</div>
+  {% endif %}
 </div>
 {% endblock %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Service Invoice{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:jobcard_detail' pk=obj.job_card_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-file-invoice-dollar me-2"></i>{{ obj }}</span>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Job Card</th><td><a href="{% url 'used_vehicles:jobcard_detail' pk=obj.job_card_id %}">{{ obj.job_card }}</a></td></tr>
+                <tr><th>Labor Total</th><td>&#x20B9; {{ obj.labor_total }}</td></tr>
+                <tr><th>Spares Total</th><td>&#x20B9; {{ obj.spares_total }}</td></tr>
+                <tr><th>Outwork Total</th><td>&#x20B9; {{ obj.outwork_total }}</td></tr>
+                <tr><th>Subtotal</th><td>&#x20B9; {{ obj.subtotal }}</td></tr>
+                <tr><th>GST Amount</th><td>&#x20B9; {{ obj.gst_amount }}</td></tr>
+                <tr><th>Discount</th><td>&#x20B9; {{ obj.discount_amount }}</td></tr>
+                <tr><th>Final Amount</th><td>&#x20B9; {{ obj.final_amount }}</td></tr>
+                <tr><th>Invoice Date</th><td>{{ obj.invoice_date }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

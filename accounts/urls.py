@@ -43,13 +43,13 @@ urlpatterns = [
     path('password-change/', views.password_change),  # alias
 
     # Password reset (no login required)
-    path('password-reset/', auth_views.PasswordResetView.as_view(
+    path('password-reset/', views.RateLimitedPasswordResetView.as_view(
         template_name='accounts/password_reset.html',
         email_template_name='accounts/password_reset_email.html',
         subject_template_name='accounts/password_reset_subject.txt',
         success_url='/accounts/password/reset/done/',
     )),  # alias
-    path('password/reset/', auth_views.PasswordResetView.as_view(
+    path('password/reset/', views.RateLimitedPasswordResetView.as_view(
         template_name='accounts/password_reset.html',
         email_template_name='accounts/password_reset_email.html',
         subject_template_name='accounts/password_reset_subject.txt',
@@ -76,6 +76,9 @@ urlpatterns = [
 
     # Company Settings
     path('settings/', views.company_settings, name='company_settings'),
+
+    # Phase 8d — Discount Percentage Master & Ledger Creation Date Master
+    path('admin-settings/', views.admin_settings, name='admin_settings'),
 
     # Notifications
     path('notifications/',       views.notification_list,  name='notification_list'),

@@ -11,12 +11,20 @@ from django.views.decorators.http import require_POST
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
 
-from .forms import (CallLogFormSet, ExchangeVehicleForm, FeedbackItemFormSet,
-                    HistoryFormSet, SalesAppointmentForm, SalesFeedbackForm,
-                    SalesEnquiryForm, VehicleDeliveryForm, VehicleSalesOrderForm)
+from .forms import (AdditionalVehicleFittingFormSet, CallLogFormSet,
+                    DeliveryNoteAdvancePaymentFormSet, DeliveryNoteItemFormSet,
+                    DeliveryNotePaymentEntryFormSet, ExchangeVehicleForm,
+                    FeedbackItemFormSet, HistoryFormSet, SalesAppointmentForm,
+                    SalesFeedbackForm, SalesEnquiryForm,
+                    SalesOrderAdvancePaymentFormSet, VehicleDeliveryForm,
+                    VehicleSalesOrderForm, VehicleSaleItemFormSet,
+                    DealerForm, ExchangeVehicleDealerForm, ExchangeVehicleDealerItemFormSet,
+                    ExchangeDealerPaymentForm, ExchangeDealerPaymentItemFormSet,
+                    DealerRCHandOverForm, DealerRCHandOverItemFormSet)
 from .models import (ExchangeVehicle, Prospect, SalesAppointment, SalesFeedback,
                      SalesEnquiry, SalesEnquiryCallLog, SalesEnquiryHistory,
-                     VehicleDelivery, VehicleSalesOrder)
+                     VehicleDelivery, VehicleSalesOrder,
+                     Dealer, ExchangeVehicleDealer, ExchangeDealerPayment, DealerRCHandOver)
 
 
 # ---------------------------------------------------------------------------
@@ -361,7 +369,11 @@ def enquiry_update(request, pk):
 @require_POST
 @require_module_action('sales', 'edit')
 def enquiry_status_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     enquiry    = get_object_or_404(SalesEnquiry, pk=pk)
+    if not user_owns(request.user, enquiry):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     new_status = request.POST.get('status')
     if new_status in dict(SalesEnquiry.Status.choices):
         enquiry.status = new_status
@@ -428,7 +440,11 @@ def appointment_update(request, pk):
 @require_POST
 @require_module_action('sales', 'edit')
 def appointment_cancel(request, pk):
-    apt        = get_object_or_404(SalesAppointment, pk=pk)
+    from accounts.permissions import user_owns
+    apt = get_object_or_404(SalesAppointment, pk=pk)
+    if not user_owns(request.user, apt.enquiry):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     apt.status = SalesAppointment.Status.CANCELLED
     apt.save(update_fields=['status'])
     log_action(request, 'Sales Appointment', 'update', pk)
@@ -519,13 +535,13 @@ def order_detail(request, pk):
         ),
         pk=pk,
     )
-    from billing.models import Invoice, InsurancePolicy
+    from billing.models import InsurancePolicy
     from rto.models import RTORegistration
 
-    invoice   = Invoice.objects.filter(sales_order=order).first()
+    invoice   = order.current_invoice
     rto_reg   = RTORegistration.objects.filter(sales_order=order).first()
     insurance = InsurancePolicy.objects.filter(sales_order=order).first()
-    delivery  = VehicleDelivery.objects.filter(sales_order=order).first()
+    delivery  = order.current_delivery
     loan      = getattr(order, 'loan',             None)
     exchange  = getattr(order, 'exchange_vehicle', None)
     policies  = order.insurance_policies.all()
@@ -586,17 +602,32 @@ def order_create(request):
     form = VehicleSalesOrderForm(request.POST or None, initial=initial)
     if not is_manager:
         form.fields.pop('sales_executive', None)
-    if request.method == 'POST' and form.is_valid():
-        order = form.save(commit=False)
-        if not is_manager:
-            order.sales_executive = request.user
-        order.save()
-        log_action(request, 'Sales Order', 'create', order.pk)
-        messages.success(request, 'Sales order created successfully.')
-        return redirect('sales:order_detail', pk=order.pk)
+    items_formset      = VehicleSaleItemFormSet(request.POST or None, prefix='items')
+    fittings2_formset  = AdditionalVehicleFittingFormSet(request.POST or None, prefix='additional_fittings')
+    advance_formset    = SalesOrderAdvancePaymentFormSet(request.POST or None, prefix='advance_payments')
     if request.method == 'POST':
+        if (form.is_valid() and items_formset.is_valid()
+                and fittings2_formset.is_valid() and advance_formset.is_valid()):
+            order = form.save(commit=False)
+            if not is_manager:
+                order.sales_executive = request.user
+            order.save()
+            items_formset.instance = order
+            items_formset.save()
+            fittings2_formset.instance = order
+            fittings2_formset.save()
+            advance_formset.instance = order
+            advance_formset.save()
+            log_action(request, 'Sales Order', 'create', order.pk)
+            messages.success(request, 'Sales order created successfully.')
+            return redirect('sales:order_detail', pk=order.pk)
         messages.error(request, 'Please correct the errors below.')
-    return render(request, 'sales/order_form.html', {'form': form, 'title': 'Create Sales Order'})
+    return render(request, 'sales/order_form.html', {
+        'form': form, 'title': 'Create Sales Order',
+        'items_formset': items_formset,
+        'fittings2_formset': fittings2_formset,
+        'advance_formset': advance_formset,
+    })
 
 
 @login_required
@@ -607,15 +638,103 @@ def order_update(request, pk):
     if not user_owns(request.user, order):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
     form  = VehicleSalesOrderForm(request.POST or None, instance=order)
     if not user_is_manager(request.user):
         form.fields.pop('sales_executive', None)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
+    items_formset      = VehicleSaleItemFormSet(request.POST or None, instance=order, prefix='items')
+    fittings2_formset  = AdditionalVehicleFittingFormSet(request.POST or None, instance=order, prefix='additional_fittings')
+    advance_formset    = SalesOrderAdvancePaymentFormSet(request.POST or None, instance=order, prefix='advance_payments')
+    if request.method == 'POST':
+        if (form.is_valid() and items_formset.is_valid()
+                and fittings2_formset.is_valid() and advance_formset.is_valid()):
+            form.save()
+            items_formset.save()
+            fittings2_formset.save()
+            advance_formset.save()
+            log_action(request, 'Sales Order', 'update', pk)
+            messages.success(request, 'Sales order updated successfully.')
+            return redirect('sales:order_detail', pk=order.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/order_form.html', {
+        'form': form, 'title': 'Edit Sales Order',
+        'items_formset': items_formset,
+        'fittings2_formset': fittings2_formset,
+        'advance_formset': advance_formset,
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def order_submit(request, pk):
+    from accounts.permissions import user_owns
+    order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if not user_owns(request.user, order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        order.submit(request.user)
         log_action(request, 'Sales Order', 'update', pk)
-        messages.success(request, 'Sales order updated successfully.')
-        return redirect('sales:order_detail', pk=order.pk)
-    return render(request, 'sales/order_form.html', {'form': form, 'title': 'Edit Sales Order'})
+        messages.success(request, f'{order.order_number} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:order_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def order_cancel(request, pk):
+    from accounts.permissions import user_is_manager
+    order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if not user_is_manager(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        order.cancel(request.user)
+        log_action(request, 'Sales Order', 'update', pk)
+        messages.success(request, f'{order.order_number} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:order_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'create')
+def order_amend(request, pk):
+    from accounts.permissions import user_owns
+    order = get_object_or_404(VehicleSalesOrder, pk=pk)
+    if not user_owns(request.user, order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        new_order = order.amend()
+        for fitting in order.fittings.all():
+            fitting.pk = None
+            fitting.sales_order = new_order
+            fitting.save()
+        for fitting in order.additional_fittings.all():
+            fitting.pk = None
+            fitting.sales_order = new_order
+            fitting.save()
+        for item in order.items.all():
+            item.pk = None
+            item.sales_order = new_order
+            item.save()
+        for adv in order.advance_payments.all():
+            adv.pk = None
+            adv.sales_order = new_order
+            adv.save()
+        log_action(request, 'Sales Order', 'create', new_order.pk)
+        messages.success(request, f'Amended as {new_order.order_number}.')
+        return redirect('sales:order_detail', pk=new_order.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('sales:order_detail', pk=pk)
 
 
 # ---------------------------------------------------------------------------
@@ -625,33 +744,144 @@ def order_update(request, pk):
 @login_required
 @require_module_action('sales', 'create')
 def delivery_create(request):
+    from accounts.permissions import user_owns
     initial = {}
     if request.GET.get('order'):
         initial['sales_order'] = request.GET['order']
+    order_id = request.POST.get('sales_order') or request.GET.get('order')
+    if order_id:
+        order = get_object_or_404(VehicleSalesOrder, pk=order_id)
+        if not user_owns(request.user, order):
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = VehicleDeliveryForm(request.POST or None, initial=initial)
-    if request.method == 'POST' and form.is_valid():
-        delivery = form.save()
-        log_action(request, 'Vehicle Delivery', 'create', delivery.pk)
-        messages.success(request, 'Delivery recorded. Customer vehicle record auto-created.')
-        return redirect('sales:order_detail', pk=delivery.sales_order_id)
+    items_formset   = DeliveryNoteItemFormSet(request.POST or None, prefix='delivery_items')
+    advance_formset = DeliveryNoteAdvancePaymentFormSet(request.POST or None, prefix='delivery_advance')
+    payment_formset = DeliveryNotePaymentEntryFormSet(request.POST or None, prefix='delivery_payments')
     if request.method == 'POST':
+        if (form.is_valid() and items_formset.is_valid()
+                and advance_formset.is_valid() and payment_formset.is_valid()):
+            delivery = form.save()
+            items_formset.instance = delivery
+            items_formset.save()
+            advance_formset.instance = delivery
+            advance_formset.save()
+            payment_formset.instance = delivery
+            payment_formset.save()
+            log_action(request, 'Vehicle Delivery', 'create', delivery.pk)
+            messages.success(request, 'Delivery recorded. Customer vehicle record auto-created on submit.')
+            return redirect('sales:order_detail', pk=delivery.sales_order_id)
         messages.error(request, 'Please correct the errors below.')
-    return render(request, 'sales/delivery_form.html',
-                  {'form': form, 'title': 'Record Vehicle Delivery'})
+    return render(request, 'sales/delivery_form.html', {
+        'form': form, 'title': 'Record Vehicle Delivery',
+        'items_formset': items_formset,
+        'advance_formset': advance_formset,
+        'payment_formset': payment_formset,
+    })
 
 
 @login_required
 @require_module_action('sales', 'edit')
 def delivery_update(request, pk):
+    from accounts.permissions import user_owns
     delivery = get_object_or_404(VehicleDelivery, pk=pk)
-    form     = VehicleDeliveryForm(request.POST or None, instance=delivery)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
+    if not user_owns(request.user, delivery.sales_order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if delivery.docstatus != VehicleDelivery.DocStatus.DRAFT:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+    form = VehicleDeliveryForm(request.POST or None, instance=delivery)
+    items_formset   = DeliveryNoteItemFormSet(request.POST or None, instance=delivery, prefix='delivery_items')
+    advance_formset = DeliveryNoteAdvancePaymentFormSet(request.POST or None, instance=delivery, prefix='delivery_advance')
+    payment_formset = DeliveryNotePaymentEntryFormSet(request.POST or None, instance=delivery, prefix='delivery_payments')
+    if request.method == 'POST':
+        if (form.is_valid() and items_formset.is_valid()
+                and advance_formset.is_valid() and payment_formset.is_valid()):
+            form.save()
+            items_formset.save()
+            advance_formset.save()
+            payment_formset.save()
+            log_action(request, 'Vehicle Delivery', 'update', pk)
+            messages.success(request, 'Delivery updated successfully.')
+            return redirect('sales:order_detail', pk=delivery.sales_order_id)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/delivery_form.html', {
+        'form': form, 'title': 'Edit Vehicle Delivery',
+        'items_formset': items_formset,
+        'advance_formset': advance_formset,
+        'payment_formset': payment_formset,
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def delivery_submit(request, pk):
+    from accounts.permissions import user_owns
+    delivery = get_object_or_404(VehicleDelivery, pk=pk)
+    if not user_owns(request.user, delivery.sales_order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if not (delivery.manager_approved and delivery.finance_approved):
+        messages.error(request, 'Manager and Finance approval are both required before submitting.')
+        return redirect('sales:delivery_detail', pk=pk)
+    try:
+        delivery.submit(request.user)
         log_action(request, 'Vehicle Delivery', 'update', pk)
-        messages.success(request, 'Delivery updated successfully.')
-        return redirect('sales:order_detail', pk=delivery.sales_order_id)
-    return render(request, 'sales/delivery_form.html',
-                  {'form': form, 'title': 'Edit Vehicle Delivery'})
+        messages.success(request, 'Delivery submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:delivery_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def delivery_cancel(request, pk):
+    from accounts.permissions import user_is_manager
+    delivery = get_object_or_404(VehicleDelivery, pk=pk)
+    if not user_is_manager(request.user):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        delivery.cancel(request.user)
+        log_action(request, 'Vehicle Delivery', 'update', pk)
+        messages.success(request, 'Delivery cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:delivery_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'create')
+def delivery_amend(request, pk):
+    from accounts.permissions import user_owns
+    delivery = get_object_or_404(VehicleDelivery, pk=pk)
+    if not user_owns(request.user, delivery.sales_order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        new_delivery = delivery.amend()
+        for item in delivery.items.all():
+            item.pk = None
+            item.delivery = new_delivery
+            item.save()
+        for adv in delivery.advance_payments.all():
+            adv.pk = None
+            adv.delivery = new_delivery
+            adv.save()
+        for pay in delivery.payment_entries.all():
+            pay.pk = None
+            pay.delivery = new_delivery
+            pay.save()
+        log_action(request, 'Vehicle Delivery', 'create', new_delivery.pk)
+        messages.success(request, 'Delivery amended.')
+        return redirect('sales:delivery_detail', pk=new_delivery.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('sales:delivery_detail', pk=pk)
 
 
 @login_required
@@ -669,9 +899,16 @@ def delivery_detail(request, pk):
 @login_required
 @require_module_action('sales', 'create')
 def exchange_create(request):
+    from accounts.permissions import user_owns
     initial = {}
     if request.GET.get('sales_order'):
         initial['sales_order'] = request.GET['sales_order']
+    order_id = request.POST.get('sales_order') or request.GET.get('sales_order')
+    if order_id:
+        order = get_object_or_404(VehicleSalesOrder, pk=order_id)
+        if not user_owns(request.user, order):
+            from django.http import HttpResponseForbidden
+            return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = ExchangeVehicleForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         exchange = form.save()
@@ -687,7 +924,11 @@ def exchange_create(request):
 @login_required
 @require_module_action('sales', 'edit')
 def exchange_update(request, pk):
+    from accounts.permissions import user_owns
     exchange = get_object_or_404(ExchangeVehicle, pk=pk)
+    if not user_owns(request.user, exchange.sales_order):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form     = ExchangeVehicleForm(request.POST or None, instance=exchange)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -707,7 +948,11 @@ def exchange_update(request, pk):
 def allotment_create(request, order_pk):
     from .forms import VehicleAllotmentForm
     from .models import VehicleAllotment
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
+    if not user_owns(request.user, order):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     initial = {'sales_order': order.pk, 'vehicle': order.vehicle_id}
     instance = VehicleAllotment.objects.filter(sales_order=order).first()
     form = VehicleAllotmentForm(request.POST or None, instance=instance, initial=initial)
@@ -733,7 +978,13 @@ def allotment_create(request, order_pk):
 @require_module_action('sales', 'create')
 def fitting_create(request, order_pk):
     from .forms import VehicleFittingFormSet
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     order = get_object_or_404(VehicleSalesOrder, pk=order_pk)
+    if not user_owns(request.user, order):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
+        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
     formset = VehicleFittingFormSet(request.POST or None, instance=order, prefix='fittings')
     if request.method == 'POST' and formset.is_valid():
         formset.save()
@@ -749,8 +1000,14 @@ def fitting_create(request, order_pk):
 @require_module_action('sales', 'delete')
 def fitting_delete(request, pk):
     from .models import VehicleFitting
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     fit = get_object_or_404(VehicleFitting, pk=pk)
     order_id = fit.sales_order_id
+    if not user_owns(request.user, fit.sales_order):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if fit.sales_order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
+        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
     if request.method == 'POST':
         fit.delete()
         log_action(request, 'Vehicle Fitting', 'delete', pk)
@@ -904,9 +1161,14 @@ def test_ride_create(request):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'edit')
 def test_ride_return(request, pk):
     from django.utils import timezone as _tz
+    from accounts.permissions import user_owns
     ride = get_object_or_404(TestRideLog, pk=pk)
+    if not user_owns(request.user, ride):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     ride.end_time = _tz.now()
     ride.status = 'returned'
     end_odo = request.POST.get('end_odometer')
@@ -954,6 +1216,7 @@ def pdi_detail(request, pk):
 
 @login_required
 @require_POST
+@require_module_action('sales', 'edit')
 def pdi_approve(request, pk):
     pdi = get_object_or_404(PDIChecklist, pk=pk)
     pdi.is_approved = True
@@ -977,7 +1240,9 @@ def sale_profit_report(request):
 
     orders = VehicleSalesOrder.objects.filter(
         created_at__month=month, created_at__year=year
-    ).select_related('customer', 'vehicle__bike_model', 'sales_executive')
+    ).select_related('customer', 'vehicle__bike_model', 'sales_executive').annotate(
+        fittings_rev_total=Sum('fittings__cost')
+    )
 
     profit_data = []
     for order in orders:
@@ -987,7 +1252,7 @@ def sale_profit_report(request):
             cost_price = bm.dealer_cost_price or bm.ex_showroom_price or 0
         selling_price = order.total_amount or 0
         discount      = order.discount_amount or 0
-        fittings_rev  = order.fittings.aggregate(t=Sum('cost'))['t'] or 0
+        fittings_rev  = order.fittings_rev_total or 0
         gross_profit  = selling_price - cost_price - discount
         margin_pct    = round(float(gross_profit) / float(selling_price) * 100, 1) if selling_price else 0
         profit_data.append({
@@ -1041,7 +1306,11 @@ def appointment_detail(request, pk):
 @login_required
 def calllog_add(request, enquiry_pk):
     from .forms import CallLogForm
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     enquiry = get_object_or_404(SalesEnquiry, pk=enquiry_pk)
+    if not user_owns(request.user, enquiry):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = CallLogForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         cl = form.save(commit=False)
@@ -1057,7 +1326,11 @@ def calllog_add(request, enquiry_pk):
 @login_required
 def history_add(request, enquiry_pk):
     from .forms import HistoryForm
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     enquiry = get_object_or_404(SalesEnquiry, pk=enquiry_pk)
+    if not user_owns(request.user, enquiry):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = HistoryForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         hist = form.save(commit=False)
@@ -1153,3 +1426,285 @@ def order_delete(request, pk):
     except ProtectedError:
         messages.error(request, f'Cannot delete ORD-{pk}: billing or delivery records exist.')
     return redirect('sales:order_list')
+
+
+# ---------------------------------------------------------------------------
+# Phase 13 -- Dealer sub-module
+# ---------------------------------------------------------------------------
+
+@login_required
+def dealer_list(request):
+    dealers = Dealer.objects.all()
+    return render(request, 'sales/dealer_list.html', {'dealers': dealers})
+
+
+@login_required
+def dealer_detail(request, pk):
+    dealer = get_object_or_404(Dealer, pk=pk)
+    return render(request, 'sales/dealer_detail.html', {'dealer': dealer})
+
+
+@login_required
+@require_module_action('sales', 'create')
+def dealer_create(request):
+    form = DealerForm(request.POST or None)
+    if form.is_valid():
+        obj = form.save()
+        log_action(request, 'Dealer', 'create', obj.pk)
+        messages.success(request, f'{obj} created.')
+        return redirect('sales:dealer_list')
+    return render(request, 'sales/dealer_form.html', {'form': form, 'title': 'New Dealer'})
+
+
+# ---- Exchange Vehicle Dealer ----
+
+@login_required
+def exchange_vehicle_dealer_list(request):
+    transfers = ExchangeVehicleDealer.objects.select_related('dealer', 'from_warehouse', 'to_warehouse').all()
+    return render(request, 'sales/exchange_vehicle_dealer_list.html', {'transfers': transfers})
+
+
+@login_required
+@require_module_action('sales', 'create')
+def exchange_vehicle_dealer_create(request):
+    form = ExchangeVehicleDealerForm(request.POST or None)
+    formset = ExchangeVehicleDealerItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST':
+        if form.is_valid() and formset.is_valid():
+            obj = form.save()
+            formset.instance = obj
+            formset.save()
+            log_action(request, 'Exchange Vehicle Dealer', 'create', obj.pk)
+            messages.success(request, f'{obj} created.')
+            return redirect('sales:exchange_vehicle_dealer_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/exchange_vehicle_dealer_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Exchange Vehicle Dealer Transfer',
+    })
+
+
+@login_required
+def exchange_vehicle_dealer_detail(request, pk):
+    obj = get_object_or_404(ExchangeVehicleDealer, pk=pk)
+    return render(request, 'sales/exchange_vehicle_dealer_detail.html', {
+        'obj': obj, 'items': obj.vehicle_details.select_related('registration_number').all(),
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_vehicle_dealer_submit(request, pk):
+    obj = get_object_or_404(ExchangeVehicleDealer, pk=pk)
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Exchange Vehicle Dealer', 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_vehicle_dealer_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_vehicle_dealer_cancel(request, pk):
+    obj = get_object_or_404(ExchangeVehicleDealer, pk=pk)
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Exchange Vehicle Dealer', 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_vehicle_dealer_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_vehicle_dealer_amend(request, pk):
+    obj = get_object_or_404(ExchangeVehicleDealer, pk=pk)
+    try:
+        new_obj = obj.amend()
+        for item in obj.vehicle_details.all():
+            item.pk = None
+            item.transfer = new_obj
+            item.save()
+        log_action(request, 'Exchange Vehicle Dealer', 'create', new_obj.pk)
+        messages.success(request, f'Amended as {new_obj}.')
+        return redirect('sales:exchange_vehicle_dealer_detail', pk=new_obj.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_vehicle_dealer_detail', pk=pk)
+
+
+# ---- Exchange Dealer Payment ----
+
+@login_required
+def exchange_dealer_payment_list(request):
+    payments = ExchangeDealerPayment.objects.select_related('dealer', 'exchange_vehicle_dealer').all()
+    return render(request, 'sales/exchange_dealer_payment_list.html', {'payments': payments})
+
+
+@login_required
+@require_module_action('sales', 'create')
+def exchange_dealer_payment_create(request):
+    from django.db.models import Sum
+    initial = {}
+    if request.GET.get('transfer'):
+        transfer = get_object_or_404(ExchangeVehicleDealer, pk=request.GET['transfer'])
+        initial['exchange_vehicle_dealer'] = transfer.pk
+        initial['dealer'] = transfer.dealer_id
+    form = ExchangeDealerPaymentForm(request.POST or None, initial=initial)
+    formset = ExchangeDealerPaymentItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST':
+        if form.is_valid() and formset.is_valid():
+            obj = form.save()
+            formset.instance = obj
+            formset.save()
+            obj.total_amount = obj.vehicle_details.aggregate(t=Sum('vehicle_amount'))['t'] or 0
+            obj.save(update_fields=['total_amount'])
+            log_action(request, 'Exchange Dealer Payment', 'create', obj.pk)
+            messages.success(request, f'{obj} created.')
+            return redirect('sales:exchange_dealer_payment_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/exchange_dealer_payment_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Exchange Dealer Payment',
+    })
+
+
+@login_required
+def exchange_dealer_payment_detail(request, pk):
+    obj = get_object_or_404(ExchangeDealerPayment, pk=pk)
+    return render(request, 'sales/exchange_dealer_payment_detail.html', {
+        'obj': obj, 'items': obj.vehicle_details.select_related('register_number').all(),
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_dealer_payment_submit(request, pk):
+    obj = get_object_or_404(ExchangeDealerPayment, pk=pk)
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Exchange Dealer Payment', 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_dealer_payment_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_dealer_payment_cancel(request, pk):
+    obj = get_object_or_404(ExchangeDealerPayment, pk=pk)
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Exchange Dealer Payment', 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_dealer_payment_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def exchange_dealer_payment_amend(request, pk):
+    obj = get_object_or_404(ExchangeDealerPayment, pk=pk)
+    try:
+        new_obj = obj.amend()
+        for item in obj.vehicle_details.all():
+            item.pk = None
+            item.payment = new_obj
+            item.save()
+        log_action(request, 'Exchange Dealer Payment', 'create', new_obj.pk)
+        messages.success(request, f'Amended as {new_obj}.')
+        return redirect('sales:exchange_dealer_payment_detail', pk=new_obj.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:exchange_dealer_payment_detail', pk=pk)
+
+
+# ---- Dealer RC Hand Over ----
+
+@login_required
+def dealer_rc_handover_list(request):
+    handovers = DealerRCHandOver.objects.select_related('dealer').all()
+    return render(request, 'sales/dealer_rc_handover_list.html', {'handovers': handovers})
+
+
+@login_required
+@require_module_action('sales', 'create')
+def dealer_rc_handover_create(request):
+    form = DealerRCHandOverForm(request.POST or None)
+    formset = DealerRCHandOverItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST':
+        if form.is_valid() and formset.is_valid():
+            obj = form.save()
+            formset.instance = obj
+            formset.save()
+            log_action(request, 'Dealer RC Hand Over', 'create', obj.pk)
+            messages.success(request, f'{obj} created.')
+            return redirect('sales:dealer_rc_handover_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'sales/dealer_rc_handover_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Dealer RC Hand Over',
+    })
+
+
+@login_required
+def dealer_rc_handover_detail(request, pk):
+    obj = get_object_or_404(DealerRCHandOver, pk=pk)
+    return render(request, 'sales/dealer_rc_handover_detail.html', {
+        'obj': obj, 'items': obj.items.select_related('register_number').all(),
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def dealer_rc_handover_submit(request, pk):
+    obj = get_object_or_404(DealerRCHandOver, pk=pk)
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Dealer RC Hand Over', 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:dealer_rc_handover_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def dealer_rc_handover_cancel(request, pk):
+    obj = get_object_or_404(DealerRCHandOver, pk=pk)
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Dealer RC Hand Over', 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:dealer_rc_handover_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('sales', 'edit')
+def dealer_rc_handover_amend(request, pk):
+    obj = get_object_or_404(DealerRCHandOver, pk=pk)
+    try:
+        new_obj = obj.amend()
+        for item in obj.items.all():
+            item.pk = None
+            item.handover = new_obj
+            item.save()
+        log_action(request, 'Dealer RC Hand Over', 'create', new_obj.pk)
+        messages.success(request, f'Amended as {new_obj}.')
+        return redirect('sales:dealer_rc_handover_detail', pk=new_obj.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('sales:dealer_rc_handover_detail', pk=pk)

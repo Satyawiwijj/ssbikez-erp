@@ -5,11 +5,22 @@
 
 {% block topbar_actions %}
 
-<a href="{% url 'sales:delivery_update' delivery.pk %}"
-class="btn btn-sm btn-primary">
-<i class="fas fa-edit me-1"></i>
-Edit Delivery
+{% if delivery.docstatus == 0 %}
+<a href="{% url 'sales:delivery_update' delivery.pk %}" class="btn btn-sm btn-primary">
+<i class="fas fa-edit me-1"></i>Edit Delivery
 </a>
+<form method="post" action="{% url 'sales:delivery_submit' delivery.pk %}" style="display:inline;">
+  {% csrf_token %}<button class="btn btn-sm btn-success" type="submit">Submit</button>
+</form>
+{% elif delivery.docstatus == 1 %}
+<form method="post" action="{% url 'sales:delivery_cancel' delivery.pk %}" style="display:inline;">
+  {% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Cancel this delivery?');">Cancel</button>
+</form>
+{% elif delivery.docstatus == 2 %}
+<form method="post" action="{% url 'sales:delivery_amend' delivery.pk %}" style="display:inline;">
+  {% csrf_token %}<button class="btn btn-sm btn-primary" type="submit">Amend (New Draft)</button>
+</form>
+{% endif %}
 
 <a href="{% url 'sales:order_detail' delivery.sales_order.pk %}"
 class="btn btn-sm btn-outline-secondary">
@@ -18,6 +29,10 @@ Back to Order
 </a>
 {% endblock %}
 {% block content %}
+
+{% if delivery.docstatus == 0 %}<span class="badge" style="background:#e5e7eb;color:#374151;">Draft</span>
+{% elif delivery.docstatus == 1 %}<span class="badge" style="background:#dcfce7;color:#166534;">Submitted</span>
+{% elif delivery.docstatus == 2 %}<span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>{% endif %}
 <div class="card mb-4">
 <div class="card-body py-3">
     <div class="row text-center">
@@ -134,6 +149,36 @@ Back to Order
 <div class="card mt-4">
 <div class="card-header">
     <span class="card-title">
+        <i class="fas fa-user-check me-2"></i>
+        Approval Workflow
+    </span>
+</div>
+<div class="table-wrapper">
+    <table class="table">
+        <tbody>
+            <tr>
+                <th>Manager Approval Requested</th>
+                <td>{% if delivery.manager_approval_requested %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Manager Approved</th>
+                <td>{% if delivery.manager_approved %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+            </tr>
+            <tr>
+                <th>Finance Approved</th>
+                <td>{% if delivery.finance_approved %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+{% if delivery.docstatus == 0 %}
+<div class="card-body text-muted small">Both Manager and Finance approval are required (set via Edit Delivery) before this delivery can be submitted.</div>
+{% endif %}
+</div>
+
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
         <i class="fas fa-clipboard-check me-2"></i>
         Handover Checklist
     </span>
@@ -191,8 +236,122 @@ Back to Order
                     {% endif %}
                 </td>
             </tr>
+            <tr>
+                <th>Gate Pass Issued</th>
+                <td>
+                    {% if delivery.issue_gate_pass %}
+                    <span class="badge badge-green">Yes</span>
+                    {% else %}
+                    <span class="badge badge-red">No</span>
+                    {% endif %}
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>
+</div>
+
+{% if delivery.offer_petrol %}
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-gas-pump me-2"></i>
+        Petrol Offered
+    </span>
+</div>
+<div class="table-wrapper">
+    <table class="table">
+        <tbody>
+            <tr><th>Petrol Type</th><td>{{ delivery.petrol_type|default:"—" }}</td></tr>
+            <tr><th>Litre</th><td>{{ delivery.petrol_litre|default:"—" }}</td></tr>
+            <tr><th>Amount</th><td>&#x20B9; {{ delivery.petrol_amount|default:"0" }}</td></tr>
+            <tr><th>Bunk</th><td>{{ delivery.bunk_name|default:"—" }}</td></tr>
+        </tbody>
+    </table>
+</div>
+</div>
+{% endif %}
+
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-box me-2"></i>
+        Delivery Note Items
+    </span>
+</div>
+{% if delivery.items.all %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead><tr><th>Item Code</th><th>Warranty/RSA/AMC</th><th>Rate</th><th>Actual Amount</th></tr></thead>
+        <tbody>
+            {% for item in delivery.items.all %}
+            <tr>
+                <td>{{ item.item_code|default:"—" }}</td>
+                <td>{{ item.get_warranty_rsa_amc_display }}</td>
+                <td>&#x20B9; {{ item.rate }}</td>
+                <td>&#x20B9; {{ item.actual_amount }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card-body text-muted small">No delivery items recorded.</div>
+{% endif %}
+</div>
+
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-money-bill-wave me-2"></i>
+        Advance Payment Details
+    </span>
+</div>
+{% if delivery.advance_payments.all %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead><tr><th>Mode</th><th>Date</th><th>Amount</th><th>To Account</th></tr></thead>
+        <tbody>
+            {% for adv in delivery.advance_payments.all %}
+            <tr>
+                <td>{{ adv.mode_of_payment|default:"—" }}</td>
+                <td>{{ adv.date }}</td>
+                <td>&#x20B9; {{ adv.amount }}</td>
+                <td>{{ adv.to_account|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card-body text-muted small">No advance payments recorded.</div>
+{% endif %}
+</div>
+
+<div class="card mt-4">
+<div class="card-header">
+    <span class="card-title">
+        <i class="fas fa-receipt me-2"></i>
+        Delivery Note Payment Entries
+    </span>
+</div>
+{% if delivery.payment_entries.all %}
+<div class="table-wrapper">
+    <table class="table">
+        <thead><tr><th>Date</th><th>Amount</th><th>Mode of Payment</th></tr></thead>
+        <tbody>
+            {% for pe in delivery.payment_entries.all %}
+            <tr>
+                <td>{{ pe.date }}</td>
+                <td>&#x20B9; {{ pe.amount }}</td>
+                <td>{{ pe.mode_of_payment|default:"—" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card-body text-muted small">No payment entries recorded.</div>
+{% endif %}
 </div>
 {% endblock %}

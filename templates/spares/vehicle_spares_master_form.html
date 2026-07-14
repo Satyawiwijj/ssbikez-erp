@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="vsm-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'spares:vehicle_spares_master_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:vehicle_spares_master_list' %}">Vehicle Spares Master</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="vsm-form" novalidate>
+{% csrf_token %}
+
+{% if form.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">Please correct the following errors:</h4>
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+            {% for field in form %}{% for error in field.errors %}<li><strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="card form-card">
+    <div class="card-header">Vehicle Spares Master</div>
+    <div style="padding:20px;">
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="{{ form.spare.id_for_label }}">Spare *</label>{{ form.spare }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.profit_percentage.id_for_label }}">Profit Percentage</label>{{ form.profit_percentage }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.purchase_rate.id_for_label }}">Purchase Rate</label>{{ form.purchase_rate }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.mrp_rate.id_for_label }}">MRP Rate</label>{{ form.mrp_rate }}</div>
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+@media (max-width:768px){.form-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}

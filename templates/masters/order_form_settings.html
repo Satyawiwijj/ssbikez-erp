@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Order Form Settings — Masters{% endblock %}
+{% block page_title %}Order Form Settings{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:order_form_series_list' %}" class="btn btn-secondary btn-sm">View Generated Series</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Order Form Settings</span>
+</nav>
+
+<div class="card form-card">
+    <div class="card-header">Order Form Settings</div>
+    <form method="post" style="padding:20px;">
+        {% csrf_token %}
+        {% if form.errors %}
+        <div class="alert alert-danger">{{ form.errors }}</div>
+        {% endif %}
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="{{ form.new_vehicle.id_for_label }}">New Vehicle</label>{{ form.new_vehicle }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.used_vehicle.id_for_label }}">Used Vehicle</label>{{ form.used_vehicle }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.branch.id_for_label }}">Branch *</label>{{ form.branch }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.prefix.id_for_label }}">Prefix *</label>{{ form.prefix }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.digits.id_for_label }}">Digits</label>{{ form.digits }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.count.id_for_label }}">Count *</label>{{ form.count }}</div>
+        </div>
+        <dl class="detail-list" style="margin-top:16px;">
+            <div class="detail-row"><dt>Next From No</dt><dd>{{ settings.from_no }}</dd></div>
+            <div class="detail-row"><dt>Next To No</dt><dd>{{ settings.to_no }}</dd></div>
+        </dl>
+        <div class="form-actions" style="margin-top:16px;">
+            <button type="submit" name="save_settings" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save Settings</button>
+        </div>
+    </form>
+</div>
+
+<form method="post" action="{% url 'masters:order_form_settings_generate' %}" style="margin-top:20px;">
+    {% csrf_token %}
+    <div class="card">
+        <div class="card-header"><span class="card-title">Generate Series</span></div>
+        <div style="padding:20px;">
+            <p class="text-muted">Clicking Generate creates <strong>{{ settings.count }}</strong> new Order Form Series numbers starting at the next available number for the selected Branch + Vehicle Type + Prefix, using the settings saved above.</p>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-cogs me-2"></i>Generate</button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+.form-actions{display:flex;gap:12px;align-items:center;}
+@media (max-width:768px){.form-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}

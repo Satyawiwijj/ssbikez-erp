@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — RTO{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block topbar_actions %}
+<button form="regpay-creation-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'rto:dashboard' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+<form method="post" id="regpay-creation-form" novalidate>
+{% csrf_token %}
+{{ formset.management_form }}
+<div class="card form-card">
+    <div class="card-header"><i class="fas fa-file-invoice-dollar me-2"></i>{{ title }}</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ field.label }}{% if field.field.required %}<span class="text-danger">*</span>{% endif %}</label>
+                {{ field }}
+                {% if field.errors %}<div class="text-danger small mt-1">{{ field.errors.0 }}</div>{% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <span class="card-title">Vehicles / Parties in this Batch</span>
+        <button type="button" id="add-item-row" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Sales Order</th><th>Vehicle Type</th><th>Profit</th><th>Amount from Customer</th><th>Action</th></tr></thead>
+            <tbody id="item-formset-body">
+                {% for f in formset %}
+                <tr class="formset-row item-row">
+                    <td>{{ f.sales_order }}{{ f.id }}</td>
+                    <td>{{ f.vehicle_type }}</td>
+                    <td>{{ f.profit }}</td>
+                    <td>{{ f.amount_from_customer }}</td>
+                    <td>
+                        {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+    const tbody = document.getElementById('item-formset-body');
+    const firstRow = tbody.querySelector('.item-row');
+    const addBtn = document.getElementById('add-item-row');
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const del = row.querySelector('[id$="-DELETE"]');
+                if (del) { del.checked = true; row.style.display = 'none'; } else { row.remove(); }
+            });
+        }
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    if (addBtn && firstRow) {
+        addBtn.addEventListener('click', function() {
+            const n = parseInt(totalForms.value);
+            const row = firstRow.cloneNode(true);
+            row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
+            row.querySelectorAll('input, select, textarea').forEach(function(el) {
+                if (el.type !== 'hidden') el.value = '';
+                if (el.type === 'checkbox') el.checked = false;
+            });
+            tbody.appendChild(row);
+            totalForms.value = n + 1;
+            bindRemove(row);
+        });
+    }
+})();
+</script>
+{% endblock %}

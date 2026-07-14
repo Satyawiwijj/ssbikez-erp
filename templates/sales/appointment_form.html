@@ -74,7 +74,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Vehicle Code</label>
+                            <label class="form-label" for="{{ form.vehicle_name.id_for_label }}">Vehicle Code</label>
                             {{ form.vehicle_name }}
                             {% if form.vehicle_name.errors %}
                             <div class="form-error">{{ form.vehicle_name.errors|join:", " }}</div>
@@ -82,7 +82,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Whatsapp No</label>
+                            <label class="form-label" for="{{ form.whatsapp_no.id_for_label }}">Whatsapp No</label>
                             {{ form.whatsapp_no }}
                             {% if form.whatsapp_no.errors %}
                             <div class="form-error">{{ form.whatsapp_no.errors|join:", " }}</div>
@@ -90,7 +90,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Gender</label>
+                            <label class="form-label" for="{{ form.gender.id_for_label }}">Gender</label>
                             {{ form.gender }}
                             {% if form.gender.errors %}
                             <div class="form-error">{{ form.gender.errors|join:", " }}</div>
@@ -98,7 +98,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Purpose</label>
+                            <label class="form-label" for="{{ form.purpose.id_for_label }}">Purpose</label>
                             {{ form.purpose }}
                             {% if form.purpose.errors %}
                             <div class="form-error">{{ form.purpose.errors|join:", " }}</div>
@@ -106,7 +106,7 @@
                         </div>
 
                         <div class="form-group span-2">
-                            <label class="form-label">Address</label>
+                            <label class="form-label" for="{{ form.address.id_for_label }}">Address</label>
                             {{ form.address }}
                             {% if form.address.errors %}
                             <div class="form-error">{{ form.address.errors|join:", " }}</div>
@@ -130,7 +130,7 @@
                     </div>
 
                     <div id="cancel-reason-block" style="display:{% if form.is_cancelled_postponed.value %}block{% else %}none{% endif %};">
-                        <label class="form-label">Cancellation / Postpone Reason</label>
+                        <label class="form-label" for="{{ form.cancel_reason.id_for_label }}">Cancellation / Postpone Reason</label>
                         {{ form.cancel_reason }}
                         {% if form.cancel_reason.errors %}
                         <div class="form-error">{{ form.cancel_reason.errors|join:", " }}</div>
@@ -149,7 +149,7 @@
                 <div style="padding:20px;">
 
                     <div class="form-group">
-                        <label class="form-label">Status</label>
+                        <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                         {{ form.status }}
                         {% if form.status.errors %}
                         <div class="form-error">{{ form.status.errors|join:", " }}</div>

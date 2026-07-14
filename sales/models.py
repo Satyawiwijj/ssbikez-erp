@@ -1,9 +1,12 @@
 import logging
 
 from django.conf import settings
-from django.db import models
+from django.core.validators import MinValueValidator
+from django.db import models, transaction
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+
+from accounts.models import DocStatusMixin
 
 logger = logging.getLogger(__name__)
 
@@ -156,6 +159,23 @@ class SalesEnquiry(models.Model):
     remarks         = models.TextField(blank=True, null=True)
     created_at      = models.DateTimeField(auto_now_add=True)
 
+    # Trade-in pre-assessment -- reference embeds this directly on the enquiry form, gated on
+    # customer_interested_in_exchange == 'Yes'. Confirmed live against 'Sales Enquiry Form';
+    # there is no ExchangeVehicle record yet at this stage (that only exists 1:1 off a confirmed
+    # Sales Order), so this is deliberately its own flat cluster, not a shared model.
+    exchange_type                    = models.CharField(max_length=20, blank=True, default='',
+        choices=[('Yamaha', 'Yamaha'), ('Competition', 'Competition')])
+    exchange_vehicle_model_and_make  = models.CharField(max_length=200, blank=True, default='')
+    exchange_year_of_manufacturing   = models.CharField(max_length=10, blank=True, default='')
+    exchange_owner_type              = models.CharField(max_length=20, blank=True, default='',
+        choices=[('First Owner', 'First Owner'), ('Second Owner', 'Second Owner'), ('Third Owner', 'Third Owner')])
+    exchange_valid_insurance         = models.CharField(max_length=5, blank=True, default='',
+        choices=[('Yes', 'Yes'), ('No', 'No')])
+    exchange_original_rc_available   = models.CharField(max_length=5, blank=True, default='',
+        choices=[('Yes', 'Yes'), ('No', 'No')])
+    exchange_customer_expected_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    exchange_price_offer_by_dealer   = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Sales Enquiries'
@@ -166,7 +186,9 @@ class SalesEnquiry(models.Model):
             lead = self.customer or self.prospect
         except (Customer.DoesNotExist, Prospect.DoesNotExist):
             lead = f'#{self.customer_id or self.prospect_id}'
-        return f"ENQ-{self.pk} | {lead} — {self.bike_model}"
+        if lead is None:
+            lead = '—'
+        return f"ENQ-{self.pk} | {lead} — {self.bike_model or '—'}"
 
     def clean(self):
         from django.core.exceptions import ValidationError
@@ -296,12 +318,22 @@ class SalesFeedback(models.Model):
 # VehicleSalesOrder
 # ---------------------------------------------------------------------------
 
-class VehicleSalesOrder(models.Model):
+class VehicleSalesOrder(DocStatusMixin, models.Model):
+    _amend_reset_number_field = 'order_number'
+
     class SalesStatus(models.TextChoices):
         BOOKED    = 'booked',    'Booked'
         INVOICED  = 'invoiced',  'Invoiced'
         DELIVERED = 'delivered', 'Delivered'
         CANCELLED = 'cancelled', 'Cancelled'
+
+    class FinanceClosing(models.TextChoices):
+        YES = 'yes', 'Yes'
+        NO  = 'no',  'No'
+
+    class PaymentStatus(models.TextChoices):
+        UNPAID    = 'unpaid',    'Unpaid'
+        COMPLETED = 'completed', 'Completed'
 
     enquiry         = models.ForeignKey(
         SalesEnquiry,
@@ -332,6 +364,43 @@ class VehicleSalesOrder(models.Model):
         null=True, blank=True,
         related_name='sales_orders'
     )
+    order_number    = models.CharField(max_length=30, unique=True, blank=True, editable=False)
+    order_form_series = models.ForeignKey(
+        'masters.OrderFormSeries', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='sales_orders', verbose_name='Order Form Series',
+        help_text='Optional link to a pre-generated Order Form Series number; order_number above remains the working numbering mechanism'
+    )
+    insurance_name  = models.ForeignKey(
+        'masters.Supplier', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='insured_sales_orders', verbose_name='Insurance Name'
+    )
+    sales_finance   = models.ForeignKey(
+        'masters.FinanceCompany', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='sales_orders', verbose_name='Sales Finance'
+    )
+    gst_category    = models.CharField(max_length=30, blank=True)
+    delivery_date   = models.DateField(null=True, blank=True, verbose_name='Expected Delivery Date')
+
+    # Special Helmet section
+    special_helmet           = models.BooleanField(default=False)
+    helmet_name              = models.CharField(max_length=200, blank=True)
+    helmet_price             = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    special_helmet_warehouse = models.ForeignKey(
+        'masters.Warehouse', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='+', verbose_name='Special Helmet Warehouse'
+    )
+    default_helmet           = models.CharField(max_length=200, blank=True)
+
+    # Exchange Vehicle summary (detail record lives on ExchangeVehicle)
+    has_vehicle_exchange = models.BooleanField(default=False)
+    finance_closing      = models.CharField(max_length=10, choices=FinanceClosing.choices, blank=True)
+    exchange_amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    # Temp Charges section
+    temp_charges_applied = models.BooleanField(default=False)
+    temp_charges         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    temp_area            = models.CharField(max_length=200, blank=True)
+
     booking_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount    = models.DecimalField(max_digits=10, decimal_places=2)
@@ -341,6 +410,25 @@ class VehicleSalesOrder(models.Model):
         default=SalesStatus.BOOKED,
         db_index=True,
     )
+
+    # Totals / payment status cluster
+    total_qty                             = models.IntegerField(default=0, blank=True)
+    invoice_discount                      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    is_finance_done                       = models.BooleanField(default=False)
+    table_charges_total                   = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    delivery_discount                     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    finance_amount                        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    advance_payment                       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, help_text='Rollup of advance_payments lines')
+    additional_discount_amount            = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    payment_reference                     = models.CharField(max_length=200, blank=True)
+    number_plate_amount                   = models.DecimalField(max_digits=10, decimal_places=2, default=330, blank=True)
+    balance_payment                       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    payment_status                        = models.CharField(
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID
+    )
+    customer_refund                       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    balance_sales_amount                  = models.IntegerField(default=0, blank=True)
+
     created_at      = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -357,18 +445,55 @@ class VehicleSalesOrder(models.Model):
             veh = self.vehicle
         except VehicleStock.DoesNotExist:
             veh = f'#vehicle_{self.vehicle_id}'
-        return f"ORD-{self.pk} | {cust} — {veh}"
+        if veh is None:
+            veh = '—'
+        return f"{self.order_number or f'ORD-{self.pk}'} | {cust} — {veh}"
+
+    def save(self, *args, **kwargs):
+        if not self.gst_category and self.customer_id:
+            self.gst_category = self.customer.gst_category
+        if not self.order_number:
+            with transaction.atomic():
+                last = VehicleSalesOrder.objects.select_for_update().order_by('-id').values_list('order_number', flat=True).first()
+                next_seq = 1
+                if last and last.startswith('ORD-'):
+                    try:
+                        next_seq = int(last.split('-')[1]) + 1
+                    except (IndexError, ValueError):
+                        pass
+                self.order_number = f'ORD-{next_seq:05d}'
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    @property
+    def current_delivery(self):
+        """The active (non-cancelled) delivery, if any — deliveries is a plain
+        FK (not O2O) so a cancelled+amended pair can coexist historically."""
+        return self.deliveries.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED).order_by('-created_at').first()
+
+    @property
+    def current_invoice(self):
+        """The active (non-cancelled) invoice, if any — same reasoning as current_delivery."""
+        return self.invoices.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED).order_by('-created_at').first()
 
 
 # ---------------------------------------------------------------------------
 # VehicleDelivery
 # ---------------------------------------------------------------------------
 
-class VehicleDelivery(models.Model):
-    sales_order   = models.OneToOneField(
+class VehicleDelivery(DocStatusMixin, models.Model):
+    class PaymentStatus(models.TextChoices):
+        UNPAID    = 'unpaid',    'Unpaid'
+        COMPLETED = 'completed', 'Completed'
+
+    # A plain ForeignKey (not OneToOne): docstatus/amend means an order can
+    # accumulate a cancelled delivery + its amended replacement over time.
+    # Use VehicleSalesOrder.current_delivery for "the active one".
+    sales_order   = models.ForeignKey(
         VehicleSalesOrder,
         on_delete=models.PROTECT,
-        related_name='delivery'
+        related_name='deliveries'
     )
     delivery_date = models.DateField()
     delivered_by  = models.ForeignKey(
@@ -384,6 +509,37 @@ class VehicleDelivery(models.Model):
     checklist_warranty    = models.BooleanField(default=False, verbose_name='Warranty Card Handed Over')
     checklist_toolkit     = models.BooleanField(default=False, verbose_name='Toolkit & Owner Manual Handed Over')
     checklist_accessories = models.BooleanField(default=False, verbose_name='Accessories Fitted & Verified')
+    issue_gate_pass       = models.BooleanField(default=False, verbose_name='Issue Gate Pass')
+
+    # Approval workflow — Manager then Finance, gates submission
+    manager_approval_requested = models.BooleanField(default=False)
+    manager_approved           = models.BooleanField(default=False)
+    finance_approved           = models.BooleanField(default=False)
+
+    # On-delivery petrol offer
+    offer_petrol   = models.BooleanField(default=False)
+    petrol_type    = models.CharField(max_length=50, blank=True)
+    petrol_litre   = models.DecimalField(max_digits=6, decimal_places=2, default=0, blank=True)
+    petrol_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    bunk_name      = models.ForeignKey(
+        'masters.BunkName', on_delete=models.SET_NULL, null=True, blank=True, related_name='+'
+    )
+
+    # Totals / status
+    total_quantity                    = models.IntegerField(default=0, blank=True)
+    invoice_discount                  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    table_charges_total                = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    finance_amount                     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    additional_discount                = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    total_amount                       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    sales_order_additional_discount    = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    pending_amount                     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    advance_amount                     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    refund_amount                      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    payment_status                     = models.CharField(
+        max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.UNPAID
+    )
+
     created_at    = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -392,6 +548,63 @@ class VehicleDelivery(models.Model):
 
     def __str__(self):
         return f"DELIVERY-{self.pk} | ORD-{self.sales_order_id} on {self.delivery_date}"
+
+
+# ---------------------------------------------------------------------------
+# Vehicle Delivery child tables
+# ---------------------------------------------------------------------------
+
+class DeliveryNoteItem(models.Model):
+    class WarrantyRSAAMC(models.TextChoices):
+        WARRANTY = 'warranty', 'Warranty'
+        RSA      = 'rsa',      'RSA'
+        AMC      = 'amc',      'AMC'
+        NONE     = 'none',     'None'
+
+    delivery         = models.ForeignKey(VehicleDelivery, on_delete=models.CASCADE, related_name='items')
+    item_code        = models.CharField(max_length=100, blank=True)
+    warranty_rsa_amc = models.CharField(max_length=20, choices=WarrantyRSAAMC.choices, default=WarrantyRSAAMC.NONE)
+    rate             = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    actual_amount    = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Delivery Note Items'
+
+    def __str__(self):
+        return f"{self.item_code} — Rs.{self.actual_amount}"
+
+
+class DeliveryNoteAdvancePayment(models.Model):
+    delivery        = models.ForeignKey(VehicleDelivery, on_delete=models.CASCADE, related_name='advance_payments')
+    mode_of_payment = models.CharField(max_length=100, blank=True)
+    date            = models.DateField()
+    amount          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    to_account      = models.CharField(max_length=200, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name_plural = 'Delivery Note Advance Payments'
+
+    def __str__(self):
+        return f"{self.mode_of_payment} — Rs.{self.amount} on {self.date}"
+
+
+class DeliveryNotePaymentEntry(models.Model):
+    delivery        = models.ForeignKey(VehicleDelivery, on_delete=models.CASCADE, related_name='payment_entries')
+    date            = models.DateField()
+    amount          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    mode_of_payment = models.CharField(max_length=100, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name_plural = 'Delivery Note Payment Entries'
+
+    def __str__(self):
+        return f"{self.mode_of_payment} — Rs.{self.amount} on {self.date}"
 
 
 # ---------------------------------------------------------------------------
@@ -452,6 +665,235 @@ class ExchangeVehicle(models.Model):
 
 
 # ---------------------------------------------------------------------------
+# Phase 13 -- Dealer sub-module: reselling a traded-in vehicle onward to a
+# wholesale dealer, once it's already in used-vehicle stock. Lives alongside
+# ExchangeVehicle above since this is the same domain's downstream workflow.
+# ---------------------------------------------------------------------------
+
+class Dealer(models.Model):
+    """Reference: 'Dealer' master (non-submittable, autoname field:dealer_name)."""
+    class GstCategory(models.TextChoices):
+        UNREGISTERED       = 'unregistered',        'Unregistered'
+        REGISTERED_REGULAR = 'registered_regular',   'Registered Regular'
+
+    dealer_name    = models.CharField(max_length=200, unique=True)
+    gstin          = models.CharField(max_length=20, blank=True)
+    mobile_number  = models.CharField(max_length=20)
+    gst_category   = models.CharField(max_length=20, choices=GstCategory.choices, blank=True)
+    warehouse      = models.ForeignKey('masters.Warehouse', on_delete=models.PROTECT, related_name='dealers')
+    email          = models.EmailField(blank=True)
+    branch         = models.ForeignKey('accounts.Branch', on_delete=models.PROTECT, related_name='dealers', verbose_name='Area')
+    address_type   = models.CharField(max_length=100, blank=True)
+    address_line1  = models.CharField(max_length=200, blank=True)
+    state          = models.CharField(max_length=100, blank=True)
+    country        = models.CharField(max_length=100, blank=True)
+    citytown       = models.CharField(max_length=100, blank=True, verbose_name='City/Town')
+    pincode        = models.CharField(max_length=10, blank=True)
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.dealer_name
+
+    class Meta:
+        ordering = ['dealer_name']
+        verbose_name_plural = 'Dealers'
+
+
+YES_NO_CHOICES = [('', '—'), ('yes', 'Yes'), ('no', 'No')]
+
+
+class ExchangeVehicleDealer(DocStatusMixin, models.Model):
+    """Reference: 'Exchange Vehicle Dealer' -- transfers a batch of traded-in vehicles from our
+    stock to a wholesale dealer. The header also carries a full duplicate single-vehicle field
+    set in the reference (manufacturing_company/chasis_no/model/colour/year_of_making/remarks/
+    a Customer-Link party_name) -- confirmed live to be the exact same "header duplicates the
+    child table" Frappe artifact already resolved for RTOPayment/RegpayCreation in Phase 9a;
+    dropped here for the same reason, only the batch child table is built."""
+    _amend_reset_number_field = 'transfer_no'
+
+    transfer_no        = models.CharField(max_length=50, unique=True, blank=True, editable=False)
+    date                = models.DateField()
+    from_warehouse      = models.ForeignKey('masters.Warehouse', on_delete=models.PROTECT, related_name='exchange_vehicle_dealer_transfers_out')
+    to_warehouse        = models.ForeignKey('masters.Warehouse', on_delete=models.PROTECT, related_name='exchange_vehicle_dealer_transfers_in')
+    dealer              = models.ForeignKey(Dealer, on_delete=models.PROTECT, related_name='vehicle_transfers')
+    branch              = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='exchange_vehicle_dealer_transfers')
+    hp_endorsement      = models.BooleanField(default=False, help_text='Confirmed live as a batch-level field with no per-vehicle child equivalent')
+    insurance_received  = models.BooleanField(default=False, help_text='Confirmed live as a batch-level field with no per-vehicle child equivalent')
+    created_at          = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.transfer_no:
+            with transaction.atomic():
+                last = ExchangeVehicleDealer.objects.select_for_update().order_by('-id').values_list('transfer_no', flat=True).first()
+                next_seq = 1
+                if last:
+                    try:
+                        next_seq = int(last.rsplit('-', 1)[-1]) + 1
+                    except ValueError:
+                        pass
+                self.transfer_no = f'EX-VEH-DEALER-{next_seq:05d}'
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.transfer_no
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Exchange Vehicle Dealer Transfers'
+
+
+class ExchangeVehicleDealerItem(models.Model):
+    transfer            = models.ForeignKey(ExchangeVehicleDealer, on_delete=models.CASCADE, related_name='vehicle_details')
+    vehicle_name         = models.CharField(max_length=200, blank=True,
+                                             help_text="Reference links to 'Exchange Master Used Vehicle Names' -- confirmed 0 records, "
+                                                        'no real Django master needed -- free text instead')
+    engine_number         = models.CharField(max_length=100, blank=True)
+    registration_number   = models.ForeignKey('used_vehicles.UsedVehicleRegisterNo', on_delete=models.PROTECT, null=True, blank=True, related_name='dealer_transfer_items')
+    party_name            = models.CharField(max_length=200, blank=True,
+                                              help_text="Reference types this row's own field as free text (Data), not a Link -- preserved as-is")
+    rc_book_received      = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True)
+    rc_book_number        = models.CharField(max_length=100, blank=True)
+    noc                   = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True, verbose_name='NOC')
+    to_received            = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True, verbose_name='T.O Received')
+    vehicle_amount         = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    color                  = models.CharField(max_length=50, blank=True,
+                                               help_text='Reference links to Product Color; no Django master exists anywhere -- free text instead')
+    vehicle_value          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    vehicle_code           = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.vehicle_code} — {self.registration_number or '—'}"
+
+    class Meta:
+        verbose_name_plural = 'Exchange Vehicle Dealer Items'
+
+
+@receiver(post_save, sender=ExchangeVehicleDealer)
+def on_exchange_vehicle_dealer_submitted(sender, instance, **kwargs):
+    if instance.docstatus != ExchangeVehicleDealer.DocStatus.SUBMITTED:
+        return
+    for row in instance.vehicle_details.select_related('registration_number').all():
+        if row.registration_number_id and row.registration_number.stock_status != row.registration_number.StockStatus.SOLD:
+            row.registration_number.stock_status = row.registration_number.StockStatus.SOLD
+            row.registration_number.save(update_fields=['stock_status'])
+
+
+class ExchangeDealerPayment(DocStatusMixin, models.Model):
+    """Reference: 'Exchange Dealer Payment' -- paying the dealer for an already-transferred
+    batch. No stock side effect of its own -- the vehicle already left stock on
+    ExchangeVehicleDealer submit; this is purely a payment record."""
+    class PaymentMode(models.TextChoices):
+        CASH   = 'cash',   'Cash'
+        CREDIT = 'credit', 'Credit'
+
+    _amend_reset_number_field = 'payment_no'
+
+    payment_no            = models.CharField(max_length=50, unique=True, blank=True, editable=False)
+    date                   = models.DateField()
+    dealer                  = models.ForeignKey(Dealer, on_delete=models.PROTECT, related_name='payments')
+    exchange_vehicle_dealer = models.ForeignKey(ExchangeVehicleDealer, on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
+    branch                  = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='exchange_dealer_payments')
+    payment_mode             = models.CharField(max_length=10, choices=PaymentMode.choices, blank=True, verbose_name='Pay Type')
+    total_amount              = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    pending_amount             = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    payment_status              = models.CharField(max_length=30, blank=True,
+                                                     help_text="Reference types this as free text (Data), not a Select -- preserved as-is")
+    created_at                   = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.payment_no:
+            with transaction.atomic():
+                last = ExchangeDealerPayment.objects.select_for_update().order_by('-id').values_list('payment_no', flat=True).first()
+                next_seq = 1
+                if last:
+                    try:
+                        next_seq = int(last.rsplit('-', 1)[-1]) + 1
+                    except ValueError:
+                        pass
+                self.payment_no = f'EX-DEALER-PAY-{next_seq:05d}'
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.payment_no
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Exchange Dealer Payments'
+
+
+class ExchangeDealerPaymentItem(models.Model):
+    payment            = models.ForeignKey(ExchangeDealerPayment, on_delete=models.CASCADE, related_name='vehicle_details')
+    register_number     = models.ForeignKey('used_vehicles.UsedVehicleRegisterNo', on_delete=models.PROTECT, related_name='dealer_payment_items')
+    vehicle_name          = models.CharField(max_length=200, blank=True)
+    vehicle_amount         = models.DecimalField(max_digits=10, decimal_places=2, default=0,
+                                                  validators=[MinValueValidator(0)],
+                                                  help_text='Reference types this as free text (Data) but the header total_amount '
+                                                             'clearly sums it -- built as a real Decimal, same "fix an obviously '
+                                                             'mistyped reference field" call made elsewhere this session')
+    allow_permission        = models.BooleanField(default=False)
+    date                     = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.register_number} — Rs.{self.vehicle_amount}"
+
+    class Meta:
+        verbose_name_plural = 'Exchange Dealer Payment Items'
+
+
+class DealerRCHandOver(DocStatusMixin, models.Model):
+    """Reference: 'Dealer RC Hand Over' -- RC-book handover tracking to the dealer, per vehicle,
+    in batch. No stock side effect -- purely an RC-paperwork tracking document."""
+    _amend_reset_number_field = 'handover_no'
+
+    handover_no  = models.CharField(max_length=50, unique=True, blank=True, editable=False)
+    dealer        = models.ForeignKey(Dealer, on_delete=models.PROTECT, related_name='rc_hand_overs')
+    created_at     = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        if not self.handover_no:
+            with transaction.atomic():
+                last = DealerRCHandOver.objects.select_for_update().order_by('-id').values_list('handover_no', flat=True).first()
+                next_seq = 1
+                if last:
+                    try:
+                        next_seq = int(last.rsplit('-', 1)[-1]) + 1
+                    except ValueError:
+                        pass
+                self.handover_no = f'Dealer-RC-HAND-{next_seq:05d}'
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.handover_no
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Dealer RC Hand Overs'
+
+
+class DealerRCHandOverItem(models.Model):
+    handover              = models.ForeignKey(DealerRCHandOver, on_delete=models.CASCADE, related_name='items')
+    register_number        = models.ForeignKey('used_vehicles.UsedVehicleRegisterNo', on_delete=models.PROTECT, related_name='dealer_rc_handover_items')
+    noc                      = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True, verbose_name='NOC')
+    to_received               = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True, verbose_name='T.O. Received')
+    rc_book_received           = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True)
+    vehicle_received             = models.CharField(max_length=5, choices=YES_NO_CHOICES, blank=True)
+    rc_book_number                = models.CharField(max_length=100, blank=True)
+    date                            = models.DateField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.register_number} — {self.handover.handover_no}"
+
+    class Meta:
+        verbose_name_plural = 'Dealer RC Hand Over Items'
+
+
+# ---------------------------------------------------------------------------
 # VehicleAllotment — formal chassis/engine assignment to an order
 # ---------------------------------------------------------------------------
 
@@ -490,8 +932,9 @@ class VehicleAllotment(models.Model):
             VehicleStock.objects.filter(pk=self.vehicle_id).exclude(
                 stock_status='sold'
             ).update(stock_status='reserved')
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error("VehicleAllotment.save() failed to reserve vehicle %s for allotment %s: %s",
+                         self.vehicle_id, self.pk, exc)
         super().save(*args, **kwargs)
 
 
@@ -505,9 +948,12 @@ class VehicleFitting(models.Model):
         on_delete=models.CASCADE,
         related_name='fittings'
     )
-    fitting_name = models.CharField(max_length=200)
+    item_code    = models.CharField(max_length=100, blank=True)
+    fitting_name = models.CharField(max_length=200, verbose_name='Item Name')
     description  = models.TextField(blank=True)
-    cost         = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    quantity     = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True, verbose_name='Quantity Count')
+    rate         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, verbose_name='Item Rate')
+    cost         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, verbose_name='Item Amount')
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -516,6 +962,98 @@ class VehicleFitting(models.Model):
 
     def __str__(self):
         return f"{self.fitting_name} — Rs.{self.cost}"
+
+    def save(self, *args, **kwargs):
+        if self.rate:
+            self.cost = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# AdditionalVehicleFitting — a second, structurally-separate fittings table,
+# matching the reference ERP's distinct "Additional Vehicle Fittings" grid
+# (kept separate from VehicleFitting/"Fittings Table" for exact parity even
+# though the two are near-identical in shape).
+# ---------------------------------------------------------------------------
+
+class AdditionalVehicleFitting(models.Model):
+    sales_order = models.ForeignKey(
+        VehicleSalesOrder,
+        on_delete=models.CASCADE,
+        related_name='additional_fittings'
+    )
+    item_code   = models.CharField(max_length=100, blank=True)
+    item_name   = models.CharField(max_length=200)
+    quantity    = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True, verbose_name='QTY')
+    rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    total       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Additional Vehicle Fittings'
+
+    def __str__(self):
+        return f"{self.item_name} — Rs.{self.total}"
+
+    def save(self, *args, **kwargs):
+        self.total = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# VehicleSaleItem — priced line items sold alongside the vehicle (matches
+# reference "Items" table — distinct from the vehicle itself and from
+# Fittings/Additional Fittings).
+# ---------------------------------------------------------------------------
+
+class VehicleSaleItem(models.Model):
+    sales_order = models.ForeignKey(
+        VehicleSalesOrder,
+        on_delete=models.CASCADE,
+        related_name='items'
+    )
+    item_name   = models.CharField(max_length=200)
+    rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    quantity    = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True)
+    amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Vehicle Sale Items'
+
+    def __str__(self):
+        return f"{self.item_name} — Rs.{self.amount}"
+
+    def save(self, *args, **kwargs):
+        self.amount = self.quantity * self.rate
+        super().save(*args, **kwargs)
+
+
+# ---------------------------------------------------------------------------
+# SalesOrderAdvancePayment — matches reference "Advance Payment Details"
+# ---------------------------------------------------------------------------
+
+class SalesOrderAdvancePayment(models.Model):
+    sales_order      = models.ForeignKey(
+        VehicleSalesOrder,
+        on_delete=models.CASCADE,
+        related_name='advance_payments'
+    )
+    mode_of_payment  = models.CharField(max_length=100, blank=True)
+    draft_type       = models.CharField(max_length=100, blank=True, verbose_name='Draft/Bank Type')
+    date             = models.DateField()
+    amount           = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    to_account       = models.CharField(max_length=200, blank=True)
+    created_at       = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name_plural = 'Sales Order Advance Payments'
+
+    def __str__(self):
+        return f"{self.mode_of_payment} — Rs.{self.amount} on {self.date}"
 
 
 # ---------------------------------------------------------------------------
@@ -799,8 +1337,10 @@ class SalesFeedbackItem(models.Model):
 
 @receiver(post_save, sender=VehicleDelivery)
 def on_delivery_created(sender, instance, created, **kwargs):
-    """When a VehicleDelivery is recorded, mark the sales order as delivered."""
-    if not created:
+    """When a VehicleDelivery is submitted (docstatus flips to Submitted), mark
+    the sales order as delivered. Gated on docstatus, not just row creation,
+    since deliveries are now created as Draft first and submitted separately."""
+    if instance.docstatus != VehicleDelivery.DocStatus.SUBMITTED:
         return
     order = instance.sales_order
     if order.sales_status != VehicleSalesOrder.SalesStatus.DELIVERED:

@@ -8,6 +8,7 @@
       style="display:flex;gap:6px;align-items:center;">
     {% csrf_token %}
     <select name="status"
+            aria-label="Update enquiry status"
             style="width:auto;padding:7px 10px;font-size:13px;">
         {% for val, label in enquiry.Status.choices %}
         <option value="{{ val }}"
@@ -171,6 +172,56 @@
     </table>
   </div>
 </div>
+
+{% if enquiry.customer_interested_in_exchange == 'Yes' %}
+<!-- TRADE-IN PRE-ASSESSMENT -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">
+      <i class="fas fa-exchange-alt me-2"></i>
+      Trade-In Pre-Assessment
+    </span>
+  </div>
+  <div class="table-wrapper">
+    <table class="table">
+      <tbody>
+        <tr>
+          <th>Exchange Type</th>
+          <td>{{ enquiry.exchange_type|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Vehicle Model &amp; Make</th>
+          <td>{{ enquiry.exchange_vehicle_model_and_make|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Year of Manufacturing</th>
+          <td>{{ enquiry.exchange_year_of_manufacturing|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Owner Type</th>
+          <td>{{ enquiry.exchange_owner_type|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Valid Insurance</th>
+          <td>{{ enquiry.exchange_valid_insurance|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Original RC Available</th>
+          <td>{{ enquiry.exchange_original_rc_available|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Customer Expected Price</th>
+          <td>{% if enquiry.exchange_customer_expected_price %}&#x20B9; {{ enquiry.exchange_customer_expected_price }}{% else %}—{% endif %}</td>
+        </tr>
+        <tr>
+          <th>Price Offer By Dealer</th>
+          <td>{% if enquiry.exchange_price_offer_by_dealer %}&#x20B9; {{ enquiry.exchange_price_offer_by_dealer }}{% else %}—{% endif %}</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
 
 <!-- SALES ORDER -->
 <div class="card">

@@ -1,0 +1,188 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Job Card{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:jobcard_update' pk=obj.pk %}" class="btn btn-sm btn-secondary"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'used_vehicles:jobcard_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-clipboard-list me-2"></i>{{ obj }}</span>
+        <span class="badge badge-blue">{{ obj.get_service_status_display }}</span>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Register No</th><td>{{ obj.register_no }}</td></tr>
+                <tr><th>KM</th><td>{{ obj.km }}</td></tr>
+                <tr><th>Customer</th><td>{{ obj.customer_name|default:"—" }}</td></tr>
+                <tr><th>Phone</th><td>{{ obj.phone_no|default:"—" }}</td></tr>
+                <tr><th>Supervisor</th><td>{{ obj.super_visor|default:"—" }}</td></tr>
+                <tr><th>Date</th><td>{{ obj.date|date:"d M Y"|default:"—" }}</td></tr>
+                <tr><th>Frame No</th><td>{{ obj.frame_no|default:"—" }}</td></tr>
+                <tr><th>Model</th><td>{{ obj.model|default:"—" }}</td></tr>
+                <tr><th>Vehicle Name</th><td>{{ obj.vehicle_name|default:"—" }}</td></tr>
+                <tr><th>Service</th><td>{{ obj.service|default:"—" }}</td></tr>
+                <tr><th>Engine No</th><td>{{ obj.engine_no|default:"—" }}</td></tr>
+                <tr><th>Colour</th><td>{{ obj.colour|default:"—" }}</td></tr>
+                <tr><th>Total Estimated Cost</th><td>&#x20B9; {{ obj.total_estimated_cost }}</td></tr>
+                <tr><th>Opening Time</th><td>{{ obj.opening_time|default:"—" }}</td></tr>
+                <tr><th>In Time</th><td>{{ obj.in_time|default:"—" }}</td></tr>
+                <tr><th>Closing Time</th><td>{{ obj.closing_time|default:"—" }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header"><i class="fas fa-stream me-2"></i>Workshop Stage Documents</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Stage</th><th>Document(s)</th><th>Action</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>Bay In</td>
+                    <td>{% for b in obj.bay_in_entries.all %}<a href="{% url 'used_vehicles:uv_bay_in_detail' pk=b.pk %}">{{ b }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:uv_bay_in_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Labor Charge</td>
+                    <td>{% for l in obj.labor_charges.all %}<a href="{% url 'used_vehicles:uv_labor_charge_detail' pk=l.pk %}">{{ l }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:uv_labor_charge_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Spares Issue</td>
+                    <td>{% for s in obj.spares_issue_alterations.all %}<a href="{% url 'spares:issue_alteration_detail' pk=s.pk %}">{{ s }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'spares:issue_alteration_create' %}?uv_jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Outwork Entry Issue</td>
+                    <td>{% for o in obj.outwork_issues.all %}<a href="{% url 'used_vehicles:uv_outwork_issue_detail' pk=o.pk %}">{{ o }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:uv_outwork_issue_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Bay Out</td>
+                    <td>{% for b in obj.bay_out_entries.all %}<a href="{% url 'used_vehicles:uv_bay_out_detail' pk=b.pk %}">{{ b }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:uv_bay_out_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Final Inspection</td>
+                    <td>{% for f in obj.final_inspections.all %}<a href="{% url 'used_vehicles:uv_final_inspection_detail' pk=f.pk %}">{{ f }}</a>{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">None yet</span>{% endfor %}</td>
+                    <td><a href="{% url 'used_vehicles:uv_final_inspection_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
+                </tr>
+                <tr>
+                    <td>Service Invoice</td>
+                    <td>{% if obj.service_invoice %}<a href="{% url 'used_vehicles:uv_service_invoice_detail' pk=obj.service_invoice.pk %}">{{ obj.service_invoice }}</a>{% else %}<span class="text-muted">None yet</span>{% endif %}</td>
+                    <td>{% if not obj.service_invoice %}<a href="{% url 'used_vehicles:uv_service_invoice_create' %}?jc={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a>{% endif %}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Phase 4: inspection-checklist child tables -->
+<div class="card mt-3">
+    <div class="card-header"><span class="card-title"><i class="fas fa-clipboard-check me-2"></i>Inspection Checklist</span></div>
+    <div class="table-wrapper">
+        <strong style="padding:10px 16px;display:block;">Complaint Details</strong>
+        <table class="table">
+            <thead><tr><th>Complaint</th><th>Details</th><th>Status</th><th>Checked</th><th>Est. Amount</th></tr></thead>
+            <tbody>
+                {% for c in complaint_details %}
+                <tr><td>{{ c.customer_complaint }}</td><td>{{ c.details|default:"—" }}</td><td>{{ c.get_status_display }}</td><td>{% if c.complaint_check_box %}&#x2705;{% else %}—{% endif %}</td><td>&#x20B9;{{ c.estimated_amount }}</td></tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <strong style="padding:10px 16px;display:block;">Supervisor Observation</strong>
+        <table class="table">
+            <thead><tr><th>Observation</th><th>Details</th><th>Checked</th><th>Est. Amount</th></tr></thead>
+            <tbody>
+                {% for o in supervisor_observations %}
+                <tr><td>{{ o.complaint }}</td><td>{{ o.details|default:"—" }}</td><td>{% if o.complaint_check_box %}&#x2705;{% else %}—{% endif %}</td><td>&#x20B9;{{ o.estimated_amount }}</td></tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <strong style="padding:10px 16px;display:block;">Engine Details</strong>
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Area</th></tr></thead>
+            <tbody>
+                {% for e in engine_details %}
+                <tr><td>{{ e.items }}</td><td>{% if e.yes %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.no %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.ok %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.high %}&#x2705;{% else %}—{% endif %}</td><td>{% if e.low %}&#x2705;{% else %}—{% endif %}</td><td>{{ e.area_mention|default:"—" }}</td></tr>
+                {% empty %}
+                <tr><td colspan="7" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <strong style="padding:10px 16px;display:block;">All Lights</strong>
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th></tr></thead>
+            <tbody>
+                {% for l in light_details %}
+                <tr><td>{{ l.items }}</td><td>{% if l.yes %}&#x2705;{% else %}—{% endif %}</td><td>{% if l.no %}&#x2705;{% else %}—{% endif %}</td></tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <strong style="padding:10px 16px;display:block;">Chasis Details</strong>
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Good</th><th>Bad</th><th>NA</th></tr></thead>
+            <tbody>
+                {% for c in chasis_details %}
+                <tr>
+                    <td>{{ c.items }}</td>
+                    <td>{% if c.yes %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.no %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.ok %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.high %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.low %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.good %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.bad %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{% if c.na %}&#x2705;{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <strong style="padding:10px 16px;display:block;">Others</strong>
+        <table class="table">
+            <thead><tr><th>Item</th><th>Checked</th></tr></thead>
+            <tbody>
+                {% for o in others_details %}
+                <tr><td>{{ o.items }}</td><td>{% if o.others_check_box %}&#x2705;{% else %}—{% endif %}</td></tr>
+                {% empty %}
+                <tr><td colspan="2" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% for category, label, items in parts_by_category %}
+        <strong style="padding:10px 16px;display:block;">{{ label }} Details</strong>
+        <table class="table">
+            <thead><tr><th>Spares</th><th>Change Need — Yes</th><th>Change Need — No</th></tr></thead>
+            <tbody>
+                {% for p in items %}
+                <tr><td>{{ p.spares|default:"—" }}</td><td>{% if p.change_need_yes %}&#x2705;{% else %}—{% endif %}</td><td>{% if p.change_need_no %}&#x2705;{% else %}—{% endif %}</td></tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty-state">None recorded.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

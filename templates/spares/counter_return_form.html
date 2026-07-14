@@ -88,7 +88,7 @@
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label fw-semibold">
+                            <label class="form-label fw-semibold" for="{{ form.reason.id_for_label }}">
                                 Return Reason
                             </label>
                             {{ form.reason }}
@@ -102,7 +102,7 @@
                         <div class="col-md-6">
                             <div class="form-check">
                                 {{ form.stock_return_done }}
-                                <label class="form-check-label ms-2">
+                                <label class="form-check-label ms-2" for="{{ form.stock_return_done.id_for_label }}">
                                     Stock Returned
                                 </label>
                             </div>
@@ -111,10 +111,40 @@
                         <div class="col-md-6">
                             <div class="form-check">
                                 {{ form.amount_refund_done }}
-                                <label class="form-check-label ms-2">
+                                <label class="form-check-label ms-2" for="{{ form.amount_refund_done.id_for_label }}">
                                     Amount Refunded
                                 </label>
                             </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.godown.id_for_label }}">Godown</label>
+                            {{ form.godown }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.gst_category.id_for_label }}">GST Category</label>
+                            {{ form.gst_category }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.accounts_from.id_for_label }}">Accounts From</label>
+                            {{ form.accounts_from }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.accounts_to.id_for_label }}">Accounts To</label>
+                            {{ form.accounts_to }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.advance_amount.id_for_label }}">Advance Amount</label>
+                            {{ form.advance_amount }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="{{ form.discount.id_for_label }}">Discount %</label>
+                            {{ form.discount }}
                         </div>
 
                     </div>
@@ -147,9 +177,13 @@
 
                         <thead>
                             <tr>
-                                <th style="width:45%;">Item</th>
+                                <th style="width:35%;">Item</th>
                                 <th>Quantity</th>
+                                <th>Return Qty</th>
                                 <th>Rate</th>
+                                <th>Issued</th>
+                                <th>Delivery Balance</th>
+                                <th>Stock Qty</th>
                                 <th style="width:70px;">Action</th>
                             </tr>
                         </thead>
@@ -180,6 +214,8 @@
                                     {% endif %}
                                 </td>
 
+                                <td>{{ f.return_qty }}</td>
+
                                 <td>
                                     {{ f.rate }}
                                     {% if f.rate.errors %}
@@ -188,6 +224,10 @@
                                     </div>
                                     {% endif %}
                                 </td>
+
+                                <td>{{ f.issue_status }}</td>
+                                <td>{{ f.delivery_balance_qty }}</td>
+                                <td>{{ f.stock_qty }}</td>
 
                                 <td>
 
@@ -198,7 +238,7 @@
                                     {% endif %}
 
                                     <button type="button"
-                                            class="btn btn-sm btn-danger remove-row">
+                                            class="btn btn-sm btn-danger remove-row" aria-label="Remove row">
                                         <i class="fas fa-trash"></i>
                                     </button>
 

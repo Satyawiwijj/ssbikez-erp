@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — Masters{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="cp-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'masters:customer_price_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'masters:customer_price_list' %}">Customer Price List</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="cp-form" novalidate>
+{% csrf_token %}
+{{ formset.management_form }}
+
+{% if form.errors or formset.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">Please correct the following errors:</h4>
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+            {% for field in form %}{% for error in field.errors %}<li><strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}
+            {% for f in formset %}{% for field in f %}{% for error in field.errors %}<li>Item Row — <strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="card form-card">
+    <div class="card-header">Customer Price</div>
+    <div style="padding:20px;">
+        <div class="form-grid">
+            <div class="form-group"><label class="form-label" for="{{ form.branch.id_for_label }}">Branch</label>{{ form.branch }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.model_code.id_for_label }}">Vehicle Code *</label>{{ form.model_code }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.sub_group.id_for_label }}">Sub Group</label>{{ form.sub_group }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.color.id_for_label }}">Color</label>{{ form.color }}</div>
+            <div class="form-group"><label class="form-label" for="{{ form.disable.id_for_label }}">Disable</label>{{ form.disable }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <span class="card-title">Price Breakdown</span>
+        <button type="button" id="add-item-row" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Type</th><th>Amount</th><th>Action</th></tr></thead>
+            <tbody id="item-formset-body">
+                {% for f in formset %}
+                <tr class="formset-row item-row">
+                    <td>{{ f.price_type }}{{ f.id }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>
+                        {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+@media (max-width:768px){.form-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    const totalForms = document.querySelector('[name="items-TOTAL_FORMS"]');
+    const tbody = document.getElementById('item-formset-body');
+    const firstRow = tbody.querySelector('.item-row');
+    const addBtn = document.getElementById('add-item-row');
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const del = row.querySelector('[id$="-DELETE"]');
+                if (del) { del.checked = true; row.style.display = 'none'; } else { row.remove(); }
+            });
+        }
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    if (addBtn && firstRow) {
+        addBtn.addEventListener('click', function() {
+            const n = parseInt(totalForms.value);
+            const row = firstRow.cloneNode(true);
+            row.innerHTML = row.innerHTML.replace(/items-\d+/g, 'items-' + n);
+            row.querySelectorAll('input, select, textarea').forEach(function(el) {
+                if (el.type !== 'hidden') el.value = '';
+                if (el.type === 'checkbox') el.checked = false;
+            });
+            tbody.appendChild(row);
+            totalForms.value = n + 1;
+            bindRemove(row);
+        });
+    }
+})();
+</script>
+{% endblock %}

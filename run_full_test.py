@@ -155,7 +155,11 @@ anon = Client()
 r = anon.get("/accounts/login/")
 record("PASS" if r.status_code == 200 else "FAIL", "Login page accessible (anon)")
 
-r = anon.post("/accounts/login/", {"username": "admin", "password": "SSBikez@2026"}, follow=False)
+ADMIN_PASSWORD = os.environ.get("QA_ADMIN_PASSWORD")
+if not ADMIN_PASSWORD:
+    raise RuntimeError("Set the QA_ADMIN_PASSWORD environment variable before running this script.")
+
+r = anon.post("/accounts/login/", {"username": "admin", "password": ADMIN_PASSWORD}, follow=False)
 if r.status_code in (301, 302) and "verify-otp" in (r.get("Location") or ""):
     record("PASS", "Login POST redirects to OTP page")
     # Verify OTP record was created
@@ -170,7 +174,7 @@ if r.status_code in (301, 302) and "verify-otp" in (r.get("Location") or ""):
             record("FAIL", "Correct OTP verification", f"HTTP {r2.status_code}")
         # Try wrong OTP on new login
         anon2 = Client()
-        anon2.post("/accounts/login/", {"username": "admin", "password": "SSBikez@2026"}, follow=False)
+        anon2.post("/accounts/login/", {"username": "admin", "password": ADMIN_PASSWORD}, follow=False)
         r3 = anon2.post("/accounts/verify-otp/", {"otp_code": "000000"}, follow=False)
         r3b = anon2.get("/accounts/verify-otp/", follow=True)  # re-render with error
         if b"Invalid" in r3b.content or b"expired" in r3b.content or r3.status_code == 200:

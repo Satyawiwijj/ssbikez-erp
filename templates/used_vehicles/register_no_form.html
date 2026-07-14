@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="uv-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'used_vehicles:register_no_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="uv-form" novalidate>
+{% csrf_token %}
+<div class="card form-card">
+    <div class="card-header"><i class="fas fa-list me-2"></i>{{ title }}</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+</form>
+{% endblock %}

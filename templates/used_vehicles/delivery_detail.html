@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}Delivery — {{ obj.sale }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Delivery{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:delivery_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:delivery_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:sale_detail' pk=obj.sale_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Sale</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-truck me-2"></i>Delivery for {{ obj.sale }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Delivery Date</th><td>{{ obj.delivery_date }}</td></tr>
+                <tr><th>Delivered By</th><td>{{ obj.delivered_by|default:"—" }}</td></tr>
+                <tr><th>Remarks</th><td>{{ obj.remarks|default:"—" }}</td></tr>
+                <tr><th>Warehouse</th><td>{{ obj.warehouse|default:"—" }}</td></tr>
+                <tr><th>GST Category</th><td>{{ obj.gst_category|default:"—" }}</td></tr>
+                <tr><th>Has Exchange</th><td>{% if obj.has_exchange %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Item Qty</th><td>{{ obj.item_qty }}</td></tr>
+                <tr><th>Finance Amount</th><td>&#x20B9; {{ obj.finance_amount }}</td></tr>
+                <tr><th>Delivery Discount</th><td>&#x20B9; {{ obj.delivery_discount }}</td></tr>
+                <tr><th>Base Rate</th><td>&#x20B9; {{ obj.base_rate }}</td></tr>
+                <tr><th>Additional Discount</th><td>&#x20B9; {{ obj.additional_discount }}</td></tr>
+                <tr><th>Advance Payment</th><td>&#x20B9; {{ obj.advance_payment }}</td></tr>
+                <tr><th>Balance Amount</th><td>&#x20B9; {{ obj.balance_amount }}</td></tr>
+                <tr><th>Payment Status</th><td>{{ obj.get_payment_status_display }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if obj.offer_petrol %}
+<div class="card mt-3">
+    <div class="card-header">Petrol Offer</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Petrol Type</th><td>{{ obj.get_petrol_type_display }}</td></tr>
+                <tr><th>Litre</th><td>{{ obj.petrol_litre|default:"—" }}</td></tr>
+                <tr><th>Amount</th><td>&#x20B9; {{ obj.petrol_amount }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<div class="card mt-3">
+    <div class="card-header">Delivery Items</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item Code</th><th>Warranty/RSA/AMC</th><th>Rate</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr><td>{{ i.item_code }}</td><td>{{ i.warranty_rsa_amc|default:"—" }}</td><td>&#x20B9; {{ i.rate }}</td></tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty-state">No items.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Advance Payment Details</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Mode of Payment</th><th>Date</th><th>Amount</th><th>To Account</th></tr></thead>
+            <tbody>
+                {% for a in advance_payments %}
+                <tr><td>{{ a.mode_of_payment }}</td><td>{{ a.date }}</td><td>&#x20B9; {{ a.amount }}</td><td>{{ a.to_account|default:"—" }}</td></tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No advance payments.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Approval Workflow</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Manager Approval Requested</th><td>{% if obj.manager_approval_requested %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Manager Approved</th><td>{% if obj.manager_approved %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Finance Approved</th><td>{% if obj.finance_approved %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Handover Checklist</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>RC Book Handed Over</th><td>{% if obj.checklist_rc_book %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Warranty Card Handed Over</th><td>{% if obj.checklist_warranty %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Toolkit Handed Over</th><td>{% if obj.checklist_toolkit %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Accessories Verified</th><td>{% if obj.checklist_accessories %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Gate Pass Issued</th><td>{% if obj.issue_gate_pass %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

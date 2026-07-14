@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}VAS Supplier Invoices — VAS{% endblock %}
+{% block page_title %}VAS Supplier Invoices{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'vas:vas_invoice_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Invoice</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'vas:dashboard' %}">VAS</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">Supplier Invoices</span>
+</nav>
+
+<div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title"><i class="fas fa-file-invoice me-2"></i>VAS Supplier Invoices</span>
+        <span class="badge badge-blue">{{ invoices|length }}</span>
+    </div>
+    <div class="table-wrapper">
+        {% if invoices %}
+        <table class="table">
+            <thead><tr><th>Invoice #</th><th>Supplier</th><th>Date</th><th>Total</th><th>Payment Status</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for inv in invoices %}
+                <tr>
+                    <td style="font-family:monospace;font-weight:600;">{{ inv.invoice_number }}</td>
+                    <td>{{ inv.supplier }}</td>
+                    <td>{{ inv.invoice_date|date:"d M Y" }}</td>
+                    <td>&#x20B9; {{ inv.total_amount }}</td>
+                    <td>{{ inv.get_payment_status_display }}</td>
+                    <td>
+                        {% if inv.docstatus == 0 %}<span class="badge" style="background:#e5e7eb;color:#374151;">Draft</span>
+                        {% elif inv.docstatus == 1 %}<span class="badge" style="background:#dcfce7;color:#166534;">Submitted</span>
+                        {% elif inv.docstatus == 2 %}<span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'vas:vas_invoice_detail' inv.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fas fa-file-invoice mb-2"></i><div>No VAS supplier invoices found.</div></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

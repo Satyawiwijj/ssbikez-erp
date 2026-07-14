@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Dealer RC Hand Overs — SSBikez ERP{% endblock %}
+{% block page_title %}Dealer RC Hand Overs{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:dealer_rc_handover_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>New Hand Over</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Hand Over No</th><th>Dealer</th><th>Items</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for h in handovers %}
+                <tr>
+                    <td><a href="{% url 'sales:dealer_rc_handover_detail' h.pk %}">{{ h.handover_no }}</a></td>
+                    <td>{{ h.dealer }}</td>
+                    <td>{{ h.items.count }}</td>
+                    <td>
+                        {% if h.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif h.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No hand overs yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

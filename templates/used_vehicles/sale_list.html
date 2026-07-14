@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Sales — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Sales{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:sale_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Sale No</th><th>Customer</th><th>Vehicle</th><th>Sale Amount</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for s in sales %}
+                <tr>
+                    <td><a href="{% url 'used_vehicles:sale_detail' pk=s.pk %}">{{ s.sale_number }}</a></td>
+                    <td>{{ s.customer }}</td>
+                    <td>{{ s.vehicle_number }}</td>
+                    <td>&#x20B9; {{ s.sale_amount }}</td>
+                    <td>{{ s.get_sale_status_display }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No sales yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

@@ -111,14 +111,14 @@ Back </a>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.contact_person.id_for_label }}">
                             {{ form.contact_person.label }}
                         </label>
                         {{ form.contact_person }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.country.id_for_label }}">
                             {{ form.country.label }}
                         </label>
                         {{ form.country }}
@@ -133,7 +133,7 @@ Back </a>
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.supplier_limit_amount.id_for_label }}">
                             {{ form.supplier_limit_amount.label }}
                         </label>
                         {{ form.supplier_limit_amount }}
@@ -142,47 +142,47 @@ Back </a>
                     <div class="col-md-4 d-flex align-items-center">
                         <div class="form-check mt-4">
                             {{ form.is_transporter }}
-                            <label class="form-check-label">{{ form.is_transporter.label }}</label>
+                            <label class="form-check-label" for="{{ form.is_transporter.id_for_label }}">{{ form.is_transporter.label }}</label>
                         </div>
                     </div>
 
                     <div class="col-md-4 d-flex align-items-center">
                         <div class="form-check mt-4">
                             {{ form.is_prepaid_supplier }}
-                            <label class="form-check-label">{{ form.is_prepaid_supplier.label }}</label>
+                            <label class="form-check-label" for="{{ form.is_prepaid_supplier.id_for_label }}">{{ form.is_prepaid_supplier.label }}</label>
                         </div>
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.phone.id_for_label }}">
                             {{ form.phone.label }}
                         </label>
                         {{ form.phone }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">
                             {{ form.email.label }}
                         </label>
                         {{ form.email }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.gstin.id_for_label }}">
                             {{ form.gstin.label }}
                         </label>
                         {{ form.gstin }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.gst_category.id_for_label }}">
                             {{ form.gst_category.label }}
                         </label>
                         {{ form.gst_category }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.place_of_supply.id_for_label }}">
                             {{ form.place_of_supply.label }}
                         </label>
                         {{ form.place_of_supply }}
@@ -191,42 +191,42 @@ Back </a>
                     <div class="col-md-4 d-flex align-items-center">
                         <div class="form-check mt-4">
                             {{ form.is_active }}
-                            <label class="form-check-label">
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
                                 {{ form.is_active.label }}
                             </label>
                         </div>
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.address_line1.id_for_label }}">
                             {{ form.address_line1.label }}
                         </label>
                         {{ form.address_line1 }}
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.address_line2.id_for_label }}">
                             {{ form.address_line2.label }}
                         </label>
                         {{ form.address_line2 }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.city.id_for_label }}">
                             {{ form.city.label }}
                         </label>
                         {{ form.city }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.state.id_for_label }}">
                             {{ form.state.label }}
                         </label>
                         {{ form.state }}
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.pincode.id_for_label }}">
                             {{ form.pincode.label }}
                         </label>
                         {{ form.pincode }}

@@ -55,6 +55,13 @@
                 <dd>{{ quote.supplier }}</dd>
             </div>
 
+            {% if quote.request_quotation %}
+            <div class="detail-row">
+                <dt>Request Supplier Quote</dt>
+                <dd><a href="{% url 'spares:request_supplier_quote_detail' quote.request_quotation.pk %}">{{ quote.request_quotation.rsq_no }}</a></dd>
+            </div>
+            {% endif %}
+
             <div class="detail-row">
                 <dt>Date</dt>
                 <dd>{{ quote.date|date:"d M Y" }}</dd>

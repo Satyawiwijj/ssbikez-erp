@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Purchase Receipts — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Purchase Receipts{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:purchase_receipt_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Receipt No</th><th>Purchase Order</th><th>Supplier</th><th>Grand Total</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for r in receipts %}
+                <tr>
+                    <td><a href="{% url 'used_vehicles:purchase_receipt_detail' pk=r.pk %}">{{ r.receipt_number }}</a></td>
+                    <td><a href="{% url 'used_vehicles:purchase_order_detail' pk=r.purchase_order_id %}">{{ r.purchase_order }}</a></td>
+                    <td>{{ r.supplier|default:"—" }}</td>
+                    <td>&#x20B9; {{ r.grand_total }}</td>
+                    <td>
+                        {% if r.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif r.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No purchase receipts yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

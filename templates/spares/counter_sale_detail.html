@@ -66,6 +66,31 @@
             </div>
 
             <div class="detail-row">
+                <dt>Type</dt>
+                <dd>{{ sale.get_sale_type_display }}{% if sale.spot_sale %} (Spot Sale){% endif %}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Ledger Voucher</dt>
+                <dd>{{ sale.ledger_voucher_no|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Bank Ref</dt>
+                <dd>{{ sale.bank_ref_no|default:"—" }} / {{ sale.bank_ref_date|date:"d M Y"|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Accounts From / To</dt>
+                <dd>{{ sale.accounts_from|default:"—" }} / {{ sale.accounts_to|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Balance Delivery Qty / Sale Balance</dt>
+                <dd>{{ sale.balance_delivery_qty }} / &#x20B9; {{ sale.counter_sale_balance }}</dd>
+            </div>
+
+            <div class="detail-row">
                 <dt>Status</dt>
                 <dd>
 
@@ -161,6 +186,8 @@
                     <th>GST %</th>
                     <th>Amount</th>
                     <th>Total</th>
+                    <th>Delivery Balance</th>
+                    <th>Issued</th>
                 </tr>
             </thead>
 
@@ -194,13 +221,16 @@
                         ₹ {{ i.total }}
                     </td>
 
+                    <td>{{ i.delivery_balance_qty }}</td>
+                    <td>{% if i.issue_status %}&#x2705;{% else %}—{% endif %}</td>
+
                 </tr>
 
                 {% empty %}
 
                 <tr>
 
-                    <td colspan="6">
+                    <td colspan="8">
 
                         <div class="empty-state">
                             No sale items found.

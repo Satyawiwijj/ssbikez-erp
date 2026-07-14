@@ -118,7 +118,7 @@
             <div class="detail-row">
                 <dt>Registration No</dt>
                 <dd>
-                    {{ wc.job_card.customer_vehicle.registration_no }}
+                    {{ wc.job_card.customer_vehicle.registration_no|default:"—" }}
                 </dd>
             </div>
 
@@ -154,7 +154,7 @@
                 {% if wc.description %}
                     {{ wc.description|linebreaksbr }}
                 {% else %}
-                    <span style="color:#9CA3AF;">
+                    <span style="color:#6B7280;">
                         No description provided.
                     </span>
                 {% endif %}
@@ -174,7 +174,7 @@
                 {% if wc.notes %}
                     {{ wc.notes|linebreaksbr }}
                 {% else %}
-                    <span style="color:#9CA3AF;">
+                    <span style="color:#6B7280;">
                         No notes available.
                     </span>
                 {% endif %}

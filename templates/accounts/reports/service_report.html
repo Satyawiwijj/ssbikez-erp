@@ -145,7 +145,7 @@
         <div style="width:100%; background:#7C3AED; border-radius:4px 4px 0 0; min-height:4px;"
              data-bay-count="{{ b.count }}" data-bay-max="{{ max_bay }}"
              title="{{ b.count }} assignments"></div>
-        <div style="font-size:10px; color:#9CA3AF; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center;">{{ b.bay__bay_name }}</div>
+        <div style="font-size:10px; color:#6B7280; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%; text-align:center;">{{ b.bay__bay_name }}</div>
       </div>
       {% endfor %}
     </div>
@@ -180,7 +180,7 @@
       <tbody>
         {% for l in top_labor %}
         <tr>
-          <td style="color:#9CA3AF; font-size:13px;">{{ forloop.counter }}</td>
+          <td style="color:#6B7280; font-size:13px;">{{ forloop.counter }}</td>
           <td style="font-weight:500;">{{ l.service_name }}</td>
           <td><span class="badge badge-blue">{{ l.count }}x</span></td>
           <td style="font-weight:500; color:#2563EB;">&#x20B9;{{ l.total_cost|floatformat:0 }}</td>

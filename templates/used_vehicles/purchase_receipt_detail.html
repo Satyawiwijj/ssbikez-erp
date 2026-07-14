@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Purchase Receipt{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:purchase_receipt_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:purchase_receipt_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+<a href="{% url 'used_vehicles:purchase_create' %}?purchase_receipt={{ obj.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create Invoice</a>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'used_vehicles:purchase_receipt_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:purchase_receipt_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-dolly me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Purchase Order</th><td><a href="{% url 'used_vehicles:purchase_order_detail' pk=obj.purchase_order_id %}">{{ obj.purchase_order }}</a></td></tr>
+                <tr><th>Supplier</th><td>{{ obj.supplier|default:"—" }}</td></tr>
+                <tr><th>Branch</th><td>{{ obj.branch|default:"—" }}</td></tr>
+                <tr><th>Required Date</th><td>{{ obj.required_date }}</td></tr>
+                <tr><th>Target Warehouse</th><td>{{ obj.target_warehouse|default:"—" }}</td></tr>
+                <tr><th>Total Quantity</th><td>{{ obj.total_quantity }}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Discount</th><td>{{ obj.discount }}%</td></tr>
+                <tr><th>Grand Total</th><td>&#x20B9; {{ obj.grand_total }}</td></tr>
+                <tr><th>Payment Pending Amount</th><td>&#x20B9; {{ obj.payment_bending_amount }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Purchase Items</div>
+    {% if items %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item Code</th><th>Reg No</th><th>Engine No</th><th>Chassis No</th><th>Color</th><th>Qty</th><th>Rate</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr><td>{{ i.item_code }}</td><td>{{ i.register_number|default:"—" }}</td><td>{{ i.engine_number|default:"—" }}</td><td>{{ i.chasis_number|default:"—" }}</td><td>{{ i.color|default:"—" }}</td><td>{{ i.quantity }}</td><td>&#x20B9; {{ i.rate }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No items recorded.</div>{% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Purchase Invoices</div>
+    {% if invoices %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Invoice No</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for i in invoices %}
+                <tr><td><a href="{% url 'used_vehicles:purchase_detail' pk=i.pk %}">{{ i.invoice_number }}</a></td>
+                    <td>{% if i.docstatus == 0 %}<span class="badge badge-gray">Draft</span>{% elif i.docstatus == 1 %}<span class="badge badge-green">Submitted</span>{% else %}<span class="badge badge-red">Cancelled</span>{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No invoices created yet.</div>{% endif %}
+</div>
+{% endblock %}

@@ -102,7 +102,7 @@ Add Feedback
                         <form method="post" action="{% url 'sales:feedback_delete' fb.pk %}" style="display:inline"
                               onsubmit="return confirm('Delete FB-{{ fb.pk }}?')">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger" aria-label="Delete FB-{{ fb.pk }}"><i class="fas fa-trash"></i></button>
                         </form>
                     </div>
                 </td>

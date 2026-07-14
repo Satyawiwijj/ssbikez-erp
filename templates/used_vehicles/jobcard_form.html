@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="uv-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save</button>
+<a href="{% url 'used_vehicles:jobcard_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<form method="post" id="uv-form" novalidate>
+{% csrf_token %}
+{{ complaint_formset.management_form }}
+{{ observation_formset.management_form }}
+{{ engine_formset.management_form }}
+{{ light_formset.management_form }}
+{{ chasis_formset.management_form }}
+{{ others_formset.management_form }}
+{% for category, label, fs in parts_formset_items %}{{ fs.management_form }}{% endfor %}
+
+<div class="card form-card">
+    <div class="card-header"><i class="fas fa-clipboard-list me-2"></i>{{ title }}</div>
+    <div class="card-body">
+        <div class="row g-3">
+            {% for field in form %}
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">
+                    {{ field.label }}
+                    {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="text-danger small mt-1">{% for error in field.errors %}{{ error }}{% endfor %}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Complaint Details -->
+<div class="card mt-3">
+    <div class="card-header">
+        Complaint Details
+        <button type="button" id="add-complaint-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Customer Complaint</th><th>Details</th><th>Status</th><th>Check</th><th>Est. Amount</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="complaint-formset-body">
+                {% for f in complaint_formset %}
+                <tr class="formset-row complaint-row">
+                    {{ f.id }}
+                    <td>{{ f.customer_complaint }}</td>
+                    <td>{{ f.details }}</td>
+                    <td>{{ f.status }}</td>
+                    <td>{{ f.complaint_check_box }}</td>
+                    <td>{{ f.estimated_amount }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Supervisor Observation -->
+<div class="card mt-3">
+    <div class="card-header">
+        Supervisor Observation
+        <button type="button" id="add-observation-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Observation</th><th>Details</th><th>Check</th><th>Est. Amount</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="observation-formset-body">
+                {% for f in observation_formset %}
+                <tr class="formset-row observation-row">
+                    {{ f.id }}
+                    <td>{{ f.complaint }}</td>
+                    <td>{{ f.details }}</td>
+                    <td>{{ f.complaint_check_box }}</td>
+                    <td>{{ f.estimated_amount }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Engine Details -->
+<div class="card mt-3">
+    <div class="card-header">
+        Engine Details
+        <button type="button" id="add-engine-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Area</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="engine-formset-body">
+                {% for f in engine_formset %}
+                <tr class="formset-row engine-row">
+                    {{ f.id }}
+                    <td>{{ f.items }}</td>
+                    <td>{{ f.yes }}</td>
+                    <td>{{ f.no }}</td>
+                    <td>{{ f.ok }}</td>
+                    <td>{{ f.high }}</td>
+                    <td>{{ f.low }}</td>
+                    <td>{{ f.area_mention }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- All Lights -->
+<div class="card mt-3">
+    <div class="card-header">
+        All Lights
+        <button type="button" id="add-light-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="light-formset-body">
+                {% for f in light_formset %}
+                <tr class="formset-row light-row">
+                    {{ f.id }}
+                    <td>{{ f.items }}</td>
+                    <td>{{ f.yes }}</td>
+                    <td>{{ f.no }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Chasis Details -->
+<div class="card mt-3">
+    <div class="card-header">
+        Chasis Details
+        <button type="button" id="add-chasis-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Good</th><th>Bad</th><th>NA</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="chasis-formset-body">
+                {% for f in chasis_formset %}
+                <tr class="formset-row chasis-row">
+                    {{ f.id }}
+                    <td>{{ f.items }}</td>
+                    <td>{{ f.yes }}</td>
+                    <td>{{ f.no }}</td>
+                    <td>{{ f.ok }}</td>
+                    <td>{{ f.high }}</td>
+                    <td>{{ f.low }}</td>
+                    <td>{{ f.good }}</td>
+                    <td>{{ f.bad }}</td>
+                    <td>{{ f.na }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Others -->
+<div class="card mt-3">
+    <div class="card-header">
+        Others
+        <button type="button" id="add-others-row" class="btn btn-sm btn-outline-primary float-end">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Check</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="others-formset-body">
+                {% for f in others_formset %}
+                <tr class="formset-row others-row">
+                    {{ f.id }}
+                    <td>{{ f.items }}</td>
+                    <td>{{ f.others_check_box }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Parts Check (14 collapsed reference sections) -->
+{% for category, label, fs in parts_formset_items %}
+<div class="card mt-3">
+    <div class="card-header">
+        {{ label }} Details
+        <button type="button" class="btn btn-sm btn-outline-primary float-end add-parts-row" data-category="{{ category }}">+ Add Row</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Spares</th><th>Change Need — Yes</th><th>Change Need — No</th><th style="width:60px;">Action</th></tr></thead>
+            <tbody id="parts-{{ category }}-formset-body">
+                {% for f in fs %}
+                <tr class="formset-row parts-{{ category }}-row">
+                    {{ f.id }}
+                    <td>{{ f.spares }}</td>
+                    <td>{{ f.change_need_yes }}</td>
+                    <td>{{ f.change_need_no }}</td>
+                    <td>
+                        {% if f.instance.pk %}<div style="display:none;">{{ f.DELETE }}</div>{% endif %}
+                        <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endfor %}
+
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+    function makeAdder(prefix, addBtnId, tbodyId, rowClass) {
+        const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(tbodyId);
+        const addBtn = document.getElementById(addBtnId);
+        if (!addBtn || !tbody || !totalForms) return;
+        addBtn.addEventListener('click', function () {
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.' + rowClass);
+            const newRow = firstRow.cloneNode(true);
+            newRow.innerHTML = newRow.innerHTML.replace(new RegExp(prefix + '-\\d+', 'g'), prefix + '-' + formCount);
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow);
+        });
+    }
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (!btn) return;
+        btn.addEventListener('click', function () {
+            const deleteField = row.querySelector('[id$="-DELETE"]');
+            if (deleteField) { deleteField.checked = true; row.style.display = 'none'; }
+            else { row.remove(); }
+        });
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    makeAdder('complaints', 'add-complaint-row', 'complaint-formset-body', 'complaint-row');
+    makeAdder('observations', 'add-observation-row', 'observation-formset-body', 'observation-row');
+    makeAdder('engine', 'add-engine-row', 'engine-formset-body', 'engine-row');
+    makeAdder('lights', 'add-light-row', 'light-formset-body', 'light-row');
+    makeAdder('chasis', 'add-chasis-row', 'chasis-formset-body', 'chasis-row');
+    makeAdder('others', 'add-others-row', 'others-formset-body', 'others-row');
+    document.querySelectorAll('.add-parts-row').forEach(function (btn) {
+        const category = btn.getAttribute('data-category');
+        btn.addEventListener('click', function () {
+            const prefix = 'parts_' + category;
+            const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+            const tbody = document.getElementById('parts-' + category + '-formset-body');
+            const formCount = parseInt(totalForms.value);
+            const firstRow = tbody.querySelector('.parts-' + category + '-row');
+            const newRow = firstRow.cloneNode(true);
+            newRow.innerHTML = newRow.innerHTML.replace(new RegExp(prefix + '-\\d+', 'g'), prefix + '-' + formCount);
+            newRow.querySelectorAll('input, select, textarea').forEach(function (field) {
+                if (field.type !== 'hidden') field.value = '';
+                if (field.type === 'checkbox') field.checked = false;
+            });
+            tbody.appendChild(newRow);
+            totalForms.value = formCount + 1;
+            bindRemove(newRow);
+        });
+    });
+})();
+</script>
+{% endblock %}

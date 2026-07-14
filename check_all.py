@@ -34,6 +34,9 @@ from spares.models import (CounterSale, CounterSaleItem, PurchaseOrder,
 from vas.models import AMCPackage, ProtectionPlusPackage, RSAPackage
 
 print("Creating test data...")
+_CHECK_PASSWORD = os.environ.get('QA_FIXTURE_PASSWORD')
+if not _CHECK_PASSWORD:
+    raise RuntimeError('Set the QA_FIXTURE_PASSWORD environment variable before running this script.')
 today     = datetime.date.today()
 now       = timezone.now()
 next_year = today.replace(year=today.year + 1)
@@ -41,7 +44,7 @@ next_year = today.replace(year=today.year + 1)
 branch, _   = Branch.objects.get_or_create(branch_name='_CheckBranch', defaults={'phone': '9999999999', 'gstin': '29ZZZZZ9999Z9Z9', 'is_active': True})
 role, _     = Role.objects.get_or_create(role_name='_CheckRole')
 User.objects.filter(username='_checkuser').delete()
-user = User.objects.create_superuser(username='_checkuser', password='Ch3ck@pass99', email='check@ssbikez.test', first_name='Check', last_name='User')
+user = User.objects.create_superuser(username='_checkuser', password=_CHECK_PASSWORD, email='check@ssbikez.test', first_name='Check', last_name='User')
 user.branch = branch; user.role = role; user.save()
 
 bike, _  = BikeModel.objects.get_or_create(brand='CheckBrand', model_name='CheckModel', defaults={'ex_showroom_price': Decimal('99999'), 'fuel_type': BikeModel.FuelType.PETROL})
@@ -89,7 +92,7 @@ fuel, _ = FuelExpense.objects.get_or_create(vehicle=stock, fuel_date=today, defa
 print("Test data ready. Running checks...\n")
 
 client = Client()
-assert client.login(username='_checkuser', password='Ch3ck@pass99'), "Login failed!"
+assert client.login(username='_checkuser', password=_CHECK_PASSWORD), "Login failed!"
 
 PASS = []; FAIL = []
 

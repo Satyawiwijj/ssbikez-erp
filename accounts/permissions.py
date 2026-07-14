@@ -9,17 +9,23 @@ A '*' value grants access to every namespace.
 
 ROLE_PERMISSIONS = {
     'Managing Director': ['*'],
-    'Sales Manager':     ['sales', 'customers', 'customer_vehicles', 'billing', 'rto', 'vas', 'accounts'],
-    'Sales Executive':   ['sales', 'customers', 'customer_vehicles', 'accounts'],
-    'Cashier':           ['billing', 'rto', 'customers', 'sales', 'vas', 'accounts'],
+    'Sales Manager':     ['sales', 'customers', 'customer_vehicles', 'billing', 'rto', 'vas', 'accounts', 'used_vehicles'],
+    'Sales Executive':   ['sales', 'customers', 'customer_vehicles', 'accounts', 'used_vehicles'],
+    'Cashier':           ['billing', 'rto', 'customers', 'sales', 'vas', 'accounts', 'used_vehicles'],
     'Accounts':          ['billing', 'rto', 'accounts'],
     'Spares':            ['spares', 'masters', 'accounts'],
-    'CRE Telecaller':    ['service', 'customer_vehicles', 'accounts'],
-    'Supervisor':        ['service', 'accounts'],
-    'Floor Supervisor':  ['service', 'spares', 'accounts'],
-    'Service Advisor':   ['service', 'spares', 'customer_vehicles', 'accounts'],
-    'Service Billing':   ['service', 'billing', 'spares', 'accounts'],
-    'Service Manager':   ['service', 'spares', 'customer_vehicles', 'accounts'],
+    'CRE Telecaller':    ['service', 'customer_vehicles', 'accounts', 'used_vehicles'],
+    # 'CRE' is a distinct DB role from 'CRE Telecaller' (confirmed live: at least one real user,
+    # divya.cre, is assigned 'CRE' specifically) but had no entry here at all -- that user was
+    # 403'd from every namespace except the 2 public account pages. Found live during the
+    # end-to-end audit, not anticipated. Same permissions as CRE Telecaller, since the role names
+    # and intended job function are clearly the same.
+    'CRE':               ['service', 'customer_vehicles', 'accounts', 'used_vehicles'],
+    'Supervisor':        ['service', 'accounts', 'used_vehicles'],
+    'Floor Supervisor':  ['service', 'spares', 'accounts', 'used_vehicles'],
+    'Service Advisor':   ['service', 'spares', 'customer_vehicles', 'accounts', 'used_vehicles'],
+    'Service Billing':   ['service', 'billing', 'spares', 'accounts', 'used_vehicles'],
+    'Service Manager':   ['service', 'spares', 'customer_vehicles', 'accounts', 'used_vehicles'],
 }
 
 

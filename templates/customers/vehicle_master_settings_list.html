@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Vehicle Master Settings — Customers{% endblock %}
+{% block page_title %}Vehicle Master Settings{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'customers:vehicle_master_settings_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Vehicle Master Settings</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Vehicle Master Settings</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Vehicle Master Settings</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Master No</th><th>Vehicle</th><th>Rows</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.master_no }}</td>
+                    <td>{{ o.vehicle }}</td>
+                    <td>{{ o.items.count }}</td>
+                    <td>
+                        {% if o.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif o.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'customers:vehicle_master_settings_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

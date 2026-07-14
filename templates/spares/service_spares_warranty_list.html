@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Service Spares Warranties — SSBikez ERP{% endblock %}
+{% block page_title %}Service Spares Warranties{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:service_spares_warranty_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Warranty Claim</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">Service Spares Warranties</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Service Spares Warranties</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Warranty No</th><th>Vehicle Number</th><th>Supplier</th><th>Brand</th><th>Claim Status</th><th>Doc Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.warranty_no }}</td>
+                    <td>{{ o.vehicle_number|default:"—" }}</td>
+                    <td>{{ o.supplier }}</td>
+                    <td>{{ o.get_brand_display }}</td>
+                    <td>{{ o.get_status_display }}</td>
+                    <td>
+                        {% if o.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif o.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'spares:service_spares_warranty_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="empty-state">No warranty claims found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

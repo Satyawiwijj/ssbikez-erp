@@ -1,11 +1,27 @@
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.forms import UserCreationForm as BaseUserCreationForm
+from django.forms.utils import pretty_name
+from django.utils.text import capfirst
 
-from .models import Branch, CompanySettings, FuelExpense, Role, User
+from .models import Branch, CompanySettings, FuelExpense, Role, User, DiscountPercentageMaster, LedgerCreationDateMaster
 
 
-class CompanySettingsForm(forms.ModelForm):
+class AccessibleFormMixin:
+    """
+    Gives every field an accessible name via aria-label, derived from the field's
+    own label (falling back to a prettified field name, same as Django's own
+    BoundField.label logic) -- a backstop for templates that render a field with
+    no associated <label for="..."> at all (e.g. formset table rows that rely
+    only on a <th> column header).
+    """
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs.setdefault('aria-label', field.label or capfirst(pretty_name(name)))
+
+
+class CompanySettingsForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = CompanySettings
         fields = ('company_name', 'tagline', 'address_line1', 'address_line2',
@@ -14,7 +30,19 @@ class CompanySettingsForm(forms.ModelForm):
                   'gst_rate', 'cgst_rate', 'sgst_rate')
 
 
-class BranchForm(forms.ModelForm):
+class DiscountPercentageMasterForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = DiscountPercentageMaster
+        fields = ('labor_charge_discount', 'out_work_return_discount', 'spares_issue_alteration_discount')
+
+
+class LedgerCreationDateMasterForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = LedgerCreationDateMaster
+        fields = ('allowed_days',)
+
+
+class BranchForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Branch
         fields = ('branch_name', 'address', 'phone', 'gstin', 'is_active')
@@ -23,7 +51,7 @@ class BranchForm(forms.ModelForm):
         }
 
 
-class RoleForm(forms.ModelForm):
+class RoleForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Role
         fields = ('role_name', 'description')
@@ -50,7 +78,7 @@ class UserCreationForm(BaseUserCreationForm):
         self.fields['email'].required = True
 
 
-class UserUpdateForm(forms.ModelForm):
+class UserUpdateForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = User
         fields = ('username', 'first_name', 'last_name', 'email',
@@ -63,7 +91,7 @@ class UserUpdateForm(forms.ModelForm):
         self.fields['email'].required = True
 
 
-class ProfileUpdateForm(forms.ModelForm):
+class ProfileUpdateForm(AccessibleFormMixin, forms.ModelForm):
     """
     Allows the current user to update their own basic info.
     Role and branch are intentionally excluded (admin-only).
@@ -79,7 +107,7 @@ class ProfileUpdateForm(forms.ModelForm):
         }
 
 
-class FuelExpenseForm(forms.ModelForm):
+class FuelExpenseForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = FuelExpense
         fields = ('vehicle', 'amount', 'fuel_date', 'voucher_number', 'remarks')

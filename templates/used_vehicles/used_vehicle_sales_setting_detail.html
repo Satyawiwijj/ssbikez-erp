@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.setting_no }} — Used Vehicles{% endblock %}
+{% block page_title %}{{ obj.setting_no }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:used_vehicle_sales_setting_update' obj.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'used_vehicles:used_vehicle_sales_setting_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'used_vehicles:used_vehicle_sales_setting_list' %}">Used Vehicle Sales Settings</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.setting_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">{{ obj.setting_no }}</span></div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>GST Percent</dt><dd>{{ obj.gst_percent }}%</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Vehicle Cost Rows</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Vehicle No</th><th>Purchase Cost</th><th>Maintain Cost</th><th>Base Rate</th><th>Gross Profit</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.vehicle_no|default:"—" }}</td>
+                    <td>&#x20B9; {{ i.purchase_cost }}</td>
+                    <td>&#x20B9; {{ i.maintain_cost }}</td>
+                    <td>&#x20B9; {{ i.base_rate }}</td>
+                    <td>&#x20B9; {{ i.gross_profit }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No rows found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

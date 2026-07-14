@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+{% block title %}Admin Settings — SSBikez ERP{% endblock %}
+{% block page_title %}Admin Settings{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Admin Settings</span>
+</nav>
+
+<div class="detail-grid">
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Discount Percentage Master</div>
+            <form method="post" style="padding:20px;">
+                {% csrf_token %}
+                {% if discount_form.errors %}
+                <div class="alert alert-danger">{{ discount_form.errors }}</div>
+                {% endif %}
+                <div class="form-group"><label class="form-label" for="{{ discount_form.labor_charge_discount.id_for_label }}">Labor Charge Discount (%)</label>{{ discount_form.labor_charge_discount }}</div>
+                <div class="form-group"><label class="form-label" for="{{ discount_form.out_work_return_discount.id_for_label }}">Out Work Return Discount (%)</label>{{ discount_form.out_work_return_discount }}</div>
+                <div class="form-group"><label class="form-label" for="{{ discount_form.spares_issue_alteration_discount.id_for_label }}">Spares Issue Alteration Discount (%)</label>{{ discount_form.spares_issue_alteration_discount }}</div>
+                <div class="form-actions" style="margin-top:16px;">
+                    <button type="submit" name="save_discount" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Ledger Creation Date Master</div>
+            <form method="post" style="padding:20px;">
+                {% csrf_token %}
+                {% if ledger_form.errors %}
+                <div class="alert alert-danger">{{ ledger_form.errors }}</div>
+                {% endif %}
+                <div class="form-group"><label class="form-label" for="{{ ledger_form.allowed_days.id_for_label }}">Allowed Days</label>{{ ledger_form.allowed_days }}</div>
+                <div class="form-actions" style="margin-top:16px;">
+                    <button type="submit" name="save_ledger" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-group{margin-bottom:14px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+.form-actions{display:flex;gap:12px;align-items:center;}
+</style>
+{% endblock %}

@@ -95,6 +95,26 @@
                 </dd>
             </div>
 
+            <div class="detail-row">
+                <dt>Godown</dt>
+                <dd>{{ ret.godown|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>GST Category</dt>
+                <dd>{{ ret.gst_category|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Accounts From / To</dt>
+                <dd>{{ ret.accounts_from|default:"—" }} / {{ ret.accounts_to|default:"—" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Advance Amount / Discount %</dt>
+                <dd>&#x20B9; {{ ret.advance_amount }} / {{ ret.discount }}%</dd>
+            </div>
+
             {% if ret.reason %}
             <div class="detail-row">
                 <dt>Reason</dt>
@@ -124,8 +144,11 @@
                 <tr>
                     <th>Item</th>
                     <th>Quantity</th>
+                    <th>Return Qty</th>
                     <th>Rate</th>
                     <th>Amount</th>
+                    <th>Issued</th>
+                    <th>Delivery Balance</th>
                 </tr>
             </thead>
 
@@ -144,6 +167,10 @@
                     </td>
 
                     <td>
+                        {{ i.return_qty }}
+                    </td>
+
+                    <td>
                         ₹ {{ i.rate }}
                     </td>
 
@@ -151,13 +178,16 @@
                         ₹ {{ i.amount }}
                     </td>
 
+                    <td>{% if i.issue_status %}&#x2705;{% else %}—{% endif %}</td>
+                    <td>{{ i.delivery_balance_qty }}</td>
+
                 </tr>
 
                 {% empty %}
 
                 <tr>
 
-                    <td colspan="4">
+                    <td colspan="7">
 
                         <div class="empty-state">
                             <p>

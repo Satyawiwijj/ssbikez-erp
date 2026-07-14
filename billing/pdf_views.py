@@ -188,7 +188,7 @@ def service_invoice_pdf(request, job_card_id):
     labor_charges   = job_card.labor_charges.all()
     spares_issues   = list(
         SparesIssueAlterationItem.objects
-        .filter(alteration__job_card=f'JC-{job_card.pk}')
+        .filter(alteration__job_card=job_card)
         .select_related('item')
     )
     outwork_entries = job_card.outwork_entries.all()

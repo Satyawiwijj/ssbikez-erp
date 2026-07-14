@@ -132,4 +132,46 @@ urlpatterns = [
     path('vehicle-service-master/create/',       views.vehicle_service_master_create, name='vehicle_service_master_create'),
     path('vehicle-service-master/<int:pk>/',     views.vehicle_service_master_detail, name='vehicle_service_master_detail'),
     path('vehicle-service-master/<int:pk>/edit/', views.vehicle_service_master_update, name='vehicle_service_master_update'),
+
+    # Phase 2 — Water Wash Done
+    path('water-wash/create/',                  views.water_wash_create,  name='water_wash_create'),
+    path('water-wash/<int:pk>/',                views.water_wash_detail,  name='water_wash_detail'),
+    path('water-wash/<int:pk>/submit/',         views.water_wash_submit,  name='water_wash_submit'),
+    path('water-wash/<int:pk>/cancel/',         views.water_wash_cancel,  name='water_wash_cancel'),
+
+    # Phase 2 — Bay In Creation
+    path('bay-in/create/',                      views.bay_in_create,      name='bay_in_create'),
+    path('bay-in/<int:pk>/',                    views.bay_in_detail,      name='bay_in_detail'),
+    path('bay-in/<int:pk>/submit/',             views.bay_in_submit,      name='bay_in_submit'),
+    path('bay-in/<int:pk>/cancel/',              views.bay_in_cancel,      name='bay_in_cancel'),
+
+    # Phase 2 — Bay Out Creation
+    path('bay-out/create/',                     views.bay_out_create,     name='bay_out_create'),
+    path('bay-out/<int:pk>/',                   views.bay_out_detail,     name='bay_out_detail'),
+    path('bay-out/<int:pk>/submit/',            views.bay_out_submit,     name='bay_out_submit'),
+    path('bay-out/<int:pk>/cancel/',             views.bay_out_cancel,     name='bay_out_cancel'),
+
+    # Phase 2 — Final Inspection
+    path('final-inspection/create/',            views.final_inspection_create, name='final_inspection_create'),
+    path('final-inspection/<int:pk>/',          views.final_inspection_detail, name='final_inspection_detail'),
+    path('final-inspection/<int:pk>/submit/',   views.final_inspection_submit, name='final_inspection_submit'),
+    path('final-inspection/<int:pk>/cancel/',    views.final_inspection_cancel, name='final_inspection_cancel'),
+
+    # Phase 2 — Outwork Entry Issue
+    path('outwork-issue/create/',               views.outwork_issue_create, name='outwork_issue_create'),
+    path('outwork-issue/<int:pk>/',             views.outwork_issue_detail, name='outwork_issue_detail'),
+    path('outwork-issue/<int:pk>/submit/',      views.outwork_issue_submit, name='outwork_issue_submit'),
+    path('outwork-issue/<int:pk>/cancel/',       views.outwork_issue_cancel, name='outwork_issue_cancel'),
+
+    # Phase 2 — Outwork Entry Return
+    path('outwork-return/create/',              views.outwork_return_create, name='outwork_return_create'),
+    path('outwork-return/<int:pk>/',            views.outwork_return_detail, name='outwork_return_detail'),
+    path('outwork-return/<int:pk>/submit/',     views.outwork_return_submit, name='outwork_return_submit'),
+    path('outwork-return/<int:pk>/cancel/',      views.outwork_return_cancel, name='outwork_return_cancel'),
+
+    # Phase 2 — Labor Charges Alteration
+    path('labor-alteration/create/',            views.labor_alteration_create, name='labor_alteration_create'),
+    path('labor-alteration/<int:pk>/',          views.labor_alteration_detail, name='labor_alteration_detail'),
+    path('labor-alteration/<int:pk>/submit/',   views.labor_alteration_submit, name='labor_alteration_submit'),
+    path('labor-alteration/<int:pk>/cancel/',    views.labor_alteration_cancel, name='labor_alteration_cancel'),
 ]

@@ -61,7 +61,7 @@
                         </div>
 
                         <div style="font-size:12px;color:#6B7280;">
-                            {{ c.customer_vehicle.registration_no }}
+                            {{ c.customer_vehicle.registration_no|default:"—" }}
                         </div>
                     </td>
 

@@ -13,6 +13,11 @@ urlpatterns = [
     path('invoices/create/',            views.invoice_create, name='invoice_create'),
     path('invoices/<int:pk>/',          views.invoice_detail, name='invoice_detail'),
     path('invoices/<int:pk>/edit/',     views.invoice_update, name='invoice_update'),
+    path('invoices/<int:pk>/submit/',   views.invoice_submit, name='invoice_submit'),
+    path('invoices/<int:pk>/cancel/',   views.invoice_cancel, name='invoice_cancel'),
+    path('invoices/<int:pk>/amend/',    views.invoice_amend,  name='invoice_amend'),
+    path('invoices/<int:pk>/md-approve/', views.invoice_md_approve, name='invoice_md_approve'),
+    path('invoices/<int:pk>/md-reject/',  views.invoice_md_reject,  name='invoice_md_reject'),
     path('invoices/<int:pk>/pdf/',      pdf_views.invoice_pdf, name='invoice_pdf'),
     # Alias: singular form for compatibility
     path('invoice/<int:pk>/pdf/',       pdf_views.invoice_pdf, name='invoice_pdf_alt'),

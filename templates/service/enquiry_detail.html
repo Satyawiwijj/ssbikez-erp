@@ -93,7 +93,7 @@ Back </a>
         <div class="detail-row">
             <dt>Registration No</dt>
             <dd style="font-family:monospace;">
-                {{ enquiry.customer_vehicle.registration_no }}
+                {{ enquiry.customer_vehicle.registration_no|default:"—" }}
             </dd>
         </div>
 

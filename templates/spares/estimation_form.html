@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} — SSBikez ERP{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block topbar_actions %}
+<button form="est-form" class="btn btn-sm btn-primary"><i class="fas fa-save me-1"></i>Save Estimation</button>
+<a href="{% url 'spares:estimation_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:estimation_list' %}">Purchase Estimations</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ title }}</span>
+</nav>
+
+<form method="post" id="est-form" novalidate>
+{% csrf_token %}
+{{ item_formset.management_form }}
+{{ labor_formset.management_form }}
+
+{% if form.errors or item_formset.errors or labor_formset.errors %}
+<div class="card" style="margin-bottom:20px;border-left:4px solid #DC2626;background:#FEF2F2;">
+    <div style="padding:16px 20px;">
+        <h4 style="margin:0 0 10px 0;color:#B91C1C;font-size:15px;">Please correct the following errors:</h4>
+        <ul style="margin:0;padding-left:20px;color:#991B1B;">
+            {% for field in form %}{% for error in field.errors %}<li><strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}
+            {% for f in item_formset %}{% for field in f %}{% for error in field.errors %}<li>Item Row — <strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}{% endfor %}
+            {% for f in labor_formset %}{% for field in f %}{% for error in field.errors %}<li>Labor Row — <strong>{{ field.label }}</strong> — {{ error }}</li>{% endfor %}{% endfor %}{% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
+
+<div class="detail-grid">
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Estimation Information</div>
+            <div style="padding:20px;">
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label" for="{{ form.date.id_for_label }}">Date *</label>{{ form.date }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ form.customer_name.id_for_label }}">Customer Name</label>{{ form.customer_name }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ form.chasis_no.id_for_label }}">Chasis No</label>{{ form.chasis_no }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ form.insurance_name.id_for_label }}">Insurance Name</label>{{ form.insurance_name }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ form.vehicle_code.id_for_label }}">Vehicle Code</label>{{ form.vehicle_code }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ form.vehicle_name.id_for_label }}">Vehicle Name</label>{{ form.vehicle_name }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="card">
+            <div class="card-header"><span class="card-title">Details</span></div>
+            <div style="padding:20px;">
+                <div style="margin-bottom:14px;"><strong>Module</strong><div class="text-muted">Spares Management</div></div>
+                <div><strong>Purpose</strong><div class="text-muted">Pre-purchase costing for a customer's vehicle repair. Confirmed item rows can later be pulled into a real Purchase Order via "Get Estimation".</div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <span class="card-title">Estimation Items</span>
+        <button type="button" id="add-item-row" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Item</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Amount</th><th>UOM</th><th>GST %</th><th>Confirm to Order</th><th>Action</th></tr></thead>
+            <tbody id="item-formset-body">
+                {% for f in item_formset %}
+                <tr class="formset-row item-row">
+                    <td>{{ f.item }}{{ f.id }}</td>
+                    <td>{{ f.qty }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>{{ f.uom }}</td>
+                    <td>{{ f.gst }}</td>
+                    <td>{{ f.confirm }}</td>
+                    <td>
+                        {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="margin-top:20px;">
+    <div class="card-header">
+        <span class="card-title">Labor Charges</span>
+        <button type="button" id="add-labor-row" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Labor</button>
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Date</th><th>Labor</th><th>Qty</th><th>Amount</th><th>SGST %</th><th>CGST %</th><th>Action</th></tr></thead>
+            <tbody id="labor-formset-body">
+                {% for f in labor_formset %}
+                <tr class="formset-row labor-row">
+                    <td>{{ f.date }}{{ f.id }}</td>
+                    <td>{{ f.labor_name }}</td>
+                    <td>{{ f.quantity }}</td>
+                    <td>{{ f.amount }}</td>
+                    <td>{{ f.sgst }}</td>
+                    <td>{{ f.cgst }}</td>
+                    <td>
+                        {% if f.instance.pk %}{{ f.DELETE }}{% endif %}
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function() {
+    function makeAdder(prefix, addBtnId, tbodyId, rowClass) {
+        const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(tbodyId);
+        const firstRow = tbody.querySelector('.' + rowClass);
+        const addBtn = document.getElementById(addBtnId);
+        if (!addBtn || !firstRow) return;
+        addBtn.addEventListener('click', function() {
+            const n = parseInt(totalForms.value);
+            const row = firstRow.cloneNode(true);
+            row.innerHTML = row.innerHTML.replace(new RegExp(prefix + '-\\d+', 'g'), prefix + '-' + n);
+            row.querySelectorAll('input, select, textarea').forEach(function(el) {
+                if (el.type !== 'hidden') el.value = '';
+                if (el.type === 'checkbox') el.checked = false;
+            });
+            tbody.appendChild(row);
+            totalForms.value = n + 1;
+            bindRemove(row);
+        });
+    }
+    function bindRemove(row) {
+        const btn = row.querySelector('.remove-row');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                const del = row.querySelector('[id$="-DELETE"]');
+                if (del) { del.checked = true; row.style.display = 'none'; } else { row.remove(); }
+            });
+        }
+    }
+    document.querySelectorAll('.formset-row').forEach(bindRemove);
+    makeAdder('items', 'add-item-row', 'item-formset-body', 'item-row');
+    makeAdder('labor', 'add-labor-row', 'labor-formset-body', 'labor-row');
+})();
+</script>
+{% endblock %}

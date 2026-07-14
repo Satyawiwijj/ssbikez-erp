@@ -133,7 +133,10 @@ def get_otp():
     db.close()
     return row[0] if row else None
 
-def login(page, user='admin', pwd='SSBikez@2026'):
+def login(page, user='admin', pwd=None):
+    pwd = pwd or os.environ.get('QA_ADMIN_PASSWORD')
+    if not pwd:
+        raise RuntimeError('Set the QA_ADMIN_PASSWORD environment variable before running this script.')
     go(page, '/accounts/login/')
     fill(page, 'input[name="username"]', user)
     fill(page, 'input[name="password"]', pwd)
@@ -1590,9 +1593,9 @@ with sync_playwright() as pw:
     print('\n--------- 13. RBAC ---------')
 
     # --- Sales Executive ---
-    # Prefer the known QA fixture account (password 'Test@123') over an
-    # arbitrary same-role user — .first() picked unrelated seed data with an
-    # unknown password before this fix.
+    # Prefer the known QA fixture account (password from QA_FIXTURE_PASSWORD)
+    # over an arbitrary same-role user — .first() picked unrelated seed data
+    # with an unknown password before this fix.
     sales_role = Role.objects.filter(role_name='Sales Executive').first()
     sales_user = (
         User.objects.filter(role=sales_role, username__in=['sales.test', 'e2e_sales']).first()
@@ -1602,7 +1605,7 @@ with sync_playwright() as pw:
     if sales_user:
         go(page, '/accounts/logout/')
         page.wait_for_timeout(800)
-        login(page, user=sales_user.username, pwd='Test@123')
+        login(page, user=sales_user.username, pwd=os.environ.get('QA_FIXTURE_PASSWORD'))
         ss(page,'184_sales_exec_logged_in')
         chk(page,'RBAC','Sales exec login success',
             'login' not in page.url and 'otp' not in page.url)
@@ -1681,7 +1684,7 @@ with sync_playwright() as pw:
     if cashier_user:
         go(page, '/accounts/logout/')
         page.wait_for_timeout(500)
-        login(page, user=cashier_user.username, pwd='Test@123')
+        login(page, user=cashier_user.username, pwd=os.environ.get('QA_FIXTURE_PASSWORD'))
         ss(page,'189_cashier_logged_in')
 
         go(page, '/accounts/dashboard/')

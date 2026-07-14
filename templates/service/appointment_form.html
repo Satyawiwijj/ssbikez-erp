@@ -59,7 +59,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Phone No</label>
+                            <label class="form-label" for="{{ form.phone_no.id_for_label }}">Phone No</label>
                             {{ form.phone_no }}
                             {% if form.phone_no.errors %}
                             <div class="form-error">{{ form.phone_no.errors|join:", " }}</div>
@@ -67,7 +67,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Whatsapp No</label>
+                            <label class="form-label" for="{{ form.whatsapp_no.id_for_label }}">Whatsapp No</label>
                             {{ form.whatsapp_no }}
                             {% if form.whatsapp_no.errors %}
                             <div class="form-error">{{ form.whatsapp_no.errors|join:", " }}</div>
@@ -75,7 +75,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Chassis No</label>
+                            <label class="form-label" for="{{ form.chassis_no.id_for_label }}">Chassis No</label>
                             {{ form.chassis_no }}
                             {% if form.chassis_no.errors %}
                             <div class="form-error">{{ form.chassis_no.errors|join:", " }}</div>
@@ -83,7 +83,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Vehicle Name</label>
+                            <label class="form-label" for="{{ form.vehicle_name.id_for_label }}">Vehicle Name</label>
                             {{ form.vehicle_name }}
                             {% if form.vehicle_name.errors %}
                             <div class="form-error">{{ form.vehicle_name.errors|join:", " }}</div>
@@ -91,7 +91,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Service Type</label>
+                            <label class="form-label" for="{{ form.service_type.id_for_label }}">Service Type</label>
                             {{ form.service_type }}
                             {% if form.service_type.errors %}
                             <div class="form-error">{{ form.service_type.errors|join:", " }}</div>
@@ -99,7 +99,7 @@
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Status</label>
+                            <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                             {{ form.status }}
                             {% if form.status.errors %}
                             <div class="form-error">{{ form.status.errors|join:", " }}</div>

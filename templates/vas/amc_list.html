@@ -82,7 +82,7 @@
             {% endif %}
           </td>
           <td style="font-family:monospace; font-size:13px;">{{ pkg.customer_vehicle.registration_no|default:"—" }}</td>
-          <td>{{ pkg.package_name }}</td>
+          <td>{{ pkg.amc_type }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ pkg.start_date|date:"d M Y"|default:"—" }}</td>
           <td style="color:#6B7280; font-size:13px;">{{ pkg.end_date|date:"d M Y"|default:"—" }}</td>
           <td>{% if pkg.amount %}&#x20B9; {{ pkg.amount }}{% else %}—{% endif %}</td>

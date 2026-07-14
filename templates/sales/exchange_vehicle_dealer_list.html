@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}Exchange Vehicle Dealer Transfers — SSBikez ERP{% endblock %}
+{% block page_title %}Exchange Vehicle Dealer Transfers{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:exchange_vehicle_dealer_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>New Transfer</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Transfer No</th><th>Dealer</th><th>From → To Warehouse</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for t in transfers %}
+                <tr>
+                    <td><a href="{% url 'sales:exchange_vehicle_dealer_detail' t.pk %}">{{ t.transfer_no }}</a></td>
+                    <td>{{ t.dealer }}</td>
+                    <td>{{ t.from_warehouse }} → {{ t.to_warehouse }}</td>
+                    <td>{{ t.date }}</td>
+                    <td>
+                        {% if t.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif t.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No transfers yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

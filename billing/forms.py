@@ -1,16 +1,34 @@
 from django import forms
+from accounts.forms import AccessibleFormMixin
+from django.forms import inlineformset_factory
 
-from .models import FinanceLoan, InsurancePolicy, Invoice, Payment
+from .models import FinanceLoan, InsurancePolicy, Invoice, InvoiceItem, Payment
 
 
-class InvoiceForm(forms.ModelForm):
+class InvoiceForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Invoice
-        fields = ('sales_order', 'invoice_number', 'subtotal',
-                  'gst_amount', 'discount_amount', 'final_amount', 'invoice_date')
+        fields = (
+            'sales_order', 'invoice_number', 'subtotal',
+            'gst_amount', 'gst_category', 'discount_amount', 'final_amount', 'invoice_date',
+            'payment_type', 'payment_due_date',
+            'md_approval_requested', 'md_approved',
+            'total_quantity', 'finance_amount', 'actual_refund_amount', 'customer_refund_amount',
+            'delivery_discount', 'sales_order_discount_amount', 'refund_from_account',
+            'exchange_vehicle_amount', 'number_plate_amount', 'advance_amount',
+            'balance_payment', 'status',
+        )
         widgets = {
-            'invoice_date': forms.DateInput(attrs={'type': 'date'}),
+            'invoice_date':     forms.DateInput(attrs={'type': 'date'}),
+            'payment_due_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # gst_amount and final_amount are always derived in clean() below —
+        # don't force the user to pre-fill them before we've had a chance to compute them.
+        self.fields['gst_amount'].required = False
+        self.fields['final_amount'].required = False
 
     def clean(self):
         from decimal import Decimal
@@ -42,7 +60,7 @@ class InvoiceForm(forms.ModelForm):
         return cleaned
 
 
-class PaymentForm(forms.ModelForm):
+class PaymentForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Payment
         fields = ('invoice', 'payment_method', 'transaction_reference',
@@ -108,7 +126,7 @@ class PaymentForm(forms.ModelForm):
         return cleaned_data
 
 
-class InsurancePolicyForm(forms.ModelForm):
+class InsurancePolicyForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = InsurancePolicy
         fields = ('sales_order', 'provider_name', 'policy_number',
@@ -119,7 +137,7 @@ class InsurancePolicyForm(forms.ModelForm):
         }
 
 
-class FinanceLoanForm(forms.ModelForm):
+class FinanceLoanForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = FinanceLoan
         fields = ('sales_order', 'bank_name', 'sanctioned_date', 'loan_amount',
@@ -217,7 +235,7 @@ from django.forms import inlineformset_factory
 from .models import JournalEntry, JournalEntryLine, RefundAdvance
 
 
-class RefundAdvanceForm(forms.ModelForm):
+class RefundAdvanceForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = RefundAdvance
         fields = ('customer', 'transaction_type', 'amount', 'reference_invoice',
@@ -225,7 +243,7 @@ class RefundAdvanceForm(forms.ModelForm):
         widgets = {'reason': forms.Textarea(attrs={'rows': 3})}
 
 
-class JournalEntryForm(forms.ModelForm):
+class JournalEntryForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = JournalEntry
         fields = ('entry_date', 'description', 'is_vehicle_purchase', 'company_gstin',
@@ -246,7 +264,7 @@ class JournalEntryForm(forms.ModelForm):
         }
 
 
-class JournalEntryLineForm(forms.ModelForm):
+class JournalEntryLineForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = JournalEntryLine
         fields = ('account', 'party_type', 'party', 'debit', 'credit')
@@ -262,4 +280,21 @@ class JournalEntryLineForm(forms.ModelForm):
 JournalEntryLineFormSet = inlineformset_factory(
     JournalEntry, JournalEntryLine,
     form=JournalEntryLineForm, extra=2, can_delete=True,
+)
+
+
+class InvoiceItemLineForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = InvoiceItem
+        fields = ('item_code', 'rate', 'discount')
+        widgets = {
+            'item_code': forms.TextInput(attrs={'class': 'form-control'}),
+            'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'discount':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+        }
+
+
+InvoiceItemFormSet = inlineformset_factory(
+    Invoice, InvoiceItem,
+    form=InvoiceItemLineForm, extra=1, can_delete=True,
 )

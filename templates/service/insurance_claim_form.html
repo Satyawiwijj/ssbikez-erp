@@ -130,7 +130,7 @@
                     <div class="mb-3">
                         <strong>Registration No.</strong>
                         <div class="text-muted">
-                            {{ jc.customer_vehicle.registration_no }}
+                            {{ jc.customer_vehicle.registration_no|default:"—" }}
                         </div>
                     </div>
 

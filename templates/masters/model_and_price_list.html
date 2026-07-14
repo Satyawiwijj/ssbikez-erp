@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Model and Price — Masters{% endblock %}
+{% block page_title %}Model and Price{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:model_and_price_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Model and Price</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Model and Price</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Model and Price</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Price No</th><th>Vehicle</th><th>Color</th><th>Ex Showroom</th><th>PDI</th><th>RSA</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.price_no }}</td>
+                    <td>{{ o.model_name }}</td>
+                    <td>{{ o.color|default:"—" }}</td>
+                    <td>&#x20B9; {{ o.ex_show_room }}</td>
+                    <td>&#x20B9; {{ o.pdi }}</td>
+                    <td>&#x20B9; {{ o.rsa }}</td>
+                    <td><a href="{% url 'masters:model_and_price_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="empty-state">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

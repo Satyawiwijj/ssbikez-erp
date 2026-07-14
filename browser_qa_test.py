@@ -113,7 +113,10 @@ def wait_otp(username: str, timeout: int = 12) -> str | None:
         time.sleep(0.5)
     return None
 
-def do_login(page, username='admin', password='SSBikez@2026') -> bool:
+def do_login(page, username='admin', password=None) -> bool:
+    password = password or os.environ.get('QA_ADMIN_PASSWORD')
+    if not password:
+        raise RuntimeError('Set the QA_ADMIN_PASSWORD environment variable before running this script.')
     page.goto(f"{BASE_URL}/accounts/login/")
     page.wait_for_load_state('domcontentloaded', timeout=10000)
     page.fill('input[name="username"]', username)
@@ -1115,7 +1118,7 @@ def flow_rbac(page):
     log_ok('RBAC', 'Logout')
 
     # Try e2e_sales user
-    e2e_login_ok = do_login(page, 'e2e_sales', 'Test@123')
+    e2e_login_ok = do_login(page, 'e2e_sales', os.environ.get('QA_FIXTURE_PASSWORD'))
     if e2e_login_ok:
         ss(page, '10_e2e_sales_logged_in')
         log_ok('RBAC', 'e2e_sales login succeeded')
@@ -1160,7 +1163,7 @@ def flow_rbac(page):
     # Re-login as admin
     page.goto(f"{BASE_URL}/accounts/logout/")
     page.wait_for_load_state('domcontentloaded', timeout=5000)
-    if do_login(page, 'admin', 'SSBikez@2026'):
+    if do_login(page, 'admin'):
         ss(page, '10_admin_relogin')
         log_ok('RBAC', 'Re-logged in as admin')
     else:

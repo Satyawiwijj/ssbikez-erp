@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}NUMORD-{{ obj.pk }} — RTO{% endblock %}
+{% block page_title %}Number Order Entry Detail{% endblock %}
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'rto:number_order_entry_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'rto:number_order_entry_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'rto:number_receipt_entry_create' %}?order_entry={{ obj.pk }}" class="btn btn-secondary btn-sm">+ Number Receipt Entry</a>
+<a href="{% url 'rto:dashboard' %}" class="btn btn-outline-secondary btn-sm"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a><span class="bc-sep">/</span>
+    <span class="bc-current">NUMORD-{{ obj.pk }}</span>
+</nav>
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-clipboard-list me-2"></i>NUMORD-{{ obj.pk }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge" style="background:#e5e7eb;color:#374151;">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge" style="background:#dcfce7;color:#166534;">Submitted</span>
+        {% elif obj.docstatus == 2 %}<span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Sales Order</dt><dd style="font-weight:600;">{{ obj.sales_order }}</dd></div>
+        <div class="detail-row"><dt>Agent</dt><dd>{{ obj.agent }}</dd></div>
+        <div class="detail-row"><dt>Registration Area</dt><dd>{{ obj.registration_area|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Application Type</dt><dd>{{ obj.application_type }}</dd></div>
+        <div class="detail-row"><dt>Chassis No / Engine No</dt><dd>{{ obj.chassis_no|default:"—" }} / {{ obj.engine_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Re-Order</dt><dd>{% if obj.re_order %}&#x2705;{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+{% endblock %}

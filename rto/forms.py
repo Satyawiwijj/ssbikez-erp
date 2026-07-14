@@ -1,13 +1,19 @@
 import re
 
 from django import forms
+from accounts.forms import AccessibleFormMixin
+from django.forms import inlineformset_factory
 
-from .models import NumberPlateOrder, RCBook, RTORegistration
+from .models import (Form20Creation, NumberOrderEntryCreation, NumberPlateIssue,
+                     NumberPlateOrder, NumberReceiptEntryCreation, RCBook, RCBookCreation,
+                     RCBookIssue, RCBookIssueItem, RCHandOver, RegisterNumberMaster,
+                     RegistrationArea, RegistrationNoCreation, RegpayCreation, RegpayCreationItem,
+                     RegPayBaseAmount, RTOPayment, RTOPaymentItem, RTORegistration)
 
 REGISTRATION_NUMBER_PATTERN = r'^[A-Z]{2}\d{1,2}[A-Z]{1,3}\d{1,4}$'
 
 
-class RTORegistrationForm(forms.ModelForm):
+class RTORegistrationForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = RTORegistration
         fields = ('sales_order', 'form20_number', 'registration_number',
@@ -55,7 +61,7 @@ class RTORegistrationForm(forms.ModelForm):
         return charges
 
 
-class NumberPlateOrderForm(forms.ModelForm):
+class NumberPlateOrderForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = NumberPlateOrder
         fields = ('rto', 'plate_number', 'vendor_name', 'issue_date', 'status')
@@ -90,7 +96,7 @@ class NumberPlateOrderForm(forms.ModelForm):
         return value
 
 
-class RCBookForm(forms.ModelForm):
+class RCBookForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = RCBook
         fields = ('rto_registration', 'rc_number', 'issue_date',
@@ -109,7 +115,7 @@ class RCBookForm(forms.ModelForm):
 from .models import RegPayment, RTOIncome
 
 
-class RegPaymentForm(forms.ModelForm):
+class RegPaymentForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = RegPayment
         fields = ('payment_type', 'amount', 'receipt_number', 'payment_date', 'notes')
@@ -119,7 +125,7 @@ class RegPaymentForm(forms.ModelForm):
         }
 
 
-class RTOIncomeForm(forms.ModelForm):
+class RTOIncomeForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = RTOIncome
         fields = ('income_type', 'amount', 'collected_from', 'date', 'notes')
@@ -127,3 +133,167 @@ class RTOIncomeForm(forms.ModelForm):
             'date': forms.DateInput(attrs={'type': 'date'}),
             'notes': forms.Textarea(attrs={'rows': 2}),
         }
+
+
+# ===========================================================================
+# Phase 6 — new-vehicle RTO forms
+# ===========================================================================
+
+class RegistrationAreaForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegistrationArea
+        fields = ('name', 'is_active')
+
+
+class RegPayBaseAmountForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegPayBaseAmount
+        fields = ('vehicle', 'amount')
+
+
+class RegisterNumberMasterForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegisterNumberMaster
+        fields = ('register_number', 'is_used')
+
+
+class RCHandOverForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RCHandOver
+        fields = ('sales_order', 'rc_book_received', 'noc', 'vehicle_received',
+                  'year_of_make', 'hp_endorsement', 'to_received', 'rc_book_number')
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('rc_book_received') == 'yes' and not cleaned.get('rc_book_number'):
+            self.add_error('rc_book_number', 'Required when RC Book Received is Yes.')
+        return cleaned
+
+
+class Form20CreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = Form20Creation
+        fields = ('sales_order', 'registration_area', 'engine_no', 'frame_no', 'application_no')
+
+
+class RegistrationNoCreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegistrationNoCreation
+        fields = ('sales_order', 'form20', 'registration_area', 'reg_no',
+                  'frame_no', 'engine_no', 'status', 'remark')
+
+
+class RTOPaymentForm(AccessibleFormMixin, forms.ModelForm):
+    reference_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False)
+
+    class Meta:
+        model  = RTOPayment
+        fields = ('direction', 'pay_type', 'cash_account', 'bank_name',
+                  'agent_type', 'agent', 'reference_no', 'reference_date', 'payment_status')
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('direction') == 'expense' and not cleaned.get('agent_type'):
+            self.add_error('agent_type', 'Required for Expense direction.')
+        return cleaned
+
+
+class RTOPaymentItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RTOPaymentItem
+        fields = ('sales_order', 'branch', 'flag_amount', 'fine_amount', 'license_amount')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('branch', 'flag_amount', 'fine_amount', 'license_amount'):
+            self.fields[f].required = False
+
+
+RTOPaymentItemFormSet = inlineformset_factory(
+    RTOPayment, RTOPaymentItem, form=RTOPaymentItemForm, extra=1, can_delete=True
+)
+
+
+class RegpayCreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegpayCreation
+        fields = ('registration_area', 'supplier', 'transaction_charges',
+                  'pending_amount', 'payment_status')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('transaction_charges', 'pending_amount'):
+            self.fields[f].required = False
+
+
+class RegpayCreationItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RegpayCreationItem
+        fields = ('sales_order', 'vehicle_type', 'profit', 'amount_from_customer')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('profit', 'amount_from_customer'):
+            self.fields[f].required = False
+
+
+RegpayCreationItemFormSet = inlineformset_factory(
+    RegpayCreation, RegpayCreationItem, form=RegpayCreationItemForm, extra=1, can_delete=True
+)
+
+
+class NumberOrderEntryCreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = NumberOrderEntryCreation
+        fields = ('sales_order', 'agent', 'registration_area', 'application_type',
+                  'chassis_no', 'engine_no', 're_order')
+
+
+class NumberReceiptEntryCreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = NumberReceiptEntryCreation
+        fields = ('order_entry', 'agent', 'payment_type', 'rate', 'cgst', 'sgst', 'total')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['total'].required = False
+
+
+class NumberPlateIssueForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = NumberPlateIssue
+        fields = ('receipt_entry', 'issue_type', 'sub_dealer_name', 'transfer_to_branch',
+                  'is_frame', 'frame', 'warehouse', 'rack', 'bin', 'frame_amount')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('sub_dealer_name', 'transfer_to_branch', 'frame', 'warehouse', 'rack', 'bin'):
+            self.fields[f].required = False
+
+
+class RCBookCreationForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RCBookCreation
+        fields = ('rto_registration', 'agent', 'registration_area', 'post_by_rto', 'rc_number')
+
+
+class RCBookIssueForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RCBookIssue
+        fields = ('rc_book_creation', 'issue_type', 'from_branch', 'to_branch', 'sub_dealer_name')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('from_branch', 'to_branch', 'sub_dealer_name'):
+            self.fields[f].required = False
+
+
+class RCBookIssueItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model  = RCBookIssueItem
+        fields = ('exchange_vehicle', 'vehicle_number', 'party_name')
+
+
+RCBookIssueItemFormSet = inlineformset_factory(
+    RCBookIssue, RCBookIssueItem, form=RCBookIssueItemForm, extra=1, can_delete=True
+)

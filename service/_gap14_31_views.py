@@ -15,7 +15,11 @@ from .models import (AdditionalWorkApproval, CustomerCall, InsuranceClaim,
 
 @login_required
 def revisit_create(request, jc_pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     jc = get_object_or_404(JobCard, pk=jc_pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     instance = getattr(jc, 'revisit', None)
     form = JobCardRevisitForm(request.POST or None, instance=instance)
     if request.method == 'POST' and form.is_valid():
@@ -29,7 +33,11 @@ def revisit_create(request, jc_pk):
 
 @login_required
 def service_child_add(request, jc_pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     jc = get_object_or_404(JobCard, pk=jc_pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = JobCardServiceChildForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         obj = form.save(commit=False)
@@ -43,7 +51,11 @@ def service_child_add(request, jc_pk):
 @login_required
 @require_POST
 def service_child_toggle(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     child = get_object_or_404(JobCardServiceChild, pk=pk)
+    if not user_owns(request.user, child):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if child.status == JobCardServiceChild.Status.COMPLETED:
         child.status = JobCardServiceChild.Status.PENDING
         child.completed_at = None
@@ -60,9 +72,14 @@ def service_enquiry_bulk_import(request):
     from io import TextIOWrapper
     from customer_vehicles.models import CustomerVehicle
 
+    MAX_UPLOAD_BYTES = 5 * 1024 * 1024  # 5MB
+
     results = None
     if request.method == 'POST' and request.FILES.get('file'):
         f = request.FILES['file']
+        if f.size > MAX_UPLOAD_BYTES:
+            messages.error(request, 'File is too large — the limit is 5MB.')
+            return render(request, 'service/bulk_import.html', {'results': None})
         rows = []
         try:
             text = TextIOWrapper(f.file, encoding='utf-8-sig', errors='ignore')
@@ -70,6 +87,13 @@ def service_enquiry_bulk_import(request):
             rows = list(reader)
         except Exception as exc:
             messages.error(request, 'Cannot read file: ' + str(exc))
+
+        def _defuse(value):
+            # Prevent CSV/Excel formula injection if this data is ever
+            # re-exported and opened by someone else.
+            if value and value[0] in ('=', '+', '-', '@'):
+                return "'" + value
+            return value
 
         imported, errors = [], []
         for idx, row in enumerate(rows, start=2):
@@ -85,7 +109,7 @@ def service_enquiry_bulk_import(request):
                     continue
                 enq = ServiceEnquiry.objects.create(
                     customer_vehicle=cv,
-                    issue_description=row.get('issue_description', ''),
+                    issue_description=_defuse(row.get('issue_description', '')),
                     created_by=request.user,
                 )
                 imported.append({'row': idx, 'enquiry_id': enq.pk, 'reg': reg})
@@ -190,7 +214,11 @@ def insurance_claim_list(request):
 
 @login_required
 def insurance_claim_create(request, jc_pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     jc = get_object_or_404(JobCard, pk=jc_pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = InsuranceClaimForm(request.POST or None, initial={'job_card': jc})
     if request.method == 'POST' and form.is_valid():
         obj = form.save()
@@ -207,7 +235,11 @@ def insurance_claim_detail(request, pk):
 
 @login_required
 def insurance_claim_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     claim = get_object_or_404(InsuranceClaim, pk=pk)
+    if not user_owns(request.user, claim.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = InsuranceClaimForm(request.POST or None, instance=claim)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -219,7 +251,11 @@ def insurance_claim_update(request, pk):
 
 @login_required
 def additional_work_create(request, jc_pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     jc = get_object_or_404(JobCard, pk=jc_pk)
+    if not user_owns(request.user, jc):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = AdditionalWorkApprovalForm(request.POST or None)
     if request.method == 'POST' and form.is_valid():
         obj = form.save(commit=False)
@@ -233,7 +269,11 @@ def additional_work_create(request, jc_pk):
 @login_required
 @require_POST
 def additional_work_send(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     awa = get_object_or_404(AdditionalWorkApproval, pk=pk)
+    if not user_owns(request.user, awa.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     awa.status = AdditionalWorkApproval.Status.SENT
     awa.sent_at = timezone.now()
     awa.save()
@@ -244,7 +284,11 @@ def additional_work_send(request, pk):
 @login_required
 @require_POST
 def additional_work_approve(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     awa = get_object_or_404(AdditionalWorkApproval, pk=pk)
+    if not user_owns(request.user, awa.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     awa.status = AdditionalWorkApproval.Status.APPROVED
     awa.responded_at = timezone.now()
     awa.customer_response = request.POST.get('response', '') or awa.customer_response
@@ -256,7 +300,11 @@ def additional_work_approve(request, pk):
 @login_required
 @require_POST
 def additional_work_reject(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     awa = get_object_or_404(AdditionalWorkApproval, pk=pk)
+    if not user_owns(request.user, awa.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     awa.status = AdditionalWorkApproval.Status.REJECTED
     awa.responded_at = timezone.now()
     awa.customer_response = request.POST.get('response', '') or awa.customer_response

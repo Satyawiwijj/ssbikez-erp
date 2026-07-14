@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.order_form_no }} — Masters{% endblock %}
+{% block page_title %}Order Form Series {{ obj.order_form_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 1 %}
+<form method="post" action="{% url 'masters:order_form_series_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this series number?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'masters:order_form_series_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'masters:order_form_series_list' %}">Order Form Series</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.order_form_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.order_form_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Order Form Count</dt><dd>{{ obj.order_form_count }}</dd></div>
+        <div class="detail-row"><dt>Branch</dt><dd style="font-weight:600;">{{ obj.branch }}</dd></div>
+        <div class="detail-row"><dt>Series Type</dt><dd>{{ obj.get_series_type_display }}</dd></div>
+        <div class="detail-row"><dt>Status</dt><dd>{{ obj.get_status_display|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Allotment</dt><dd>{{ obj.allotment|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Sales Order</dt><dd>{{ obj.sales_order_id|default:"—" }} ({{ obj.sales_order_status|default:"—" }})</dd></div>
+        <div class="detail-row"><dt>RTO Status</dt><dd>{{ obj.rto_status }}</dd></div>
+        <div class="detail-row"><dt>F20 Status</dt><dd>{{ obj.f20_status }}</dd></div>
+        <div class="detail-row"><dt>Exchange Vehicle Status</dt><dd>{{ obj.ex_change_vehicle_status }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+{% endblock %}

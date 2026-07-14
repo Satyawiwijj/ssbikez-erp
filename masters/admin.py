@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import SparesCategory, Supplier, Warehouse, Rack, Bin
+from .models import SparesCategory, Supplier, Warehouse, Rack, Bin, VehicleType, NormalHelmetMaster
 
 
 @admin.register(SparesCategory)
@@ -31,3 +31,16 @@ class RackAdmin(admin.ModelAdmin):
 class BinAdmin(admin.ModelAdmin):
     list_display = ['name', 'rack']
     list_filter = ['rack__warehouse']
+
+
+@admin.register(VehicleType)
+class VehicleTypeAdmin(admin.ModelAdmin):
+    list_display = ['name', 'is_active']
+    search_fields = ['name']
+
+
+@admin.register(NormalHelmetMaster)
+class NormalHelmetMasterAdmin(admin.ModelAdmin):
+    list_display = ['helmet_code', 'helmet_name', 'vehicle_category', 'part_number', 'gst_percent', 'disabled']
+    list_filter = ['disabled', 'vehicle_category']
+    search_fields = ['helmet_code', 'helmet_name', 'part_number']

@@ -47,7 +47,7 @@
                 <div class="row g-3">
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.first_name.id_for_label }}">
                             First Name
                         </label>
                         {{ form.first_name }}
@@ -59,7 +59,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.last_name.id_for_label }}">
                             Last Name
                         </label>
                         {{ form.last_name }}
@@ -71,7 +71,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.email.id_for_label }}">
                             Email Address
                         </label>
                         {{ form.email }}
@@ -83,7 +83,7 @@
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">
+                        <label class="form-label fw-semibold" for="{{ form.phone.id_for_label }}">
                             Phone Number
                         </label>
                         {{ form.phone }}

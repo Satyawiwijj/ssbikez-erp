@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}RegPay Base Amounts — RTO{% endblock %}
+{% block page_title %}RegPay Base Amounts{% endblock %}
+{% block topbar_actions %}
+<a href="{% url 'rto:regpay_base_amount_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Base Amount</a>
+{% endblock %}
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'rto:dashboard' %}">RTO</a><span class="bc-sep">/</span>
+    <span class="bc-current">RegPay Base Amounts</span>
+</nav>
+<div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title"><i class="fas fa-rupee-sign me-2"></i>RegPay Base Amounts</span>
+        <span class="badge badge-blue">{{ objs|length }}</span>
+    </div>
+    <div class="table-wrapper">
+        {% if objs %}
+        <table class="table">
+            <thead><tr><th>Vehicle</th><th>Amount</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr><td>{{ o.vehicle }}</td><td>&#x20B9; {{ o.amount }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fas fa-rupee-sign mb-2"></i><div>No base amounts found.</div></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

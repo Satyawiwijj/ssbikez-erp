@@ -51,19 +51,19 @@
         <div class="form-grid">
 
             <div class="form-group">
-                <label class="form-label">Company Name</label>
+                <label class="form-label" for="{{ form.company_name.id_for_label }}">Company Name</label>
                 {{ form.company_name }}
                 {{ form.company_name.errors }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">Tagline</label>
+                <label class="form-label" for="{{ form.tagline.id_for_label }}">Tagline</label>
                 {{ form.tagline }}
                 {{ form.tagline.errors }}
             </div>
 
             <div class="form-group span-2">
-                <label class="form-label">Logo URL</label>
+                <label class="form-label" for="{{ form.logo_url.id_for_label }}">Logo URL</label>
                 {{ form.logo_url }}
                 {{ form.logo_url.errors }}
             </div>
@@ -80,37 +80,37 @@
         <div class="form-grid">
 
             <div class="form-group span-2">
-                <label class="form-label">Address Line 1</label>
+                <label class="form-label" for="{{ form.address_line1.id_for_label }}">Address Line 1</label>
                 {{ form.address_line1 }}
             </div>
 
             <div class="form-group span-2">
-                <label class="form-label">Address Line 2</label>
+                <label class="form-label" for="{{ form.address_line2.id_for_label }}">Address Line 2</label>
                 {{ form.address_line2 }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">City</label>
+                <label class="form-label" for="{{ form.city.id_for_label }}">City</label>
                 {{ form.city }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">State</label>
+                <label class="form-label" for="{{ form.state.id_for_label }}">State</label>
                 {{ form.state }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">Pincode</label>
+                <label class="form-label" for="{{ form.pincode.id_for_label }}">Pincode</label>
                 {{ form.pincode }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">Phone</label>
+                <label class="form-label" for="{{ form.phone.id_for_label }}">Phone</label>
                 {{ form.phone }}
             </div>
 
             <div class="form-group span-2">
-                <label class="form-label">Email</label>
+                <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
                 {{ form.email }}
             </div>
 
@@ -126,12 +126,12 @@
         <div class="form-grid">
 
             <div class="form-group">
-                <label class="form-label">GSTIN</label>
+                <label class="form-label" for="{{ form.gstin.id_for_label }}">GSTIN</label>
                 {{ form.gstin }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">PAN Number</label>
+                <label class="form-label" for="{{ form.pan_number.id_for_label }}">PAN Number</label>
                 {{ form.pan_number }}
             </div>
 
@@ -147,17 +147,17 @@
         <div class="form-grid-3">
 
             <div class="form-group">
-                <label class="form-label">Total GST Rate (%)</label>
+                <label class="form-label" for="{{ form.gst_rate.id_for_label }}">Total GST Rate (%)</label>
                 {{ form.gst_rate }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">CGST Rate (%)</label>
+                <label class="form-label" for="{{ form.cgst_rate.id_for_label }}">CGST Rate (%)</label>
                 {{ form.cgst_rate }}
             </div>
 
             <div class="form-group">
-                <label class="form-label">SGST Rate (%)</label>
+                <label class="form-label" for="{{ form.sgst_rate.id_for_label }}">SGST Rate (%)</label>
                 {{ form.sgst_rate }}
             </div>
 

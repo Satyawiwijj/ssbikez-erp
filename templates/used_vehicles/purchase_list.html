@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Purchases — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Purchase Invoices{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:purchase_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Invoice No</th><th>Supplier</th><th>Date</th><th>Grand Total</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for p in purchases %}
+                <tr>
+                    <td><a href="{% url 'used_vehicles:purchase_detail' pk=p.pk %}">{{ p.invoice_number }}</a></td>
+                    <td>{{ p.supplier|default:"—" }}</td>
+                    <td>{{ p.invoice_date }}</td>
+                    <td>&#x20B9; {{ p.grand_total }}</td>
+                    <td>
+                        {% if p.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif p.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No purchase invoices yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

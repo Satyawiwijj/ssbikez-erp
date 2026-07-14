@@ -58,7 +58,7 @@
               {% elif enq.prospect %}{{ enq.prospect.full_name }}
               {% else %}—{% endif %}
             </a>
-            <div style="font-size:11px; color:#9CA3AF;">ENQ-{{ enq.pk }}</div>
+            <div style="font-size:11px; color:#6B7280;">ENQ-{{ enq.pk }}</div>
           </td>
           <td>
             {% if enq.customer %}
@@ -71,7 +71,7 @@
           <td style="max-width:220px; font-size:13px; color:#374151;">
             {% if fb.feedback_notes %}
               {{ fb.feedback_notes|truncatechars:70 }}
-            {% else %}<span style="color:#9CA3AF;">No notes</span>{% endif %}
+            {% else %}<span style="color:#6B7280;">No notes</span>{% endif %}
           </td>
           <td>
             {% if fb.next_followup_date %}

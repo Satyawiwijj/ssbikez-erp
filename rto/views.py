@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -50,7 +51,9 @@ def plate_list(request):
             Q(vendor_name__icontains=q) |
             Q(rto__sales_order__customer__full_name__icontains=q)
         )
-    return render(request, 'rto/plate_list.html', {'plates': qs, 'q': q})
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'rto/plate_list.html', {'plates': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -68,8 +71,11 @@ def registration_list(request):
         )
     if status_filter:
         qs = qs.filter(registration_status=status_filter)
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'rto/registration_list.html', {
-        'registrations':  qs,
+        'registrations':  page_obj,
+        'page_obj':       page_obj,
         'q':              q,
         'status_filter':  status_filter,
         'status_choices': RTORegistration.RegistrationStatus.choices,
@@ -85,7 +91,23 @@ def registration_detail(request, pk):
         pk=pk
     )
     plate = getattr(rto, 'number_plate_order', None)
-    return render(request, 'rto/registration_detail.html', {'rto': rto, 'plate': plate})
+    order = rto.sales_order
+    return render(request, 'rto/registration_detail.html', {
+        'rto': rto,
+        'plate': plate,
+        'rc_hand_overs': order.rc_hand_overs.all(),
+        'form20_creations': order.form20_creations.all(),
+        'registration_no_creations': order.registration_no_creations.all(),
+        # Phase 9a restructured RTOPayment/RegpayCreation into header+item batch documents --
+        # sales_order now lives on the item row, not the header. Found live during the
+        # end-to-end audit: this view was never updated, 500ing on every RTO Registration
+        # detail page since Phase 9a. Fixed by finding the distinct parent documents that have
+        # at least one item row for this sales_order.
+        'rto_payments': RTOPayment.objects.filter(items__sales_order=order).distinct(),
+        'regpay_creations': RegpayCreation.objects.filter(items__sales_order=order).distinct(),
+        'number_order_entries': order.number_order_entries.all(),
+        'rc_book_creations': rto.rc_book_creations.all(),
+    })
 
 
 @login_required
@@ -186,7 +208,9 @@ def rc_book_list(request):
     qs = RCBook.objects.select_related(
         'rto_registration__sales_order__customer'
     ).order_by('-created_at')
-    return render(request, 'rto/rc_book_list.html', {'rc_books': qs})
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'rto/rc_book_list.html', {'rc_books': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -219,4 +243,7 @@ def rc_book_detail(request, pk):
 
 # GAP 19, 20
 from rto._gap_views import *  # noqa: E402,F401,F403
+
+# Phase 6 — new-vehicle RTO stage documents
+from rto._phase6_views import *  # noqa: E402,F401,F403
 

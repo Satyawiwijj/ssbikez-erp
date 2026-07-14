@@ -76,6 +76,7 @@ INSTALLED_APPS = [
     'spares',
     'vas',
     'masters',
+    'used_vehicles',
 ]
 
 AUTH_USER_MODEL = 'accounts.User'

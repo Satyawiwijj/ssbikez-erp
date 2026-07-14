@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Exchange Vehicle Dealer Transfer{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'sales:exchange_vehicle_dealer_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'sales:exchange_vehicle_dealer_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+<a href="{% url 'sales:exchange_dealer_payment_create' %}?transfer={{ obj.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create Payment</a>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'sales:exchange_vehicle_dealer_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'sales:exchange_vehicle_dealer_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-exchange-alt me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Date</th><td>{{ obj.date }}</td></tr>
+                <tr><th>Dealer</th><td>{{ obj.dealer }}</td></tr>
+                <tr><th>From Warehouse</th><td>{{ obj.from_warehouse }}</td></tr>
+                <tr><th>To Warehouse</th><td>{{ obj.to_warehouse }}</td></tr>
+                <tr><th>Branch</th><td>{{ obj.branch|default:"—" }}</td></tr>
+                <tr><th>HP Endorsement</th><td>{% if obj.hp_endorsement %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+                <tr><th>Insurance Received</th><td>{% if obj.insurance_received %}<span class="badge badge-green">Yes</span>{% else %}<span class="badge badge-red">No</span>{% endif %}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Vehicle Details</div>
+    {% if items %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Vehicle Name</th><th>Engine No</th><th>Registration No</th><th>Stock Status</th><th>Vehicle Amount</th><th>Vehicle Code</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td>{{ i.vehicle_name|default:"—" }}</td>
+                    <td>{{ i.engine_number|default:"—" }}</td>
+                    <td>{{ i.registration_number|default:"—" }}</td>
+                    <td>{% if i.registration_number %}{{ i.registration_number.get_stock_status_display }}{% else %}—{% endif %}</td>
+                    <td>&#x20B9; {{ i.vehicle_amount }}</td>
+                    <td>{{ i.vehicle_code }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No vehicles recorded.</div>{% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Dealer Payments</div>
+    {% if obj.payments.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Payment No</th><th>Status</th></tr></thead>
+            <tbody>
+                {% for p in obj.payments.all %}
+                <tr><td><a href="{% url 'sales:exchange_dealer_payment_detail' pk=p.pk %}">{{ p.payment_no }}</a></td>
+                    <td>{% if p.docstatus == 0 %}<span class="badge badge-gray">Draft</span>{% elif p.docstatus == 1 %}<span class="badge badge-green">Submitted</span>{% else %}<span class="badge badge-red">Cancelled</span>{% endif %}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No payments created yet.</div>{% endif %}
+</div>
+{% endblock %}

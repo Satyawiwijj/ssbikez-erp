@@ -109,12 +109,12 @@
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
  
     <!-- OVERDUE -->
-    <div style="background:#fff;border-radius:12px;border:1px solid #FECACA;border-top:3px solid #EF4444;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);">
+    <div style="background:#fff;border-radius:12px;border:1px solid #FECACA;border-top:3px solid #DC2626;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.04);">
       <div style="padding:12px 16px;background:#FEF2F2;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #FECACA;">
         <span style="font-size:13px;font-weight:600;color:#991B1B;display:flex;align-items:center;gap:6px;">
-          <span style="width:8px;height:8px;border-radius:50%;background:#EF4444;display:inline-block;"></span>Overdue
+          <span style="width:8px;height:8px;border-radius:50%;background:#DC2626;display:inline-block;"></span>Overdue
         </span>
-        {% if overdue_followups|length %}<span style="background:#EF4444;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ overdue_followups|length }}</span>{% endif %}
+        {% if overdue_followups|length %}<span style="background:#DC2626;color:#fff;font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;">{{ overdue_followups|length }}</span>{% endif %}
       </div>
       {% if overdue_followups %}
       {% for fb in overdue_followups|slice:":5" %}{% with enq=fb.enquiry %}
@@ -124,8 +124,8 @@
             <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
-            <div style="font-size:11px;color:#EF4444;margin-top:3px;font-weight:500;">{{ today|timesince:fb.next_followup_date }} overdue</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#DC2626;margin-top:3px;font-weight:500;">{{ today|timesince:fb.next_followup_date }} overdue</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
             {% if enq.customer %}<a href="tel:{{ enq.customer.phone }}" style="width:28px;height:28px;border-radius:6px;background:#F3F4F6;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="{{ enq.customer.phone }}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#374151" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.68A2 2 0 012 1.18h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.11 8.94a16 16 0 006.95 6.95l1.13-1.14a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7a2 2 0 011.72 2.02z"/></svg></a>
@@ -137,7 +137,7 @@
       {% endwith %}{% endfor %}
       {% if overdue_followups|length > 5 %}
       <div style="padding:10px 16px;background:#FEF9F9;border-top:1px solid #FEE2E2;">
-        <a href="{% url 'sales:follow_up_list' %}?period=overdue" style="font-size:12px;color:#EF4444;text-decoration:none;font-weight:600;">View all {{ overdue_followups|length }} overdue →</a>
+        <a href="{% url 'sales:follow_up_list' %}?period=overdue" style="font-size:12px;color:#DC2626;text-decoration:none;font-weight:600;">View all {{ overdue_followups|length }} overdue →</a>
       </div>
       {% endif %}
       {% else %}
@@ -164,7 +164,7 @@
             <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
             <div style="font-size:11px;color:#D97706;margin-top:3px;font-weight:600;letter-spacing:.3px;">TODAY</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
@@ -198,7 +198,7 @@
             <a href="{% url 'sales:enquiry_detail' enq.pk %}" style="font-weight:600;font-size:13px;color:#111827;text-decoration:none;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
               {% if enq.customer %}{{ enq.customer.full_name }}{% elif enq.prospect %}{{ enq.prospect.full_name }}{% else %}—{% endif %}
             </a>
-            <div style="font-size:11px;color:#9CA3AF;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
+            <div style="font-size:11px;color:#6B7280;margin-top:1px;">{{ enq.bike_model|default:"—" }}</div>
             <div style="font-size:11px;color:#3B82F6;margin-top:3px;font-weight:500;">{{ fb.next_followup_date|date:"d M Y" }}</div>
           </div>
           <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
@@ -254,7 +254,7 @@
               {% elif enq.status == 'lost' %}<span class="badge badge-red">{{ enq.get_status_display }}</span>
               {% else %}<span class="badge badge-gray">{{ enq.get_status_display }}</span>{% endif %}
             </td>
-            <td style="font-size:12px; color:#9CA3AF;">{{ enq.created_at|date:"d M Y" }}</td>
+            <td style="font-size:12px; color:#6B7280;">{{ enq.created_at|date:"d M Y" }}</td>
           </tr>
           {% empty %}
           <tr><td colspan="4" class="empty-state" style="padding:24px;">No enquiries yet.</td></tr>

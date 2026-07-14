@@ -18,13 +18,13 @@
 
 {% if not q %}
 <div class="card">
-  <p style="color:#9CA3AF; font-size:14px; padding:8px 0;">
+  <p style="color:#6B7280; font-size:14px; padding:8px 0;">
     Use the search bar in the top navigation to search across the entire system.
   </p>
 </div>
 {% elif total == 0 %}
 <div class="card">
-  <p style="color:#9CA3AF; font-size:14px; padding:8px 0;">
+  <p style="color:#6B7280; font-size:14px; padding:8px 0;">
     No results found for "<strong>{{ q }}</strong>". Try a different search term.
   </p>
 </div>
@@ -35,7 +35,7 @@
   <div class="card-header"><span class="card-title">&#x1F465; Customers ({{ results.customers|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th>Phone</th><th>Email</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for c in results.customers %}
         <tr>
@@ -56,7 +56,7 @@
   <div class="card-header"><span class="card-title">&#x1F3CD;&#xFE0F; Vehicle Stock ({{ results.vehicle_stock|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Model</th><th>Chassis No</th><th>Engine No</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>Model</th><th>Chassis No</th><th>Engine No</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for v in results.vehicle_stock %}
         <tr>
@@ -78,7 +78,7 @@
   <div class="card-header"><span class="card-title">&#x1F6F5; Customer Vehicles ({{ results.customer_vehicles|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Reg. No</th><th>Customer</th><th>Model</th><th></th></tr></thead>
+      <thead><tr><th>Reg. No</th><th>Customer</th><th>Model</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for cv in results.customer_vehicles %}
         <tr>
@@ -99,7 +99,7 @@
   <div class="card-header"><span class="card-title">&#x1F4CB; Sales Enquiries ({{ results.enquiries|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>ENQ #</th><th>Customer</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>ENQ #</th><th>Customer</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for e in results.enquiries %}
         <tr>
@@ -120,7 +120,7 @@
   <div class="card-header"><span class="card-title">&#x1F4E6; Sales Orders ({{ results.orders|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>ORD #</th><th>Customer</th><th>Amount</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>ORD #</th><th>Customer</th><th>Amount</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for o in results.orders %}
         <tr>
@@ -142,7 +142,7 @@
   <div class="card-header"><span class="card-title">&#x1F527; Job Cards ({{ results.job_cards|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>JC #</th><th>Customer</th><th>Vehicle</th><th>Status</th><th></th></tr></thead>
+      <thead><tr><th>JC #</th><th>Customer</th><th>Vehicle</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for jc in results.job_cards %}
         <tr>
@@ -164,7 +164,7 @@
   <div class="card-header"><span class="card-title">&#x1F529; Spare Parts ({{ results.spare_parts|length }})</span></div>
   <div class="table-wrapper">
     <table class="table">
-      <thead><tr><th>Part Name</th><th>Part No.</th><th>Stock</th><th>MRP</th><th></th></tr></thead>
+      <thead><tr><th>Part Name</th><th>Part No.</th><th>Stock</th><th>MRP</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
       <tbody>
         {% for p in results.spare_parts %}
         <tr>

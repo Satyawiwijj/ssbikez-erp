@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Dealer RC Hand Over{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'sales:dealer_rc_handover_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'sales:dealer_rc_handover_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'sales:dealer_rc_handover_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'sales:dealer_rc_handover_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-file-signature me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Dealer</th><td>{{ obj.dealer }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Items</div>
+    {% if items %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Register No</th><th>NOC</th><th>T.O. Received</th><th>RC Book Received</th><th>Vehicle Received</th><th>RC Book No</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td>{{ i.register_number }}</td>
+                    <td>{{ i.noc|default:"—" }}</td>
+                    <td>{{ i.to_received|default:"—" }}</td>
+                    <td>{{ i.rc_book_received|default:"—" }}</td>
+                    <td>{{ i.vehicle_received|default:"—" }}</td>
+                    <td>{{ i.rc_book_number|default:"—" }}</td>
+                    <td>{{ i.date|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}<div class="card-body text-muted small">No items recorded.</div>{% endif %}
+</div>
+{% endblock %}

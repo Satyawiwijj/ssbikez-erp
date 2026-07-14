@@ -18,10 +18,14 @@ from django.utils import timezone
 User = get_user_model()
 c = Client(SERVER_NAME='testserver')
 
+QA_FIXTURE_PASSWORD = os.environ.get('QA_FIXTURE_PASSWORD')
+if not QA_FIXTURE_PASSWORD:
+    raise RuntimeError('Set the QA_FIXTURE_PASSWORD environment variable before running this script.')
+
 admin = User.objects.filter(is_superuser=True).first()
 if not admin:
     admin = User.objects.create_superuser(
-        username='testadmin', email='testadmin@ssbikez.com', password='Test@123'
+        username='testadmin', email='testadmin@ssbikez.com', password=QA_FIXTURE_PASSWORD
     )
 c.force_login(admin)
 
@@ -132,19 +136,19 @@ sales_user, _ = User.objects.get_or_create(username='sales.test', defaults={
     'first_name': 'Arjun', 'last_name': 'Sales', 'email': 'arjun@ssbikez.com',
     'role': sales_role, 'branch': branch, 'status': 'active'
 })
-sales_user.set_password('Test@123'); sales_user.save()
+sales_user.set_password(QA_FIXTURE_PASSWORD); sales_user.save()
 
 cre_user, _ = User.objects.get_or_create(username='cre.test', defaults={
     'first_name': 'Divya', 'last_name': 'CRE', 'email': 'divya@ssbikez.com',
     'role': cre_role, 'branch': branch, 'status': 'active'
 })
-cre_user.set_password('Test@123'); cre_user.save()
+cre_user.set_password(QA_FIXTURE_PASSWORD); cre_user.save()
 
 floor_user, _ = User.objects.get_or_create(username='floor.test', defaults={
     'first_name': 'Rajan', 'last_name': 'Floor', 'email': 'rajan@ssbikez.com',
     'role': floor_role, 'branch': branch, 'status': 'active'
 })
-floor_user.set_password('Test@123'); floor_user.save()
+floor_user.set_password(QA_FIXTURE_PASSWORD); floor_user.save()
 test('Users created', User.objects.count() >= 3)
 
 # ── WORKFLOW 2: Masters ───────────────────────────────────────────────────────

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}RSA Types — VAS{% endblock %}
+{% block page_title %}RSA Types{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'vas:rsa_type_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New RSA Type</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a>
+    <span class="bc-sep">/</span>
+    <a href="{% url 'vas:dashboard' %}">VAS</a>
+    <span class="bc-sep">/</span>
+    <span class="bc-current">RSA Types</span>
+</nav>
+
+<div class="card">
+    <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span class="card-title"><i class="fas fa-ambulance me-2"></i>RSA Types</span>
+        <span class="badge badge-blue">{{ types|length }}</span>
+    </div>
+    <div class="table-wrapper">
+        {% if types %}
+        <table class="table">
+            <thead><tr><th>Code</th><th>Name</th><th>Amount</th><th>HSN Code</th><th>Active</th></tr></thead>
+            <tbody>
+                {% for t in types %}
+                <tr>
+                    <td style="font-family:monospace;font-weight:600;">{{ t.code }}</td>
+                    <td>{{ t.name }}</td>
+                    <td>&#x20B9; {{ t.rsa_amount }}</td>
+                    <td>{{ t.hsn_code|default:"—" }}</td>
+                    <td>{% if t.is_active %}<span class="badge badge-green">Active</span>{% else %}<span class="badge badge-gray">Inactive</span>{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><i class="fas fa-ambulance mb-2"></i><div>No RSA types found.</div></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

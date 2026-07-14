@@ -30,11 +30,17 @@ urlpatterns = [
     path('orders/create/',                    views.order_create,          name='order_create'),
     path('orders/<int:pk>/',                  views.order_detail,          name='order_detail'),
     path('orders/<int:pk>/edit/',             views.order_update,          name='order_update'),
+    path('orders/<int:pk>/submit/',           views.order_submit,          name='order_submit'),
+    path('orders/<int:pk>/cancel/',           views.order_cancel,          name='order_cancel'),
+    path('orders/<int:pk>/amend/',            views.order_amend,           name='order_amend'),
 
     # VehicleDelivery
     path('delivery/create/',                  views.delivery_create,       name='delivery_create'),
     path('delivery/<int:pk>/',                views.delivery_detail,       name='delivery_detail'),
     path('delivery/<int:pk>/edit/',           views.delivery_update,       name='delivery_update'),
+    path('delivery/<int:pk>/submit/',         views.delivery_submit,       name='delivery_submit'),
+    path('delivery/<int:pk>/cancel/',         views.delivery_cancel,       name='delivery_cancel'),
+    path('delivery/<int:pk>/amend/',          views.delivery_amend,        name='delivery_amend'),
 
     # ExchangeVehicle
     path('exchange/create/',                  views.exchange_create,       name='exchange_create'),
@@ -96,4 +102,30 @@ urlpatterns = [
     path('appointments/<int:pk>/delete/',     views.appointment_delete,    name='appointment_delete'),
     path('feedback/<int:pk>/delete/',         views.feedback_delete,       name='feedback_delete'),
     path('orders/<int:pk>/delete/',           views.order_delete,          name='order_delete'),
+
+    # Phase 13 -- Dealer sub-module
+    path('dealers/',                                  views.dealer_list,                       name='dealer_list'),
+    path('dealers/create/',                           views.dealer_create,                      name='dealer_create'),
+    path('dealers/<int:pk>/',                         views.dealer_detail,                      name='dealer_detail'),
+
+    path('exchange-vehicle-dealer/',                  views.exchange_vehicle_dealer_list,       name='exchange_vehicle_dealer_list'),
+    path('exchange-vehicle-dealer/create/',           views.exchange_vehicle_dealer_create,     name='exchange_vehicle_dealer_create'),
+    path('exchange-vehicle-dealer/<int:pk>/',         views.exchange_vehicle_dealer_detail,     name='exchange_vehicle_dealer_detail'),
+    path('exchange-vehicle-dealer/<int:pk>/submit/',  views.exchange_vehicle_dealer_submit,     name='exchange_vehicle_dealer_submit'),
+    path('exchange-vehicle-dealer/<int:pk>/cancel/',  views.exchange_vehicle_dealer_cancel,     name='exchange_vehicle_dealer_cancel'),
+    path('exchange-vehicle-dealer/<int:pk>/amend/',   views.exchange_vehicle_dealer_amend,      name='exchange_vehicle_dealer_amend'),
+
+    path('exchange-dealer-payment/',                  views.exchange_dealer_payment_list,       name='exchange_dealer_payment_list'),
+    path('exchange-dealer-payment/create/',           views.exchange_dealer_payment_create,     name='exchange_dealer_payment_create'),
+    path('exchange-dealer-payment/<int:pk>/',         views.exchange_dealer_payment_detail,     name='exchange_dealer_payment_detail'),
+    path('exchange-dealer-payment/<int:pk>/submit/',  views.exchange_dealer_payment_submit,     name='exchange_dealer_payment_submit'),
+    path('exchange-dealer-payment/<int:pk>/cancel/',  views.exchange_dealer_payment_cancel,     name='exchange_dealer_payment_cancel'),
+    path('exchange-dealer-payment/<int:pk>/amend/',   views.exchange_dealer_payment_amend,      name='exchange_dealer_payment_amend'),
+
+    path('dealer-rc-handover/',                       views.dealer_rc_handover_list,            name='dealer_rc_handover_list'),
+    path('dealer-rc-handover/create/',                views.dealer_rc_handover_create,          name='dealer_rc_handover_create'),
+    path('dealer-rc-handover/<int:pk>/',              views.dealer_rc_handover_detail,          name='dealer_rc_handover_detail'),
+    path('dealer-rc-handover/<int:pk>/submit/',       views.dealer_rc_handover_submit,          name='dealer_rc_handover_submit'),
+    path('dealer-rc-handover/<int:pk>/cancel/',       views.dealer_rc_handover_cancel,          name='dealer_rc_handover_cancel'),
+    path('dealer-rc-handover/<int:pk>/amend/',        views.dealer_rc_handover_amend,           name='dealer_rc_handover_amend'),
 ]

@@ -1,4 +1,5 @@
 import json
+from django.core.paginator import Paginator
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -10,6 +11,8 @@ from django.utils import timezone
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
 from masters.models import Warehouse, Rack, Bin, Supplier
+from django.views.decorators.http import require_POST
+
 from .models import (
     SparesItem, ItemRackBin, StockLedger,
     SupplierQuote, SupplierQuoteItem,
@@ -17,7 +20,15 @@ from .models import (
     PurchaseInvoice, PurchaseInvoiceItem,
     CounterSale, CounterSaleItem,
     CounterSaleReturn, CounterSaleReturnItem,
-    SparesIssueAlteration, SparesIssueAlterationItem,
+    SparesIssueAlteration, SparesIssueAlterationItem, SparesIssueAlterationDeletedItem,
+    StockTransfer, StockTransferItem,
+    StockCountUpdate, StockCountItem,
+    RequestSupplierQuote, RequestSupplierQuoteItem,
+    SparesPurchaseEstimationMaster, SparesPurchaseEstimationItem, SparesPurchaseEstimationLabor,
+    ServiceSparesIssueReturn, ServiceSparesIssueReturnItem,
+    VehicleSparesMaster, SparesMRPPriceRevision, SparesMRPPriceRevisionItem,
+    SparesProfitPercentageSettings, SparesPurchaseQtyDaysSettings,
+    ServiceSparesWarranty, ServiceSparesWarrantyItem,
 )
 from .forms import (
     SparesItemForm,
@@ -27,6 +38,16 @@ from .forms import (
     CounterSaleForm, CounterSaleItemFormSet,
     CounterSaleReturnForm, CounterSaleReturnItemFormSet,
     SparesIssueAlterationForm, SparesIssueAlterationItemFormSet,
+    SparesIssueAlterationDeletedItemFormSet,
+    StockTransferForm, StockTransferItemFormSet,
+    StockCountUpdateForm, StockCountItemFormSet,
+    RequestSupplierQuoteForm, RequestSupplierQuoteItemFormSet,
+    SparesPurchaseEstimationMasterForm, SparesPurchaseEstimationItemFormSet,
+    SparesPurchaseEstimationLaborFormSet,
+    ServiceSparesIssueReturnForm, ServiceSparesIssueReturnItemFormSet,
+    VehicleSparesMasterForm, SparesMRPPriceRevisionForm, SparesMRPPriceRevisionItemFormSet,
+    SparesProfitPercentageSettingsForm, SparesPurchaseQtyDaysSettingsForm,
+    ServiceSparesWarrantyForm, ServiceSparesWarrantyItemFormSet,
 )
 
 
@@ -74,7 +95,9 @@ def item_list(request):
             Q(item_name__icontains=q) | Q(item_code__icontains=q) |
             Q(part_number__icontains=q) | Q(hsn_sac__icontains=q)
         )
-    return render(request, 'spares/item_list.html', {'items': items, 'q': q})
+    paginator = Paginator(items, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/item_list.html', {'items': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -132,7 +155,9 @@ def stock_report(request):
 @login_required
 def quote_list(request):
     quotes = SupplierQuote.objects.select_related('supplier').order_by('-date')
-    return render(request, 'spares/quote_list.html', {'quotes': quotes})
+    paginator = Paginator(quotes, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/quote_list.html', {'quotes': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -145,7 +170,10 @@ def quote_detail(request, pk):
 @login_required
 @require_module_action('spares', 'create')
 def quote_create(request):
-    form = SupplierQuoteForm(request.POST or None)
+    initial = {}
+    if request.GET.get('request_quotation'):
+        initial['request_quotation'] = request.GET['request_quotation']
+    form = SupplierQuoteForm(request.POST or None, initial=initial)
     formset = SupplierQuoteItemFormSet(request.POST or None, prefix='items')
     tax_formset = SupplierQuoteTaxFormSet(request.POST or None, prefix='taxes')
     if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
@@ -207,8 +235,11 @@ def order_list(request):
     status_filter = request.GET.get('status', '')
     if status_filter:
         orders = orders.filter(status=status_filter)
+    paginator = Paginator(orders, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'spares/order_list.html', {
-        'orders': orders,
+        'orders': page_obj,
+        'page_obj': page_obj,
         'status_choices': PurchaseOrder.STATUS,
         'status_filter': status_filter,
     })
@@ -224,7 +255,14 @@ def order_detail(request, pk):
 @login_required
 @require_module_action('spares', 'create')
 def order_create(request):
-    form = PurchaseOrderForm(request.POST or None)
+    initial = {}
+    if request.GET.get('estimation'):
+        initial['estimation'] = request.GET['estimation']
+        initial['get_estimation'] = True
+    if request.GET.get('customer_order'):
+        initial['customer_order'] = request.GET['customer_order']
+        initial['get_customer_order'] = True
+    form = PurchaseOrderForm(request.POST or None, initial=initial)
     formset = PurchaseOrderItemFormSet(request.POST or None, prefix='items')
     tax_formset = PurchaseOrderTaxFormSet(request.POST or None, prefix='taxes')
     if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
@@ -283,7 +321,9 @@ def order_update(request, pk):
 @login_required
 def invoice_list(request):
     invoices = PurchaseInvoice.objects.select_related('supplier').order_by('-date')
-    return render(request, 'spares/invoice_list.html', {'invoices': invoices})
+    paginator = Paginator(invoices, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/invoice_list.html', {'invoices': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -318,17 +358,9 @@ def invoice_create(request):
             obj.total_taxes = sum(t.amount for t in obj.taxes.all())
             obj.grand_total = obj.total_amount + obj.total_taxes
             obj.save()
-            if obj.status == 'submitted':
-                for inv_item in all_items:
-                    ledger, _ = StockLedger.objects.get_or_create(
-                        item=inv_item.item,
-                        warehouse=inv_item.warehouse,
-                        rack=inv_item.rack,
-                        bin=inv_item.bin,
-                        defaults={'quantity': 0}
-                    )
-                    ledger.quantity += inv_item.quantity
-                    ledger.save()
+            # Stock is already credited by PurchaseInvoiceItem.save() itself
+            # (it checks is_new and self.invoice.status == 'submitted') --
+            # this used to duplicate that same credit a second time here.
         messages.success(request, f'Invoice {obj.invoice_no} created.')
         return redirect('spares:invoice_detail', pk=obj.pk)
     return render(request, 'spares/invoice_form.html', {
@@ -341,7 +373,9 @@ def invoice_create(request):
 @login_required
 def counter_sale_list(request):
     sales = CounterSale.objects.select_related('godown').order_by('-date')
-    return render(request, 'spares/counter_sale_list.html', {'sales': sales})
+    paginator = Paginator(sales, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/counter_sale_list.html', {'sales': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -379,7 +413,9 @@ def counter_sale_create(request):
 @login_required
 def counter_return_list(request):
     returns = CounterSaleReturn.objects.select_related('original_sale').order_by('-return_date')
-    return render(request, 'spares/counter_return_list.html', {'returns': returns})
+    paginator = Paginator(returns, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/counter_return_list.html', {'returns': page_obj, 'page_obj': page_obj})
 
 
 @login_required
@@ -416,30 +452,42 @@ def counter_return_create(request):
 @login_required
 def issue_alteration_list(request):
     alterations = SparesIssueAlteration.objects.select_related('godown').order_by('-date')
-    return render(request, 'spares/issue_alteration_list.html', {'alterations': alterations})
+    paginator = Paginator(alterations, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/issue_alteration_list.html', {'alterations': page_obj, 'page_obj': page_obj})
 
 
 @login_required
 def issue_alteration_detail(request, pk):
     alteration = get_object_or_404(SparesIssueAlteration, pk=pk)
     items = alteration.items.select_related('item', 'rack', 'bin')
+    deleted_items = alteration.deleted_items.select_related('item', 'rack', 'bin')
     return render(request, 'spares/issue_alteration_detail.html', {
-        'alteration': alteration, 'items': items
+        'alteration': alteration, 'items': items, 'deleted_items': deleted_items,
+        'returns': alteration.returns.all(),
     })
 
 
 @login_required
 @require_module_action('spares', 'create')
 def issue_alteration_create(request):
-    form = SparesIssueAlterationForm(request.POST or None)
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    if request.GET.get('uv_jc'):
+        initial['used_vehicle_job_card'] = request.GET['uv_jc']
+    form = SparesIssueAlterationForm(request.POST or None, initial=initial)
     formset = SparesIssueAlterationItemFormSet(request.POST or None, prefix='items')
-    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+    deleted_formset = SparesIssueAlterationDeletedItemFormSet(request.POST or None, prefix='deleted')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and deleted_formset.is_valid():
         with transaction.atomic():
             obj = form.save(commit=False)
             obj.created_by = request.user
             obj.save()
             formset.instance = obj
             formset.save()
+            deleted_formset.instance = obj
+            deleted_formset.save()
             all_items = obj.items.all()
             obj.spares_total = sum(i.total for i in all_items)
             obj.total = obj.spares_total + obj.labour_total + obj.outwork_total
@@ -448,7 +496,7 @@ def issue_alteration_create(request):
         messages.success(request, f'Issue alteration SIA-{obj.pk:05d} created.')
         return redirect('spares:issue_alteration_detail', pk=obj.pk)
     return render(request, 'spares/issue_alteration_form.html', {
-        'form': form, 'formset': formset, 'title': 'New Issue Alteration'
+        'form': form, 'formset': formset, 'deleted_formset': deleted_formset, 'title': 'New Issue Alteration'
     })
 
 
@@ -622,16 +670,27 @@ def po_used_qty_report(request):
     from .models import (CounterSaleItem, PurchaseOrder, PurchaseOrderItem,
                          SparesIssueAlterationItem)
 
+    items_qs = list(
+        PurchaseOrderItem.objects.select_related('order__supplier', 'item').order_by('-order__date')
+    )
+    item_ids = [poi.item_id for poi in items_qs]
+
+    # Two batched aggregate queries instead of two per row (N+1).
+    used_by_item = dict(
+        SparesIssueAlterationItem.objects.filter(item_id__in=item_ids)
+        .values('item_id').annotate(t=Sum('quantity')).values_list('item_id', 't')
+    )
+    sold_by_item = dict(
+        CounterSaleItem.objects.filter(item_id__in=item_ids)
+        .values('item_id').annotate(t=Sum('quantity')).values_list('item_id', 't')
+    )
+
     rows = []
-    for poi in PurchaseOrderItem.objects.select_related('order__supplier', 'item').order_by('-order__date'):
+    for poi in items_qs:
         item_id = poi.item_id
         ordered = poi.quantity or 0
-        used_in_service = SparesIssueAlterationItem.objects.filter(
-            item_id=item_id
-        ).aggregate(t=Sum('quantity'))['t'] or 0
-        sold_counter = CounterSaleItem.objects.filter(
-            item_id=item_id
-        ).aggregate(t=Sum('quantity'))['t'] or 0
+        used_in_service = used_by_item.get(item_id) or 0
+        sold_counter = sold_by_item.get(item_id) or 0
         consumed = (used_in_service or 0) + (sold_counter or 0)
         remaining = (ordered or 0) - consumed
         rows.append({
@@ -733,3 +792,610 @@ def purchase_order_delete(request, pk):
     log_action(request, 'PurchaseOrder', 'delete', pk)
     messages.success(request, f'Purchase order {obj.po_no} deleted.')
     return redirect('spares:order_list')
+
+
+# ---------------------------------------------------------------------------
+# Phase 7a — Stock Transfer
+# ---------------------------------------------------------------------------
+
+@login_required
+def stock_transfer_list(request):
+    transfers = StockTransfer.objects.select_related('warehouse', 'branch').order_by('-date_and_time')
+    paginator = Paginator(transfers, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/stock_transfer_list.html', {'transfers': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def stock_transfer_detail(request, pk):
+    obj = get_object_or_404(StockTransfer.objects.select_related('warehouse', 'branch'), pk=pk)
+    items = obj.items.select_related('item', 'from_rack', 'from_bin', 'to_warehouse', 'to_rack', 'to_bin')
+    return render(request, 'spares/stock_transfer_detail.html', {'obj': obj, 'items': items})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def stock_transfer_create(request):
+    form = StockTransferForm(request.POST or None)
+    formset = StockTransferItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+        log_action(request, 'Stock Transfer', 'create', obj.pk)
+        messages.success(request, f'{obj.transfer_no} created.')
+        return redirect('spares:stock_transfer_detail', pk=obj.pk)
+    return render(request, 'spares/stock_transfer_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Stock Transfer',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def stock_transfer_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(StockTransfer, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Stock Transfer', 'update', pk)
+        messages.success(request, f'{obj.transfer_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:stock_transfer_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def stock_transfer_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(StockTransfer, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Stock Transfer', 'update', pk)
+        messages.success(request, f'{obj.transfer_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:stock_transfer_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7a — Stock Count Update (Spares Stock Reconciliation)
+# ---------------------------------------------------------------------------
+
+@login_required
+def stock_count_list(request):
+    counts = StockCountUpdate.objects.select_related('warehouse', 'branch').order_by('-date_and_time')
+    paginator = Paginator(counts, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/stock_count_list.html', {'counts': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def stock_count_detail(request, pk):
+    obj = get_object_or_404(StockCountUpdate.objects.select_related('warehouse', 'branch'), pk=pk)
+    items = obj.items.select_related('item', 'rack', 'bin')
+    return render(request, 'spares/stock_count_detail.html', {'obj': obj, 'items': items})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def stock_count_create(request):
+    form = StockCountUpdateForm(request.POST or None)
+    formset = StockCountItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+        log_action(request, 'Stock Count Update', 'create', obj.pk)
+        messages.success(request, f'{obj.count_no} created.')
+        return redirect('spares:stock_count_detail', pk=obj.pk)
+    return render(request, 'spares/stock_count_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Stock Count Update',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def stock_count_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(StockCountUpdate, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Stock Count Update', 'update', pk)
+        messages.success(request, f'{obj.count_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:stock_count_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def stock_count_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(StockCountUpdate, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Stock Count Update', 'update', pk)
+        messages.success(request, f'{obj.count_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:stock_count_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7a — Request Supplier Quote
+# ---------------------------------------------------------------------------
+
+@login_required
+def request_supplier_quote_list(request):
+    objs = RequestSupplierQuote.objects.prefetch_related('suppliers').order_by('-date')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/request_supplier_quote_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def request_supplier_quote_detail(request, pk):
+    obj = get_object_or_404(RequestSupplierQuote.objects.prefetch_related('suppliers'), pk=pk)
+    items = obj.items.select_related('spare')
+    return render(request, 'spares/request_supplier_quote_detail.html', {
+        'obj': obj, 'items': items, 'supplier_quotes': obj.supplier_quotes.all(),
+    })
+
+
+@login_required
+@require_module_action('spares', 'create')
+def request_supplier_quote_create(request):
+    form = RequestSupplierQuoteForm(request.POST or None)
+    formset = RequestSupplierQuoteItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            form.save_m2m()
+            formset.instance = obj
+            formset.save()
+        log_action(request, 'Request Supplier Quote', 'create', obj.pk)
+        messages.success(request, f'{obj.rsq_no} created.')
+        return redirect('spares:request_supplier_quote_detail', pk=obj.pk)
+    return render(request, 'spares/request_supplier_quote_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Request Supplier Quote',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def request_supplier_quote_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(RequestSupplierQuote, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Request Supplier Quote', 'update', pk)
+        messages.success(request, f'{obj.rsq_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:request_supplier_quote_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def request_supplier_quote_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(RequestSupplierQuote, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Request Supplier Quote', 'update', pk)
+        messages.success(request, f'{obj.rsq_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:request_supplier_quote_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7b — Spares Purchase Estimation Master
+# ---------------------------------------------------------------------------
+
+@login_required
+def estimation_list(request):
+    objs = SparesPurchaseEstimationMaster.objects.select_related('insurance_name').order_by('-date')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/estimation_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def estimation_detail(request, pk):
+    obj = get_object_or_404(SparesPurchaseEstimationMaster.objects.select_related('insurance_name'), pk=pk)
+    items = obj.items.select_related('item')
+    labor = obj.labor_details.select_related('labor_name')
+    return render(request, 'spares/estimation_detail.html', {
+        'obj': obj, 'items': items, 'labor': labor,
+        'purchase_orders': obj.purchase_orders.all(),
+    })
+
+
+@login_required
+@require_module_action('spares', 'create')
+def estimation_create(request):
+    form = SparesPurchaseEstimationMasterForm(request.POST or None)
+    item_formset = SparesPurchaseEstimationItemFormSet(request.POST or None, prefix='items')
+    labor_formset = SparesPurchaseEstimationLaborFormSet(request.POST or None, prefix='labor')
+    if request.method == 'POST' and form.is_valid() and item_formset.is_valid() and labor_formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            item_formset.instance = obj
+            item_formset.save()
+            labor_formset.instance = obj
+            labor_formset.save()
+            items = obj.items.all()
+            labor_lines = obj.labor_details.all()
+            obj.estimation_total_amount = sum(i.total for i in items)
+            obj.balance_delivery_qty = sum(i.delivery_balance_qty for i in items)
+            obj.labor_total_amount = sum(l.total for l in labor_lines)
+            obj.total_amount = obj.estimation_total_amount + obj.labor_total_amount
+            obj.save()
+        log_action(request, 'Spares Purchase Estimation Master', 'create', obj.pk)
+        messages.success(request, f'{obj.estimation_no} created.')
+        return redirect('spares:estimation_detail', pk=obj.pk)
+    return render(request, 'spares/estimation_form.html', {
+        'form': form, 'item_formset': item_formset, 'labor_formset': labor_formset,
+        'title': 'New Spares Purchase Estimation',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def estimation_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(SparesPurchaseEstimationMaster, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Spares Purchase Estimation Master', 'update', pk)
+        messages.success(request, f'{obj.estimation_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:estimation_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def estimation_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(SparesPurchaseEstimationMaster, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Spares Purchase Estimation Master', 'update', pk)
+        messages.success(request, f'{obj.estimation_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:estimation_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7c — Service Spares Issue Return
+# ---------------------------------------------------------------------------
+
+@login_required
+def service_spares_issue_return_list(request):
+    objs = ServiceSparesIssueReturn.objects.select_related('spares_issue', 'job_card').order_by('-created_at')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/service_spares_issue_return_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def service_spares_issue_return_detail(request, pk):
+    obj = get_object_or_404(
+        ServiceSparesIssueReturn.objects.select_related('spares_issue', 'job_card', 'godown'), pk=pk
+    )
+    items = obj.items.select_related('item', 'rack', 'bin')
+    return render(request, 'spares/service_spares_issue_return_detail.html', {'obj': obj, 'items': items})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def service_spares_issue_return_create(request):
+    initial = {}
+    if request.GET.get('spares_issue'):
+        initial['spares_issue'] = request.GET['spares_issue']
+    form = ServiceSparesIssueReturnForm(request.POST or None, initial=initial)
+    formset = ServiceSparesIssueReturnItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+            items = obj.items.all()
+            obj.total_qty = sum(i.return_qty for i in items)
+            obj.total_amount = sum(i.total for i in items)
+            obj.save()
+        log_action(request, 'Service Spares Issue Return', 'create', obj.pk)
+        messages.success(request, f'{obj.return_no} created.')
+        return redirect('spares:service_spares_issue_return_detail', pk=obj.pk)
+    return render(request, 'spares/service_spares_issue_return_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Service Spares Issue Return',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def service_spares_issue_return_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(ServiceSparesIssueReturn, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Service Spares Issue Return', 'update', pk)
+        messages.success(request, f'{obj.return_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:service_spares_issue_return_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def service_spares_issue_return_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(ServiceSparesIssueReturn, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Service Spares Issue Return', 'update', pk)
+        messages.success(request, f'{obj.return_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:service_spares_issue_return_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7d — Vehicle Spares Master
+# ---------------------------------------------------------------------------
+
+@login_required
+def vehicle_spares_master_list(request):
+    objs = VehicleSparesMaster.objects.select_related('spare').order_by('spare__item_name')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/vehicle_spares_master_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def vehicle_spares_master_create(request):
+    form = VehicleSparesMasterForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save()
+        log_action(request, 'Vehicle Spares Master', 'create', obj.pk)
+        messages.success(request, f'Vehicle Spares Master for {obj.spare.item_code} saved.')
+        return redirect('spares:vehicle_spares_master_list')
+    return render(request, 'spares/vehicle_spares_master_form.html', {
+        'form': form, 'title': 'New Vehicle Spares Master',
+    })
+
+
+# ---------------------------------------------------------------------------
+# Phase 7d — Spares MRP Price Revision
+# ---------------------------------------------------------------------------
+
+@login_required
+def mrp_revision_list(request):
+    objs = SparesMRPPriceRevision.objects.order_by('-date')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/mrp_revision_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def mrp_revision_detail(request, pk):
+    obj = get_object_or_404(SparesMRPPriceRevision, pk=pk)
+    items = obj.items.select_related('item')
+    return render(request, 'spares/mrp_revision_detail.html', {'obj': obj, 'items': items})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def mrp_revision_create(request):
+    form = SparesMRPPriceRevisionForm(request.POST or None)
+    formset = SparesMRPPriceRevisionItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+        log_action(request, 'Spares MRP Price Revision', 'create', obj.pk)
+        messages.success(request, f'{obj.revision_no} created.')
+        return redirect('spares:mrp_revision_detail', pk=obj.pk)
+    return render(request, 'spares/mrp_revision_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Spares MRP Price Revision',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def mrp_revision_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(SparesMRPPriceRevision, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Spares MRP Price Revision', 'update', pk)
+        messages.success(request, f'{obj.revision_no} submitted — item prices updated.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:mrp_revision_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def mrp_revision_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(SparesMRPPriceRevision, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Spares MRP Price Revision', 'update', pk)
+        messages.success(request, f'{obj.revision_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:mrp_revision_detail', pk=pk)
+
+
+# ---------------------------------------------------------------------------
+# Phase 7d — Spares settings singles (Profit Percentage / Purchase Qty Days)
+# ---------------------------------------------------------------------------
+
+@login_required
+def spares_settings(request):
+    profit_instance = SparesProfitPercentageSettings.get_instance()
+    qty_days_instance = SparesPurchaseQtyDaysSettings.get_instance()
+    is_profit_save = request.method == 'POST' and 'save_profit' in request.POST
+    is_qty_days_save = request.method == 'POST' and 'save_qty_days' in request.POST
+    profit_form = SparesProfitPercentageSettingsForm(
+        request.POST if is_profit_save else None, instance=profit_instance, prefix='profit',
+    )
+    qty_days_form = SparesPurchaseQtyDaysSettingsForm(
+        request.POST if is_qty_days_save else None, instance=qty_days_instance, prefix='qty_days',
+    )
+    if is_profit_save and profit_form.is_valid():
+        profit_form.save()
+        messages.success(request, 'Spares Profit Percentage settings saved.')
+        return redirect('spares:spares_settings')
+    if is_qty_days_save and qty_days_form.is_valid():
+        qty_days_form.save()
+        messages.success(request, 'Spares Purchase Order Qty Days settings saved.')
+        return redirect('spares:spares_settings')
+    return render(request, 'spares/spares_settings.html', {
+        'profit_form': profit_form, 'qty_days_form': qty_days_form,
+    })
+
+
+# ---------------------------------------------------------------------------
+# Phase 7d — Service Spares Warranty
+# ---------------------------------------------------------------------------
+
+@login_required
+def service_spares_warranty_list(request):
+    objs = ServiceSparesWarranty.objects.select_related('supplier').order_by('-claim_date')
+    paginator = Paginator(objs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'spares/service_spares_warranty_list.html', {'objs': page_obj, 'page_obj': page_obj})
+
+
+@login_required
+def service_spares_warranty_detail(request, pk):
+    obj = get_object_or_404(ServiceSparesWarranty.objects.select_related('supplier', 'branch'), pk=pk)
+    items = obj.items.select_related('item')
+    return render(request, 'spares/service_spares_warranty_detail.html', {'obj': obj, 'items': items})
+
+
+@login_required
+@require_module_action('spares', 'create')
+def service_spares_warranty_create(request):
+    form = ServiceSparesWarrantyForm(request.POST or None)
+    formset = ServiceSparesWarrantyItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        with transaction.atomic():
+            obj = form.save(commit=False)
+            obj.created_by = request.user
+            obj.save()
+            formset.instance = obj
+            formset.save()
+        log_action(request, 'Service Spares Warranty', 'create', obj.pk)
+        messages.success(request, f'{obj.warranty_no} created.')
+        return redirect('spares:service_spares_warranty_detail', pk=obj.pk)
+    return render(request, 'spares/service_spares_warranty_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Service Spares Warranty',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def service_spares_warranty_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(ServiceSparesWarranty, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Service Spares Warranty', 'update', pk)
+        messages.success(request, f'{obj.warranty_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:service_spares_warranty_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def service_spares_warranty_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(ServiceSparesWarranty, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Service Spares Warranty', 'update', pk)
+        messages.success(request, f'{obj.warranty_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:service_spares_warranty_detail', pk=pk)

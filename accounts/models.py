@@ -1,5 +1,93 @@
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+
+
+class DocStatusMixin(models.Model):
+    """
+    Frappe-style draft/submitted/cancelled lifecycle for documents that need
+    it (Sales Order, Delivery, Invoice, ...). Submitted documents are locked
+    for editing; cancelling opens the door to an amended (new draft) copy
+    that carries an `amended_from` trail back to the cancelled original.
+    """
+    class DocStatus(models.IntegerChoices):
+        DRAFT     = 0, 'Draft'
+        SUBMITTED = 1, 'Submitted'
+        CANCELLED = 2, 'Cancelled'
+
+    docstatus = models.PositiveSmallIntegerField(
+        choices=DocStatus.choices, default=DocStatus.DRAFT, db_index=True
+    )
+    amended_from = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='amendments'
+    )
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    submitted_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='+'
+    )
+    cancelled_at = models.DateTimeField(null=True, blank=True)
+    cancelled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='+'
+    )
+
+    class Meta:
+        abstract = True
+
+    @property
+    def is_draft(self):
+        return self.docstatus == self.DocStatus.DRAFT
+
+    @property
+    def is_submitted(self):
+        return self.docstatus == self.DocStatus.SUBMITTED
+
+    @property
+    def is_cancelled(self):
+        return self.docstatus == self.DocStatus.CANCELLED
+
+    def submit(self, user):
+        from django.utils import timezone
+        if self.docstatus != self.DocStatus.DRAFT:
+            raise ValueError('Only a Draft document can be submitted.')
+        self.docstatus = self.DocStatus.SUBMITTED
+        self.submitted_at = timezone.now()
+        self.submitted_by = user
+        self.save()
+
+    def cancel(self, user):
+        from django.utils import timezone
+        if self.docstatus != self.DocStatus.SUBMITTED:
+            raise ValueError('Only a Submitted document can be cancelled.')
+        self.docstatus = self.DocStatus.CANCELLED
+        self.cancelled_at = timezone.now()
+        self.cancelled_by = user
+        self.save()
+
+    # Subclasses with an auto-generated unique "number" field (e.g. order_number,
+    # populated only `if not self.<field>` in save()) should set this so the
+    # amended copy gets a fresh number instead of colliding with the original.
+    _amend_reset_number_field = None
+
+    def amend(self):
+        """Create and return a new Draft copy linked back via amended_from."""
+        import copy
+        if self.docstatus != self.DocStatus.CANCELLED:
+            raise ValueError('Only a Cancelled document can be amended.')
+        new = copy.copy(self)
+        new.pk = None
+        new.id = None
+        new._state.adding = True
+        new.docstatus = self.DocStatus.DRAFT
+        new.amended_from = self
+        new.submitted_at = new.submitted_by = None
+        new.cancelled_at = new.cancelled_by = None
+        if self._amend_reset_number_field:
+            setattr(new, self._amend_reset_number_field, '')
+        new.save()
+        return new
 
 
 class Branch(models.Model):
@@ -59,6 +147,9 @@ class User(AbstractUser):
         choices=Status.choices,
         default=Status.ACTIVE
     )
+    failed_login_attempts = models.PositiveSmallIntegerField(default=0)
+    locked_until           = models.DateTimeField(null=True, blank=True)
+    last_password_reset_request_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -104,6 +195,57 @@ class CompanySettings(models.Model):
     def get_instance(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+
+class DiscountPercentageMaster(models.Model):
+    """Reference: 'Discount Percentage Master' (workspace label 'Service
+    Invoice Discount Percentage') -- singleton via pk=1, same pattern as
+    CompanySettings.get_instance(). No current consumer -- LaborChargesAlteration/
+    OutworkEntryReturn/SparesIssueAlteration don't auto-apply a global discount
+    today (flagged, not wired this phase)."""
+    labor_charge_discount            = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    out_work_return_discount         = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    spares_issue_alteration_discount = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+
+    class Meta:
+        verbose_name        = 'Discount Percentage Master'
+        verbose_name_plural = 'Discount Percentage Master'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_instance(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return 'Discount Percentage Master'
+
+
+class LedgerCreationDateMaster(models.Model):
+    """Reference: 'Ledger Creation Date Master' (workspace label 'Voucher
+    Creation Date Master') -- singleton via pk=1. No current consumer -- the
+    reference's 'Ledger Creation' doctype this gates hasn't been built in
+    Django yet (flagged, not wired this phase)."""
+    allowed_days = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name        = 'Ledger Creation Date Master'
+        verbose_name_plural = 'Ledger Creation Date Master'
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def get_instance(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return 'Ledger Creation Date Master'
 
 
 class FuelExpense(models.Model):
@@ -156,9 +298,9 @@ class AuditLog(models.Model):
         verbose_name_plural = 'Audit Logs'
 
     def __str__(self):
-        return f"{self.action_name} by {self.user} on {self.module_name} #{self.record_id}"
+        return f"{self.action_name} by {self.user or 'a deleted user'} on {self.module_name} #{self.record_id}"
 
-import random
+import secrets
 from django.utils import timezone
 
 class OTPVerification(models.Model):
@@ -173,7 +315,7 @@ class OTPVerification(models.Model):
         from django.core.mail import send_mail
         from django.conf import settings
 
-        self.otp_code = f"{random.randint(100000, 999999)}"
+        self.otp_code = f"{100000 + secrets.randbelow(900000)}"
         self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
         self.save()
 
@@ -191,8 +333,11 @@ class OTPVerification(models.Model):
             print(f"--- OTP email dispatched to {self.user.email} ---")
             return True
         except Exception as e:
-            print(f"Failed to send email: {e}")
-            print(f"--- FALLBACK OTP for {self.user.email} is {self.otp_code} ---")
+            # Never log the actual OTP code -- it's a 2FA secret. The caller
+            # already fails closed (deletes this record, blocks the login)
+            # when email dispatch fails, so there's no legitimate need for
+            # the code to appear anywhere outside the sent email itself.
+            print(f"Failed to send OTP email to {self.user.email}: {e}")
             return False
 
     class Meta:
@@ -244,6 +389,7 @@ MODULE_CHOICES = (
     ('vas',            'Value Added Services'),
     ('vehicle_master', 'Vehicle Master'),
     ('masters',        'Masters'),
+    ('used_vehicles',  'Used Vehicles'),
     ('reports',        'Reports'),
     ('admin',          'Admin'),
 )

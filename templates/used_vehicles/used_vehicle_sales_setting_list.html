@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle Sales Settings — Used Vehicles{% endblock %}
+{% block page_title %}Used Vehicle Sales Settings{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:used_vehicle_sales_setting_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Sales Setting</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Used Vehicle Sales Settings</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Used Vehicle Sales Settings</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Setting No</th><th>GST %</th><th>Rows</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.setting_no }}</td>
+                    <td>{{ o.gst_percent }}%</td>
+                    <td>{{ o.items.count }}</td>
+                    <td><a href="{% url 'used_vehicles:used_vehicle_sales_setting_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No records found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

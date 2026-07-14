@@ -8,8 +8,11 @@ from django.views.decorators.http import require_POST
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
 
-from .forms import BikeModelForm, CustomerForm, VehicleStockForm
-from .models import BikeModel, Customer, VehicleStock
+from .forms import (
+    BikeModelForm, CustomerForm, VehicleStockForm,
+    VehicleMasterSettingsForm, VehicleMasterSettingsItemFormSet,
+)
+from .models import BikeModel, Customer, VehicleStock, VehicleMasterSettings
 
 
 @login_required
@@ -216,3 +219,81 @@ def customer_delete(request, pk):
     log_action(request, 'Customer', 'delete', pk)
     messages.success(request, f'Customer CUST-{pk} deleted.')
     return redirect('customers:customer_list')
+
+
+# ---------------------------------------------------------------------------
+# Phase 8c — Vehicle Master Settings
+# ---------------------------------------------------------------------------
+
+@login_required
+def vehicle_master_settings_list(request):
+    objs = VehicleMasterSettings.objects.select_related('vehicle').order_by('-created_at')
+    return render(request, 'customers/vehicle_master_settings_list.html', {'objs': objs})
+
+
+@login_required
+def vehicle_master_settings_detail(request, pk):
+    obj = get_object_or_404(VehicleMasterSettings.objects.select_related('vehicle', 'service_settings', 'exchange_vehicle_id'), pk=pk)
+    return render(request, 'customers/vehicle_master_settings_detail.html', {'obj': obj, 'items': obj.items.select_related('vehicle_name').all()})
+
+
+@login_required
+@require_module_action('customers', 'create')
+def vehicle_master_settings_create(request):
+    form = VehicleMasterSettingsForm(request.POST or None)
+    formset = VehicleMasterSettingsItemFormSet(request.POST or None, prefix='items')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid():
+        obj = form.save(commit=False)
+        obj.created_by = request.user
+        obj.save()
+        formset.instance = obj
+        formset.save()
+        log_action(request, 'Vehicle Master Settings', 'create', obj.pk)
+        messages.success(request, f'{obj.master_no} created.')
+        return redirect('customers:vehicle_master_settings_detail', pk=obj.pk)
+    return render(request, 'customers/vehicle_master_settings_form.html', {
+        'form': form, 'formset': formset, 'title': 'New Vehicle Master Settings',
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('customers', 'edit')
+def vehicle_master_settings_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(VehicleMasterSettings, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    existing_chassis = set(VehicleStock.objects.values_list('chassis_no', flat=True))
+    rows = obj.items.all()
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Vehicle Master Settings', 'update', pk)
+        created = [r.chasis_no for r in rows if r.chasis_no not in existing_chassis]
+        skipped = [r.chasis_no for r in rows if r.chasis_no in existing_chassis]
+        msg = f'{obj.master_no} submitted — {len(created)} vehicle stock row(s) created.'
+        if skipped:
+            msg += f' Skipped {len(skipped)} duplicate chassis number(s): {", ".join(skipped)}.'
+        messages.success(request, msg)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('customers:vehicle_master_settings_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('customers', 'edit')
+def vehicle_master_settings_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(VehicleMasterSettings, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Vehicle Master Settings', 'update', pk)
+        messages.success(request, f'{obj.master_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('customers:vehicle_master_settings_detail', pk=pk)

@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.contrib import messages
@@ -11,13 +12,24 @@ from django.views.decorators.http import require_POST
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
 
-from .forms import (BayAssignmentForm, JobCardForm, LaborChargeForm, OutworkEntryForm,
-                    ServiceAppointmentForm, ServiceBayForm, ServiceEnquiryForm,
-                    ServiceInvoiceForm, VehicleServiceMasterForm,
-                    VehicleServiceScheduleFormSet)
-from .models import (BayAssignment, JobCard, LaborCharge, OutworkEntry,
-                     ServiceAppointment, ServiceBay, ServiceEnquiry, ServiceInvoice,
-                     VehicleServiceMaster)
+from .forms import (BayAssignmentForm, BayInCreationForm, BayOutCreationForm,
+                    ChasisDetailRowFormSet, ComplaintDetailFormSet, EngineDetailRowFormSet,
+                    FinalInspectionForm, JobCardForm, JobCardSupervisorObservationFormSet,
+                    LaborChargeForm,
+                    LaborChargesAlterationForm, LaborDetailLineFormSet,
+                    LaborSpareItemFormSet, LightDetailFormSet, OutworkEntryForm, OutworkEntryIssueForm,
+                    OutworkEntryReturnForm, OutworkReturnDetailFormSet,
+                    OutworkReturnSpareItemFormSet, OutworkSpareItemFormSet,
+                    OutworkWorkDetailFormSet, ServiceAppointmentForm, ServiceBayForm,
+                    ServiceEnquiryForm, ServiceInvoiceForm, VehicleServiceMasterForm,
+                    VehicleServiceScheduleFormSet, WaterWashDoneForm)
+from .models import (BayAssignment, BayInCreation, BayOutCreation, FinalInspection,
+                     JobCard, LaborCharge, LaborChargesAlteration, OutworkEntry,
+                     OutworkEntryIssue, OutworkEntryReturn, ServiceAppointment,
+                     ServiceBay, ServiceEnquiry, ServiceInvoice, VehicleServiceMaster,
+                     WaterWashDone)
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -131,7 +143,11 @@ def enquiry_create(request):
 @login_required
 @require_module_action('service', 'edit')
 def enquiry_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     enquiry = get_object_or_404(ServiceEnquiry, pk=pk)
+    if not user_owns(request.user, enquiry):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form    = ServiceEnquiryForm(request.POST or None, instance=enquiry)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -180,7 +196,11 @@ def appointment_update(request, pk):
 @require_POST
 @require_module_action('service', 'edit')
 def appointment_cancel(request, pk):
-    appt        = get_object_or_404(ServiceAppointment, pk=pk)
+    from accounts.permissions import user_owns
+    appt = get_object_or_404(ServiceAppointment, pk=pk)
+    if appt.service_enquiry_id and not user_owns(request.user, appt.service_enquiry):
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     appt.status = ServiceAppointment.Status.CANCELLED
     appt.save(update_fields=['status'])
     log_action(request, 'Service Appointment', 'update', pk)
@@ -264,7 +284,23 @@ def jobcard_detail(request, pk):
         'free_services_remaining': free_services_remaining,
         'free_services_used':      free_services_used,
         'total_free_services':     total_free_services,
+        'complaint_details':       job_card.complaint_details.select_related('customer_complaint').all(),
+        'supervisor_observations': job_card.supervisor_observations.select_related('complaint').all(),
+        'engine_details':          job_card.engine_details.all(),
+        'light_details':           job_card.light_details.all(),
+        'chasis_details':          job_card.chasis_details.all(),
     })
+
+
+def _jobcard_checklist_formsets(request, instance=None):
+    post = request.POST or None
+    return {
+        'complaint_formset':    ComplaintDetailFormSet(post, instance=instance, prefix='complaints'),
+        'observation_formset':  JobCardSupervisorObservationFormSet(post, instance=instance, prefix='observations'),
+        'engine_formset':       EngineDetailRowFormSet(post, instance=instance, prefix='engine'),
+        'light_formset':        LightDetailFormSet(post, instance=instance, prefix='lights'),
+        'chasis_formset':       ChasisDetailRowFormSet(post, instance=instance, prefix='chasis'),
+    }
 
 
 @login_required
@@ -278,16 +314,22 @@ def jobcard_create(request):
     form = JobCardForm(request.POST or None, initial=initial)
     if not is_manager:
         form.fields.pop('service_advisor', None)
-    if request.method == 'POST' and form.is_valid():
-        jc = form.save(commit=False)
-        if not is_manager:
-            jc.service_advisor = request.user
-        jc.save()
-        log_action(request, 'Job Card', 'create', jc.pk)
-        messages.success(request, 'Job card created successfully.')
-        return redirect('service:jobcard_detail', pk=jc.pk)
+    checklists = _jobcard_checklist_formsets(request)
+    if request.method == 'POST':
+        if form.is_valid() and all(fs.is_valid() for fs in checklists.values()):
+            jc = form.save(commit=False)
+            if not is_manager:
+                jc.service_advisor = request.user
+            jc.save()
+            for fs in checklists.values():
+                fs.instance = jc
+                fs.save()
+            log_action(request, 'Job Card', 'create', jc.pk)
+            messages.success(request, 'Job card created successfully.')
+            return redirect('service:jobcard_detail', pk=jc.pk)
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'service/jobcard_form.html',
-                  {'form': form, 'title': 'New Job Card'})
+                  {'form': form, 'title': 'New Job Card', **checklists})
 
 
 @login_required
@@ -303,20 +345,29 @@ def jobcard_update(request, pk):
     if not is_manager:
         form.fields.pop('service_advisor', None)
         form.fields.pop('service_status', None)
-    if request.method == 'POST' and form.is_valid():
-        form.save()
-        log_action(request, 'Job Card', 'update', pk)
-        messages.success(request, 'Job card updated successfully.')
-        return redirect('service:jobcard_detail', pk=job_card.pk)
+    checklists = _jobcard_checklist_formsets(request, instance=job_card)
+    if request.method == 'POST':
+        if form.is_valid() and all(fs.is_valid() for fs in checklists.values()):
+            form.save()
+            for fs in checklists.values():
+                fs.save()
+            log_action(request, 'Job Card', 'update', pk)
+            messages.success(request, 'Job card updated successfully.')
+            return redirect('service:jobcard_detail', pk=job_card.pk)
+        messages.error(request, 'Please correct the errors below.')
     return render(request, 'service/jobcard_form.html',
-                  {'form': form, 'title': 'Edit Job Card'})
+                  {'form': form, 'title': 'Edit Job Card', **checklists})
 
 
 @login_required
 @require_POST
 @require_module_action('service', 'edit')
 def jobcard_status_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     job_card   = get_object_or_404(JobCard, pk=pk)
+    if not user_owns(request.user, job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     new_status = request.POST.get('service_status')
     if new_status in dict(JobCard.ServiceStatus.choices):
         job_card.service_status = new_status
@@ -352,14 +403,12 @@ def jobcard_print(request, pk):
 
 
 def _spares_issued_for(job_card):
-    """
-    SparesIssueAlteration.job_card is a free-text label ('JC-<pk>'), not a
-    real FK — this looks it up by that label and flattens to line items.
-    """
+    """Flattened spares line items issued against this job card, via the
+    real job_card FK on spares.SparesIssueAlteration (Phase 2)."""
     from spares.models import SparesIssueAlterationItem
     return list(
         SparesIssueAlterationItem.objects
-        .filter(alteration__job_card=f'JC-{job_card.pk}')
+        .filter(alteration__job_card=job_card)
         .select_related('item', 'alteration__created_by')
     )
 
@@ -440,9 +489,15 @@ def bay_assignment_update(request, pk):
 @login_required
 @require_module_action('service', 'create')
 def labor_charge_create(request):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     initial = {}
-    if request.GET.get('jc'):
-        initial['job_card'] = request.GET['jc']
+    jc_id = request.POST.get('job_card') or request.GET.get('jc')
+    if jc_id:
+        initial['job_card'] = jc_id
+        job_card = get_object_or_404(JobCard, pk=jc_id)
+        if not user_owns(request.user, job_card):
+            return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form = LaborChargeForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
         charge = form.save()
@@ -456,7 +511,11 @@ def labor_charge_create(request):
 @login_required
 @require_module_action('service', 'edit')
 def labor_charge_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     charge = get_object_or_404(LaborCharge, pk=pk)
+    if not user_owns(request.user, charge.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     form   = LaborChargeForm(request.POST or None, instance=charge)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -471,7 +530,11 @@ def labor_charge_update(request, pk):
 @require_POST
 @require_module_action('service', 'delete')
 def labor_charge_delete(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     charge = get_object_or_404(LaborCharge, pk=pk)
+    if not user_owns(request.user, charge.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     jc_pk  = charge.job_card_id
     charge.delete()
     log_action(request, 'Labor Charge', 'delete', pk)
@@ -516,8 +579,9 @@ def service_invoice_create(request):
                 CustomerVehicle.objects.filter(pk=_cv.pk).update(
                     free_services_used=F('free_services_used') + 1
                 )
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.error("Failed to increment free_services_used for job card %s: %s",
+                         invoice.job_card_id, exc)
         log_action(request, 'Service Invoice', 'create', invoice.pk)
         messages.success(request, 'Service invoice created and totals calculated.')
         return redirect('service:service_invoice_detail', pk=invoice.pk)
@@ -665,7 +729,11 @@ def reminder_list(request):
 @login_required
 @require_module_action('service', 'edit')
 def reminder_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     reminder = get_object_or_404(ServiceReminder, pk=pk)
+    if not user_owns(request.user, reminder):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if request.method == 'POST':
         new_status = request.POST.get('status')
         notes = request.POST.get('notes', '')
@@ -719,7 +787,11 @@ def technician_report(request):
 @require_module_action('service', 'delete')
 def enquiry_delete(request, pk):
     from django.db.models import ProtectedError
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     enq = get_object_or_404(ServiceEnquiry, pk=pk)
+    if not user_owns(request.user, enq):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     try:
         enq.delete()
         log_action(request, 'ServiceEnquiry', 'delete', pk)
@@ -738,7 +810,11 @@ def enquiry_delete(request, pk):
 @require_module_action('service', 'delete')
 def appointment_delete(request, pk):
     from django.db.models import ProtectedError
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
     apt = get_object_or_404(ServiceAppointment, pk=pk)
+    if apt.service_enquiry_id and not user_owns(request.user, apt.service_enquiry):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     try:
         apt.delete()
         log_action(request, 'ServiceAppointment', 'delete', pk)
@@ -828,3 +904,331 @@ def vehicle_service_master_update(request, pk):
     return render(request, 'service/vehicle_service_master_form.html', {
         'form': form, 'formset': formset, 'title': 'Edit Vehicle Service Master', 'master': master,
     })
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 — reference-parity workshop stage documents
+# ---------------------------------------------------------------------------
+
+def _stage_submit(request, model, pk, list_name):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(model, pk=pk)
+    if not user_owns(request.user, obj.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, model.__name__, 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect(f'service:{list_name}_detail', pk=pk)
+
+
+def _stage_cancel(request, model, pk, list_name):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(model, pk=pk)
+    if not user_owns(request.user, obj.job_card):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, model.__name__, 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect(f'service:{list_name}_detail', pk=pk)
+
+
+# ---- Water Wash Done ----
+
+@login_required
+@require_module_action('service', 'create')
+def water_wash_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = WaterWashDoneForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save()
+        log_action(request, 'Water Wash Done', 'create', obj.pk)
+        messages.success(request, 'Water Wash Done recorded.')
+        return redirect('service:water_wash_detail', pk=obj.pk)
+    return render(request, 'service/water_wash_form.html', {'form': form, 'title': 'Water Wash Done'})
+
+
+@login_required
+def water_wash_detail(request, pk):
+    obj = get_object_or_404(WaterWashDone, pk=pk)
+    return render(request, 'service/water_wash_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def water_wash_submit(request, pk):
+    return _stage_submit(request, WaterWashDone, pk, 'water_wash')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def water_wash_cancel(request, pk):
+    return _stage_cancel(request, WaterWashDone, pk, 'water_wash')
+
+
+# ---- Bay In Creation ----
+
+@login_required
+@require_module_action('service', 'create')
+def bay_in_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = BayInCreationForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save()
+        log_action(request, 'Bay In Creation', 'create', obj.pk)
+        messages.success(request, 'Bay In recorded.')
+        return redirect('service:bay_in_detail', pk=obj.pk)
+    return render(request, 'service/bay_in_form.html', {'form': form, 'title': 'Bay In Creation'})
+
+
+@login_required
+def bay_in_detail(request, pk):
+    obj = get_object_or_404(BayInCreation, pk=pk)
+    return render(request, 'service/bay_in_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def bay_in_submit(request, pk):
+    return _stage_submit(request, BayInCreation, pk, 'bay_in')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def bay_in_cancel(request, pk):
+    return _stage_cancel(request, BayInCreation, pk, 'bay_in')
+
+
+# ---- Bay Out Creation ----
+
+@login_required
+@require_module_action('service', 'create')
+def bay_out_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = BayOutCreationForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save()
+        log_action(request, 'Bay Out Creation', 'create', obj.pk)
+        messages.success(request, 'Bay Out recorded.')
+        return redirect('service:bay_out_detail', pk=obj.pk)
+    return render(request, 'service/bay_out_form.html', {'form': form, 'title': 'Bay Out Creation'})
+
+
+@login_required
+def bay_out_detail(request, pk):
+    obj = get_object_or_404(BayOutCreation, pk=pk)
+    return render(request, 'service/bay_out_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def bay_out_submit(request, pk):
+    return _stage_submit(request, BayOutCreation, pk, 'bay_out')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def bay_out_cancel(request, pk):
+    return _stage_cancel(request, BayOutCreation, pk, 'bay_out')
+
+
+# ---- Final Inspection ----
+
+@login_required
+@require_module_action('service', 'create')
+def final_inspection_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = FinalInspectionForm(request.POST or None, initial=initial)
+    if request.method == 'POST' and form.is_valid():
+        obj = form.save()
+        log_action(request, 'Final Inspection', 'create', obj.pk)
+        messages.success(request, 'Final Inspection recorded.')
+        return redirect('service:final_inspection_detail', pk=obj.pk)
+    return render(request, 'service/final_inspection_form.html', {'form': form, 'title': 'Final Inspection'})
+
+
+@login_required
+def final_inspection_detail(request, pk):
+    obj = get_object_or_404(FinalInspection, pk=pk)
+    return render(request, 'service/final_inspection_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def final_inspection_submit(request, pk):
+    return _stage_submit(request, FinalInspection, pk, 'final_inspection')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def final_inspection_cancel(request, pk):
+    return _stage_cancel(request, FinalInspection, pk, 'final_inspection')
+
+
+# ---- Outwork Entry Issue ----
+
+@login_required
+@require_module_action('service', 'create')
+def outwork_issue_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = OutworkEntryIssueForm(request.POST or None, initial=initial)
+    work_formset = OutworkWorkDetailFormSet(request.POST or None, prefix='work')
+    spares_formset = OutworkSpareItemFormSet(request.POST or None, prefix='spares')
+    if request.method == 'POST':
+        if form.is_valid() and work_formset.is_valid() and spares_formset.is_valid():
+            obj = form.save()
+            work_formset.instance = obj
+            work_formset.save()
+            spares_formset.instance = obj
+            spares_formset.save()
+            log_action(request, 'Outwork Entry Issue', 'create', obj.pk)
+            messages.success(request, 'Outwork Entry Issue created.')
+            return redirect('service:outwork_issue_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'service/outwork_issue_form.html', {
+        'form': form, 'work_formset': work_formset, 'spares_formset': spares_formset,
+        'title': 'Outwork Entry Issue',
+    })
+
+
+@login_required
+def outwork_issue_detail(request, pk):
+    obj = get_object_or_404(OutworkEntryIssue, pk=pk)
+    return render(request, 'service/outwork_issue_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def outwork_issue_submit(request, pk):
+    return _stage_submit(request, OutworkEntryIssue, pk, 'outwork_issue')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def outwork_issue_cancel(request, pk):
+    return _stage_cancel(request, OutworkEntryIssue, pk, 'outwork_issue')
+
+
+# ---- Outwork Entry Return ----
+
+@login_required
+@require_module_action('service', 'create')
+def outwork_return_create(request):
+    initial = {}
+    if request.GET.get('issue'):
+        issue = get_object_or_404(OutworkEntryIssue, pk=request.GET['issue'])
+        initial['outwork_issue'] = issue.pk
+        initial['job_card'] = issue.job_card_id
+    form = OutworkEntryReturnForm(request.POST or None, initial=initial)
+    details_formset = OutworkReturnDetailFormSet(request.POST or None, prefix='details')
+    spares_formset = OutworkReturnSpareItemFormSet(request.POST or None, prefix='spares')
+    if request.method == 'POST':
+        if form.is_valid() and details_formset.is_valid() and spares_formset.is_valid():
+            obj = form.save()
+            details_formset.instance = obj
+            details_formset.save()
+            spares_formset.instance = obj
+            spares_formset.save()
+            log_action(request, 'Outwork Entry Return', 'create', obj.pk)
+            messages.success(request, 'Outwork Entry Return created.')
+            return redirect('service:outwork_return_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'service/outwork_return_form.html', {
+        'form': form, 'details_formset': details_formset, 'spares_formset': spares_formset,
+        'title': 'Outwork Entry Return',
+    })
+
+
+@login_required
+def outwork_return_detail(request, pk):
+    obj = get_object_or_404(OutworkEntryReturn, pk=pk)
+    return render(request, 'service/outwork_return_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def outwork_return_submit(request, pk):
+    return _stage_submit(request, OutworkEntryReturn, pk, 'outwork_return')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def outwork_return_cancel(request, pk):
+    return _stage_cancel(request, OutworkEntryReturn, pk, 'outwork_return')
+
+
+# ---- Labor Charges Alteration ----
+
+@login_required
+@require_module_action('service', 'create')
+def labor_alteration_create(request):
+    initial = {}
+    if request.GET.get('jc'):
+        initial['job_card'] = request.GET['jc']
+    form = LaborChargesAlterationForm(request.POST or None, initial=initial)
+    labor_formset = LaborDetailLineFormSet(request.POST or None, prefix='labor')
+    spares_formset = LaborSpareItemFormSet(request.POST or None, prefix='spares')
+    if request.method == 'POST':
+        if form.is_valid() and labor_formset.is_valid() and spares_formset.is_valid():
+            obj = form.save()
+            labor_formset.instance = obj
+            labor_formset.save()
+            spares_formset.instance = obj
+            spares_formset.save()
+            log_action(request, 'Labor Charges Alteration', 'create', obj.pk)
+            messages.success(request, 'Labor Charges Alteration created.')
+            return redirect('service:labor_alteration_detail', pk=obj.pk)
+        messages.error(request, 'Please correct the errors below.')
+    return render(request, 'service/labor_alteration_form.html', {
+        'form': form, 'labor_formset': labor_formset, 'spares_formset': spares_formset,
+        'title': 'Labor Charges Alteration',
+    })
+
+
+@login_required
+def labor_alteration_detail(request, pk):
+    obj = get_object_or_404(LaborChargesAlteration, pk=pk)
+    return render(request, 'service/labor_alteration_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def labor_alteration_submit(request, pk):
+    return _stage_submit(request, LaborChargesAlteration, pk, 'labor_alteration')
+
+
+@login_required
+@require_POST
+@require_module_action('service', 'edit')
+def labor_alteration_cancel(request, pk):
+    return _stage_cancel(request, LaborChargesAlteration, pk, 'labor_alteration')

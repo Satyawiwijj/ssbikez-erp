@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Outwork Entry Issue{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'service:outwork_issue_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'service:outwork_issue_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+<a href="{% url 'service:outwork_return_create' %}?issue={{ obj.pk }}" class="btn btn-sm btn-primary"><i class="fas fa-undo me-1"></i>Create Return</a>
+{% endif %}
+<a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-truck-loading me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Job Card</th><td><a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}">{{ obj.job_card }}</a></td></tr>
+                <tr><th>Vendor</th><td>{{ obj.vendor_name }}</td></tr>
+                <tr><th>Godown</th><td>{{ obj.godown|default:"—" }}</td></tr>
+                <tr><th>Gate Pass</th><td>{{ obj.get_gate_pass_display|default:"—" }}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Work Details</div>
+    {% if obj.work_details.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Work Name</th><th>Party</th><th>Qty</th><th>Amount</th><th>Tax %</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for w in obj.work_details.all %}
+                <tr><td>{{ w.work_name }}</td><td>{{ w.party|default:"—" }}</td><td>{{ w.quantity }}</td><td>&#x20B9; {{ w.amount }}</td><td>{{ w.tax }}</td><td>&#x20B9; {{ w.total_amount }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No work details recorded.</div>
+    {% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Outwork Spares</div>
+    {% if obj.outwork_spares.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for s in obj.outwork_spares.all %}
+                <tr><td>{{ s.item }}</td><td>{{ s.quantity }}</td><td>&#x20B9; {{ s.rate }}</td><td>&#x20B9; {{ s.total }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No spares recorded.</div>
+    {% endif %}
+</div>
+
+{% if obj.returns.all %}
+<div class="card mt-3">
+    <div class="card-header">Returns</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Return</th><th>Status</th><th>Actual Amount</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for r in obj.returns.all %}
+                <tr>
+                    <td>{{ r }}</td>
+                    <td>{% if r.docstatus == 0 %}Draft{% elif r.docstatus == 1 %}Submitted{% else %}Cancelled{% endif %}</td>
+                    <td>&#x20B9; {{ r.actual_amount }}</td>
+                    <td><a href="{% url 'service:outwork_return_detail' pk=r.pk %}" class="btn btn-sm btn-ghost">View</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

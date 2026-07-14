@@ -17,5 +17,6 @@ urlpatterns = [
     path('spares/', include('spares.urls', namespace='spares')),
     path('vas/', include('vas.urls', namespace='vas')),
     path('masters/', include('masters.urls', namespace='masters')),
+    path('used-vehicles/', include('used_vehicles.urls', namespace='used_vehicles')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 

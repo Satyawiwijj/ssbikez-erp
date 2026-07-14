@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.master_no }} — Used Vehicles{% endblock %}
+{% block page_title %}Used Vehicle Master Settings {{ obj.master_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:used_vehicle_master_settings_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:used_vehicle_master_settings_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this batch?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:used_vehicle_master_settings_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'used_vehicles:used_vehicle_master_settings_list' %}">Used Vehicle Master Settings</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.master_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.master_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Vehicle</dt><dd style="font-weight:600;">{{ obj.vehicle }}</dd></div>
+        <div class="detail-row"><dt>Has Exchange Vehicle</dt><dd>{% if obj.has_exchange_vehicle %}&#x2705;{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Service Settings</dt><dd>{{ obj.service_settings|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Exchange Vehicle</dt><dd>{{ obj.exchange_vehicle_id|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Registration / Engine / Color Batch</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Model</th><th>Register Number</th><th>Chasis No</th><th>Engine</th><th>Color</th><th>Color Code</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.model }}</td>
+                    <td>{{ i.register_number }}</td>
+                    <td>{{ i.chasis_no|default:"—" }}</td>
+                    <td>{{ i.engine }}</td>
+                    <td>{{ i.color }}</td>
+                    <td>{{ i.color_code|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No rows found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if obj.docstatus == 1 %}
+<div class="alert alert-light" style="margin-top:16px;">
+    <i class="fas fa-info-circle me-2 text-primary"></i>
+    Submitting this batch created a Used Vehicle Register No row for each registration number
+    above (skipping any that already existed).
+</div>
+{% endif %}
+{% endblock %}

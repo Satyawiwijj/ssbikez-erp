@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}{{ dealer.dealer_name }} — SSBikez ERP{% endblock %}
+{% block page_title %}Dealer{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'sales:dealer_list' %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header"><span class="card-title"><i class="fas fa-store me-2"></i>{{ dealer.dealer_name }}</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>GSTIN</th><td>{{ dealer.gstin|default:"—" }}</td></tr>
+                <tr><th>Mobile Number</th><td>{{ dealer.mobile_number }}</td></tr>
+                <tr><th>GST Category</th><td>{{ dealer.get_gst_category_display|default:"—" }}</td></tr>
+                <tr><th>Warehouse</th><td>{{ dealer.warehouse }}</td></tr>
+                <tr><th>Email</th><td>{{ dealer.email|default:"—" }}</td></tr>
+                <tr><th>Area (Branch)</th><td>{{ dealer.branch }}</td></tr>
+                <tr><th>Address</th><td>{{ dealer.address_line1|default:"—" }}, {{ dealer.citytown|default:"—" }}, {{ dealer.state|default:"—" }} {{ dealer.pincode }}</td></tr>
+                <tr><th>Country</th><td>{{ dealer.country|default:"—" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

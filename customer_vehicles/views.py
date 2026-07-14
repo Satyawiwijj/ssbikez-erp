@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -23,8 +24,10 @@ def customervehicle_list(request):
             Q(customer__phone__icontains=q) |
             Q(registration_no__icontains=q)
         )
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(request, 'customer_vehicles/customervehicle_list.html',
-                  {'customer_vehicles': qs, 'q': q})
+                  {'customer_vehicles': page_obj, 'page_obj': page_obj, 'q': q})
 
 
 @login_required
@@ -53,10 +56,7 @@ def customervehicle_detail(request, pk):
     balance     = Decimal('0')
 
     if sales_order:
-        try:
-            invoice = sales_order.invoice
-        except Exception:
-            invoice = None
+        invoice = sales_order.current_invoice
         try:
             loan = sales_order.loan
         except Exception:

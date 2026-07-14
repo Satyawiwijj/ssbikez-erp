@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% block title %}Spares Settings — SSBikez ERP{% endblock %}
+{% block page_title %}Spares Settings{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">Settings</span>
+</nav>
+
+<div class="detail-grid">
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Spares Profit Percentage</div>
+            <form method="post" style="padding:20px;">
+                {% csrf_token %}
+                {% if profit_form.errors %}
+                <div class="alert alert-danger">{{ profit_form.errors }}</div>
+                {% endif %}
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label" for="{{ profit_form.with_mrp.id_for_label }}">With MRP (%)</label>{{ profit_form.with_mrp }}</div>
+                    <div class="form-group"><label class="form-label" for="{{ profit_form.without_mrp.id_for_label }}">Without MRP (%)</label>{{ profit_form.without_mrp }}</div>
+                </div>
+                <div class="form-actions" style="margin-top:16px;">
+                    <button type="submit" name="save_profit" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div>
+        <div class="card form-card">
+            <div class="card-header">Spares Purchase Order Used or Order Qty Days</div>
+            <form method="post" style="padding:20px;">
+                {% csrf_token %}
+                {% if qty_days_form.errors %}
+                <div class="alert alert-danger">{{ qty_days_form.errors }}</div>
+                {% endif %}
+                <div class="form-grid">
+                    <div class="form-group"><label class="form-label" for="{{ qty_days_form.used_or_order_qty_days.id_for_label }}">Used/Order Qty Days</label>{{ qty_days_form.used_or_order_qty_days }}</div>
+                </div>
+                <div class="form-actions" style="margin-top:16px;">
+                    <button type="submit" name="save_qty_days" class="btn btn-primary"><i class="fas fa-save me-2"></i>Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+.form-label{font-weight:600;margin-bottom:6px;display:block;}
+.form-actions{display:flex;gap:12px;align-items:center;}
+@media (max-width:768px){.form-grid{grid-template-columns:1fr;}}
+</style>
+{% endblock %}

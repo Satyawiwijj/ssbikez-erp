@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle Final Inspection{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:uv_final_inspection_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:uv_final_inspection_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:jobcard_detail' pk=obj.job_card_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-clipboard-check me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Job Card</th><td><a href="{% url 'used_vehicles:jobcard_detail' pk=obj.job_card_id %}">{{ obj.job_card }}</a></td></tr>
+                <tr><th>Rework</th><td>{% if obj.rework %}<span class="badge badge-red">Yes</span>{% else %}<span class="badge badge-green">No</span>{% endif %}</td></tr>
+                <tr><th>Vehicle Name</th><td>{{ obj.vehicle_name|default:"—" }}</td></tr>
+                <tr><th>Chasis Number</th><td>{{ obj.chasis_number|default:"—" }}</td></tr>
+                <tr><th>Mechanic Name</th><td>{{ obj.mechanic_name|default:"—" }}</td></tr>
+                <tr><th>Register Number</th><td>{{ obj.register_number|default:"—" }}</td></tr>
+                <tr><th>Remarks</th><td>{{ obj.final_inspection_remarks }}</td></tr>
+                <tr><th>Out Work Charge Form</th><td>{{ obj.out_work_charge_form|default:"—" }}</td></tr>
+                <tr><th>Bay Out Remarks</th><td>{{ obj.out_work_remarks|default:"—" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Complaints Table</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Complaint</th><th>Details</th><th>Status</th><th>Est. Amount</th></tr></thead>
+            <tbody>
+                {% for c in complaints %}
+                <tr><td>{{ c.customer_complaint }}</td><td>{{ c.details|default:"—" }}</td><td>{{ c.get_status_display }}</td><td>&#x20B9; {{ c.estimated_amount }}</td></tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No complaints.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Supervisor Recomment</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Observation</th><th>Details</th><th>Est. Amount</th></tr></thead>
+            <tbody>
+                {% for o in observations %}
+                <tr><td>{{ o.complaint }}</td><td>{{ o.details|default:"—" }}</td><td>&#x20B9; {{ o.estimated_amount }}</td></tr>
+                {% empty %}
+                <tr><td colspan="3" class="empty-state">No observations.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Labor Charges</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Date</th><th>Labor Work</th><th>Qty</th><th>Amount</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for l in labor_charges %}
+                <tr><td>{{ l.date|default:"—" }}</td><td>{{ l.labor_work|default:"—" }}</td><td>{{ l.quantity }}</td><td>&#x20B9; {{ l.amount }}</td><td>&#x20B9; {{ l.total }}</td></tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No labor charges.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Spares Lists</div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+            <tbody>
+                {% for s in spares_lists %}
+                <tr><td>{{ s.item_name|default:"—" }}</td><td>{{ s.qty }}</td><td>&#x20B9; {{ s.rate }}</td><td>&#x20B9; {{ s.amount }}</td></tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No spares.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Outwork Entry Return{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'service:outwork_return_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'service:outwork_return_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-undo me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Job Card</th><td><a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}">{{ obj.job_card }}</a></td></tr>
+                <tr><th>Outwork Issue</th><td><a href="{% url 'service:outwork_issue_detail' pk=obj.outwork_issue_id %}">{{ obj.outwork_issue }}</a></td></tr>
+                <tr><th>Rework</th><td>{% if obj.rework %}<span class="badge badge-red">Yes</span>{% else %}<span class="badge badge-green">No</span>{% endif %}</td></tr>
+                <tr><th>Payment Type</th><td>{{ obj.get_payment_type_display|default:"—" }}</td></tr>
+                <tr><th>Supplier</th><td>{{ obj.supplier|default:"—" }}</td></tr>
+                <tr><th>Actual Amount</th><td>&#x20B9; {{ obj.actual_amount }}</td></tr>
+                <tr><th>Billing Amount</th><td>&#x20B9; {{ obj.billing_amount }}</td></tr>
+                <tr><th>Vendor Spares Amount</th><td>&#x20B9; {{ obj.vendor_spares_amount }}</td></tr>
+                <tr><th>Pending Amount</th><td>&#x20B9; {{ obj.pending_amount }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Outwork Details</div>
+    {% if obj.outwork_details.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Work Name</th><th>Qty</th><th>Amount</th></tr></thead>
+            <tbody>
+                {% for d in obj.outwork_details.all %}
+                <tr><td>{{ d.work_name }}</td><td>{{ d.quantity }}</td><td>&#x20B9; {{ d.amount }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No outwork details recorded.</div>
+    {% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Issue Spares List</div>
+    {% if obj.out_work_issue_spares_list.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for s in obj.out_work_issue_spares_list.all %}
+                <tr><td>{{ s.item }}</td><td>{{ s.quantity }}</td><td>&#x20B9; {{ s.rate }}</td><td>&#x20B9; {{ s.total }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No spares recorded.</div>
+    {% endif %}
+</div>
+{% endblock %}

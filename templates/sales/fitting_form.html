@@ -77,7 +77,7 @@
                                 <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
                             </label>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row">
                                 <i class="fas fa-trash"></i>
                             </button>
                             {% endif %}
@@ -120,7 +120,7 @@
         });
 
         const delCell = clone.querySelector('td:last-child');
-        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-trash"></i></button>';
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>';
         delCell.querySelector('.remove-row').addEventListener('click', function () {
             clone.remove();
             recalc();

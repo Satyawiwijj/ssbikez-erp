@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.revision_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}MRP Revision {{ obj.revision_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:mrp_revision_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:mrp_revision_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this revision?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:mrp_revision_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:mrp_revision_list' %}">MRP Price Revisions</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.revision_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.revision_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Date</dt><dd>{{ obj.date|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Price List</dt><dd>{{ obj.get_price_list_display }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Revised Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Old Price</th><th>Current Price</th><th>Updated Price</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>&#x20B9; {{ i.old_price }}</td>
+                    <td>&#x20B9; {{ i.current_price }}</td>
+                    <td>&#x20B9; {{ i.updated_price }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="4" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if obj.docstatus == 1 %}
+<div class="alert alert-light" style="margin-top:16px;">
+    <i class="fas fa-info-circle me-2 text-primary"></i>
+    {% if obj.price_list == 'standard_buying' %}
+    Submitting this revision updated each item's purchase valuation rate to its Updated Price.
+    {% else %}
+    Submitting this revision updated each item's MRP to its Updated Price.
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

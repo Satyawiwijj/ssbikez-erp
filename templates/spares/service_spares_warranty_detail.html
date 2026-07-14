@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.warranty_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Warranty Claim {{ obj.warranty_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:service_spares_warranty_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:service_spares_warranty_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this warranty claim?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:service_spares_warranty_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:service_spares_warranty_list' %}">Service Spares Warranties</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.warranty_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.warranty_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Vehicle Number</dt><dd style="font-weight:600;">{{ obj.vehicle_number|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Supplier</dt><dd>{{ obj.supplier }}</dd></div>
+        <div class="detail-row"><dt>Brand</dt><dd>{{ obj.get_brand_display }}</dd></div>
+        <div class="detail-row"><dt>Claim No / Date</dt><dd>{{ obj.claim_no|default:"—" }} / {{ obj.claim_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Parts Dispatch Date</dt><dd>{{ obj.parts_dispatch_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Claim Received Date</dt><dd>{{ obj.claim_received_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Invoice No / Date</dt><dd>{{ obj.invoice_no|default:"—" }} / {{ obj.invoice_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Chasis No</dt><dd>{{ obj.chasis_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Status</dt><dd>{{ obj.get_status_display }}</dd></div>
+        <div class="detail-row"><dt>Branch</dt><dd>{{ obj.branch|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Vehicle Name</dt><dd>{{ obj.vehicle_name|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>NDP Amount</dt><dd>&#x20B9; {{ obj.ndp_amount }}</dd></div>
+        <div class="detail-row"><dt>Dispatch On</dt><dd>{{ obj.dispatch_on|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Dock No</dt><dd>{{ obj.dock_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Claim For</dt><dd>{{ obj.claim_for|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Payment Received Date</dt><dd>{{ obj.payment_received_date|date:"d M Y"|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Register in Pymidol / Generate Invoice / Courier Parts</dt>
+            <dd>
+                {% if obj.claim_register_in_pymidol %}&#x2705;{% else %}—{% endif %} /
+                {% if obj.generate_invoice_in_pymidol %}&#x2705;{% else %}—{% endif %} /
+                {% if obj.courier_parts %}&#x2705;{% else %}—{% endif %}
+            </dd>
+        </div>
+        <div class="detail-row"><dt>History</dt><dd>{{ obj.history|default:"—"|linebreaksbr }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Warranty Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Claim Warranty Amount</th><th>SGST</th><th>CGST</th><th>Total</th><th>NDP</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>&#x20B9; {{ i.claim_warranty_amount }}</td>
+                    <td>{{ i.sgst }}%</td>
+                    <td>{{ i.cgst }}%</td>
+                    <td>&#x20B9; {{ i.total }}</td>
+                    <td>&#x20B9; {{ i.ndp }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.vehicle }} — Masters{% endblock %}
+{% block page_title %}Fitting Spares — {{ obj.vehicle }}{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:vehicle_fitting_spares_update' obj.pk %}" class="btn btn-primary btn-sm"><i class="fas fa-edit me-1"></i>Edit</a>
+<a href="{% url 'masters:vehicle_fitting_spares_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'masters:vehicle_fitting_spares_list' %}">Vehicle Fitting Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.vehicle }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">{{ obj.vehicle }}</span></div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Branch</dt><dd>{{ obj.branch|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Total Amount</dt><dd style="font-weight:700;color:#2563EB;">&#x20B9; {{ obj.total_amount }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Fitted Spares</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th><th>UOM</th><th>GST</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item_name }}</td>
+                    <td>{{ i.quantity }}</td>
+                    <td>&#x20B9; {{ i.rate }}</td>
+                    <td>&#x20B9; {{ i.total }}</td>
+                    <td>{{ i.uom }}</td>
+                    <td>{{ i.gst|default:"—" }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

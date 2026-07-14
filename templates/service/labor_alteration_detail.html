@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Labor Charges Alteration{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'service:labor_alteration_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'service:labor_alteration_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% endif %}
+<a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Job Card</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-tools me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Job Card</th><td><a href="{% url 'service:jobcard_detail' pk=obj.job_card_id %}">{{ obj.job_card }}</a></td></tr>
+                <tr><th>Labour Name</th><td>{{ obj.labours_name|default:"—" }}</td></tr>
+                <tr><th>Total Amount</th><td>&#x20B9; {{ obj.total_amount }}</td></tr>
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Labor Details</div>
+    {% if obj.labor_details.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Labor Work</th><th>Qty</th><th>Amount</th><th>SGST</th><th>CGST</th><th>Total</th><th>Discount</th></tr></thead>
+            <tbody>
+                {% for l in obj.labor_details.all %}
+                <tr><td>{{ l.labor_name }}</td><td>{{ l.quantity }}</td><td>&#x20B9; {{ l.amount }}</td><td>{{ l.sgst }}</td><td>{{ l.cgst }}</td><td>&#x20B9; {{ l.total }}</td><td>&#x20B9; {{ l.discount }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No labor details recorded.</div>
+    {% endif %}
+</div>
+
+<div class="card mt-3">
+    <div class="card-header">Spares Used</div>
+    {% if obj.spares_used.all %}
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Rate</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for s in obj.spares_used.all %}
+                <tr><td>{{ s.item }}</td><td>{{ s.quantity }}</td><td>&#x20B9; {{ s.rate }}</td><td>&#x20B9; {{ s.total }}</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">No spares recorded.</div>
+    {% endif %}
+</div>
+{% endblock %}

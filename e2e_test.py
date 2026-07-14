@@ -192,6 +192,10 @@ check('Branch has GSTIN', bool(branch.gstin))
 admin_user = User.objects.filter(is_superuser=True).first()
 check('Admin user exists', admin_user is not None)
 
+QA_FIXTURE_PASSWORD = os.environ.get('QA_FIXTURE_PASSWORD')
+if not QA_FIXTURE_PASSWORD:
+    raise RuntimeError('Set the QA_FIXTURE_PASSWORD environment variable before running this script.')
+
 sales_role   = Role.objects.get(role_name='Sales Executive')
 cre_role     = Role.objects.get(role_name='CRE Telecaller')
 floor_role   = Role.objects.get(role_name='Floor Supervisor')
@@ -201,25 +205,25 @@ sales_user, _ = User.objects.get_or_create(username='e2e_sales',
     defaults={'first_name': 'Arjun', 'last_name': 'Kumar',
               'email': 'arjun.e2e@ssbikez.com', 'role': sales_role,
               'branch': branch, 'status': 'active'})
-sales_user.set_password('Test@123'); sales_user.save()
+sales_user.set_password(QA_FIXTURE_PASSWORD); sales_user.save()
 
 cre_user, _ = User.objects.get_or_create(username='e2e_cre',
     defaults={'first_name': 'Divya', 'last_name': 'Lakshmi',
               'email': 'divya.e2e@ssbikez.com', 'role': cre_role,
               'branch': branch, 'status': 'active'})
-cre_user.set_password('Test@123'); cre_user.save()
+cre_user.set_password(QA_FIXTURE_PASSWORD); cre_user.save()
 
 floor_user, _ = User.objects.get_or_create(username='e2e_floor',
     defaults={'first_name': 'Rajan', 'last_name': 'Kumar',
               'email': 'rajan.e2e@ssbikez.com', 'role': floor_role,
               'branch': branch, 'status': 'active'})
-floor_user.set_password('Test@123'); floor_user.save()
+floor_user.set_password(QA_FIXTURE_PASSWORD); floor_user.save()
 
 cashier_user, _ = User.objects.get_or_create(username='e2e_cashier',
     defaults={'first_name': 'Meena', 'last_name': 'Devi',
               'email': 'meena.e2e@ssbikez.com', 'role': cashier_role,
               'branch': branch, 'status': 'active'})
-cashier_user.set_password('Test@123'); cashier_user.save()
+cashier_user.set_password(QA_FIXTURE_PASSWORD); cashier_user.save()
 
 check('Sales user created', sales_user.pk is not None)
 check('CRE user created', cre_user.pk is not None)

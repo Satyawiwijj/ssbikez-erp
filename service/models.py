@@ -1,8 +1,11 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models, transaction
 from django.db.models import Sum
+
+from accounts.models import DocStatusMixin
 
 
 class ServiceEnquiry(models.Model):
@@ -83,7 +86,7 @@ class ServiceAppointment(models.Model):
         return f"SAPT-{self.pk} | {self.service_enquiry.customer_vehicle} on {self.appointment_date:%d %b %Y}"
 
 
-class JobCard(models.Model):
+class JobCard(DocStatusMixin, models.Model):
     class ServiceStatus(models.TextChoices):
         PENDING          = 'pending',          'Pending'
         WATER_WASH       = 'water_wash',       'Water Wash'
@@ -348,7 +351,7 @@ class WarrantyClaim(models.Model):
         on_delete=models.CASCADE,
         related_name='warranty_claims'
     )
-    claim_number    = models.CharField(max_length=100, blank=True)
+    claim_number    = models.CharField(max_length=100, blank=True, unique=True)
     claim_date      = models.DateField(auto_now_add=True)
     description     = models.TextField()
     claimed_amount  = models.DecimalField(max_digits=10, decimal_places=2)
@@ -366,10 +369,13 @@ class WarrantyClaim(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.claim_number:
-            last = WarrantyClaim.objects.order_by('-id').first()
-            num  = (last.id + 1) if last else 1
-            self.claim_number = f"WC-{num:05d}"
-        super().save(*args, **kwargs)
+            with transaction.atomic():
+                last = WarrantyClaim.objects.select_for_update().order_by('-id').first()
+                num  = (last.id + 1) if last else 1
+                self.claim_number = f"WC-{num:05d}"
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
 
     def __str__(self):
         return self.claim_number
@@ -423,7 +429,7 @@ class InsuranceEstimation(models.Model):
 
 class ServiceDiscountMaster(models.Model):
     service_type     = models.CharField(max_length=100, unique=True)
-    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     is_active        = models.BooleanField(default=True)
     created_at       = models.DateTimeField(auto_now_add=True)
 
@@ -688,3 +694,420 @@ class VehicleServiceSchedule(models.Model):
 
     def __str__(self):
         return f'{self.master} — {self.service_type}'
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 — Reference-parity workshop stage documents. The reference ERP
+# implements each workshop stage as its own separate Submittable document
+# linking back to the Job Card (not just a single status field). Submitting
+# each stage document advances JobCard.service_status via a post_save signal,
+# same pattern as sales.models.on_delivery_created from Phase 1.
+# ---------------------------------------------------------------------------
+
+def _advance_job_card_status(job_card, new_status):
+    if job_card.service_status != new_status:
+        job_card.service_status = new_status
+        job_card.save(update_fields=['service_status'])
+
+
+class WaterWashDone(DocStatusMixin, models.Model):
+    job_card        = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='water_wash_entries')
+    register_number = models.CharField(max_length=50, blank=True)
+    vehicle_code    = models.CharField(max_length=100, blank=True)
+    created_at      = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Water Wash Done'
+
+    def __str__(self):
+        return f"WWD-{self.pk} | JC-{self.job_card_id}"
+
+
+class BayInCreation(DocStatusMixin, models.Model):
+    job_card     = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='bay_in_entries')
+    mechanic     = models.ForeignKey(
+        'masters.Supplier', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='bay_in_entries', help_text='Filtered to supplier_group=Labor'
+    )
+    vehicle_code = models.CharField(max_length=100, blank=True)
+    register_no  = models.CharField(max_length=50, blank=True)
+    date_time    = models.DateTimeField()
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Bay In Creation'
+        verbose_name_plural = 'Bay In Creations'
+
+    def __str__(self):
+        return f"BAYIN-{self.pk} | JC-{self.job_card_id}"
+
+
+class BayOutCreation(DocStatusMixin, models.Model):
+    job_card     = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='bay_out_entries')
+    mechanic     = models.ForeignKey(
+        'masters.Supplier', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='bay_out_entries'
+    )
+    vehicle_code = models.CharField(max_length=100, blank=True)
+    remarks      = models.TextField()
+    date_time    = models.DateTimeField()
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Bay Out Creation'
+        verbose_name_plural = 'Bay Out Creations'
+
+    def __str__(self):
+        return f"BAYOUT-{self.pk} | JC-{self.job_card_id}"
+
+
+class FinalInspection(DocStatusMixin, models.Model):
+    job_card                 = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='final_inspections')
+    rework                   = models.BooleanField(default=False)
+    vehicle_name             = models.CharField(max_length=200, blank=True)
+    chasis_number            = models.CharField(max_length=100, blank=True)
+    mechanic_name            = models.CharField(max_length=200, blank=True)
+    register_number          = models.CharField(max_length=50, blank=True)
+    final_inspection_remarks = models.TextField()
+    revisit                  = models.BooleanField(default=False)
+    created_at               = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Final Inspections'
+
+    def __str__(self):
+        return f"FI-{self.pk} | JC-{self.job_card_id}"
+
+
+class OutworkEntryIssue(DocStatusMixin, models.Model):
+    class GatePass(models.TextChoices):
+        YES = 'yes', 'Yes'
+        NO  = 'no',  'No'
+
+    job_card    = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='outwork_issues')
+    vendor_name = models.ForeignKey('masters.Supplier', on_delete=models.PROTECT, related_name='outwork_issues')
+    godown      = models.ForeignKey('masters.Warehouse', on_delete=models.SET_NULL, null=True, blank=True, related_name='outwork_issues')
+    gate_pass   = models.CharField(max_length=5, choices=GatePass.choices, blank=True)
+    created_at  = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Outwork Entry Issues'
+
+    def __str__(self):
+        return f"OWI-{self.pk} | JC-{self.job_card_id} — {self.vendor_name}"
+
+    @property
+    def total_amount(self):
+        return self.work_details.aggregate(t=Sum('total_amount'))['t'] or Decimal('0.00')
+
+
+class OutworkWorkDetail(models.Model):
+    outwork_issue = models.ForeignKey(OutworkEntryIssue, on_delete=models.CASCADE, related_name='work_details')
+    work_name     = models.CharField(max_length=200, blank=True)
+    party         = models.ForeignKey('customers.Customer', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity      = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True)
+    amount        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    tax           = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, verbose_name='Tax (%)')
+    total_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    work_type     = models.CharField(max_length=100, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Outwork Work Details'
+
+    def __str__(self):
+        return f"{self.work_name} — Rs.{self.total_amount}"
+
+
+class OutworkSpareItem(models.Model):
+    outwork_issue = models.ForeignKey(OutworkEntryIssue, on_delete=models.CASCADE, related_name='outwork_spares')
+    item          = models.ForeignKey('spares.SparesItem', on_delete=models.PROTECT)
+    rack          = models.ForeignKey('masters.Rack', on_delete=models.SET_NULL, null=True, blank=True)
+    bin           = models.ForeignKey('masters.Bin', on_delete=models.SET_NULL, null=True, blank=True)
+    quantity      = models.DecimalField(max_digits=10, decimal_places=3, default=1, blank=True)
+    rate          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    sgst          = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    cgst          = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    total         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Outwork Spare Items'
+
+    def __str__(self):
+        return f"{self.item} x {self.quantity}"
+
+
+class OutworkEntryReturn(DocStatusMixin, models.Model):
+    class PaymentType(models.TextChoices):
+        ADJUSTMENT = 'adjustment', 'Adjustment'
+        CASH       = 'cash',       'Cash'
+
+    outwork_issue     = models.ForeignKey(OutworkEntryIssue, on_delete=models.PROTECT, related_name='returns')
+    job_card          = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='outwork_returns')
+    rework            = models.BooleanField(default=False)
+    payment_type      = models.CharField(max_length=20, choices=PaymentType.choices, blank=True)
+    supplier          = models.ForeignKey('masters.Supplier', on_delete=models.SET_NULL, null=True, blank=True, related_name='outwork_returns')
+    issue_spares_amount = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, blank=True,
+        help_text='Snapshot of the linked Outwork Entry Issue spares total, auto-set on save'
+    )
+    actual_amount     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    billing_amount    = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    vendor_spares_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    total             = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, blank=True,
+        help_text='issue_spares_amount + actual_amount + billing_amount, matching the reference formula'
+    )
+    pending_amount    = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    created_at        = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Outwork Entry Returns'
+
+    def __str__(self):
+        return f"OWR-{self.pk} | JC-{self.job_card_id}"
+
+    def save(self, *args, **kwargs):
+        if self.outwork_issue_id:
+            self.issue_spares_amount = self.outwork_issue.outwork_spares.aggregate(
+                t=Sum('total')
+            )['t'] or Decimal('0.00')
+        self.total = (self.issue_spares_amount or 0) + (self.actual_amount or 0) + (self.billing_amount or 0)
+        super().save(*args, **kwargs)
+
+
+class OutworkReturnDetail(models.Model):
+    outwork_return = models.ForeignKey(OutworkEntryReturn, on_delete=models.CASCADE, related_name='outwork_details')
+    work_name      = models.CharField(max_length=200, blank=True)
+    quantity       = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True)
+    amount         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Outwork Return Details'
+
+    def __str__(self):
+        return f"{self.work_name} — Rs.{self.amount}"
+
+
+class OutworkReturnSpareItem(models.Model):
+    outwork_return = models.ForeignKey(OutworkEntryReturn, on_delete=models.CASCADE, related_name='out_work_issue_spares_list')
+    item           = models.ForeignKey('spares.SparesItem', on_delete=models.PROTECT)
+    quantity       = models.DecimalField(max_digits=10, decimal_places=3, default=1, blank=True)
+    rate           = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    total          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Outwork Return Spare Items'
+
+    def __str__(self):
+        return f"{self.item} x {self.quantity}"
+
+
+class LaborChargesAlteration(DocStatusMixin, models.Model):
+    job_card      = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='labor_alterations')
+    labours_name  = models.ForeignKey(
+        'masters.Supplier', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='labor_alterations', verbose_name='Labour Name (Spares Used Mechanic)'
+    )
+    created_at    = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Labor Charges Alterations'
+
+    def __str__(self):
+        return f"LCA-{self.pk} | JC-{self.job_card_id}"
+
+    @property
+    def total_amount(self):
+        return self.labor_details.aggregate(t=Sum('total'))['t'] or Decimal('0.00')
+
+
+class LaborDetailLine(models.Model):
+    alteration      = models.ForeignKey(LaborChargesAlteration, on_delete=models.CASCADE, related_name='labor_details')
+    labor_name      = models.ForeignKey('masters.LabourWork', on_delete=models.PROTECT, verbose_name='Labor Work')
+    quantity        = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True)
+    amount          = models.DecimalField(max_digits=10, decimal_places=2)
+    sgst            = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    cgst            = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    total           = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    discount        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Labor Detail Lines'
+
+    def __str__(self):
+        return f"{self.labor_name} — Rs.{self.total}"
+
+
+class LaborSpareItem(models.Model):
+    alteration = models.ForeignKey(LaborChargesAlteration, on_delete=models.CASCADE, related_name='spares_used')
+    item       = models.ForeignKey('spares.SparesItem', on_delete=models.PROTECT)
+    quantity   = models.DecimalField(max_digits=10, decimal_places=3, default=1, blank=True)
+    rate       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+    total      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Labor Spare Items'
+
+    def __str__(self):
+        return f"{self.item} x {self.quantity}"
+
+
+# ---------------------------------------------------------------------------
+# Phase 4 — Job Card inspection-checklist child tables (embedded directly in
+# Job Card Creation in the reference, not separate stage documents).
+# ---------------------------------------------------------------------------
+
+class ComplaintDetail(models.Model):
+    class Status(models.TextChoices):
+        PENDING   = 'pending',   'Pending'
+        COMPLETED = 'completed', 'Completed'
+
+    job_card           = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='complaint_details')
+    customer_complaint = models.ForeignKey('masters.JobcardComplaintMaster', on_delete=models.PROTECT, related_name='+')
+    details            = models.TextField(blank=True)
+    status              = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    complaint_check_box = models.BooleanField(default=False)
+    estimated_amount     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Complaint Details'
+
+    def __str__(self):
+        return f"{self.customer_complaint} (JC-{self.job_card_id})"
+
+
+class JobCardSupervisorObservation(models.Model):
+    job_card             = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='supervisor_observations')
+    complaint            = models.ForeignKey('masters.JobcardSupervisorObservationMaster', on_delete=models.PROTECT, related_name='+')
+    details              = models.TextField(blank=True)
+    complaint_check_box  = models.BooleanField(default=False)
+    estimated_amount     = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Job Card Supervisor Observations'
+
+    def __str__(self):
+        return f"{self.complaint} (JC-{self.job_card_id})"
+
+
+class EngineDetailRow(models.Model):
+    class Variant(models.TextChoices):
+        YES_NO    = 'yes_no',    'Yes/No'
+        OK_HI_LOW = 'ok_hi_low', 'OK/High/Low'
+
+    job_card      = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='engine_details')
+    variant       = models.CharField(max_length=20, choices=Variant.choices, default=Variant.YES_NO)
+    items         = models.CharField(max_length=200, blank=True)
+    yes           = models.BooleanField(default=False)
+    no            = models.BooleanField(default=False)
+    ok            = models.BooleanField(default=False)
+    high          = models.BooleanField(default=False)
+    low           = models.BooleanField(default=False)
+    area_mention  = models.CharField(max_length=200, blank=True)
+    yes_status     = models.CharField(max_length=50, blank=True)
+    no_status      = models.CharField(max_length=50, blank=True)
+    ok_status      = models.CharField(max_length=50, blank=True)
+    high_status    = models.CharField(max_length=50, blank=True)
+    low_status     = models.CharField(max_length=50, blank=True)
+    mention_status = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        verbose_name_plural = 'Engine Detail Rows'
+
+    def __str__(self):
+        return f"{self.items} (JC-{self.job_card_id})"
+
+
+class LightDetail(models.Model):
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='light_details')
+    items    = models.CharField(max_length=200, blank=True)
+    yes      = models.BooleanField(default=False)
+    no       = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Light Details'
+
+    def __str__(self):
+        return f"{self.items} (JC-{self.job_card_id})"
+
+
+class ChasisDetailRow(models.Model):
+    class Variant(models.TextChoices):
+        YES_NO       = 'yes_no',       'Yes/No'
+        GOOD_BAD_NA  = 'good_bad_na',  'Good/Bad/NA'
+        OK_HI_LOW    = 'ok_hi_low',    'OK/High/Low'
+
+    job_card   = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='chasis_details')
+    variant    = models.CharField(max_length=20, choices=Variant.choices, default=Variant.YES_NO)
+    items      = models.CharField(max_length=200, blank=True)
+    yes        = models.BooleanField(default=False)
+    no         = models.BooleanField(default=False)
+    ok         = models.BooleanField(default=False)
+    high       = models.BooleanField(default=False)
+    low        = models.BooleanField(default=False)
+    good       = models.BooleanField(default=False)
+    bad        = models.BooleanField(default=False)
+    na         = models.BooleanField(default=False)
+    yes_status  = models.IntegerField(default=0, blank=True)
+    no_status   = models.IntegerField(default=0, blank=True)
+    good_status = models.IntegerField(default=0, blank=True)
+    bad_status  = models.IntegerField(default=0, blank=True)
+    na_status   = models.IntegerField(default=0, blank=True)
+    ok_status   = models.IntegerField(default=0, blank=True)
+    high_status = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name_plural = 'Chasis Detail Rows'
+
+    def __str__(self):
+        return f"{self.items} (JC-{self.job_card_id})"
+
+
+# ---- Submit signals: advance JobCard.service_status per reference workflow ----
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=WaterWashDone)
+def on_water_wash_submitted(sender, instance, **kwargs):
+    if instance.docstatus == WaterWashDone.DocStatus.SUBMITTED:
+        _advance_job_card_status(instance.job_card, JobCard.ServiceStatus.WATER_WASH)
+
+
+@receiver(post_save, sender=BayInCreation)
+def on_bay_in_submitted(sender, instance, **kwargs):
+    if instance.docstatus == BayInCreation.DocStatus.SUBMITTED:
+        _advance_job_card_status(instance.job_card, JobCard.ServiceStatus.IN_BAY)
+
+
+@receiver(post_save, sender=BayOutCreation)
+def on_bay_out_submitted(sender, instance, **kwargs):
+    if instance.docstatus == BayOutCreation.DocStatus.SUBMITTED:
+        _advance_job_card_status(instance.job_card, JobCard.ServiceStatus.IN_PROGRESS)
+
+
+@receiver(post_save, sender=OutworkEntryIssue)
+def on_outwork_issue_submitted(sender, instance, **kwargs):
+    if instance.docstatus == OutworkEntryIssue.DocStatus.SUBMITTED:
+        _advance_job_card_status(instance.job_card, JobCard.ServiceStatus.OUTWORK)
+
+
+@receiver(post_save, sender=OutworkEntryReturn)
+def on_outwork_return_submitted(sender, instance, **kwargs):
+    if instance.docstatus == OutworkEntryReturn.DocStatus.SUBMITTED and not instance.rework:
+        _advance_job_card_status(instance.job_card, JobCard.ServiceStatus.FINAL_INSPECTION)
+
+
+@receiver(post_save, sender=FinalInspection)
+def on_final_inspection_submitted(sender, instance, **kwargs):
+    if instance.docstatus == FinalInspection.DocStatus.SUBMITTED:
+        status = JobCard.ServiceStatus.FINAL_INSPECTION if instance.rework else JobCard.ServiceStatus.READY
+        _advance_job_card_status(instance.job_card, status)

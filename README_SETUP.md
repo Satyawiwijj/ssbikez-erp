@@ -36,4 +36,6 @@ Use Python 3.11 or 3.12. Do NOT use Python 3.14.
 ## Default login
 After createsuperuser, use the credentials you set.
 Or run: python manage.py create_default_superuser
-Default: username=admin password=SSBikez@2026
+This creates username=admin with either the password from the DJANGO_SUPERUSER_PASSWORD
+environment variable, or a randomly generated one-time password printed to the console if
+that variable isn't set — log in and change it immediately.

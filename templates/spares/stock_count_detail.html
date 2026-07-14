@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.count_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Stock Count {{ obj.count_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:stock_count_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:stock_count_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this stock count?');">Cancel</button></form>
+{% endif %}
+<a href="{% url 'spares:stock_count_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:stock_count_list' %}">Stock Count Updates</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.count_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.count_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Date</dt><dd>{{ obj.date_and_time|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Warehouse</dt><dd style="font-weight:600;">{{ obj.warehouse.name }}</dd></div>
+        <div class="detail-row"><dt>Branch</dt><dd>{{ obj.branch|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Count Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Rack</th><th>Bin</th><th>System Qty</th><th>Counted Qty</th><th>Matches?</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>{{ i.rack|default:"—" }}</td>
+                    <td>{{ i.bin|default:"—" }}</td>
+                    <td>{{ i.system_qty }}</td>
+                    <td>{{ i.counted_qty }}</td>
+                    <td>
+                        {% if i.counted_qty == i.system_qty %}<span class="badge badge-green">Matches</span>
+                        {% else %}<span class="badge badge-red">Variance</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

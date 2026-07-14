@@ -45,17 +45,17 @@
 
             <div class="card-body">
 
-                <div class="form-check mb-2">{{ form.engine_oil_level }} <label class="form-check-label ms-2">{{ form.engine_oil_level.label }}</label></div>
-                <div class="form-check mb-2">{{ form.coolant_level }} <label class="form-check-label ms-2">{{ form.coolant_level.label }}</label></div>
-                <div class="form-check mb-2">{{ form.brake_fluid_level }} <label class="form-check-label ms-2">{{ form.brake_fluid_level.label }}</label></div>
-                <div class="form-check mb-2">{{ form.chain_tension }} <label class="form-check-label ms-2">{{ form.chain_tension.label }}</label></div>
-                <div class="form-check mb-2">{{ form.chain_lubrication }} <label class="form-check-label ms-2">{{ form.chain_lubrication.label }}</label></div>
-                <div class="form-check mb-2">{{ form.tyre_pressure_front }} <label class="form-check-label ms-2">{{ form.tyre_pressure_front.label }}</label></div>
-                <div class="form-check mb-2">{{ form.tyre_pressure_rear }} <label class="form-check-label ms-2">{{ form.tyre_pressure_rear.label }}</label></div>
-                <div class="form-check mb-2">{{ form.brake_front_working }} <label class="form-check-label ms-2">{{ form.brake_front_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.brake_rear_working }} <label class="form-check-label ms-2">{{ form.brake_rear_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.clutch_adjustment }} <label class="form-check-label ms-2">{{ form.clutch_adjustment.label }}</label></div>
-                <div class="form-check mb-2">{{ form.throttle_smooth }} <label class="form-check-label ms-2">{{ form.throttle_smooth.label }}</label></div>
+                <div class="form-check mb-2">{{ form.engine_oil_level }} <label class="form-check-label ms-2" for="{{ form.engine_oil_level.id_for_label }}">{{ form.engine_oil_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.coolant_level }} <label class="form-check-label ms-2" for="{{ form.coolant_level.id_for_label }}">{{ form.coolant_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_fluid_level }} <label class="form-check-label ms-2" for="{{ form.brake_fluid_level.id_for_label }}">{{ form.brake_fluid_level.label }}</label></div>
+                <div class="form-check mb-2">{{ form.chain_tension }} <label class="form-check-label ms-2" for="{{ form.chain_tension.id_for_label }}">{{ form.chain_tension.label }}</label></div>
+                <div class="form-check mb-2">{{ form.chain_lubrication }} <label class="form-check-label ms-2" for="{{ form.chain_lubrication.id_for_label }}">{{ form.chain_lubrication.label }}</label></div>
+                <div class="form-check mb-2">{{ form.tyre_pressure_front }} <label class="form-check-label ms-2" for="{{ form.tyre_pressure_front.id_for_label }}">{{ form.tyre_pressure_front.label }}</label></div>
+                <div class="form-check mb-2">{{ form.tyre_pressure_rear }} <label class="form-check-label ms-2" for="{{ form.tyre_pressure_rear.id_for_label }}">{{ form.tyre_pressure_rear.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_front_working }} <label class="form-check-label ms-2" for="{{ form.brake_front_working.id_for_label }}">{{ form.brake_front_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.brake_rear_working }} <label class="form-check-label ms-2" for="{{ form.brake_rear_working.id_for_label }}">{{ form.brake_rear_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.clutch_adjustment }} <label class="form-check-label ms-2" for="{{ form.clutch_adjustment.id_for_label }}">{{ form.clutch_adjustment.label }}</label></div>
+                <div class="form-check mb-2">{{ form.throttle_smooth }} <label class="form-check-label ms-2" for="{{ form.throttle_smooth.id_for_label }}">{{ form.throttle_smooth.label }}</label></div>
 
             </div>
         </div>
@@ -69,13 +69,13 @@
 
             <div class="card-body">
 
-                <div class="form-check mb-2">{{ form.battery_voltage }} <label class="form-check-label ms-2">{{ form.battery_voltage.label }}</label></div>
-                <div class="form-check mb-2">{{ form.headlight_working }} <label class="form-check-label ms-2">{{ form.headlight_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.taillight_working }} <label class="form-check-label ms-2">{{ form.taillight_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.indicators_working }} <label class="form-check-label ms-2">{{ form.indicators_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.horn_working }} <label class="form-check-label ms-2">{{ form.horn_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.speedometer_working }} <label class="form-check-label ms-2">{{ form.speedometer_working.label }}</label></div>
-                <div class="form-check mb-2">{{ form.kill_switch_working }} <label class="form-check-label ms-2">{{ form.kill_switch_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.battery_voltage }} <label class="form-check-label ms-2" for="{{ form.battery_voltage.id_for_label }}">{{ form.battery_voltage.label }}</label></div>
+                <div class="form-check mb-2">{{ form.headlight_working }} <label class="form-check-label ms-2" for="{{ form.headlight_working.id_for_label }}">{{ form.headlight_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.taillight_working }} <label class="form-check-label ms-2" for="{{ form.taillight_working.id_for_label }}">{{ form.taillight_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.indicators_working }} <label class="form-check-label ms-2" for="{{ form.indicators_working.id_for_label }}">{{ form.indicators_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.horn_working }} <label class="form-check-label ms-2" for="{{ form.horn_working.id_for_label }}">{{ form.horn_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.speedometer_working }} <label class="form-check-label ms-2" for="{{ form.speedometer_working.id_for_label }}">{{ form.speedometer_working.label }}</label></div>
+                <div class="form-check mb-2">{{ form.kill_switch_working }} <label class="form-check-label ms-2" for="{{ form.kill_switch_working.id_for_label }}">{{ form.kill_switch_working.label }}</label></div>
 
             </div>
         </div>
@@ -89,12 +89,12 @@
 
             <div class="card-body">
 
-                <div class="form-check mb-2">{{ form.paint_no_scratches }} <label class="form-check-label ms-2">{{ form.paint_no_scratches.label }}</label></div>
-                <div class="form-check mb-2">{{ form.all_panels_fitted }} <label class="form-check-label ms-2">{{ form.all_panels_fitted.label }}</label></div>
-                <div class="form-check mb-2">{{ form.mirrors_adjusted }} <label class="form-check-label ms-2">{{ form.mirrors_adjusted.label }}</label></div>
-                <div class="form-check mb-2">{{ form.seat_firm }} <label class="form-check-label ms-2">{{ form.seat_firm.label }}</label></div>
-                <div class="form-check mb-2">{{ form.toolkit_present }} <label class="form-check-label ms-2">{{ form.toolkit_present.label }}</label></div>
-                <div class="form-check mb-2">{{ form.owners_manual_present }} <label class="form-check-label ms-2">{{ form.owners_manual_present.label }}</label></div>
+                <div class="form-check mb-2">{{ form.paint_no_scratches }} <label class="form-check-label ms-2" for="{{ form.paint_no_scratches.id_for_label }}">{{ form.paint_no_scratches.label }}</label></div>
+                <div class="form-check mb-2">{{ form.all_panels_fitted }} <label class="form-check-label ms-2" for="{{ form.all_panels_fitted.id_for_label }}">{{ form.all_panels_fitted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.mirrors_adjusted }} <label class="form-check-label ms-2" for="{{ form.mirrors_adjusted.id_for_label }}">{{ form.mirrors_adjusted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.seat_firm }} <label class="form-check-label ms-2" for="{{ form.seat_firm.id_for_label }}">{{ form.seat_firm.label }}</label></div>
+                <div class="form-check mb-2">{{ form.toolkit_present }} <label class="form-check-label ms-2" for="{{ form.toolkit_present.id_for_label }}">{{ form.toolkit_present.label }}</label></div>
+                <div class="form-check mb-2">{{ form.owners_manual_present }} <label class="form-check-label ms-2" for="{{ form.owners_manual_present.id_for_label }}">{{ form.owners_manual_present.label }}</label></div>
 
             </div>
         </div>
@@ -108,10 +108,10 @@
 
             <div class="card-body">
 
-                <div class="form-check mb-2">{{ form.invoice_ready }} <label class="form-check-label ms-2">{{ form.invoice_ready.label }}</label></div>
-                <div class="form-check mb-2">{{ form.insurance_done }} <label class="form-check-label ms-2">{{ form.insurance_done.label }}</label></div>
-                <div class="form-check mb-2">{{ form.form20_submitted }} <label class="form-check-label ms-2">{{ form.form20_submitted.label }}</label></div>
-                <div class="form-check mb-2">{{ form.temporary_registration }} <label class="form-check-label ms-2">{{ form.temporary_registration.label }}</label></div>
+                <div class="form-check mb-2">{{ form.invoice_ready }} <label class="form-check-label ms-2" for="{{ form.invoice_ready.id_for_label }}">{{ form.invoice_ready.label }}</label></div>
+                <div class="form-check mb-2">{{ form.insurance_done }} <label class="form-check-label ms-2" for="{{ form.insurance_done.id_for_label }}">{{ form.insurance_done.label }}</label></div>
+                <div class="form-check mb-2">{{ form.form20_submitted }} <label class="form-check-label ms-2" for="{{ form.form20_submitted.id_for_label }}">{{ form.form20_submitted.label }}</label></div>
+                <div class="form-check mb-2">{{ form.temporary_registration }} <label class="form-check-label ms-2" for="{{ form.temporary_registration.id_for_label }}">{{ form.temporary_registration.label }}</label></div>
 
             </div>
         </div>

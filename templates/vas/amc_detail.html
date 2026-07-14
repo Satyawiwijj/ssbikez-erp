@@ -5,6 +5,7 @@
 
 {% block topbar_actions %}
 
+{% if package.docstatus == 0 %}
 <a href="{% url 'vas:amc_update' package.pk %}"
    class="btn btn-secondary btn-sm">
 
@@ -12,6 +13,12 @@
     Edit
 
 </a>
+<form method="post" action="{% url 'vas:amc_submit' package.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif package.docstatus == 1 %}
+<form method="post" action="{% url 'vas:amc_cancel' package.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this AMC package?');">Cancel</button></form>
+{% elif package.docstatus == 2 %}
+<form method="post" action="{% url 'vas:amc_amend' package.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Amend (New Draft)</button></form>
+{% endif %}
 
 <a href="{% url 'vas:amc_list' %}"
    class="btn btn-outline-secondary btn-sm">
@@ -51,16 +58,24 @@
           <span class="badge badge-blue">
               AMC-{{ package.pk }}
           </span>
+          {% if package.docstatus == 0 %}<span class="badge" style="background:#e5e7eb;color:#374151;">Draft</span>
+          {% elif package.docstatus == 1 %}<span class="badge" style="background:#dcfce7;color:#166534;">Submitted</span>
+          {% elif package.docstatus == 2 %}<span class="badge" style="background:#fee2e2;color:#991b1b;">Cancelled</span>{% endif %}
 
       </div>
 
         <dl class="detail-list">
 
             <div class="detail-row">
-                <dt>Package Name</dt>
+                <dt>AMC Type</dt>
                 <dd style="font-weight:600;">
-                    {{ package.package_name }}
+                    {{ package.amc_type }}
                 </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Vehicle Number / Chasis</dt>
+                <dd>{{ package.vehicle_number|default:"—" }} / {{ package.chasis_number|default:"—" }}</dd>
             </div>
 
             <div class="detail-row">
@@ -88,6 +103,25 @@
                     {% endif %}
 
                 </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>GST / Without GST</dt>
+                <dd>₹{{ package.gst_amount }} / ₹{{ package.without_gst_amount }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Sales Order / Invoice</dt>
+                <dd>
+                    {% if package.sales_order %}{{ package.sales_order }}{% else %}—{% endif %}
+                    /
+                    {% if package.invoice %}{{ package.invoice }}{% else %}—{% endif %}
+                </dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Service Schedule</dt>
+                <dd>{{ package.no_of_service }} services, {{ package.water_wash_count_free }} free water wash, interval {{ package.service_interval }} days, grace {{ package.grace_days }} days</dd>
             </div>
 
             <div class="detail-row">

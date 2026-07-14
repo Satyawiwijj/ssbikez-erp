@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Service Spares Issue Returns — SSBikez ERP{% endblock %}
+{% block page_title %}Service Spares Issue Returns{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'spares:service_spares_issue_return_create' %}" class="btn btn-primary btn-sm"><i class="fas fa-plus me-1"></i>New Return</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <span class="bc-current">Service Spares Issue Returns</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Service Spares Issue Returns</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Return No</th><th>Spares Issue</th><th>Job Card</th><th>Total Amount</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.return_no }}</td>
+                    <td>SIA-{{ o.spares_issue_id|stringformat:"05d" }}</td>
+                    <td>{{ o.job_card|default:"—" }}</td>
+                    <td>&#x20B9; {{ o.total_amount }}</td>
+                    <td>
+                        {% if o.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif o.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td><a href="{% url 'spares:service_spares_issue_return_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No returns found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

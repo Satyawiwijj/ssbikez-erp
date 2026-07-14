@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Order Form Series — Masters{% endblock %}
+{% block page_title %}Order Form Series{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'masters:order_form_settings' %}" class="btn btn-primary btn-sm"><i class="fas fa-cogs me-1"></i>Settings / Generate</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <span class="bc-current">Order Form Series</span>
+</nav>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Order Form Series</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Order Form No</th><th>Branch</th><th>Series Type</th><th>Status</th><th>Doc Status</th><th>RTO Status</th><th>F20 Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for o in objs %}
+                <tr>
+                    <td style="font-weight:600;">{{ o.order_form_no }}</td>
+                    <td>{{ o.branch }}</td>
+                    <td>{{ o.get_series_type_display }}</td>
+                    <td>{{ o.get_status_display|default:"—" }}</td>
+                    <td>
+                        {% if o.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif o.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                    <td>{{ o.rto_status }}</td>
+                    <td>{{ o.f20_status }}</td>
+                    <td><a href="{% url 'masters:order_form_series_detail' o.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="empty-state">No series numbers generated yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

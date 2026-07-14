@@ -37,12 +37,12 @@
         <div style="padding:20px;">
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">{{ form.prospect_name.label }}</label>
+                    <label class="form-label" for="{{ form.prospect_name.id_for_label }}">{{ form.prospect_name.label }}</label>
                     {{ form.prospect_name }}
                     {% if form.prospect_name.errors %}<div class="form-error">{{ form.prospect_name.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">{{ form.prospect_phone.label }}</label>
+                    <label class="form-label" for="{{ form.prospect_phone.id_for_label }}">{{ form.prospect_phone.label }}</label>
                     {{ form.prospect_phone }}
                     {% if form.prospect_phone.errors %}<div class="form-error">{{ form.prospect_phone.errors|join:", " }}</div>{% endif %}
                     <small class="text-muted">Existing customers will be linked automatically by phone.</small>
@@ -55,7 +55,7 @@
         <div class="card-header"><i class="fas fa-users me-2"></i>Existing Customer</div>
         <div style="padding:20px;">
             <div class="form-group">
-                <label class="form-label">{{ form.customer.label }}</label>
+                <label class="form-label" for="{{ form.customer.id_for_label }}">{{ form.customer.label }}</label>
                 {{ form.customer }}
                 {% if form.customer.errors %}<div class="form-error">{{ form.customer.errors|join:", " }}</div>{% endif %}
             </div>
@@ -68,79 +68,111 @@
         <div style="padding:20px;">
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Customer Enquiry Date</label>
+                    <label class="form-label" for="{{ form.customer_enquiry_date.id_for_label }}">Customer Enquiry Date</label>
                     {{ form.customer_enquiry_date }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Enquiry Source</label>
+                    <label class="form-label" for="{{ form.enquiry_source.id_for_label }}">Enquiry Source</label>
                     {{ form.enquiry_source }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Customer Type</label>
+                    <label class="form-label" for="{{ form.customer_type.id_for_label }}">Customer Type</label>
                     {{ form.customer_type }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Enquiry Type</label>
+                    <label class="form-label" for="{{ form.enquiry_type.id_for_label }}">Enquiry Type</label>
                     {{ form.enquiry_type }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Gender</label>
+                    <label class="form-label" for="{{ form.gender.id_for_label }}">Gender</label>
                     {{ form.gender }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Test Ride Taken</label>
+                    <label class="form-label" for="{{ form.test_ride_taken.id_for_label }}">Test Ride Taken</label>
                     {{ form.test_ride_taken }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Vehicle of Interest</label>
+                    <label class="form-label" for="{{ form.bike_model.id_for_label }}">Vehicle of Interest</label>
                     {{ form.bike_model }}
                     {% if form.bike_model.errors %}<div class="form-error">{{ form.bike_model.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Expected Purchase Date</label>
+                    <label class="form-label" for="{{ form.expected_purchase_date.id_for_label }}">Expected Purchase Date</label>
                     {{ form.expected_purchase_date }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Payment Type</label>
+                    <label class="form-label" for="{{ form.payment_type.id_for_label }}">Payment Type</label>
                     {{ form.payment_type }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Interested in Exchange</label>
+                    <label class="form-label" for="{{ form.customer_interested_in_exchange.id_for_label }}">Interested in Exchange</label>
                     {{ form.customer_interested_in_exchange }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">WhatsApp No</label>
+                    <label class="form-label" for="{{ form.exchange_type.id_for_label }}">Exchange Type</label>
+                    {{ form.exchange_type }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_vehicle_model_and_make.id_for_label }}">Exchange Vehicle Model &amp; Make</label>
+                    {{ form.exchange_vehicle_model_and_make }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_year_of_manufacturing.id_for_label }}">Exchange Vehicle Year of Manufacturing</label>
+                    {{ form.exchange_year_of_manufacturing }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_owner_type.id_for_label }}">Exchange Vehicle Owner Type</label>
+                    {{ form.exchange_owner_type }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_valid_insurance.id_for_label }}">Exchange Vehicle Valid Insurance</label>
+                    {{ form.exchange_valid_insurance }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_original_rc_available.id_for_label }}">Exchange Vehicle Original RC Available</label>
+                    {{ form.exchange_original_rc_available }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_customer_expected_price.id_for_label }}">Customer Expected Exchange Price</label>
+                    {{ form.exchange_customer_expected_price }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.exchange_price_offer_by_dealer.id_for_label }}">Price Offer By Dealer</label>
+                    {{ form.exchange_price_offer_by_dealer }}
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.whatsapp_no.id_for_label }}">WhatsApp No</label>
                     {{ form.whatsapp_no }}
                     {% if form.whatsapp_no.errors %}<div class="form-error">{{ form.whatsapp_no.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Email</label>
+                    <label class="form-label" for="{{ form.email.id_for_label }}">Email</label>
                     {{ form.email }}
                     {% if form.email.errors %}<div class="form-error">{{ form.email.errors|join:", " }}</div>{% endif %}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Purpose</label>
+                    <label class="form-label" for="{{ form.purpose.id_for_label }}">Purpose</label>
                     {{ form.purpose }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Source of Information</label>
+                    <label class="form-label" for="{{ form.source_of_information.id_for_label }}">Source of Information</label>
                     {{ form.source_of_information }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Status</label>
+                    <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                     {{ form.status }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Sales Executive</label>
+                    <label class="form-label" for="{{ form.sales_executive.id_for_label }}">Sales Executive</label>
                     {{ form.sales_executive }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Branch</label>
+                    <label class="form-label" for="{{ form.branch.id_for_label }}">Branch</label>
                     {{ form.branch }}
                 </div>
             </div>
             <div class="form-group mt-3">
-                <label class="form-label">Remarks</label>
+                <label class="form-label" for="{{ form.remarks.id_for_label }}">Remarks</label>
                 {{ form.remarks }}
             </div>
         </div>
@@ -152,35 +184,35 @@
         <div style="padding:20px;">
             <div class="form-grid">
                 <div class="form-group">
-                    <label class="form-label">Address 1</label>
+                    <label class="form-label" for="{{ form.address_line1.id_for_label }}">Address 1</label>
                     {{ form.address_line1 }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Address 4</label>
+                    <label class="form-label" for="{{ form.address_line4.id_for_label }}">Address 4</label>
                     {{ form.address_line4 }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Pincode</label>
+                    <label class="form-label" for="{{ form.pincode.id_for_label }}">Pincode</label>
                     {{ form.pincode }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Address 2</label>
+                    <label class="form-label" for="{{ form.address_line2.id_for_label }}">Address 2</label>
                     {{ form.address_line2 }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">District</label>
+                    <label class="form-label" for="{{ form.district.id_for_label }}">District</label>
                     {{ form.district }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">State</label>
+                    <label class="form-label" for="{{ form.state.id_for_label }}">State</label>
                     {{ form.state }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Address 3</label>
+                    <label class="form-label" for="{{ form.address_line3.id_for_label }}">Address 3</label>
                     {{ form.address_line3 }}
                 </div>
                 <div class="form-group">
-                    <label class="form-label">City</label>
+                    <label class="form-label" for="{{ form.city.id_for_label }}">City</label>
                     {{ form.city }}
                 </div>
             </div>
@@ -230,7 +262,7 @@
                             {% if cl_form.instance.pk %}
                             <label style="cursor:pointer;">{{ cl_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-calllog"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-calllog" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             {% endif %}
                         </td>
                     </tr>
@@ -276,7 +308,7 @@
                             {% if h_form.instance.pk %}
                             <label style="cursor:pointer;">{{ h_form.DELETE }}<i class="fas fa-trash text-danger"></i></label>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-history"><i class="fas fa-trash"></i></button>
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-history" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             {% endif %}
                         </td>
                     </tr>
@@ -310,7 +342,7 @@
                 else el.value = '';
             });
             const delCell = clone.querySelector('td:last-child');
-            delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger ' + removeClass + '"><i class="fas fa-trash"></i></button>';
+            delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger ' + removeClass + '" aria-label="Remove row"><i class="fas fa-trash"></i></button>';
             delCell.querySelector('.' + removeClass).addEventListener('click', function(){ clone.remove(); });
             tbody.appendChild(clone);
             totalForms.value = idx + 1;

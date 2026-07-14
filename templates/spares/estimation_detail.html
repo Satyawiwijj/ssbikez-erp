@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj.estimation_no }} — SSBikez ERP{% endblock %}
+{% block page_title %}Estimation {{ obj.estimation_no }}{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'spares:estimation_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'spares:estimation_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this estimation?');">Cancel</button></form>
+<a href="{% url 'spares:order_create' %}?estimation={{ obj.pk }}" class="btn btn-secondary btn-sm">+ Create Purchase Order</a>
+{% endif %}
+<a href="{% url 'spares:estimation_list' %}" class="btn btn-secondary btn-sm">Back</a>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumb-bar">
+    <a href="{% url 'accounts:dashboard' %}">Home</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:dashboard' %}">Spares</a><span class="bc-sep">/</span>
+    <a href="{% url 'spares:estimation_list' %}">Purchase Estimations</a><span class="bc-sep">/</span>
+    <span class="bc-current">{{ obj.estimation_no }}</span>
+</nav>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ obj.estimation_no }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <dl class="detail-list">
+        <div class="detail-row"><dt>Date</dt><dd>{{ obj.date|date:"d M Y" }}</dd></div>
+        <div class="detail-row"><dt>Customer</dt><dd style="font-weight:600;">{{ obj.customer_name|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Chasis No</dt><dd>{{ obj.chasis_no|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Insurance</dt><dd>{{ obj.insurance_name|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Vehicle</dt><dd>{{ obj.vehicle_code|default:"—" }} / {{ obj.vehicle_name|default:"—" }}</dd></div>
+        <div class="detail-row"><dt>Estimation Total</dt><dd>&#x20B9; {{ obj.estimation_total_amount }}</dd></div>
+        <div class="detail-row"><dt>Labor Total</dt><dd>&#x20B9; {{ obj.labor_total_amount }}</dd></div>
+        <div class="detail-row"><dt>Balance Delivery Qty</dt><dd>{{ obj.balance_delivery_qty }}</dd></div>
+        <div class="detail-row"><dt>Total Amount</dt><dd style="font-weight:700;color:#2563EB;">&#x20B9; {{ obj.total_amount }}</dd></div>
+        <div class="detail-row"><dt>Created</dt><dd>{{ obj.created_at|date:"d M Y" }}</dd></div>
+    </dl>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Estimation Items</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Item</th><th>Qty</th><th>Amount</th><th>GST %</th><th>Total</th><th>Confirm to Order</th></tr></thead>
+            <tbody>
+                {% for i in items %}
+                <tr>
+                    <td style="font-weight:600;">{{ i.item.item_name }}</td>
+                    <td>{{ i.qty }}</td>
+                    <td>&#x20B9; {{ i.amount }}</td>
+                    <td>{{ i.gst }}%</td>
+                    <td>&#x20B9; {{ i.total }}</td>
+                    <td>{% if i.confirm %}&#x2705;{% else %}—{% endif %}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="empty-state">No items found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Labor Charges</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Date</th><th>Labor</th><th>Qty</th><th>Amount</th><th>Total</th></tr></thead>
+            <tbody>
+                {% for l in labor %}
+                <tr>
+                    <td>{{ l.date|date:"d M Y" }}</td>
+                    <td style="font-weight:600;">{{ l.labor_name }}</td>
+                    <td>{{ l.quantity }}</td>
+                    <td>&#x20B9; {{ l.amount }}</td>
+                    <td>&#x20B9; {{ l.total }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No labor charges found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header"><span class="card-title">Purchase Orders</span></div>
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>PO No</th><th>Supplier</th><th>Grand Total</th><th>Status</th><th><span class="visually-hidden">Actions</span></th></tr></thead>
+            <tbody>
+                {% for po in purchase_orders %}
+                <tr>
+                    <td style="font-weight:600;">{{ po.po_no }}</td>
+                    <td>{{ po.supplier }}</td>
+                    <td>&#x20B9; {{ po.grand_total }}</td>
+                    <td>{{ po.get_status_display }}</td>
+                    <td><a href="{% url 'spares:order_detail' po.pk %}" class="btn btn-sm btn-outline-secondary">View</a></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No purchase orders linked yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,11 +1,13 @@
 import re
 
 from django import forms
+from accounts.forms import AccessibleFormMixin
+from django.forms import inlineformset_factory
 
-from .models import BikeModel, Customer, VehicleStock
+from .models import BikeModel, Customer, VehicleStock, VehicleMasterSettings, VehicleMasterSettingsItem
 
 
-class CustomerForm(forms.ModelForm):
+class CustomerForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Customer
         fields = ('full_name', 'phone', 'email', 'address', 'aadhaar_no', 'pan_no')
@@ -50,7 +52,7 @@ class CustomerForm(forms.ModelForm):
         return email
 
 
-class BikeModelForm(forms.ModelForm):
+class BikeModelForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = BikeModel
         fields = ('brand', 'model_name', 'variant', 'fuel_type',
@@ -60,7 +62,7 @@ class BikeModelForm(forms.ModelForm):
         }
 
 
-class VehicleStockForm(forms.ModelForm):
+class VehicleStockForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = VehicleStock
         fields = ('bike_model', 'branch', 'engine_no', 'chassis_no',
@@ -68,3 +70,30 @@ class VehicleStockForm(forms.ModelForm):
         widgets = {
             'purchase_date': forms.DateInput(attrs={'type': 'date'}),
         }
+
+
+class VehicleMasterSettingsForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = VehicleMasterSettings
+        fields = ('vehicle', 'has_exchange_vehicle', 'service_settings', 'exchange_vehicle_id')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['service_settings'].required = False
+        self.fields['exchange_vehicle_id'].required = False
+
+
+class VehicleMasterSettingsItemForm(AccessibleFormMixin, forms.ModelForm):
+    class Meta:
+        model = VehicleMasterSettingsItem
+        fields = ('vehicle_name', 'model', 'chasis_no', 'code', 'engine', 'color', 'book_no', 'color_code')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['vehicle_name'].required = False
+
+
+VehicleMasterSettingsItemFormSet = inlineformset_factory(
+    VehicleMasterSettings, VehicleMasterSettingsItem,
+    form=VehicleMasterSettingsItemForm, extra=1, can_delete=True
+)

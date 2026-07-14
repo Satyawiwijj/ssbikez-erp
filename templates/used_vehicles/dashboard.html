@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicles — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicles Dashboard{% endblock %}
+
+{% block content %}
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Vehicle Models</div>
+            <div style="font-size:28px;font-weight:700;">{{ total_models }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Available Stock</div>
+            <div style="font-size:28px;font-weight:700;">{{ total_stock }}</div>
+        </div></div>
+    </div>
+    <div class="col-md-4">
+        <div class="card"><div class="card-body">
+            <div class="text-muted small">Total Sales</div>
+            <div style="font-size:28px;font-weight:700;">{{ total_sales }}</div>
+        </div></div>
+    </div>
+</div>
+
+<div class="row g-3 mt-2">
+    <div class="col-md-3"><a href="{% url 'used_vehicles:model_create' %}" class="btn btn-primary w-100">+ Add Vehicle Model</a></div>
+    <div class="col-md-3"><a href="{% url 'used_vehicles:purchase_create' %}" class="btn btn-primary w-100">+ Purchase Invoice</a></div>
+    <div class="col-md-3"><a href="{% url 'used_vehicles:sale_create' %}" class="btn btn-primary w-100">+ New Sale</a></div>
+    <div class="col-md-3"><a href="{% url 'used_vehicles:register_no_list' %}" class="btn btn-outline-secondary w-100">View Stock</a></div>
+</div>
+{% endblock %}

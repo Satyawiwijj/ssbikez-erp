@@ -33,4 +33,11 @@ urlpatterns = [
     path('stock/create/',            views.vehicle_stock_create,  name='vehicle_stock_create'),
     path('vehicle-stock/create/',    views.vehicle_stock_create),  # alias
     path('stock/<int:pk>/edit/',     views.vehicle_stock_update,  name='vehicle_stock_update'),
+
+    # Phase 8c — Vehicle Master Settings
+    path('vehicle-master-settings/',                 views.vehicle_master_settings_list,   name='vehicle_master_settings_list'),
+    path('vehicle-master-settings/create/',          views.vehicle_master_settings_create, name='vehicle_master_settings_create'),
+    path('vehicle-master-settings/<int:pk>/',        views.vehicle_master_settings_detail, name='vehicle_master_settings_detail'),
+    path('vehicle-master-settings/<int:pk>/submit/', views.vehicle_master_settings_submit, name='vehicle_master_settings_submit'),
+    path('vehicle-master-settings/<int:pk>/cancel/', views.vehicle_master_settings_cancel, name='vehicle_master_settings_cancel'),
 ]

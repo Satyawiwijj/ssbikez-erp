@@ -23,8 +23,9 @@
       style="display:flex;gap:10px;align-items:end;flex-wrap:wrap;">
 
     <div>
-        <label class="form-label">Report Date</label>
+        <label class="form-label" for="id_report_date">Report Date</label>
         <input type="date"
+               id="id_report_date"
                name="date"
                value="{{ report_date|date:'Y-m-d' }}"
                class="form-control">

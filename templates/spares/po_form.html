@@ -41,7 +41,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Supplier Quote</label>
+                    <label class="form-label" for="{{ form.supplier_quote.id_for_label }}">Supplier Quote</label>
                     {{ form.supplier_quote }}
                     {% if form.supplier_quote.errors %}<div class="form-error">{{ form.supplier_quote.errors|join:", " }}</div>{% endif %}
                 </div>
@@ -53,39 +53,57 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Required By</label>
+                    <label class="form-label" for="{{ form.required_by.id_for_label }}">Required By</label>
                     {{ form.required_by }}
                     {% if form.required_by.errors %}<div class="form-error">{{ form.required_by.errors|join:", " }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Status</label>
+                    <label class="form-label" for="{{ form.status.id_for_label }}">Status</label>
                     {{ form.status }}
                     {% if form.status.errors %}<div class="form-error">{{ form.status.errors|join:", " }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Supplier GSTIN</label>
+                    <label class="form-label" for="{{ form.supplier_gstin.id_for_label }}">Supplier GSTIN</label>
                     {{ form.supplier_gstin }}
                     {% if form.supplier_gstin.errors %}<div class="form-error">{{ form.supplier_gstin.errors|join:", " }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">GST Category</label>
+                    <label class="form-label" for="{{ form.gst_category.id_for_label }}">GST Category</label>
                     {{ form.gst_category }}
                     {% if form.gst_category.errors %}<div class="form-error">{{ form.gst_category.errors|join:", " }}</div>{% endif %}
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Place of Supply</label>
+                    <label class="form-label" for="{{ form.place_of_supply.id_for_label }}">Place of Supply</label>
                     {{ form.place_of_supply }}
                     {% if form.place_of_supply.errors %}<div class="form-error">{{ form.place_of_supply.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.load_status.id_for_label }}">Load Status</label>
+                    {{ form.load_status }}
+                    {% if form.load_status.errors %}<div class="form-error">{{ form.load_status.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.customer_order.id_for_label }}">Customer Order (Counter Sale)</label>
+                    {{ form.customer_order }}
+                    {% if form.customer_order.errors %}<div class="form-error">{{ form.customer_order.errors|join:", " }}</div>{% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.estimation.id_for_label }}">Estimation</label>
+                    {{ form.estimation }}
+                    {% if form.estimation.errors %}<div class="form-error">{{ form.estimation.errors|join:", " }}</div>{% endif %}
                 </div>
 
             </div>
 
             <div class="form-group mt-3">
-                <label class="form-label">Terms &amp; Conditions</label>
+                <label class="form-label" for="{{ form.terms_and_conditions.id_for_label }}">Terms &amp; Conditions</label>
                 {{ form.terms_and_conditions }}
                 {% if form.terms_and_conditions.errors %}<div class="form-error">{{ form.terms_and_conditions.errors|join:", " }}</div>{% endif %}
             </div>
@@ -135,6 +153,9 @@
                         <th style="min-width:110px;">Amount</th>
                         <th style="min-width:160px;">Warehouse <span class="text-danger">*</span></th>
                         <th style="min-width:130px;">Required By</th>
+                        <th style="min-width:100px;">Part No.</th>
+                        <th style="min-width:100px;">Delivery Need Qty</th>
+                        <th style="min-width:140px;">Branch</th>
                         <th style="width:50px;">Del</th>
                     </tr>
                 </thead>
@@ -168,6 +189,9 @@
                             {% if item_form.warehouse.errors %}<div class="form-error">{{ item_form.warehouse.errors|join:", " }}</div>{% endif %}
                         </td>
                         <td>{{ item_form.required_by }}</td>
+                        <td>{{ item_form.part_no }}</td>
+                        <td>{{ item_form.delivery_need_qty }}</td>
+                        <td>{{ item_form.branch }}</td>
                         <td style="text-align:center;vertical-align:middle;">
                             {% if item_form.instance.pk %}
                             <label style="display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;">
@@ -175,7 +199,7 @@
                                 <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
                             </label>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-row">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row">
                                 <i class="fas fa-trash"></i>
                             </button>
                             {% endif %}
@@ -187,7 +211,7 @@
                     <tr style="background:#f9fafb;font-weight:600;">
                         <td colspan="9" style="text-align:right;padding:10px 12px;">Total</td>
                         <td id="grand-total-cell" style="padding:10px 12px;">—</td>
-                        <td colspan="3"></td>
+                        <td colspan="6"></td>
                     </tr>
                 </tfoot>
             </table>
@@ -241,7 +265,7 @@
                                 <i class="fas fa-trash text-danger" style="font-size:14px;"></i>
                             </label>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-tax-row">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-tax-row" aria-label="Remove row">
                                 <i class="fas fa-trash"></i>
                             </button>
                             {% endif %}
@@ -284,7 +308,7 @@
         clone.querySelector('.tax-row-total').textContent = '0.00';
 
         const delCell = clone.querySelector('td:last-child');
-        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-tax-row"><i class="fas fa-trash"></i></button>';
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-tax-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>';
         delCell.querySelector('.remove-tax-row').addEventListener('click', function () {
             clone.remove();
             recalcTax();
@@ -359,7 +383,7 @@
 
         // Replace trash icon with remove button for new rows
         const delCell = clone.querySelector('td:last-child');
-        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row"><i class="fas fa-trash"></i></button>';
+        delCell.innerHTML = '<button type="button" class="btn btn-sm btn-outline-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>';
         delCell.querySelector('.remove-row').addEventListener('click', function () {
             clone.remove();
             recalc();

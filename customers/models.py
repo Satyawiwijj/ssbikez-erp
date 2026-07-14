@@ -1,15 +1,35 @@
-from django.db import models
+from django.db import models, transaction
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from accounts.models import DocStatusMixin
 
 
 class Customer(models.Model):
-    full_name  = models.CharField(max_length=200)
-    phone      = models.CharField(max_length=15)
-    email      = models.EmailField(blank=True, null=True)
-    address    = models.TextField(blank=True, null=True)
-    aadhaar_no = models.CharField(max_length=20, blank=True, null=True)
-    pan_no     = models.CharField(max_length=20, blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    class GSTCategory(models.TextChoices):
+        REGISTERED_REGULAR     = 'Registered Regular',     'Registered Regular'
+        REGISTERED_COMPOSITION = 'Registered Composition', 'Registered Composition'
+        UNREGISTERED           = 'Unregistered',            'Unregistered'
+        SEZ                    = 'SEZ',                     'SEZ'
+        OVERSEAS               = 'Overseas',                'Overseas'
+        DEEMED_EXPORT          = 'Deemed Export',            'Deemed Export'
+        UIN_HOLDERS            = 'UIN Holders',              'UIN Holders'
+        TAX_DEDUCTOR           = 'Tax Deductor',              'Tax Deductor'
+        TAX_COLLECTOR          = 'Tax Collector',             'Tax Collector'
+        INPUT_SERVICE_DIST     = 'Input Service Distributor', 'Input Service Distributor'
+
+    full_name    = models.CharField(max_length=200)
+    phone        = models.CharField(max_length=15)
+    email        = models.EmailField(blank=True, null=True)
+    address      = models.TextField(blank=True, null=True)
+    aadhaar_no   = models.CharField(max_length=20, blank=True, null=True)
+    pan_no       = models.CharField(max_length=20, blank=True, null=True)
+    gst_category = models.CharField(
+        max_length=30, choices=GSTCategory.choices, default=GSTCategory.UNREGISTERED
+    )
+    created_at   = models.DateTimeField(auto_now_add=True)
+    updated_at   = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['full_name']
@@ -113,3 +133,86 @@ class VehicleStock(models.Model):
                     )
             except Exception:
                 pass  # Never crash a save() due to auto-create failure
+
+
+# ---------------------------------------------------------------------------
+# Phase 8c — Vehicle Master Settings: the batch chassis/engine/color/book-no
+# intake generator. Submit creates real VehicleStock rows -- the confirmed
+# Django gap this reference doctype exists to fill (no bulk VehicleStock
+# creation flow existed before this phase).
+# ---------------------------------------------------------------------------
+
+class VehicleMasterSettings(DocStatusMixin, models.Model):
+    master_no            = models.CharField(max_length=50, unique=True, blank=True, editable=False)
+    vehicle               = models.ForeignKey(BikeModel, on_delete=models.PROTECT, related_name='master_settings')
+    has_exchange_vehicle  = models.BooleanField(default=False)
+    service_settings      = models.ForeignKey(
+        'service.VehicleServiceMaster', on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
+        help_text='Reuses the existing service.VehicleServiceMaster (built in an earlier round) rather '
+                   'than duplicating it under masters -- same OneToOneField(BikeModel) shape the '
+                   'reference doctype implies'
+    )
+    exchange_vehicle_id   = models.ForeignKey(
+        'sales.ExchangeVehicle', on_delete=models.SET_NULL, null=True, blank=True, related_name='+',
+        help_text='Reference Link target is a standalone Exchange Vehicle Master; Django has no such '
+                   'freestanding master -- this points directly at sales.ExchangeVehicle, which is '
+                   'normally reached via its owning VehicleSalesOrder'
+    )
+    created_at            = models.DateTimeField(auto_now_add=True)
+    created_by            = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.master_no:
+            with transaction.atomic():
+                last = VehicleMasterSettings.objects.select_for_update().order_by('-id').values_list('master_no', flat=True).first()
+                next_seq = 1
+                if last:
+                    try:
+                        next_seq = int(last.rsplit('-', 1)[-1]) + 1
+                    except ValueError:
+                        pass
+                self.master_no = f'VEH-MAS-{next_seq:05d}'
+                super().save(*args, **kwargs)
+        else:
+            super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.master_no
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Vehicle Master Settings'
+
+
+class VehicleMasterSettingsItem(models.Model):
+    master       = models.ForeignKey(VehicleMasterSettings, on_delete=models.CASCADE, related_name='items')
+    vehicle_name = models.ForeignKey(BikeModel, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
+    model        = models.CharField(max_length=200)
+    chasis_no    = models.CharField(max_length=100, verbose_name='Chasis No')
+    code         = models.CharField(max_length=100)
+    engine       = models.CharField(max_length=100)
+    color        = models.CharField(max_length=50, help_text='No Product Color master exists in Django -- free text, matching the existing VehicleStock.color precedent')
+    book_no      = models.CharField(max_length=100, verbose_name='Book No')
+    color_code   = models.CharField(max_length=20, blank=True)
+
+    def __str__(self):
+        return f"{self.master.master_no} | {self.chasis_no}"
+
+    class Meta:
+        verbose_name_plural = 'Vehicle Master Settings Items'
+
+
+@receiver(post_save, sender=VehicleMasterSettings)
+def on_vehicle_master_settings_submitted(sender, instance, **kwargs):
+    if instance.docstatus != VehicleMasterSettings.DocStatus.SUBMITTED:
+        return
+    for row in instance.items.all():
+        if VehicleStock.objects.filter(chassis_no=row.chasis_no).exists():
+            continue  # Duplicate chassis number -- skip, don't crash on the unique constraint
+        VehicleStock.objects.create(
+            bike_model=instance.vehicle,
+            engine_no=row.engine,
+            chassis_no=row.chasis_no,
+            color=row.color,
+            stock_status=VehicleStock.StockStatus.AVAILABLE,
+        )
