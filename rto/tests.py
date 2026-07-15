@@ -118,3 +118,23 @@ class RCHandOverCRUDTests(_TestCase):
         from rto.forms import RCHandOverForm
         form = RCHandOverForm(data={'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': ''})
         self.assertFalse(form.is_valid())
+
+
+from rto.models import Form20Creation as _Form20Creation
+
+
+class Form20CreationCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='f20_admin', email='f20admin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.order = _make_order('F20-1')
+
+    def test_create_then_detail(self):
+        response = self.client.post(_reverse('rto:form20_creation_create'), {
+            'sales_order': self.order.pk, 'engine_no': 'ENF20001', 'frame_no': 'FRF20001', 'application_no': 'APP-0001',
+        })
+        self.assertEqual(response.status_code, 302)
+        f20 = _Form20Creation.objects.get(sales_order=self.order)
+        response = self.client.get(_reverse('rto:form20_creation_detail', args=[f20.pk]))
+        self.assertEqual(response.status_code, 200)

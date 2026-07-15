@@ -122,3 +122,21 @@ class WarehouseCRUDTests(TestCase):
         response = self.client.get(reverse('masters:warehouse_list'))
         self.assertEqual(response.status_code, 200)
         self.assertIn(warehouse, response.context['warehouses'])
+
+
+from masters.models import SparesCategory as _SparesCategory
+
+
+class CategoryCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='cat_admin', email='catadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('masters:category_create'), {'name': 'Engine Parts'})
+        self.assertEqual(response.status_code, 302)
+        category = _SparesCategory.objects.get(name='Engine Parts')
+        response = self.client.get(reverse('masters:category_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(category, response.context['categories'])

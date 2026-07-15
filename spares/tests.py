@@ -107,3 +107,42 @@ class CounterSaleCreateTests(_TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_CounterSale.objects.filter(mobile='9700000001').exists())
+
+
+from accounts.models import Role
+from spares.models import StockTransfer as _StockTransfer
+
+
+class StockTransferCRUDAndOwnershipTests(_TestCase):
+
+    def setUp(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Spares')
+        self.owner = _User.objects.create_user(username='st_owner', email='stowner@example.com', password='Test-Pass-123!', role=exec_role)
+        self.other = _User.objects.create_user(username='st_other', email='stother@example.com', password='Test-Pass-123!', role=exec_role)
+        self.warehouse = _Warehouse.objects.create(name='Stock Transfer WH')
+
+    def test_create_then_submit(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(_reverse('spares:stock_transfer_create'), {
+            'date_and_time': '2026-08-01T10:00', 'warehouse': self.warehouse.pk,
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        })
+        self.assertEqual(response.status_code, 302)
+        transfer = _StockTransfer.objects.get(warehouse=self.warehouse)
+
+        response = self.client.get(_reverse('spares:stock_transfer_detail', args=[transfer.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(_reverse('spares:stock_transfer_submit', args=[transfer.pk]))
+        self.assertEqual(response.status_code, 302)
+        transfer.refresh_from_db()
+        self.assertEqual(transfer.docstatus, 1)
+
+    def test_non_owner_cannot_submit(self):
+        transfer = _StockTransfer.objects.create(
+            date_and_time='2026-08-01T10:00', warehouse=self.warehouse, created_by=self.owner,
+        )
+        self.client.force_login(self.other)
+        response = self.client.post(_reverse('spares:stock_transfer_submit', args=[transfer.pk]))
+        self.assertEqual(response.status_code, 403)

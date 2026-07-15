@@ -138,3 +138,24 @@ class InvoiceLifecycleCRUDTests(_TestCase):
         invoice = Invoice.objects.get(invoice_number='BILL-INV-0001')
         self.assertGreater(invoice.gst_amount, 0)
         self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount - invoice.discount_amount)
+
+
+class PaymentCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='pay_admin', email='payadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from billing.models import Invoice
+        order = _make_order('PAY1')
+        self.invoice = Invoice.objects.create(
+            sales_order=order, invoice_number='PAY-INV-0001', subtotal=_Decimal('50000'),
+            final_amount=_Decimal('50000'), invoice_date='2026-08-01',
+        )
+
+    def test_create_payment(self):
+        response = self.client.post(_reverse('billing:payment_create'), {
+            'invoice': self.invoice.pk, 'amount': '20000', 'payment_status': 'completed', 'payment_date': '2020-01-01',
+        })
+        self.assertEqual(response.status_code, 302)
+        from billing.models import Payment
+        self.assertTrue(Payment.objects.filter(invoice=self.invoice, amount=_Decimal('20000')).exists())

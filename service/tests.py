@@ -152,3 +152,47 @@ class JobCardCRUDTests(TestCase):
         self.assertEqual(response.status_code, 200)
         response = self.client.get(_reverse('service:jobcard_list'))
         self.assertEqual(response.status_code, 200)
+
+
+from service.models import WarrantyClaim as _WarrantyClaim, WaterWashDone as _WaterWashDone
+
+
+class WaterWashDoneCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='ww_admin', email='wwadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'WW1')
+
+    def test_create_then_detail_then_submit(self):
+        response = self.client.post(reverse('service:water_wash_create'), {'job_card': self.job_card.pk})
+        self.assertEqual(response.status_code, 302)
+        ww = _WaterWashDone.objects.get(job_card=self.job_card)
+
+        response = self.client.get(reverse('service:water_wash_detail', args=[ww.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(reverse('service:water_wash_submit', args=[ww.pk]))
+        self.assertEqual(response.status_code, 302)
+        ww.refresh_from_db()
+        self.assertEqual(ww.docstatus, 1)
+
+
+class WarrantyClaimCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='wc_admin', email='wcadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'WC1')
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('service:warranty_claim_create'), {
+            'job_card': self.job_card.pk, 'description': 'Engine noise under warranty',
+            'claimed_amount': '5000', 'approved_amount': '0', 'status': 'submitted',
+        })
+        self.assertEqual(response.status_code, 302)
+        claim = _WarrantyClaim.objects.get(job_card=self.job_card)
+        self.assertTrue(claim.claim_number)
+
+        response = self.client.get(reverse('service:warranty_claim_list'))
+        self.assertEqual(response.status_code, 200)

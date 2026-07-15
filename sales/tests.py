@@ -211,3 +211,50 @@ class DealerCRUDTests(TestCase):
 
         response = self.client.get(reverse('sales:dealer_detail', args=[dealer.pk]))
         self.assertEqual(response.status_code, 200)
+
+
+class SalesTargetCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='target_admin', email='targetadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('sales:target_create'), {
+            'sales_executive': self.user.pk, 'month': '8', 'year': '2026',
+            'target_enquiries': '20', 'target_test_rides': '10', 'target_conversions': '5', 'target_revenue': '500000',
+        })
+        self.assertEqual(response.status_code, 302)
+        from sales.models import SalesTarget
+        self.assertTrue(SalesTarget.objects.filter(sales_executive=self.user, month=8, year=2026).exists())
+        response = self.client.get(reverse('sales:target_list'))
+        self.assertEqual(response.status_code, 200)
+
+
+class ExchangeVehicleDealerCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='evd_admin', email='evdadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from masters.models import Warehouse
+        from sales.models import Dealer
+        from accounts.models import Branch
+        self.from_wh = Warehouse.objects.create(name='EVD From WH')
+        self.to_wh = Warehouse.objects.create(name='EVD To WH')
+        self.branch = Branch.objects.create(branch_name='EVD Branch')
+        self.dealer = Dealer.objects.create(
+            dealer_name='EVD Dealer', mobile_number='9500000001', warehouse=self.to_wh, branch=self.branch,
+        )
+
+    def test_create_with_no_item_rows_then_detail(self):
+        response = self.client.post(reverse('sales:exchange_vehicle_dealer_create'), {
+            'date': '2026-08-01', 'from_warehouse': self.from_wh.pk, 'to_warehouse': self.to_wh.pk,
+            'dealer': self.dealer.pk, 'branch': self.branch.pk,
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        })
+        self.assertEqual(response.status_code, 302)
+        from sales.models import ExchangeVehicleDealer
+        transfer = ExchangeVehicleDealer.objects.get(dealer=self.dealer)
+        response = self.client.get(reverse('sales:exchange_vehicle_dealer_detail', args=[transfer.pk]))
+        self.assertEqual(response.status_code, 200)

@@ -185,3 +185,61 @@ class UsedVehicleRegisterNoCRUDTests(TestCase):
         self.assertEqual(response.status_code, 302)
         response = self.client.get(reverse('used_vehicles:register_no_list'))
         self.assertEqual(response.status_code, 200)
+
+
+from used_vehicles.models import UsedVehicleBayIn as _UsedVehicleBayIn, UsedVehicleJobCard as _UsedVehicleJobCard
+from used_vehicles.models import UsedVehicleInsuranceUpdate as _UsedVehicleInsuranceUpdate
+
+
+def _make_uv_register_no(suffix=''):
+    manufacturer = ManufacturingCompany.objects.create(name=f'Mfg{suffix}')
+    sub_group = UsedVehicleSubGroup.objects.create(name=f'SubGroup{suffix}')
+    used_model = UsedVehicleModel.objects.create(
+        code=f'UVM-X{suffix}', manufacturer=manufacturer, used_vehicle_name=f'Model{suffix}', sub_group=sub_group,
+    )
+    return UsedVehicleRegisterNo.objects.create(registration_no=f'UVX-{suffix or "0"}', used_vehicle=used_model)
+
+
+class UsedVehicleBayInCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvbay_admin', email='uvbayadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        register_no = _make_uv_register_no('BAY1')
+        self.job_card = _UsedVehicleJobCard.objects.create(register_no=register_no)
+
+    def test_create_then_detail_then_submit(self):
+        response = self.client.post(reverse('used_vehicles:uv_bay_in_create'), {
+            'job_card': self.job_card.pk, 'date': '2026-08-01T10:00',
+        })
+        self.assertEqual(response.status_code, 302)
+        bay_in = _UsedVehicleBayIn.objects.get(job_card=self.job_card)
+
+        response = self.client.get(reverse('used_vehicles:uv_bay_in_detail', args=[bay_in.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(reverse('used_vehicles:uv_bay_in_submit', args=[bay_in.pk]))
+        self.assertEqual(response.status_code, 302)
+        bay_in.refresh_from_db()
+        self.assertEqual(bay_in.docstatus, 1)
+
+
+class UsedVehicleInsuranceUpdateCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvins_admin', email='uvinsadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.register_no = _make_uv_register_no('INS1')
+        from masters.models import Supplier
+        self.supplier = Supplier.objects.create(supplier_name='UV Insurance Supplier')
+
+    def test_create_then_detail(self):
+        response = self.client.post(reverse('used_vehicles:used_vehicle_insurance_update_create'), {
+            'register_no': self.register_no.pk, 'insurance_status': 'no_insurance',
+            'insurance_name': self.supplier.pk, 'policy_number': 'UVINS-0001',
+            'start_date': '2026-08-01', 'end_date': '2027-08-01', 'amount': '2500', 'payment_method': 'cash',
+        })
+        self.assertEqual(response.status_code, 302)
+        update = _UsedVehicleInsuranceUpdate.objects.get(policy_number='UVINS-0001')
+        response = self.client.get(reverse('used_vehicles:used_vehicle_insurance_update_detail', args=[update.pk]))
+        self.assertEqual(response.status_code, 200)
