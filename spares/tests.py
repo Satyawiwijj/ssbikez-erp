@@ -46,3 +46,64 @@ class CounterSaleNumberingTests(TestCase):
         ]
         numbers = [s.sale_no for s in sales]
         self.assertEqual(len(numbers), len(set(numbers)), f"duplicate sale_no values: {numbers}")
+
+
+from django.test import TestCase as _TestCase
+from django.urls import reverse as _reverse
+
+from accounts.models import User as _User
+from masters.models import Warehouse as _Warehouse
+from spares.models import CounterSale as _CounterSale, SparesItem as _SparesItem
+
+
+class SparesItemCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='item_admin', email='itemadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_detail_then_update_round_trip(self):
+        response = self.client.post(_reverse('spares:item_create'), {
+            'item_name': 'Brake Pad Set', 'uom': 'Nos', 'sgst': '9', 'cgst': '9',
+            'opening_stock': '0', 'valuation_rate': '0', 'standard_selling_rate': '0',
+            'mrp': '0', 'max_discount': '0', 'reorder_level': '0', 'reorder_qty': '0',
+            'warranty_period_days': '0',
+        })
+        self.assertEqual(response.status_code, 302)
+        item = _SparesItem.objects.get(item_name='Brake Pad Set')
+        self.assertTrue(item.item_code)  # auto-generated
+
+        response = self.client.get(_reverse('spares:item_detail', args=[item.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(_reverse('spares:item_list'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(_reverse('spares:item_update', args=[item.pk]), {
+            'item_name': 'Brake Pad Set (Updated)', 'uom': 'Nos', 'sgst': '9', 'cgst': '9',
+            'opening_stock': '0', 'valuation_rate': '0', 'standard_selling_rate': '0',
+            'mrp': '0', 'max_discount': '0', 'reorder_level': '0', 'reorder_qty': '0',
+            'warranty_period_days': '0',
+        })
+        self.assertEqual(response.status_code, 302)
+        item.refresh_from_db()
+        self.assertEqual(item.item_name, 'Brake Pad Set (Updated)')
+
+
+class CounterSaleCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='cs_admin', email='csadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.warehouse = _Warehouse.objects.create(name='Counter Sale Warehouse')
+
+    def test_create_with_no_item_rows(self):
+        response = self.client.post(_reverse('spares:counter_sale_create'), {
+            'customer': 'Walk-in Customer', 'mobile': '9700000001', 'godown': self.warehouse.pk,
+            'date': '2026-08-01', 'sale_type': 'sale', 'spot_sale': True,
+            'status': 'draft', 'discount_amount': '0',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_CounterSale.objects.filter(mobile='9700000001').exists())

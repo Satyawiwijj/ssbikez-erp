@@ -83,3 +83,42 @@ class OrderFormSeriesOwnershipTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.series.refresh_from_db()
         self.assertEqual(self.series.docstatus, OrderFormSeries.DocStatus.CANCELLED)
+
+
+from masters.models import Supplier as _Supplier, Warehouse as _Warehouse
+
+
+class SupplierCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='sup_admin', email='supadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_detail_then_list(self):
+        response = self.client.post(reverse('masters:supplier_create'), {
+            'supplier_name': 'ACME Spares Pvt Ltd', 'country': 'India', 'supplier_type': 'company',
+        })
+        self.assertEqual(response.status_code, 302)
+        supplier = _Supplier.objects.get(supplier_name='ACME Spares Pvt Ltd')
+
+        response = self.client.get(reverse('masters:supplier_detail', args=[supplier.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse('masters:supplier_list'))
+        self.assertEqual(response.status_code, 200)
+
+
+class WarehouseCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='wh_admin', email='whadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('masters:warehouse_create'), {'name': 'Central Warehouse'})
+        self.assertEqual(response.status_code, 302)
+        warehouse = _Warehouse.objects.get(name='Central Warehouse')
+
+        response = self.client.get(reverse('masters:warehouse_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(warehouse, response.context['warehouses'])

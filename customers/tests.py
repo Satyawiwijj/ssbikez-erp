@@ -47,3 +47,45 @@ class VehicleMasterSettingsSubmitTests(TestCase):
         second.docstatus = VehicleMasterSettings.DocStatus.SUBMITTED
         second.save()  # must not raise IntegrityError on the unique chassis_no
         self.assertEqual(VehicleStock.objects.filter(chassis_no='CH-DUP-001').count(), 1)
+
+
+from django.urls import reverse as _reverse
+
+from accounts.models import User as _User
+
+
+class CustomerCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='cust_admin', email='custadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        from customers.models import Customer
+        response = self.client.post(_reverse('customers:customer_create'), {
+            'full_name': 'Ravi Kumar', 'phone': '9600000001',
+        })
+        self.assertEqual(response.status_code, 302)
+        customer = Customer.objects.get(phone='9600000001')
+
+        response = self.client.get(_reverse('customers:customer_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(customer, response.context['customers'])
+
+
+class BikeModelCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='bike_admin', email='bikeadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        response = self.client.post(_reverse('customers:bike_model_create'), {
+            'brand': 'Hero', 'model_name': 'Xtreme 160R', 'fuel_type': 'petrol', 'ex_showroom_price': '135000',
+        })
+        self.assertEqual(response.status_code, 302)
+        model = BikeModel.objects.get(model_name='Xtreme 160R')
+
+        response = self.client.get(_reverse('customers:bike_model_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(model, response.context['bike_models'])

@@ -84,3 +84,52 @@ class AutoInvoiceTests(TestCase):
         package.submit(self.user)
         package.refresh_from_db()
         self.assertIsNone(package.invoice_id)
+
+
+from django.test import TestCase as _TestCase
+from django.urls import reverse as _reverse
+
+from accounts.models import User as _User
+from masters.models import Supplier as _Supplier
+from vas.models import AMCType as _AMCType, RSAType as _RSAType, RSACreation as _RSACreation
+
+
+class AMCTypeCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='amctype_admin', email='amctypeadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_then_list(self):
+        response = self.client.post(_reverse('vas:amc_type_create'), {
+            'code': 'PLAT', 'name': 'Platinum AMC', 'amc_validity_days': '365', 'amc_amount': '2000',
+        })
+        self.assertEqual(response.status_code, 302)
+        amc_type = _AMCType.objects.get(code='PLAT')
+        self.assertEqual(amc_type.name, 'Platinum AMC')
+
+        response = self.client.get(_reverse('vas:amc_type_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(amc_type, response.context['types'])
+
+
+class RSACreationCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='rsacre_admin', email='rsacreadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.rsa_type = _RSAType.objects.create(code='RSA1', name='Standard RSA')
+        self.supplier = _Supplier.objects.create(supplier_name='RSA Supplier Co')
+
+    def test_create_then_submit(self):
+        response = self.client.post(_reverse('vas:rsa_creation_create'), {
+            'rsa_type': self.rsa_type.pk, 'rsa_amount': '500', 'supplier': self.supplier.pk,
+        })
+        self.assertEqual(response.status_code, 302)
+        creation = _RSACreation.objects.get(rsa_type=self.rsa_type)
+        self.assertEqual(creation.docstatus, 0)
+
+        response = self.client.post(_reverse('vas:rsa_creation_submit', args=[creation.pk]))
+        self.assertEqual(response.status_code, 302)
+        creation.refresh_from_db()
+        self.assertEqual(creation.docstatus, 1)

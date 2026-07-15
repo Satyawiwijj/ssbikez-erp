@@ -14,14 +14,16 @@ change that reintroduces one of these bugs fails loudly instead of only
 being caught by another manual audit pass.
 """
 import datetime
+from decimal import Decimal
 
 from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from accounts.models import OTPVerification, Role, User
+from accounts.models import Branch, FuelExpense, OTPVerification, Role, User
 from accounts.permissions import ROLE_PERMISSIONS
+from customers.models import BikeModel, VehicleStock
 
 # One URL per namespace that (a) exists, (b) requires only that the caller
 # be an authenticated, in-role user (no extra object-level setup needed).
@@ -251,3 +253,107 @@ class PasswordResetRateLimitTests(TestCase):
         unknown = self.client.post(reverse('accounts:password_reset'), {'email': 'nobody@example.com'})
         self.assertEqual(real.status_code, unknown.status_code)
         self.assertEqual(real.url, unknown.url)
+
+
+class BranchRoleCRUDTests(TestCase):
+    """Branch/Role admin CRUD -- gated on _can_manage_settings (Managing
+    Director / Sales Manager / superuser), not on namespace access alone."""
+
+    def setUp(self):
+        self.admin = User.objects.create_superuser(username='br_admin', email='bradmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.admin)
+
+    def test_branch_create_list_update_round_trip(self):
+        response = self.client.post(reverse('accounts:branch_create'), {'branch_name': 'North Branch', 'is_active': True})
+        self.assertEqual(response.status_code, 302)
+        branch = Branch.objects.get(branch_name='North Branch')
+
+        response = self.client.get(reverse('accounts:branch_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(branch, response.context['branches'])
+
+        response = self.client.post(reverse('accounts:branch_update', args=[branch.pk]), {'branch_name': 'North Branch Renamed', 'is_active': True})
+        self.assertEqual(response.status_code, 302)
+        branch.refresh_from_db()
+        self.assertEqual(branch.branch_name, 'North Branch Renamed')
+
+    def test_role_create_list_update_round_trip(self):
+        response = self.client.post(reverse('accounts:role_create'), {'role_name': 'Custom Test Role'})
+        self.assertEqual(response.status_code, 302)
+        role = Role.objects.get(role_name='Custom Test Role')
+
+        response = self.client.get(reverse('accounts:role_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(role, response.context['roles'])
+
+        response = self.client.post(reverse('accounts:role_update', args=[role.pk]), {'role_name': 'Custom Test Role Renamed'})
+        self.assertEqual(response.status_code, 302)
+        role.refresh_from_db()
+        self.assertEqual(role.role_name, 'Custom Test Role Renamed')
+
+    def test_non_settings_manager_is_blocked_from_branch_and_role_admin(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        plain_user = User.objects.create_user(username='br_plain', email='brplain@example.com', password='Test-Pass-123!', role=exec_role)
+        self.client.force_login(plain_user)
+        self.assertEqual(self.client.get(reverse('accounts:branch_list')).status_code, 403)
+        self.assertEqual(self.client.get(reverse('accounts:role_list')).status_code, 403)
+
+
+class UserAdminCRUDTests(TestCase):
+    """User admin CRUD, plus the self-promotion guard: a user-management
+    role without settings-management rights cannot grant itself/others a
+    more privileged role or reactivate a deactivated account."""
+
+    def setUp(self):
+        self.superuser = User.objects.create_superuser(username='ua_super', email='uasuper@example.com', password='Test-Pass-123!')
+
+    def test_superuser_can_create_and_update_a_user(self):
+        self.client.force_login(self.superuser)
+        response = self.client.post(reverse('accounts:user_create'), {
+            'username': 'new_staffer', 'first_name': 'New', 'last_name': 'Staffer',
+            'email': 'newstaffer@example.com', 'status': User.Status.ACTIVE,
+            'password1': 'Complex-Pass-987!', 'password2': 'Complex-Pass-987!',
+        })
+        self.assertEqual(response.status_code, 302)
+        user = User.objects.get(username='new_staffer')
+
+        response = self.client.post(reverse('accounts:user_update', args=[user.pk]), {
+            'username': 'new_staffer', 'first_name': 'Updated', 'last_name': 'Staffer',
+            'email': 'newstaffer@example.com', 'status': User.Status.ACTIVE,
+        })
+        self.assertEqual(response.status_code, 302)
+        user.refresh_from_db()
+        self.assertEqual(user.first_name, 'Updated')
+
+    def test_non_user_manager_cannot_reach_user_admin(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        plain_user = User.objects.create_user(username='ua_plain', email='uaplain@example.com', password='Test-Pass-123!', role=exec_role)
+        self.client.force_login(plain_user)
+        self.assertEqual(self.client.get(reverse('accounts:user_list')).status_code, 403)
+
+
+class FuelExpenseCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='fe_admin', email='feadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        bike_model = BikeModel.objects.create(brand='Yamaha', model_name='FZ-S', ex_showroom_price=Decimal('115000'))
+        self.vehicle = VehicleStock.objects.create(bike_model=bike_model, chassis_no='FUELCH001')
+
+    def test_create_list_update_round_trip(self):
+        response = self.client.post(reverse('accounts:fuel_expense_create'), {
+            'vehicle': self.vehicle.pk, 'amount': '500', 'fuel_date': '2026-08-01', 'voucher_number': 'V-001',
+        })
+        self.assertEqual(response.status_code, 302)
+        expense = FuelExpense.objects.get(voucher_number='V-001')
+        self.assertEqual(expense.amount, Decimal('500'))
+
+        response = self.client.get(reverse('accounts:fuel_expense_list'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(reverse('accounts:fuel_expense_update', args=[expense.pk]), {
+            'vehicle': self.vehicle.pk, 'amount': '650', 'fuel_date': '2026-08-01', 'voucher_number': 'V-001',
+        })
+        self.assertEqual(response.status_code, 302)
+        expense.refresh_from_db()
+        self.assertEqual(expense.amount, Decimal('650'))

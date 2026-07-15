@@ -139,3 +139,49 @@ class SaleOwnershipTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.sale.refresh_from_db()
         self.assertEqual(self.sale.docstatus, 2)
+
+
+from used_vehicles.models import ManufacturingCompany as _ManufacturingCompany, UsedVehicleModel as _UsedVehicleModel
+from used_vehicles.models import UsedVehicleSubGroup as _UsedVehicleSubGroup
+
+
+class UsedVehicleModelCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvm_admin', email='uvmadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.manufacturer = _ManufacturingCompany.objects.create(name='Royal Enfield Used')
+        self.sub_group = _UsedVehicleSubGroup.objects.create(name='350cc')
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('used_vehicles:model_create'), {
+            'code': 'UVM-CRUD-1', 'manufacturer': self.manufacturer.pk,
+            'vehicle_category': 'motorcycle', 'used_vehicle_name': 'Bullet 350 (Used)',
+            'sub_group': self.sub_group.pk,
+        })
+        self.assertEqual(response.status_code, 302)
+        model = _UsedVehicleModel.objects.get(code='UVM-CRUD-1')
+
+        response = self.client.get(reverse('used_vehicles:model_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(model, response.context['models'])
+
+
+class UsedVehicleRegisterNoCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvr_admin', email='uvradmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        manufacturer = _ManufacturingCompany.objects.create(name='Bajaj Used')
+        sub_group = _UsedVehicleSubGroup.objects.create(name='125cc')
+        self.used_model = _UsedVehicleModel.objects.create(
+            code='UVM-REG-1', manufacturer=manufacturer, used_vehicle_name='Pulsar (Used)', sub_group=sub_group,
+        )
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('used_vehicles:register_no_create'), {
+            'registration_no': 'KA09ZZ0001', 'used_vehicle': self.used_model.pk, 'stock_status': 'available',
+        })
+        self.assertEqual(response.status_code, 302)
+        response = self.client.get(reverse('used_vehicles:register_no_list'))
+        self.assertEqual(response.status_code, 200)

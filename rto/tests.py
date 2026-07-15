@@ -83,3 +83,38 @@ class BatchItemTotalComputationTests(TestCase):
             flag_amount=Decimal('100'), fine_amount=Decimal('50'), license_amount=Decimal('25'),
         )
         self.assertEqual(item.total_amount, Decimal('175'))
+
+
+from django.test import TestCase as _TestCase
+from django.urls import reverse as _reverse
+
+from accounts.models import User as _User
+from rto.models import RCHandOver as _RCHandOver
+
+
+class RCHandOverCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='rch_admin', email='rchadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.order = _make_order('RCH1')
+
+    def test_create_then_detail_then_submit(self):
+        response = self.client.post(_reverse('rto:rc_hand_over_create'), {
+            'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': 'RCB-0001',
+        })
+        self.assertEqual(response.status_code, 302)
+        handover = _RCHandOver.objects.get(sales_order=self.order)
+
+        response = self.client.get(_reverse('rto:rc_hand_over_detail', args=[handover.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(_reverse('rto:rc_hand_over_submit', args=[handover.pk]))
+        self.assertEqual(response.status_code, 302)
+        handover.refresh_from_db()
+        self.assertEqual(handover.docstatus, 1)
+
+    def test_rc_book_received_yes_requires_rc_book_number(self):
+        from rto.forms import RCHandOverForm
+        form = RCHandOverForm(data={'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': ''})
+        self.assertFalse(form.is_valid())

@@ -130,3 +130,84 @@ class NegativeDiscountFormTests(TestCase):
         customer = _make_customer('3')
         form = VehicleSalesOrderForm(data=self._base_payload(customer, discount_amount='5000'))
         self.assertTrue(form.is_valid(), form.errors)
+
+
+def _formset_management_form(prefix, total=0):
+    return {
+        f'{prefix}-TOTAL_FORMS': str(total),
+        f'{prefix}-INITIAL_FORMS': '0',
+        f'{prefix}-MIN_NUM_FORMS': '0',
+        f'{prefix}-MAX_NUM_FORMS': '1000',
+    }
+
+
+class SalesEnquiryCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='enq_admin', email='enqadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def _payload(self, customer, **overrides):
+        payload = {'customer': customer.pk, 'status': 'open'}
+        payload.update(_formset_management_form('calllogs'))
+        payload.update(_formset_management_form('histories'))
+        payload.update(overrides)
+        return payload
+
+    def test_create_then_detail_then_update_round_trip(self):
+        customer = _make_customer('ENQ1')
+        response = self.client.post(reverse('sales:enquiry_create'), self._payload(customer))
+        self.assertEqual(response.status_code, 302, )
+        from sales.models import SalesEnquiry
+        enquiry = SalesEnquiry.objects.get(customer=customer)
+        self.assertEqual(enquiry.sales_executive_id, self.user.pk)  # auto-assigned when unset
+
+        response = self.client.get(reverse('sales:enquiry_detail', args=[enquiry.pk]))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse('sales:enquiry_list'))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.post(
+            reverse('sales:enquiry_update', args=[enquiry.pk]),
+            self._payload(customer, status='follow_up'),
+        )
+        self.assertEqual(response.status_code, 302)
+        enquiry.refresh_from_db()
+        self.assertEqual(enquiry.status, 'follow_up')
+
+    def test_create_without_customer_or_prospect_is_rejected(self):
+        payload = {**_formset_management_form('calllogs'), **_formset_management_form('histories')}
+        response = self.client.post(reverse('sales:enquiry_create'), payload)
+        self.assertEqual(response.status_code, 200)
+        from sales.models import SalesEnquiry
+        self.assertEqual(SalesEnquiry.objects.count(), 0)
+
+
+class DealerCRUDTests(TestCase):
+    """The Dealer master (Phase 13 wholesale-resale sub-module) -- a plain,
+    non-submittable CRUD screen with no formset."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='dealer_admin', email='dealeradmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from accounts.models import Branch
+        from masters.models import Warehouse
+        self.branch = Branch.objects.create(branch_name='Dealer Branch')
+        self.warehouse = Warehouse.objects.create(name='Dealer Warehouse')
+
+    def test_create_list_detail_round_trip(self):
+        response = self.client.post(reverse('sales:dealer_create'), {
+            'dealer_name': 'Wholesale Partner A', 'mobile_number': '9800000001',
+            'warehouse': self.warehouse.pk, 'branch': self.branch.pk,
+        })
+        self.assertEqual(response.status_code, 302)
+        from sales.models import Dealer
+        dealer = Dealer.objects.get(dealer_name='Wholesale Partner A')
+
+        response = self.client.get(reverse('sales:dealer_list'))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(dealer, response.context['dealers'])
+
+        response = self.client.get(reverse('sales:dealer_detail', args=[dealer.pk]))
+        self.assertEqual(response.status_code, 200)

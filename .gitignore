@@ -34,3 +34,6 @@ reference_erp_spec/
 
 # graphify knowledge-graph build output (generated artifacts, not source)
 graphify-out/
+
+# Coverage tool output
+.coverage

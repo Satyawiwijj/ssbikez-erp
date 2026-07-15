@@ -113,3 +113,42 @@ class LaborChargeOwnershipTests(TestCase):
         response = self.client.post(reverse('service:labor_charge_delete', args=[charge.pk]))
         self.assertEqual(response.status_code, 302)
         self.assertFalse(LaborCharge.objects.filter(pk=charge.pk).exists())
+
+
+from django.test import TestCase as _TestCase
+from django.urls import reverse as _reverse
+
+from service.models import JobCard as _JobCard
+
+
+def _checklist_management_forms():
+    payload = {}
+    for prefix in ('complaints', 'observations', 'engine', 'lights', 'chasis'):
+        payload.update({
+            f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+            f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+        })
+    return payload
+
+
+class JobCardCRUDTests(TestCase):
+
+    def setUp(self):
+        advisor_role, _ = Role.objects.get_or_create(role_name='Service Advisor')
+        self.user = User.objects.create_user(username='jc_admin', email='jcadmin@example.com', password='Test-Pass-123!', role=advisor_role)
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'CRUD1')
+
+    def test_create_with_no_checklist_rows(self):
+        payload = {
+            'customer_vehicle': self.job_card.customer_vehicle_id, 'service_status': JobCard.ServiceStatus.PENDING,
+        }
+        payload.update(_checklist_management_forms())
+        response = self.client.post(_reverse('service:jobcard_create'), payload)
+        self.assertEqual(response.status_code, 302)
+
+    def test_detail_and_list_render(self):
+        response = self.client.get(_reverse('service:jobcard_detail', args=[self.job_card.pk]))
+        self.assertEqual(response.status_code, 200)
+        response = self.client.get(_reverse('service:jobcard_list'))
+        self.assertEqual(response.status_code, 200)
