@@ -244,3 +244,21 @@ class OutworkEntryIssueCreateTests(TestCase):
             })
         response = self.client.post(reverse('service:outwork_issue_create'), payload)
         self.assertEqual(response.status_code, 302)
+
+
+class LaborChargesAlterationCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='lca_admin', email='lcaadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'LCA1')
+
+    def test_create_with_no_child_rows(self):
+        payload = {'job_card': self.job_card.pk}
+        for prefix in ('labor', 'spares'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('service:labor_alteration_create'), payload)
+        self.assertEqual(response.status_code, 302)

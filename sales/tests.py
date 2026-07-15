@@ -359,3 +359,51 @@ class OrderAmendTests(TestCase):
         self.assertIsNotNone(amended)
         self.assertEqual(amended.docstatus, 0)
         self.assertNotEqual(amended.order_number, self.order.order_number)
+
+
+class EnquiryChildAddTests(TestCase):
+    """calllog_add/history_add -- standalone side doors onto SalesEnquiry,
+    both ownership-gated the same way enquiry_update itself is."""
+
+    def setUp(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        self.owner = User.objects.create_user(username='cl_owner', email='clowner@example.com', password='Test-Pass-123!', role=exec_role)
+        self.other = User.objects.create_user(username='cl_other', email='clother@example.com', password='Test-Pass-123!', role=exec_role)
+        customer = _make_customer('CLOG1')
+        from sales.models import SalesEnquiry
+        self.enquiry = SalesEnquiry.objects.create(customer=customer, sales_executive=self.owner)
+
+    def test_owner_can_add_calllog(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('sales:calllog_add', args=[self.enquiry.pk]), {'bill_sec': '30'})
+        self.assertEqual(response.status_code, 302)
+
+    def test_other_cannot_add_calllog(self):
+        self.client.force_login(self.other)
+        response = self.client.post(reverse('sales:calllog_add', args=[self.enquiry.pk]), {'bill_sec': '30'})
+        self.assertEqual(response.status_code, 403)
+
+    def test_owner_can_add_history(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('sales:history_add', args=[self.enquiry.pk]), {
+            'update_date': '2020-01-01', 'remarks': 'Followed up', 'status': 'Open',
+        })
+        self.assertEqual(response.status_code, 302)
+
+
+class FeedbackCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='fb_admin', email='fbadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        customer = _make_customer('FB1')
+        from sales.models import SalesEnquiry
+        self.enquiry = SalesEnquiry.objects.create(customer=customer)
+
+    def test_create_with_no_item_rows(self):
+        payload = {'enquiry': self.enquiry.pk}
+        payload.update(_formset_management_form('feedback_items'))
+        response = self.client.post(reverse('sales:feedback_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from sales.models import SalesFeedback
+        self.assertTrue(SalesFeedback.objects.filter(enquiry=self.enquiry).exists())

@@ -192,3 +192,22 @@ class NumberOrderEntryCreationCRUDTests(_TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_NumberOrderEntryCreation.objects.filter(sales_order=self.order).exists())
+
+
+class RCBookIssueCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='rcbi_admin', email='rcbiadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        order = _make_order('RCBI1')
+        registration = RTORegistration.objects.create(sales_order=order)
+        self.rc_book_creation = _RCBookCreation.objects.create(rto_registration=registration)
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'rc_book_creation': self.rc_book_creation.pk, 'issue_type': 'customer',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('rto:rc_book_issue_create'), payload)
+        self.assertEqual(response.status_code, 302)

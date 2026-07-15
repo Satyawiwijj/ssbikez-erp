@@ -325,3 +325,25 @@ class UsedVehicleSaleCreateViewTests(TestCase):
         response = self.client.post(reverse('used_vehicles:sale_create'), payload)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(UsedVehicleSale.objects.filter(customer=self.customer).exists())
+
+
+class UsedVehiclePurchaseReceiptCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvpr_admin', email='uvpradmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from masters.models import Supplier
+        from used_vehicles.models import UsedVehiclePurchaseOrder
+        self.supplier = Supplier.objects.create(supplier_name='UV Receipt Supplier')
+        self.po = UsedVehiclePurchaseOrder.objects.create(supplier=self.supplier, required_date='2026-08-01')
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'purchase_order': self.po.pk, 'supplier': self.supplier.pk, 'required_date': '2026-08-02',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(reverse('used_vehicles:purchase_receipt_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from used_vehicles.models import UsedVehiclePurchaseReceipt
+        self.assertTrue(UsedVehiclePurchaseReceipt.objects.filter(purchase_order=self.po).exists())

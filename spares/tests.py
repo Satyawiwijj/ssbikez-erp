@@ -222,3 +222,40 @@ class IssueAlterationCreateTests(_TestCase):
         response = self.client.post(_reverse('spares:issue_alteration_create'), payload)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_SparesIssueAlteration.objects.filter(job_card=self.job_card).exists())
+
+
+class StockCountCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='sc_admin', email='scadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.warehouse = _Warehouse.objects.create(name='Stock Count WH')
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'warehouse': self.warehouse.pk, 'date_and_time': '2020-01-01',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('spares:stock_count_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from spares.models import StockCountUpdate
+        self.assertTrue(StockCountUpdate.objects.filter(warehouse=self.warehouse).exists())
+
+
+class MRPRevisionCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='mrp_admin', email='mrpadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'date': '2020-01-01', 'price_list': 'standard_selling',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('spares:mrp_revision_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from spares.models import SparesMRPPriceRevision
+        self.assertTrue(SparesMRPPriceRevision.objects.exists())

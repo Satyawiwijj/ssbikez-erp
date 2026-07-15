@@ -166,3 +166,30 @@ class AMCPackageCreateViewTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AMCPackage.objects.filter(customer_vehicle=self.customer_vehicle).exists())
+
+
+class WarrantyTypeCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='wt_admin', email='wtadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create(self):
+        response = self.client.post(_reverse('vas:warranty_type_create'), {'code': 'STD', 'name': 'Standard Warranty'})
+        self.assertEqual(response.status_code, 302)
+        from vas.models import WarrantyType
+        self.assertTrue(WarrantyType.objects.filter(code='STD').exists())
+
+
+class RSAPackageCreateViewTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='rsaview_admin', email='rsaviewadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.customer_vehicle, _ = _make_customer_vehicle('RSAVIEW1')
+
+    def test_create(self):
+        response = self.client.post(_reverse('vas:rsa_create'), {
+            'customer_vehicle': self.customer_vehicle.pk, 'status': 'active',
+        })
+        self.assertEqual(response.status_code, 302)

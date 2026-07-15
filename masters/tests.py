@@ -177,3 +177,43 @@ class CustomerPriceCreateTests(TestCase):
         self.assertEqual(response.status_code, 302)
         from masters.models import CustomerPrice
         self.assertTrue(CustomerPrice.objects.filter(model_code=self.bike_model).exists())
+
+
+class DealerPriceListCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='dpl_admin', email='dpladmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from customers.models import Customer
+        self.customer = Customer.objects.create(full_name='DPL Dealer', phone='9000000002')
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'dealer_name': self.customer.pk,
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(reverse('masters:dealer_price_list_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from masters.models import DealerPriceList
+        self.assertTrue(DealerPriceList.objects.filter(dealer_name=self.customer).exists())
+
+
+class VehicleFittingSparesCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='vfs_admin', email='vfsadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from customers.models import BikeModel
+        self.bike_model = BikeModel.objects.create(brand='VFS2', model_name='VFS2 Model', ex_showroom_price=Decimal('90000'))
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'vehicle': self.bike_model.pk,
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(reverse('masters:vehicle_fitting_spares_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from masters.models import VehicleFittingSpares
+        self.assertTrue(VehicleFittingSpares.objects.filter(vehicle=self.bike_model).exists())
