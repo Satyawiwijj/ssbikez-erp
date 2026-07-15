@@ -146,3 +146,26 @@ class StockTransferCRUDAndOwnershipTests(_TestCase):
         self.client.force_login(self.other)
         response = self.client.post(_reverse('spares:stock_transfer_submit', args=[transfer.pk]))
         self.assertEqual(response.status_code, 403)
+
+
+class SupplierQuoteCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='quote_admin', email='quoteadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from masters.models import Supplier
+        self.supplier = Supplier.objects.create(supplier_name='Quote Supplier Co')
+
+    def test_create_with_no_item_or_tax_rows(self):
+        payload = {
+            'supplier': self.supplier.pk, 'date': '2026-08-01', 'status': 'draft',
+            'additional_discount_percent': '0', 'additional_discount_amount': '0',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'taxes-TOTAL_FORMS': '0', 'taxes-INITIAL_FORMS': '0',
+            'taxes-MIN_NUM_FORMS': '0', 'taxes-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('spares:quote_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from spares.models import SupplierQuote
+        self.assertTrue(SupplierQuote.objects.filter(supplier=self.supplier).exists())

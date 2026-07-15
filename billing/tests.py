@@ -159,3 +159,36 @@ class PaymentCRUDTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         from billing.models import Payment
         self.assertTrue(Payment.objects.filter(invoice=self.invoice, amount=_Decimal('20000')).exists())
+
+
+class JournalEntryCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='je_admin', email='jeadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_create_balanced_entry(self):
+        payload = {
+            'entry_date': '2020-01-01', 'description': 'Test balanced entry',
+            'lines-TOTAL_FORMS': '2', 'lines-INITIAL_FORMS': '0',
+            'lines-MIN_NUM_FORMS': '0', 'lines-MAX_NUM_FORMS': '1000',
+            'lines-0-account': 'Cash', 'lines-0-debit': '1000', 'lines-0-credit': '0',
+            'lines-1-account': 'Sales', 'lines-1-debit': '0', 'lines-1-credit': '1000',
+        }
+        response = self.client.post(_reverse('billing:journal_entry_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from billing.models import JournalEntry
+        self.assertTrue(JournalEntry.objects.filter(description='Test balanced entry').exists())
+
+    def test_unbalanced_entry_is_rejected(self):
+        payload = {
+            'entry_date': '2020-01-01', 'description': 'Unbalanced entry',
+            'lines-TOTAL_FORMS': '2', 'lines-INITIAL_FORMS': '0',
+            'lines-MIN_NUM_FORMS': '0', 'lines-MAX_NUM_FORMS': '1000',
+            'lines-0-account': 'Cash', 'lines-0-debit': '1000', 'lines-0-credit': '0',
+            'lines-1-account': 'Sales', 'lines-1-debit': '0', 'lines-1-credit': '500',
+        }
+        response = self.client.post(_reverse('billing:journal_entry_create'), payload)
+        self.assertEqual(response.status_code, 200)
+        from billing.models import JournalEntry
+        self.assertFalse(JournalEntry.objects.filter(description='Unbalanced entry').exists())

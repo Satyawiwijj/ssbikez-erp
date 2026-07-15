@@ -138,3 +138,37 @@ class Form20CreationCRUDTests(_TestCase):
         f20 = _Form20Creation.objects.get(sales_order=self.order)
         response = self.client.get(_reverse('rto:form20_creation_detail', args=[f20.pk]))
         self.assertEqual(response.status_code, 200)
+
+
+from rto.models import RCBookCreation as _RCBookCreation, RegistrationNoCreation as _RegistrationNoCreation
+
+
+class RegistrationNoCreationCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='regno_admin', email='regnoadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.order = _make_order('REGNO1')
+
+    def test_create(self):
+        response = self.client.post(_reverse('rto:registration_no_creation_create'), {
+            'sales_order': self.order.pk, 'reg_no': 'KA05REG0001', 'status': 'open',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_RegistrationNoCreation.objects.filter(sales_order=self.order).exists())
+
+
+class RCBookCreationCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='rcbook_admin', email='rcbookadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.order = _make_order('RCBK1')
+        self.registration = RTORegistration.objects.create(sales_order=self.order)
+
+    def test_create(self):
+        response = self.client.post(_reverse('rto:rc_book_creation_create'), {
+            'rto_registration': self.registration.pk,
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_RCBookCreation.objects.filter(rto_registration=self.registration).exists())

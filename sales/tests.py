@@ -258,3 +258,37 @@ class ExchangeVehicleDealerCRUDTests(TestCase):
         transfer = ExchangeVehicleDealer.objects.get(dealer=self.dealer)
         response = self.client.get(reverse('sales:exchange_vehicle_dealer_detail', args=[transfer.pk]))
         self.assertEqual(response.status_code, 200)
+
+
+class DeliveryCreateTests(TestCase):
+
+    def setUp(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        self.owner = User.objects.create_user(username='del_owner', email='delowner@example.com', password='Test-Pass-123!', role=exec_role)
+        self.other = User.objects.create_user(username='del_other', email='delother@example.com', password='Test-Pass-123!', role=exec_role)
+        customer = _make_customer('DEL1')
+        self.order = VehicleSalesOrder.objects.create(
+            customer=customer, sales_executive=self.owner, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
+        )
+
+    def _payload(self, **overrides):
+        payload = {
+            'sales_order': self.order.pk, 'delivery_date': '2020-01-01', 'total_amount': '50000', 'payment_status': 'unpaid',
+        }
+        payload.update(_formset_management_form('delivery_items'))
+        payload.update(_formset_management_form('delivery_advance'))
+        payload.update(_formset_management_form('delivery_payments'))
+        payload.update(overrides)
+        return payload
+
+    def test_owner_can_create_delivery(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('sales:delivery_create'), self._payload())
+        self.assertEqual(response.status_code, 302)
+        from sales.models import VehicleDelivery
+        self.assertTrue(VehicleDelivery.objects.filter(sales_order=self.order).exists())
+
+    def test_non_owner_cannot_create_delivery_for_someone_elses_order(self):
+        self.client.force_login(self.other)
+        response = self.client.post(reverse('sales:delivery_create'), self._payload())
+        self.assertEqual(response.status_code, 403)

@@ -243,3 +243,41 @@ class UsedVehicleInsuranceUpdateCRUDTests(TestCase):
         update = _UsedVehicleInsuranceUpdate.objects.get(policy_number='UVINS-0001')
         response = self.client.get(reverse('used_vehicles:used_vehicle_insurance_update_detail', args=[update.pk]))
         self.assertEqual(response.status_code, 200)
+
+
+from used_vehicles.models import UsedVehicleLaborCharge as _UsedVehicleLaborCharge
+
+
+class UsedVehicleBayOutCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvbo_admin', email='uvboadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        register_no = _make_uv_register_no('BAYOUT1')
+        self.job_card = _UsedVehicleJobCard.objects.create(register_no=register_no)
+
+    def test_create(self):
+        response = self.client.post(reverse('used_vehicles:uv_bay_out_create'), {
+            'job_card': self.job_card.pk, 'date': '2020-01-01', 'remarks': 'All checks passed',
+        })
+        self.assertEqual(response.status_code, 302)
+
+
+class UsedVehicleLaborChargeCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvlc_admin', email='uvlcadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        register_no = _make_uv_register_no('LC1')
+        self.job_card = _UsedVehicleJobCard.objects.create(register_no=register_no)
+
+    def test_create_with_no_child_rows(self):
+        payload = {'job_card': self.job_card.pk}
+        for prefix in ('labor', 'spares', 'removes'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('used_vehicles:uv_labor_charge_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_UsedVehicleLaborCharge.objects.filter(job_card=self.job_card).exists())

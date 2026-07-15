@@ -196,3 +196,17 @@ class WarrantyClaimCRUDTests(TestCase):
 
         response = self.client.get(reverse('service:warranty_claim_list'))
         self.assertEqual(response.status_code, 200)
+
+
+class BayInCreationCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='bayin_admin', email='bayinadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'BAYIN1')
+
+    def test_create(self):
+        response = self.client.post(reverse('service:bay_in_create'), {
+            'job_card': self.job_card.pk, 'date_time': '2020-01-01T10:00',
+        })
+        self.assertEqual(response.status_code, 302)

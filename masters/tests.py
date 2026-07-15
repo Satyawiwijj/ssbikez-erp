@@ -4,6 +4,8 @@ Regression tests for the Order Form Series batch-numbering generator
 RTO/Used-Vehicle document links to, and the ownership check on its own
 cancel view (round-2 audit finding).
 """
+from decimal import Decimal
+
 from django.test import TestCase
 from django.urls import reverse
 
@@ -140,3 +142,18 @@ class CategoryCRUDTests(TestCase):
         response = self.client.get(reverse('masters:category_list'))
         self.assertEqual(response.status_code, 200)
         self.assertIn(category, response.context['categories'])
+
+
+class ModelAndPriceCRUDTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='mp_admin', email='mpadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from customers.models import BikeModel
+        self.bike_model = BikeModel.objects.create(brand='MP Brand', model_name='MP Model', ex_showroom_price=Decimal('100000'))
+
+    def test_create_then_list(self):
+        response = self.client.post(reverse('masters:model_and_price_create'), {'model_code': self.bike_model.pk})
+        self.assertEqual(response.status_code, 302)
+        from masters.models import ModelAndPrice
+        self.assertTrue(ModelAndPrice.objects.filter(model_code=self.bike_model).exists())

@@ -133,3 +133,21 @@ class RSACreationCRUDTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         creation.refresh_from_db()
         self.assertEqual(creation.docstatus, 1)
+
+
+class VASSupplierInvoiceCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='vasinv_admin', email='vasinvadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.supplier = _Supplier.objects.create(supplier_name='VAS Invoice Supplier')
+
+    def test_create_with_no_item_rows(self):
+        response = self.client.post(_reverse('vas:vas_invoice_create'), {
+            'supplier': self.supplier.pk, 'invoice_date': '2020-01-01', 'payment_status': 'unpaid',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        })
+        self.assertEqual(response.status_code, 302)
+        from vas.models import VASSupplierInvoice
+        self.assertTrue(VASSupplierInvoice.objects.filter(supplier=self.supplier).exists())
