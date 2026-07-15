@@ -172,3 +172,23 @@ class RCBookCreationCRUDTests(_TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_RCBookCreation.objects.filter(rto_registration=self.registration).exists())
+
+
+from rto.models import NumberOrderEntryCreation as _NumberOrderEntryCreation
+
+
+class NumberOrderEntryCreationCRUDTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='noe_admin', email='noeadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.order = _make_order('NOE1')
+        from masters.models import Supplier
+        self.agent = Supplier.objects.create(supplier_name='NOE Agent Co')
+
+    def test_create(self):
+        response = self.client.post(_reverse('rto:number_order_entry_create'), {
+            'sales_order': self.order.pk, 'agent': self.agent.pk, 'application_type': 'NB',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_NumberOrderEntryCreation.objects.filter(sales_order=self.order).exists())

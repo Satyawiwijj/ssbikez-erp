@@ -89,3 +89,21 @@ class BikeModelCRUDTests(TestCase):
         response = self.client.get(_reverse('customers:bike_model_list'))
         self.assertEqual(response.status_code, 200)
         self.assertIn(model, response.context['bike_models'])
+
+
+class VehicleStockCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='vs_admin', email='vsadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.bike_model = BikeModel.objects.create(brand='VS Brand', model_name='VS Model', ex_showroom_price=Decimal('95000'))
+
+    def test_create_then_detail(self):
+        response = self.client.post(_reverse('customers:vehicle_stock_create'), {
+            'bike_model': self.bike_model.pk, 'chassis_no': 'VSCH0001', 'stock_status': 'available',
+        })
+        self.assertEqual(response.status_code, 302)
+        from customers.models import VehicleStock
+        stock = VehicleStock.objects.get(chassis_no='VSCH0001')
+        response = self.client.get(_reverse('customers:vehicle_stock_detail', args=[stock.pk]))
+        self.assertEqual(response.status_code, 200)

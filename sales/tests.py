@@ -292,3 +292,70 @@ class DeliveryCreateTests(TestCase):
         self.client.force_login(self.other)
         response = self.client.post(reverse('sales:delivery_create'), self._payload())
         self.assertEqual(response.status_code, 403)
+
+
+class AppointmentCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='apt_admin', email='aptadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        customer = _make_customer('APT1')
+        from sales.models import SalesEnquiry
+        self.enquiry = SalesEnquiry.objects.create(customer=customer)
+
+    def test_create(self):
+        from django.utils import timezone
+        import datetime
+        future = (timezone.now() + datetime.timedelta(days=1)).strftime('%Y-%m-%dT%H:%M')
+        response = self.client.post(reverse('sales:appointment_create'), {
+            'enquiry': self.enquiry.pk, 'appointment_date': future, 'status': 'scheduled',
+        })
+        self.assertEqual(response.status_code, 302)
+        from sales.models import SalesAppointment
+        self.assertTrue(SalesAppointment.objects.filter(enquiry=self.enquiry).exists())
+
+
+class ExchangeVehicleCreateTests(TestCase):
+
+    def setUp(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        self.owner = User.objects.create_user(username='exch_owner', email='exchowner@example.com', password='Test-Pass-123!', role=exec_role)
+        customer = _make_customer('EXCH1')
+        self.order = VehicleSalesOrder.objects.create(
+            customer=customer, sales_executive=self.owner, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
+        )
+
+    def test_owner_can_create_exchange(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('sales:exchange_create'), {
+            'sales_order': self.order.pk, 'old_vehicle_model': 'Honda Activa', 'registration_no': 'KA01EX0001',
+            'valuation_amount': '30000', 'payment_status': 'pending',
+        })
+        self.assertEqual(response.status_code, 302)
+        from sales.models import ExchangeVehicle
+        self.assertTrue(ExchangeVehicle.objects.filter(sales_order=self.order).exists())
+
+
+class OrderAmendTests(TestCase):
+
+    def setUp(self):
+        exec_role, _ = Role.objects.get_or_create(role_name='Sales Executive')
+        mgr_role, _ = Role.objects.get_or_create(role_name='Sales Manager')
+        self.owner = User.objects.create_user(username='amend_owner', email='amendowner@example.com', password='Test-Pass-123!', role=exec_role)
+        self.manager = User.objects.create_user(username='amend_mgr', email='amendmgr@example.com', password='Test-Pass-123!', role=mgr_role)
+        customer = _make_customer('AMEND1')
+        self.order = VehicleSalesOrder.objects.create(
+            customer=customer, sales_executive=self.owner, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
+        )
+        self.order.submit(self.owner)
+        self.order.cancel(self.manager)
+
+    def test_amend_creates_new_linked_draft(self):
+        self.client.force_login(self.owner)
+        response = self.client.post(reverse('sales:order_amend', args=[self.order.pk]))
+        self.assertEqual(response.status_code, 302)
+        from sales.models import VehicleSalesOrder as VSO
+        amended = VSO.objects.filter(amended_from=self.order).first()
+        self.assertIsNotNone(amended)
+        self.assertEqual(amended.docstatus, 0)
+        self.assertNotEqual(amended.order_number, self.order.order_number)

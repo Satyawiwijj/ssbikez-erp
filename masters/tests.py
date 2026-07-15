@@ -157,3 +157,23 @@ class ModelAndPriceCRUDTests(TestCase):
         self.assertEqual(response.status_code, 302)
         from masters.models import ModelAndPrice
         self.assertTrue(ModelAndPrice.objects.filter(model_code=self.bike_model).exists())
+
+
+class CustomerPriceCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='cp_admin', email='cpadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from customers.models import BikeModel
+        self.bike_model = BikeModel.objects.create(brand='CP Brand2', model_name='CP Model2', ex_showroom_price=Decimal('90000'))
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'model_code': self.bike_model.pk,
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(reverse('masters:customer_price_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from masters.models import CustomerPrice
+        self.assertTrue(CustomerPrice.objects.filter(model_code=self.bike_model).exists())

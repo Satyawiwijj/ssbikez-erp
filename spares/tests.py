@@ -169,3 +169,56 @@ class SupplierQuoteCreateTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         from spares.models import SupplierQuote
         self.assertTrue(SupplierQuote.objects.filter(supplier=self.supplier).exists())
+
+
+from spares.models import PurchaseOrder as _PurchaseOrder, SparesIssueAlteration as _SparesIssueAlteration
+
+
+class PurchaseOrderCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='po_admin', email='poadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from masters.models import Supplier
+        self.supplier = Supplier.objects.create(supplier_name='PO Test Supplier')
+
+    def test_create_with_no_item_or_tax_rows(self):
+        payload = {
+            'supplier': self.supplier.pk, 'date': '2026-08-01', 'status': 'draft',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'taxes-TOTAL_FORMS': '0', 'taxes-INITIAL_FORMS': '0',
+            'taxes-MIN_NUM_FORMS': '0', 'taxes-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('spares:order_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_PurchaseOrder.objects.filter(supplier=self.supplier).exists())
+
+
+class IssueAlterationCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='sia_admin', email='siaadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.warehouse = _Warehouse.objects.create(name='SIA Test WH')
+        from customer_vehicles.models import CustomerVehicle
+        from customers.models import BikeModel, Customer, VehicleStock
+        from service.models import JobCard
+        customer = Customer.objects.create(full_name='SIA Customer', phone='9300000001')
+        bike_model = BikeModel.objects.create(brand='SIA Brand', model_name='SIA Model', ex_showroom_price=Decimal('90000'))
+        vehicle = VehicleStock.objects.create(bike_model=bike_model, chassis_no='SIACH001')
+        customer_vehicle = CustomerVehicle.objects.create(customer=customer, vehicle=vehicle)
+        self.job_card = JobCard.objects.create(customer_vehicle=customer_vehicle)
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'job_card': self.job_card.pk, 'godown': self.warehouse.pk, 'date': '2020-01-01',
+            'job_type': 'service', 'brand': 'ss_bikes', 'discount': '0',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'deleted-TOTAL_FORMS': '0', 'deleted-INITIAL_FORMS': '0',
+            'deleted-MIN_NUM_FORMS': '0', 'deleted-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('spares:issue_alteration_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(_SparesIssueAlteration.objects.filter(job_card=self.job_card).exists())

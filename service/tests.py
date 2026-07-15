@@ -210,3 +210,37 @@ class BayInCreationCRUDTests(TestCase):
             'job_card': self.job_card.pk, 'date_time': '2020-01-01T10:00',
         })
         self.assertEqual(response.status_code, 302)
+
+
+class FinalInspectionCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='fi_admin', email='fiadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'FI1')
+
+    def test_create(self):
+        response = self.client.post(reverse('service:final_inspection_create'), {
+            'job_card': self.job_card.pk, 'final_inspection_remarks': 'All checks OK',
+        })
+        self.assertEqual(response.status_code, 302)
+
+
+class OutworkEntryIssueCreateTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='oei_admin', email='oeiadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'OEI1')
+        from masters.models import Supplier
+        self.vendor = Supplier.objects.create(supplier_name='Outwork Vendor Co')
+
+    def test_create_with_no_child_rows(self):
+        payload = {'job_card': self.job_card.pk, 'vendor_name': self.vendor.pk}
+        for prefix in ('work', 'spares'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('service:outwork_issue_create'), payload)
+        self.assertEqual(response.status_code, 302)

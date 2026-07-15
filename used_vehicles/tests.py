@@ -281,3 +281,47 @@ class UsedVehicleLaborChargeCreateTests(TestCase):
         response = self.client.post(reverse('used_vehicles:uv_labor_charge_create'), payload)
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_UsedVehicleLaborCharge.objects.filter(job_card=self.job_card).exists())
+
+
+class UsedVehiclePurchaseOrderCreateViewTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvpo_admin', email='uvpoadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from masters.models import Supplier
+        self.supplier = Supplier.objects.create(supplier_name='UV PO Supplier')
+
+    def test_create_with_no_item_rows(self):
+        payload = {
+            'supplier': self.supplier.pk, 'required_date': '2026-08-01',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(reverse('used_vehicles:purchase_order_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        from used_vehicles.models import UsedVehiclePurchaseOrder
+        self.assertTrue(UsedVehiclePurchaseOrder.objects.filter(supplier=self.supplier).exists())
+
+
+class UsedVehicleSaleCreateViewTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvsale_admin', email='uvsaleadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from customers.models import Customer
+        self.customer = Customer.objects.create(full_name='UV Sale View Customer', phone='9200000001')
+        self.register_no = _make_uv_register_no('SALEVIEW1')
+
+    def test_create_with_no_child_rows(self):
+        payload = {
+            'customer': self.customer.pk, 'vehicle_number': self.register_no.pk,
+            'delivery_date': '2026-08-01', 'sale_amount': '55000', 'sale_status': 'booked',
+        }
+        for prefix in ('fittings', 'items', 'advance'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('used_vehicles:sale_create'), payload)
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(UsedVehicleSale.objects.filter(customer=self.customer).exists())

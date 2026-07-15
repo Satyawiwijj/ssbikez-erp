@@ -192,3 +192,20 @@ class JournalEntryCreateTests(_TestCase):
         self.assertEqual(response.status_code, 200)
         from billing.models import JournalEntry
         self.assertFalse(JournalEntry.objects.filter(description='Unbalanced entry').exists())
+
+
+class RefundAdvanceCreateTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='ra_admin', email='raadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.customer = _Customer.objects.create(full_name='Refund Customer', phone='9100000001')
+
+    def test_create(self):
+        response = self.client.post(_reverse('billing:refund_advance_create'), {
+            'customer': self.customer.pk, 'amount': '1000', 'transaction_type': 'refund',
+            'reason': 'Cancelled booking', 'status': 'pending',
+        })
+        self.assertEqual(response.status_code, 302)
+        from billing.models import RefundAdvance
+        self.assertTrue(RefundAdvance.objects.filter(customer=self.customer).exists())

@@ -151,3 +151,18 @@ class VASSupplierInvoiceCreateTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         from vas.models import VASSupplierInvoice
         self.assertTrue(VASSupplierInvoice.objects.filter(supplier=self.supplier).exists())
+
+
+class AMCPackageCreateViewTests(TestCase):
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='amcview_admin', email='amcviewadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        self.customer_vehicle, _ = _make_customer_vehicle('AMCVIEW1')
+
+    def test_create(self):
+        response = self.client.post(_reverse('vas:amc_create'), {
+            'customer_vehicle': self.customer_vehicle.pk, 'status': 'active',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(AMCPackage.objects.filter(customer_vehicle=self.customer_vehicle).exists())
