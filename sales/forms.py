@@ -80,34 +80,30 @@ class SalesEnquiryForm(AccessibleFormMixin, forms.ModelForm):
                 'Please either select an existing Customer '
                 'or enter a Prospect Name and Phone Number.'
             )
-        return cleaned_data
-
-    def save(self, commit=True):
-        instance       = super().save(commit=False)
-        prospect_name  = (self.cleaned_data.get('prospect_name') or '').strip()
-        prospect_phone = (self.cleaned_data.get('prospect_phone') or '').strip()
-
-        if not instance.customer_id and prospect_name and prospect_phone:
-            # Check if phone matches an existing Customer
+        if not customer and prospect_name and prospect_phone:
+            # Resolve the prospect/customer here, not in save(): Django's
+            # ModelForm._post_clean() runs instance.full_clean() (which enforces
+            # SalesEnquiry.clean()'s "customer or prospect required" rule) right
+            # after this method returns, before save() is ever called — so
+            # instance.customer/instance.prospect must already be set by now.
+            # Setting cleaned_data['customer'] (not self.instance.customer
+            # directly) matters: construct_instance() overwrites instance.customer
+            # from cleaned_data right after this method returns.
             from customers.models import Customer
             existing_customer = Customer.objects.filter(phone=prospect_phone).first()
             if existing_customer:
-                instance.customer = existing_customer
+                cleaned_data['customer'] = existing_customer
             else:
-                # Create or get a Prospect
                 prospect, _ = Prospect.objects.get_or_create(
                     phone=prospect_phone,
                     defaults={
                         'full_name':           prospect_name,
-                        'vehicle_of_interest': instance.bike_model,
-                        'enquiry_source':      instance.enquiry_source or '',
+                        'vehicle_of_interest': cleaned_data.get('bike_model'),
+                        'enquiry_source':      cleaned_data.get('enquiry_source') or '',
                     }
                 )
-                instance.prospect = prospect
-
-        if commit:
-            instance.save()
-        return instance
+                self.instance.prospect = prospect
+        return cleaned_data
 
 
 class SalesAppointmentForm(AccessibleFormMixin, forms.ModelForm):
