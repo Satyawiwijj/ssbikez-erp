@@ -32,21 +32,29 @@ urlpatterns = [
     path('invoices/', views.invoice_list, name='invoice_list'),
     path('invoices/create/', views.invoice_create, name='invoice_create'),
     path('invoices/<int:pk>/', views.invoice_detail, name='invoice_detail'),
+    path('invoices/<int:pk>/edit/', views.invoice_update, name='invoice_update'),
+    path('invoices/<int:pk>/submit/', views.invoice_submit, name='invoice_submit'),
+    path('invoices/<int:pk>/cancel/', views.invoice_cancel, name='invoice_cancel'),
+    path('invoices/<int:pk>/amend/', views.invoice_amend, name='invoice_amend'),
 
     # Counter Sales
     path('counter-sales/', views.counter_sale_list, name='counter_sale_list'),
     path('counter-sales/create/', views.counter_sale_create, name='counter_sale_create'),
     path('counter-sales/<int:pk>/', views.counter_sale_detail, name='counter_sale_detail'),
+    path('counter-sales/<int:pk>/submit/', views.counter_sale_submit, name='counter_sale_submit'),
+    path('counter-sales/<int:pk>/cancel/', views.counter_sale_cancel, name='counter_sale_cancel'),
 
     # Counter Returns
     path('counter-returns/', views.counter_return_list, name='counter_return_list'),
     path('counter-returns/create/', views.counter_return_create, name='counter_return_create'),
     path('counter-returns/<int:pk>/', views.counter_return_detail, name='counter_return_detail'),
+    path('counter-returns/<int:pk>/cancel/', views.counter_return_cancel, name='counter_return_cancel'),
 
     # Issue Alterations
     path('issue-alterations/', views.issue_alteration_list, name='issue_alteration_list'),
     path('issue-alterations/create/', views.issue_alteration_create, name='issue_alteration_create'),
     path('issue-alterations/<int:pk>/', views.issue_alteration_detail, name='issue_alteration_detail'),
+    path('issue-alterations/<int:pk>/cancel/', views.issue_alteration_cancel, name='issue_alteration_cancel'),
 
     # Legacy backward-compat
     path('issue/create/', views.issue_alteration_create, name='issue_create'),

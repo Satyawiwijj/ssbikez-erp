@@ -16,6 +16,15 @@
 
     <div class="page-header-actions">
 
+        {% if invoice.status == 'draft' %}
+        <a href="{% url 'spares:invoice_update' invoice.pk %}" class="btn btn-sm btn-primary">Edit</a>
+        <form method="post" action="{% url 'spares:invoice_submit' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success" type="submit">Submit</button></form>
+        {% elif invoice.status == 'submitted' %}
+        <form method="post" action="{% url 'spares:invoice_cancel' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger" type="submit" onclick="return confirm('Cancel this invoice? Stock will be given back.');">Cancel</button></form>
+        {% elif invoice.status == 'cancelled' %}
+        <form method="post" action="{% url 'spares:invoice_amend' invoice.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary" type="submit">Amend</button></form>
+        {% endif %}
+
         <a href="{% url 'spares:invoice_list' %}"
            class="btn btn-sm btn-outline-primary">
             Back to List

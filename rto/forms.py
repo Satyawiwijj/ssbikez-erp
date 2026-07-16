@@ -163,6 +163,11 @@ class RCHandOverForm(AccessibleFormMixin, forms.ModelForm):
         fields = ('sales_order', 'rc_book_received', 'noc', 'vehicle_received',
                   'year_of_make', 'hp_endorsement', 'to_received', 'rc_book_number')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for f in ('rc_book_received', 'noc', 'vehicle_received'):
+            self.fields[f].required = True
+
     def clean(self):
         cleaned = super().clean()
         if cleaned.get('rc_book_received') == 'yes' and not cleaned.get('rc_book_number'):
@@ -175,12 +180,20 @@ class Form20CreationForm(AccessibleFormMixin, forms.ModelForm):
         model  = Form20Creation
         fields = ('sales_order', 'registration_area', 'engine_no', 'frame_no', 'application_no')
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['registration_area'].required = True
+
 
 class RegistrationNoCreationForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = RegistrationNoCreation
         fields = ('sales_order', 'form20', 'registration_area', 'reg_no',
                   'frame_no', 'engine_no', 'status', 'remark')
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['registration_area'].required = True
 
 
 class RTOPaymentForm(AccessibleFormMixin, forms.ModelForm):

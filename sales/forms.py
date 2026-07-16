@@ -1,5 +1,6 @@
 from django import forms
 from accounts.forms import AccessibleFormMixin
+from django.db.models import Q
 from django.utils import timezone
 
 from customers.models import VehicleStock
@@ -205,13 +206,56 @@ class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
         self.fields['booking_amount'].help_text = 'Advance collected at booking. Minimum ₹1,000.'
         self.fields['discount_amount'].help_text = 'Maximum discount is 20% of total amount.'
         self.fields['order_form_series'].required = False
+        # Not required at the widget level: when the linked enquiry only has a
+        # Prospect (no Customer yet), clean() below auto-creates/links the
+        # Customer instead of requiring the user to pick one that doesn't exist.
+        self.fields['customer'].required = False
 
     def clean(self):
         from decimal import Decimal
         cleaned_data    = super().clean()
+        customer        = cleaned_data.get('customer')
+        enquiry         = cleaned_data.get('enquiry')
         booking_amount  = cleaned_data.get('booking_amount')
         total_amount    = cleaned_data.get('total_amount')
         discount_amount = cleaned_data.get('discount_amount')
+
+        if not customer and enquiry and enquiry.prospect_id and not enquiry.customer_id:
+            # Auto-create/link a Customer from the Prospect on save only
+            # (never as a GET side effect — see order_create view). Mirrors
+            # the SalesEnquiryForm.clean() prospect->customer resolution:
+            # cleaned_data['customer'] is what construct_instance() picks up
+            # for self.instance.customer right after this method returns.
+            from customers.models import Customer
+            prospect = enquiry.prospect
+            existing = Customer.objects.filter(phone=prospect.phone).first()
+            if existing:
+                customer = existing
+            else:
+                # Copy every field that actually overlaps between the
+                # Prospect/Enquiry data captured so far and the Customer
+                # model: full_name + phone (from Prospect), email + address
+                # (only captured on the Enquiry, not on Prospect itself).
+                # Customer has no gender field, so gender cannot be copied.
+                address_parts = [p for p in [
+                    enquiry.address_line1, enquiry.address_line2,
+                    enquiry.address_line3, enquiry.address_line4,
+                    enquiry.city, enquiry.district, enquiry.state, enquiry.pincode,
+                ] if p]
+                customer = Customer.objects.create(
+                    full_name=prospect.full_name,
+                    phone=prospect.phone,
+                    email=enquiry.email or '',
+                    address=', '.join(address_parts),
+                )
+            SalesEnquiry.objects.filter(pk=enquiry.pk).update(customer=customer)
+            cleaned_data['customer'] = customer
+        elif not customer:
+            self.add_error(
+                'customer',
+                'Select a Customer, or select an Enquiry that has a linked Prospect '
+                'so one can be auto-created.'
+            )
 
         if total_amount is not None and total_amount < Decimal('50000'):
             self.add_error('total_amount', 'Total amount must be at least ₹50,000.')
@@ -253,6 +297,32 @@ class VehicleDeliveryForm(AccessibleFormMixin, forms.ModelForm):
             'delivery_date': forms.DateInput(attrs={'type': 'date'}),
             'remarks':       forms.Textarea(attrs={'rows': 3}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # A Delivery Note can only be raised against an order that's actually
+        # Submitted — a Draft order isn't a confirmed sale yet. Restrict the
+        # picker instead of only catching it after the fact.
+        qs = VehicleSalesOrder.objects.filter(
+            docstatus=VehicleSalesOrder.DocStatus.SUBMITTED
+        ).select_related('customer', 'vehicle__bike_model').order_by('-created_at')
+        instance_order_id = getattr(self.instance, 'sales_order_id', None)
+        if instance_order_id and not qs.filter(pk=instance_order_id).exists():
+            # Editing an existing delivery whose order somehow isn't in the
+            # restricted set (e.g. legacy data) — keep it selectable so the
+            # existing record doesn't become uneditable.
+            qs = VehicleSalesOrder.objects.filter(
+                Q(pk=instance_order_id) | Q(docstatus=VehicleSalesOrder.DocStatus.SUBMITTED)
+            ).select_related('customer', 'vehicle__bike_model').order_by('-created_at')
+        self.fields['sales_order'].queryset = qs
+
+    def clean_sales_order(self):
+        order = self.cleaned_data.get('sales_order')
+        if order and order.docstatus != VehicleSalesOrder.DocStatus.SUBMITTED:
+            raise forms.ValidationError(
+                'Cannot create a delivery against an order that has not been Submitted yet.'
+            )
+        return order
 
 
 class ExchangeVehicleForm(AccessibleFormMixin, forms.ModelForm):

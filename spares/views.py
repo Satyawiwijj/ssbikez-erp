@@ -295,6 +295,17 @@ def order_update(request, pk):
     obj = get_object_or_404(PurchaseOrder, pk=pk)
     if not user_owns(request.user, obj):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    # Edit-lock: once a PO is no longer Draft (Submitted/Received/Cancelled),
+    # block the full formset rewrite this view otherwise allows -- previously
+    # a Submitted PO stayed fully editable even after a Purchase Invoice had
+    # already been created against it, letting the two silently diverge.
+    if obj.status != 'draft':
+        messages.error(
+            request,
+            f'{obj.po_no} is "{obj.get_status_display()}" and can no longer be edited. '
+            'Only a Draft purchase order can be changed.'
+        )
+        return redirect('spares:order_detail', pk=pk)
     form = PurchaseOrderForm(request.POST or None, instance=obj)
     formset = PurchaseOrderItemFormSet(request.POST or None, instance=obj, prefix='items')
     tax_formset = PurchaseOrderTaxFormSet(request.POST or None, instance=obj, prefix='taxes')
@@ -353,10 +364,14 @@ def invoice_create(request):
             obj.total_amount = sum(i.amount for i in all_items)
             obj.total_sgst = sum(i.sgst_amount for i in all_items)
             obj.total_cgst = sum(i.cgst_amount for i in all_items)
-            # Document-level tax table (below) is the authoritative source for
-            # grand_total — item-level SGST/CGST above remain informational.
+            # Bug fix: grand_total used to silently drop the item-level GST
+            # (total_sgst/total_cgst, always populated) and only add the
+            # separate header "taxes" formset (total_taxes, often empty) --
+            # e.g. a Rs.10,000 line at 9%+9% GST produced a grand_total that
+            # excluded the Rs.1,800 tax entirely whenever no header tax rows
+            # were added. Both are real, additive amounts on this invoice.
             obj.total_taxes = sum(t.amount for t in obj.taxes.all())
-            obj.grand_total = obj.total_amount + obj.total_taxes
+            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_taxes
             obj.save()
             # Stock is already credited by PurchaseInvoiceItem.save() itself
             # (it checks is_new and self.invoice.status == 'submitted') --
@@ -366,6 +381,103 @@ def invoice_create(request):
     return render(request, 'spares/invoice_form.html', {
         'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'New Purchase Invoice'
     })
+
+
+@login_required
+@require_module_action('spares', 'edit')
+def invoice_update(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(PurchaseInvoice, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    # Edit-lock, same convention as order_update: once a PI is no longer
+    # Draft, block the full formset rewrite.
+    if obj.status != 'draft':
+        messages.error(
+            request,
+            f'{obj.invoice_no} is "{obj.get_status_display()}" and can no longer be edited. '
+            'Only a Draft invoice can be changed.'
+        )
+        return redirect('spares:invoice_detail', pk=pk)
+    form = PurchaseInvoiceForm(request.POST or None, instance=obj)
+    formset = PurchaseInvoiceItemFormSet(request.POST or None, instance=obj, prefix='items')
+    tax_formset = PurchaseInvoiceTaxFormSet(request.POST or None, instance=obj, prefix='taxes')
+    if request.method == 'POST' and form.is_valid() and formset.is_valid() and tax_formset.is_valid():
+        with transaction.atomic():
+            form.save()
+            formset.save()
+            tax_formset.save()
+            all_items = obj.items.all()
+            obj.total_quantity = sum(i.quantity for i in all_items)
+            obj.total_amount = sum(i.amount for i in all_items)
+            obj.total_sgst = sum(i.sgst_amount for i in all_items)
+            obj.total_cgst = sum(i.cgst_amount for i in all_items)
+            obj.total_taxes = sum(t.amount for t in obj.taxes.all())
+            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_taxes
+            obj.save()
+        messages.success(request, 'Invoice updated.')
+        return redirect('spares:invoice_detail', pk=pk)
+    return render(request, 'spares/invoice_form.html', {
+        'form': form, 'formset': formset, 'tax_formset': tax_formset, 'title': 'Edit Invoice', 'object': obj
+    })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def invoice_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(PurchaseInvoice, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Purchase Invoice', 'update', pk)
+        messages.success(request, f'{obj.invoice_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def invoice_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(PurchaseInvoice, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Purchase Invoice', 'update', pk)
+        messages.success(request, f'{obj.invoice_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:invoice_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'create')
+def invoice_amend(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(PurchaseInvoice, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        new = obj.amend()
+        new.created_by = request.user
+        new.save(update_fields=['created_by'])
+        log_action(request, 'Purchase Invoice', 'create', new.pk)
+        messages.success(request, f'{new.invoice_no} created as an amendment of {obj.invoice_no}.')
+        return redirect('spares:invoice_update', pk=new.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+        return redirect('spares:invoice_detail', pk=pk)
 
 
 # -- Counter Sales ------------------------------------------------------------
@@ -391,21 +503,79 @@ def counter_sale_create(request):
     form = CounterSaleForm(request.POST or None)
     formset = CounterSaleItemFormSet(request.POST or None, prefix='items')
     if request.method == 'POST' and form.is_valid() and formset.is_valid():
-        with transaction.atomic():
-            obj = form.save(commit=False)
-            obj.created_by = request.user
-            obj.save()
-            formset.instance = obj
-            formset.save()
-            all_items = obj.items.all()
-            obj.total_qty = sum(i.quantity for i in all_items)
-            obj.total_amount = sum(i.total for i in all_items) - obj.discount_amount
-            obj.save()
+        requested_status = form.cleaned_data.get('status') or 'draft'
+        try:
+            with transaction.atomic():
+                obj = form.save(commit=False)
+                obj.created_by = request.user
+                # Force Draft on this first save regardless of what the form
+                # requested -- items don't exist yet at this point, and the
+                # StockLedger-posting signal on CounterSale fires on every
+                # save(). Posting "submitted" here would run the movement
+                # loop against zero items and permanently mark stock_posted,
+                # skipping the real decrement once items are actually added.
+                obj.status = 'draft'
+                obj.save()
+                formset.instance = obj
+                formset.save()
+                all_items = obj.items.all()
+                obj.total_qty = sum(i.quantity for i in all_items)
+                obj.total_amount = sum(i.total for i in all_items) - obj.discount_amount
+                obj.save()
+                if requested_status == 'submitted':
+                    # Stock-safety guard lives in obj.submit(): raises
+                    # ValueError (caught below) if any line would drive
+                    # StockLedger negative, before the decrement is posted.
+                    obj.submit(request.user)
+                elif requested_status == 'cancelled':
+                    obj.status = 'cancelled'
+                    obj.save()
+        except ValueError as e:
+            messages.error(request, str(e))
+            return render(request, 'spares/counter_sale_form.html', {
+                'form': form, 'formset': formset, 'title': 'New Counter Sale'
+            })
         messages.success(request, f'Counter sale {obj.sale_no} created.')
         return redirect('spares:counter_sale_detail', pk=obj.pk)
     return render(request, 'spares/counter_sale_form.html', {
         'form': form, 'formset': formset, 'title': 'New Counter Sale'
     })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def counter_sale_submit(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(CounterSale, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Counter Sale', 'update', pk)
+        messages.success(request, f'{obj.sale_no} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:counter_sale_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def counter_sale_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(CounterSale, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Counter Sale', 'update', pk)
+        messages.success(request, f'{obj.sale_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:counter_sale_detail', pk=pk)
 
 
 # -- Counter Returns ----------------------------------------------------------
@@ -434,17 +604,41 @@ def counter_return_create(request):
         with transaction.atomic():
             obj = form.save(commit=False)
             obj.created_by = request.user
+            # status isn't exposed on this form (system-controlled) -- stays
+            # at the model default 'draft' until items exist, then this view
+            # auto-submits it immediately below (a return has always behaved
+            # as a single-step, already-final document in this app's UI; no
+            # stock-safety check needed here since a return only adds stock).
             obj.save()
             formset.instance = obj
             formset.save()
             all_items = obj.items.all()
             obj.total_amount = sum(i.amount for i in all_items)
             obj.save()
+            obj.submit(request.user)
         messages.success(request, f'Return {obj.return_no} created.')
         return redirect('spares:counter_return_detail', pk=obj.pk)
     return render(request, 'spares/counter_return_form.html', {
         'form': form, 'formset': formset, 'title': 'New Counter Return'
     })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def counter_return_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(CounterSaleReturn, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Counter Sale Return', 'update', pk)
+        messages.success(request, f'{obj.return_no} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:counter_return_detail', pk=pk)
 
 
 # -- Issue Alterations --------------------------------------------------------
@@ -480,24 +674,54 @@ def issue_alteration_create(request):
     formset = SparesIssueAlterationItemFormSet(request.POST or None, prefix='items')
     deleted_formset = SparesIssueAlterationDeletedItemFormSet(request.POST or None, prefix='deleted')
     if request.method == 'POST' and form.is_valid() and formset.is_valid() and deleted_formset.is_valid():
-        with transaction.atomic():
-            obj = form.save(commit=False)
-            obj.created_by = request.user
-            obj.save()
-            formset.instance = obj
-            formset.save()
-            deleted_formset.instance = obj
-            deleted_formset.save()
-            all_items = obj.items.all()
-            obj.spares_total = sum(i.total for i in all_items)
-            obj.total = obj.spares_total + obj.labour_total + obj.outwork_total
-            obj.updated_total = obj.total - obj.discount
-            obj.save()
+        try:
+            with transaction.atomic():
+                obj = form.save(commit=False)
+                obj.created_by = request.user
+                # status isn't exposed on this form (system-controlled) --
+                # stays at the model default 'draft' until items exist, then
+                # this view auto-submits it below with a stock-safety check
+                # (spares issued to a job card leave inventory, so unlike a
+                # return, insufficient stock must block the submission).
+                obj.save()
+                formset.instance = obj
+                formset.save()
+                deleted_formset.instance = obj
+                deleted_formset.save()
+                all_items = obj.items.all()
+                obj.spares_total = sum(i.total for i in all_items)
+                obj.total = obj.spares_total + obj.labour_total + obj.outwork_total
+                obj.updated_total = obj.total - obj.discount
+                obj.save()
+                obj.submit(request.user)
+        except ValueError as e:
+            messages.error(request, str(e))
+            return render(request, 'spares/issue_alteration_form.html', {
+                'form': form, 'formset': formset, 'deleted_formset': deleted_formset, 'title': 'New Issue Alteration'
+            })
         messages.success(request, f'Issue alteration SIA-{obj.pk:05d} created.')
         return redirect('spares:issue_alteration_detail', pk=obj.pk)
     return render(request, 'spares/issue_alteration_form.html', {
         'form': form, 'formset': formset, 'deleted_formset': deleted_formset, 'title': 'New Issue Alteration'
     })
+
+
+@login_required
+@require_POST
+@require_module_action('spares', 'edit')
+def issue_alteration_cancel(request, pk):
+    from accounts.permissions import user_owns
+    from django.http import HttpResponseForbidden
+    obj = get_object_or_404(SparesIssueAlteration, pk=pk)
+    if not user_owns(request.user, obj):
+        return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Spares Issue Alteration', 'update', pk)
+        messages.success(request, f'SIA-{obj.pk:05d} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('spares:issue_alteration_detail', pk=pk)
 
 
 # -- AJAX ---------------------------------------------------------------------

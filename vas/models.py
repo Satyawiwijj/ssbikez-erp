@@ -128,6 +128,21 @@ class AMCPackage(DocStatusMixin, models.Model):
                 raise ValueError(f"{self.amc_type} doesn't have stock.")
             super().submit(user)
 
+    def cancel(self, user):
+        # Cancelling a submitted package must reverse the stock decrement posted by
+        # on_amc_submitted -- otherwise stock never comes back, and an amend+resubmit
+        # of the same logical package would consume a second unit for one sale.
+        with transaction.atomic():
+            super().cancel(user)
+            movement = getattr(self, 'stock_movement', None)
+            if movement is not None and not hasattr(movement, 'reversed_by'):
+                ledger = VASStockLedger.get_or_create_for(amc_type=self.amc_type)
+                VASStockMovement.objects.create(
+                    ledger=ledger, date=timezone.now().date(),
+                    movement_type=VASStockMovement.MovementType.PURCHASE,
+                    quantity=1, reverses=movement,
+                )
+
     def amend(self):
         # amend() shallow-copies every field including `invoice` -- an amended draft must get
         # its own fresh auto-invoice on resubmit, not silently inherit the cancelled original's.
@@ -179,6 +194,18 @@ class RSAPackage(DocStatusMixin, models.Model):
                 raise ValueError(f"{self.rsa_type} doesn't have stock.")
             super().submit(user)
 
+    def cancel(self, user):
+        with transaction.atomic():
+            super().cancel(user)
+            movement = getattr(self, 'stock_movement', None)
+            if movement is not None and not hasattr(movement, 'reversed_by'):
+                ledger = VASStockLedger.get_or_create_for(rsa_type=self.rsa_type)
+                VASStockMovement.objects.create(
+                    ledger=ledger, date=timezone.now().date(),
+                    movement_type=VASStockMovement.MovementType.PURCHASE,
+                    quantity=1, reverses=movement,
+                )
+
     def amend(self):
         new = super().amend()
         new.invoice = None
@@ -226,6 +253,18 @@ class ProtectionPlusPackage(DocStatusMixin, models.Model):
             if ledger.current_stock <= 0:
                 raise ValueError(f"{self.warranty_type} doesn't have stock.")
             super().submit(user)
+
+    def cancel(self, user):
+        with transaction.atomic():
+            super().cancel(user)
+            movement = getattr(self, 'stock_movement', None)
+            if movement is not None and not hasattr(movement, 'reversed_by'):
+                ledger = VASStockLedger.get_or_create_for(warranty_type=self.warranty_type)
+                VASStockMovement.objects.create(
+                    ledger=ledger, date=timezone.now().date(),
+                    movement_type=VASStockMovement.MovementType.PURCHASE,
+                    quantity=1, reverses=movement,
+                )
 
     def amend(self):
         new = super().amend()
@@ -302,6 +341,10 @@ class VASStockMovement(models.Model):
     source_amc_package  = models.OneToOneField(AMCPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_movement')
     source_rsa_package  = models.OneToOneField(RSAPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_movement')
     source_pp_package   = models.OneToOneField(ProtectionPlusPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_movement')
+    # Cancel-side reversal link: the purchase-direction movement posted when a package's
+    # sale movement is reversed on cancel. OneToOne so a given sale movement can be
+    # reversed at most once -- the idempotency guard for AMC/RSA/PP .cancel().
+    reverses            = models.OneToOneField('self', on_delete=models.SET_NULL, null=True, blank=True, related_name='reversed_by')
     created_at          = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):

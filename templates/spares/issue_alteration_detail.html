@@ -4,6 +4,9 @@
 {% block page_title %}Issue Alteration{% endblock %}
 
 {% block topbar_actions %}
+{% if alteration.status == 'submitted' %}
+<form method="post" action="{% url 'spares:issue_alteration_cancel' alteration.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this issue alteration? Stock will be given back.');">Cancel</button></form>
+{% endif %}
 <a href="{% url 'spares:service_spares_issue_return_create' %}?spares_issue={{ alteration.pk }}"
    class="btn btn-primary btn-sm">
     + Issue Return
@@ -63,6 +66,19 @@
             <div class="detail-row">
                 <dt>Godown</dt>
                 <dd>{{ alteration.godown.name }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+                    {% if alteration.status == 'draft' %}
+                        <span class="badge badge-gray">Draft</span>
+                    {% elif alteration.status == 'submitted' %}
+                        <span class="badge badge-green">Submitted</span>
+                    {% elif alteration.status == 'cancelled' %}
+                        <span class="badge badge-red">Cancelled</span>
+                    {% endif %}
+                </dd>
             </div>
 
             <div class="detail-row">

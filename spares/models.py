@@ -1,11 +1,19 @@
+from decimal import Decimal
 from django.db import models, transaction
 from django.conf import settings
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db.models import F
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from masters.models import SparesCategory, Supplier, Warehouse, Rack, Bin
 
 from accounts.models import DocStatusMixin
+
+
+def _stock_on_hand(item, warehouse, rack=None, bin=None):
+    """Current StockLedger quantity for an item/location, 0 if no row exists yet."""
+    ledger = StockLedger.objects.filter(item=item, warehouse=warehouse, rack=rack, bin=bin).first()
+    return ledger.quantity if ledger else Decimal('0')
 
 
 class SparesItem(models.Model):
@@ -244,12 +252,17 @@ class PurchaseOrderItem(models.Model):
     rate         = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
     amount       = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     received_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0)
-    # ERP alignment — stock intelligence columns
-    used_qty      = models.IntegerField(default=0, verbose_name='Used QTY')
-    ordered_qty   = models.IntegerField(default=0, verbose_name='Ordered QTY')
-    average       = models.DecimalField(max_digits=10, decimal_places=2, default=0, verbose_name='Average')
-    stock_qty     = models.IntegerField(default=0, verbose_name='Stock QTY')
-    one_month_qty = models.IntegerField(default=0, verbose_name='1 Month')
+    # ERP alignment — stock intelligence columns. These are informational
+    # reporting metrics (not core transactional data) with a sensible default
+    # of 0, so they're optional at the form level -- previously they had no
+    # blank=True, making them silently-required with no error ever rendered
+    # in po_form.html for them (a real bug: a PO submit could fail validation
+    # for these 5 fields with zero visible feedback to the user).
+    used_qty      = models.IntegerField(default=0, blank=True, verbose_name='Used QTY')
+    ordered_qty   = models.IntegerField(default=0, blank=True, verbose_name='Ordered QTY')
+    average       = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, verbose_name='Average')
+    stock_qty     = models.IntegerField(default=0, blank=True, verbose_name='Stock QTY')
+    one_month_qty = models.IntegerField(default=0, blank=True, verbose_name='1 Month')
     part_no            = models.CharField(max_length=100, blank=True, verbose_name='Part No.')
     delivery_need_qty  = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True)
     branch             = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
@@ -295,6 +308,11 @@ class PurchaseInvoice(models.Model):
     has_tcs = models.BooleanField(default=False, verbose_name='Has TCS')
     tcs_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
     remarks = models.TextField(blank=True)
+    # Amend trail, same shape as DocStatusMixin.amended_from (this model
+    # predates that mixin and uses its own plain status field instead).
+    amended_from = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='amendments'
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -310,6 +328,61 @@ class PurchaseInvoice(models.Model):
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
+    def submit(self, user=None):
+        """Explicit submit action for an invoice that was created as Draft
+        (items added before status='submitted', so PurchaseInvoiceItem.save()'s
+        own is_new-and-submitted check never fired for them at creation time)."""
+        if self.status != 'draft':
+            raise ValueError('Only a Draft invoice can be submitted.')
+        self.status = 'submitted'
+        self.save()
+        for item in self.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=item.item, warehouse=item.warehouse, rack=item.rack, bin=item.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') + item.quantity)
+
+    def cancel(self, user=None):
+        """Reverses the stock credit. Safe without a separate posted/reversed
+        marker: cancel() is only reachable while status=='submitted' (which
+        implies the credit already happened, either via this submit() or via
+        PurchaseInvoiceItem.save()'s own at-creation credit), and cancel()
+        can only succeed once per invoice since status becomes 'cancelled'
+        afterwards, blocking re-entry through this same check."""
+        if self.status != 'submitted':
+            raise ValueError('Only a Submitted invoice can be cancelled.')
+        for item in self.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=item.item, warehouse=item.warehouse, rack=item.rack, bin=item.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') - item.quantity)
+        self.status = 'cancelled'
+        self.save()
+
+    def amend(self):
+        if self.status != 'cancelled':
+            raise ValueError('Only a Cancelled invoice can be amended.')
+        new = PurchaseInvoice.objects.get(pk=self.pk)
+        new.pk = None
+        new._state.adding = True
+        new.invoice_no = ''
+        new.status = 'draft'
+        new.amended_from = self
+        new.save()
+        for item in self.items.all():
+            item.pk = None
+            item._state.adding = True
+            item.invoice = new
+            item.save()
+        for tax in self.taxes.all():
+            tax.pk = None
+            tax._state.adding = True
+            tax.invoice = new
+            tax.save()
+        return new
 
     def __str__(self):
         return self.invoice_no
@@ -394,6 +467,11 @@ class CounterSale(models.Model):
     bank_ref_date      = models.DateField(null=True, blank=True)
     balance_delivery_qty = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True)
     counter_sale_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
+    # Idempotency markers for the StockLedger movement below -- same shape as
+    # StockTransfer.stock_posted/stock_reversed. System-controlled only (excluded
+    # from CounterSaleForm), never toggled directly by a user.
+    stock_posted   = models.BooleanField(default=False)
+    stock_reversed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(
@@ -409,6 +487,31 @@ class CounterSale(models.Model):
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
+    def check_stock_sufficiency(self):
+        """Raise ValueError if selling any line would drive StockLedger negative.
+        Mirrors vas.models' AMCPackage/RSAPackage/ProtectionPlusPackage.submit()
+        stock-safety guard (raise before the movement is ever posted)."""
+        for line in self.items.all():
+            available = _stock_on_hand(line.item, self.godown, line.rack, line.bin)
+            if available < line.quantity:
+                raise ValueError(
+                    f"Insufficient stock for {line.item.item_code} at {self.godown}: "
+                    f"available {available}, requested {line.quantity}."
+                )
+
+    def submit(self, user=None):
+        if self.status != 'draft':
+            raise ValueError('Only a Draft counter sale can be submitted.')
+        self.check_stock_sufficiency()
+        self.status = 'submitted'
+        self.save()
+
+    def cancel(self, user=None):
+        if self.status != 'submitted':
+            raise ValueError('Only a Submitted counter sale can be cancelled.')
+        self.status = 'cancelled'
+        self.save()
 
     def __str__(self):
         return self.sale_no
@@ -440,11 +543,45 @@ class CounterSaleItem(models.Model):
         return f"{self.sale.sale_no} | {self.item.item_code}"
 
 
+@receiver(post_save, sender=CounterSale)
+def on_counter_sale_status_changed(sender, instance, **kwargs):
+    """StockLedger movement for a Counter Sale -- a sale decrements stock on
+    submit and the decrement is given back if the sale is later cancelled.
+    Guarded by stock_posted/stock_reversed (not docstatus, since CounterSale
+    predates DocStatusMixin in this app and uses its own plain status field)
+    so the multiple .save() calls across create/submit/cancel never double-post."""
+    if instance.status == 'submitted' and not instance.stock_posted:
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=line.rack, bin=line.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') - line.quantity)
+        CounterSale.objects.filter(pk=instance.pk).update(stock_posted=True)
+        instance.stock_posted = True  # keep the in-memory instance in sync too,
+        # so a chained submit(); cancel() on the same Python object (no
+        # intervening DB refetch) sees the correct flag on its very next check
+    elif instance.status == 'cancelled' and instance.stock_posted and not instance.stock_reversed:
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=line.rack, bin=line.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') + line.quantity)
+        CounterSale.objects.filter(pk=instance.pk).update(stock_reversed=True)
+        instance.stock_reversed = True
+
+
 class CounterSaleReturn(models.Model):
+    STATUS = [('draft', 'Draft'), ('submitted', 'Submitted'), ('cancelled', 'Cancelled')]
     return_no = models.CharField(max_length=50, unique=True, editable=False)
     original_sale = models.ForeignKey(CounterSale, on_delete=models.PROTECT)
     return_date = models.DateField()
     reason = models.TextField(blank=True, null=True)
+    # Not a lifecycle state -- a separate business flag the counter staff tick
+    # once the physical stock has actually been walked back into the godown /
+    # the refund handed over. Left as-is; status below is the new real
+    # draft/submitted/cancelled lifecycle that actually drives StockLedger.
     stock_return_done = models.BooleanField(default=False)
     amount_refund_done = models.BooleanField(default=False)
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -454,6 +591,13 @@ class CounterSaleReturn(models.Model):
     accounts_to   = models.CharField(max_length=200, blank=True)
     advance_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
     discount        = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True, help_text='Discount %')
+    # New real lifecycle -- not exposed on the create form (system-controlled):
+    # the create view auto-submits a return right after its items are saved
+    # (a return has always behaved as a single-step, already-final document in
+    # this app's UI), and a separate cancel action reverses the stock credit.
+    status         = models.CharField(max_length=20, choices=STATUS, default='draft')
+    stock_posted   = models.BooleanField(default=False)
+    stock_reversed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
@@ -468,6 +612,19 @@ class CounterSaleReturn(models.Model):
                 super().save(*args, **kwargs)
         else:
             super().save(*args, **kwargs)
+
+    def submit(self, user=None):
+        # No stock-safety check here -- a return only ever adds stock back.
+        if self.status != 'draft':
+            raise ValueError('Only a Draft return can be submitted.')
+        self.status = 'submitted'
+        self.save()
+
+    def cancel(self, user=None):
+        if self.status != 'submitted':
+            raise ValueError('Only a Submitted return can be cancelled.')
+        self.status = 'cancelled'
+        self.save()
 
     def __str__(self):
         return self.return_no
@@ -495,6 +652,36 @@ class CounterSaleReturnItem(models.Model):
 
     def __str__(self):
         return f"{self.sale_return.return_no} | {self.item.item_code}"
+
+
+@receiver(post_save, sender=CounterSaleReturn)
+def on_counter_sale_return_status_changed(sender, instance, **kwargs):
+    """A return gives stock back on submit; cancelling a submitted return
+    takes it back out. Uses return_qty (the actual quantity returned) and
+    falls back to the original sale quantity only if return_qty was left
+    at its default 0 (e.g. rows created before this field existed)."""
+    if not instance.godown_id:
+        return  # godown is optional on this model; nothing to post against
+    if instance.status == 'submitted' and not instance.stock_posted:
+        for line in instance.items.all():
+            qty = line.return_qty if line.return_qty else line.quantity
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=None, bin=None,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') + qty)
+        CounterSaleReturn.objects.filter(pk=instance.pk).update(stock_posted=True)
+        instance.stock_posted = True
+    elif instance.status == 'cancelled' and instance.stock_posted and not instance.stock_reversed:
+        for line in instance.items.all():
+            qty = line.return_qty if line.return_qty else line.quantity
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=None, bin=None,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') - qty)
+        CounterSaleReturn.objects.filter(pk=instance.pk).update(stock_reversed=True)
+        instance.stock_reversed = True
 
 
 class SparesIssueAlteration(models.Model):
@@ -540,6 +727,15 @@ class SparesIssueAlteration(models.Model):
     phone_no     = models.CharField(max_length=20, blank=True)
     user         = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     service_invoice_discount = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
+    # New real lifecycle -- system-controlled (excluded from the create form,
+    # same reasoning as CounterSaleReturn.status): spares issued to a job card
+    # leave inventory, so the create view auto-submits (with a stock-safety
+    # check) right after the item rows are saved, and a separate cancel action
+    # reverses the decrement.
+    STATUS = [('draft', 'Draft'), ('submitted', 'Submitted'), ('cancelled', 'Cancelled')]
+    status         = models.CharField(max_length=20, choices=STATUS, default='draft')
+    stock_posted   = models.BooleanField(default=False)
+    stock_reversed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True
@@ -549,6 +745,29 @@ class SparesIssueAlteration(models.Model):
         from django.core.exceptions import ValidationError
         if bool(self.job_card_id) == bool(self.used_vehicle_job_card_id):
             raise ValidationError('Set exactly one of Job Card or Used Vehicle Job Card, not both or neither.')
+
+    def check_stock_sufficiency(self):
+        """Raise ValueError if issuing any line would drive StockLedger negative."""
+        for line in self.items.all():
+            available = _stock_on_hand(line.item, self.godown, line.rack, line.bin)
+            if available < line.quantity:
+                raise ValueError(
+                    f"Insufficient stock for {line.item.item_code} at {self.godown}: "
+                    f"available {available}, requested {line.quantity}."
+                )
+
+    def submit(self, user=None):
+        if self.status != 'draft':
+            raise ValueError('Only a Draft issue alteration can be submitted.')
+        self.check_stock_sufficiency()
+        self.status = 'submitted'
+        self.save()
+
+    def cancel(self, user=None):
+        if self.status != 'submitted':
+            raise ValueError('Only a Submitted issue alteration can be cancelled.')
+        self.status = 'cancelled'
+        self.save()
 
     @property
     def target_job_card(self):
@@ -591,6 +810,30 @@ class SparesIssueAlterationItem(models.Model):
         return f"SIA-{self.alteration_id} | {self.item.item_code}"
 
 
+@receiver(post_save, sender=SparesIssueAlteration)
+def on_spares_issue_alteration_status_changed(sender, instance, **kwargs):
+    """Spares issued to a job card leave inventory on submit; cancelling a
+    submitted issue alteration gives that stock back."""
+    if instance.status == 'submitted' and not instance.stock_posted:
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=line.rack, bin=line.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') - line.quantity)
+        SparesIssueAlteration.objects.filter(pk=instance.pk).update(stock_posted=True)
+        instance.stock_posted = True
+    elif instance.status == 'cancelled' and instance.stock_posted and not instance.stock_reversed:
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.godown, rack=line.rack, bin=line.bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=ledger.pk).update(quantity=F('quantity') + line.quantity)
+        SparesIssueAlteration.objects.filter(pk=instance.pk).update(stock_reversed=True)
+        instance.stock_reversed = True
+
+
 class SparesIssueAlterationDeletedItem(models.Model):
     """Reference: 'New Spares List' -- tracks spares removed from the issue
     during editing, a genuinely distinct concept from the live items table
@@ -623,6 +866,12 @@ class StockTransfer(DocStatusMixin, models.Model):
     date_and_time  = models.DateTimeField()
     warehouse      = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='stock_transfers', verbose_name='From Warehouse')
     branch         = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_transfers')
+    # Idempotency markers for the post_save movement below -- guards against
+    # double-posting across the multiple .save() calls a submit/cancel cycle
+    # triggers (the previous version had no guard at all: re-saving a still-
+    # SUBMITTED transfer would silently re-apply the same delta again).
+    stock_posted   = models.BooleanField(default=False)
+    stock_reversed = models.BooleanField(default=False)
     created_at     = models.DateTimeField(auto_now_add=True)
     created_by     = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -641,6 +890,19 @@ class StockTransfer(DocStatusMixin, models.Model):
         else:
             super().save(*args, **kwargs)
 
+    def submit(self, user):
+        # Stock-safety guard, same shape as vas.models' AMCPackage/RSAPackage/
+        # ProtectionPlusPackage.submit(): raise before DocStatusMixin flips
+        # docstatus (and before the post_save signal below posts the movement).
+        for line in self.items.all():
+            available = _stock_on_hand(line.item, self.warehouse, line.from_rack, line.from_bin)
+            if available < line.quantity:
+                raise ValueError(
+                    f"Insufficient stock for {line.item.item_code} at {self.warehouse}: "
+                    f"available {available}, requested {line.quantity}."
+                )
+        super().submit(user)
+
     def __str__(self):
         return self.transfer_no
 
@@ -652,7 +914,7 @@ class StockTransfer(DocStatusMixin, models.Model):
 class StockTransferItem(models.Model):
     transfer      = models.ForeignKey(StockTransfer, on_delete=models.CASCADE, related_name='items')
     item          = models.ForeignKey(SparesItem, on_delete=models.PROTECT)
-    quantity      = models.DecimalField(max_digits=10, decimal_places=3)
+    quantity      = models.DecimalField(max_digits=10, decimal_places=3, validators=[MinValueValidator(Decimal('0.001'))])
     rate          = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     uom           = models.CharField(max_length=20, default='Nos', blank=True)
     from_rack     = models.ForeignKey(Rack, on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
@@ -670,21 +932,36 @@ class StockTransferItem(models.Model):
 
 @receiver(post_save, sender=StockTransfer)
 def on_stock_transfer_submitted(sender, instance, **kwargs):
-    if instance.docstatus != StockTransfer.DocStatus.SUBMITTED:
-        return
-    from django.db.models import F
-    for line in instance.items.all():
-        from_ledger, _ = StockLedger.objects.get_or_create(
-            item=line.item, warehouse=instance.warehouse, rack=line.from_rack, bin=line.from_bin,
-            defaults={'quantity': 0},
-        )
-        StockLedger.objects.filter(pk=from_ledger.pk).update(quantity=F('quantity') - line.quantity)
+    if instance.docstatus == StockTransfer.DocStatus.SUBMITTED and not instance.stock_posted:
+        for line in instance.items.all():
+            from_ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.warehouse, rack=line.from_rack, bin=line.from_bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=from_ledger.pk).update(quantity=F('quantity') - line.quantity)
 
-        to_ledger, _ = StockLedger.objects.get_or_create(
-            item=line.item, warehouse=line.to_warehouse, rack=line.to_rack, bin=line.to_bin,
-            defaults={'quantity': 0},
-        )
-        StockLedger.objects.filter(pk=to_ledger.pk).update(quantity=F('quantity') + line.quantity)
+            to_ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=line.to_warehouse, rack=line.to_rack, bin=line.to_bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=to_ledger.pk).update(quantity=F('quantity') + line.quantity)
+        StockTransfer.objects.filter(pk=instance.pk).update(stock_posted=True)
+        instance.stock_posted = True
+    elif instance.docstatus == StockTransfer.DocStatus.CANCELLED and instance.stock_posted and not instance.stock_reversed:
+        for line in instance.items.all():
+            from_ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.warehouse, rack=line.from_rack, bin=line.from_bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=from_ledger.pk).update(quantity=F('quantity') + line.quantity)
+
+            to_ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=line.to_warehouse, rack=line.to_rack, bin=line.to_bin,
+                defaults={'quantity': 0},
+            )
+            StockLedger.objects.filter(pk=to_ledger.pk).update(quantity=F('quantity') - line.quantity)
+        StockTransfer.objects.filter(pk=instance.pk).update(stock_reversed=True)
+        instance.stock_reversed = True
 
 
 # ---------------------------------------------------------------------------
@@ -697,6 +974,9 @@ class StockCountUpdate(DocStatusMixin, models.Model):
     date_and_time = models.DateField()
     warehouse     = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='stock_count_updates')
     branch        = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='stock_count_updates')
+    # Reversal marker -- on cancel, each line's captured system_qty snapshot
+    # (StockCountItem.system_qty, taken at row-creation time) is restored.
+    stock_reversed = models.BooleanField(default=False)
     created_at    = models.DateTimeField(auto_now_add=True)
     created_by    = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
@@ -749,15 +1029,28 @@ class StockCountItem(models.Model):
 
 @receiver(post_save, sender=StockCountUpdate)
 def on_stock_count_submitted(sender, instance, **kwargs):
-    if instance.docstatus != StockCountUpdate.DocStatus.SUBMITTED:
-        return
-    for line in instance.items.all():
-        ledger, _ = StockLedger.objects.get_or_create(
-            item=line.item, warehouse=instance.warehouse, rack=line.rack, bin=line.bin,
-            defaults={'quantity': line.counted_qty},
-        )
-        if ledger.quantity != line.counted_qty:
-            StockLedger.objects.filter(pk=ledger.pk).update(quantity=line.counted_qty)
+    if instance.docstatus == StockCountUpdate.DocStatus.SUBMITTED:
+        # Naturally idempotent already: once quantity == counted_qty, re-saving
+        # while still SUBMITTED is a no-op (no separate posted marker needed).
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.warehouse, rack=line.rack, bin=line.bin,
+                defaults={'quantity': line.counted_qty},
+            )
+            if ledger.quantity != line.counted_qty:
+                StockLedger.objects.filter(pk=ledger.pk).update(quantity=line.counted_qty)
+    elif instance.docstatus == StockCountUpdate.DocStatus.CANCELLED and not instance.stock_reversed:
+        # Restore each line's pre-count snapshot (system_qty), same idea as a
+        # transfer's reversal -- undo exactly what this document changed.
+        for line in instance.items.all():
+            ledger, _ = StockLedger.objects.get_or_create(
+                item=line.item, warehouse=instance.warehouse, rack=line.rack, bin=line.bin,
+                defaults={'quantity': line.system_qty},
+            )
+            if ledger.quantity != line.system_qty:
+                StockLedger.objects.filter(pk=ledger.pk).update(quantity=line.system_qty)
+        StockCountUpdate.objects.filter(pk=instance.pk).update(stock_reversed=True)
+        instance.stock_reversed = True
 
 
 # ---------------------------------------------------------------------------

@@ -138,6 +138,11 @@ Back </a>
                                 <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
+                        {% if f.errors %}
+                        <tr class="formset-row-errors">
+                            <td colspan="6" class="form-error">{{ f.errors }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -166,6 +171,11 @@ Back </a>
                                 <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
+                        {% if f.errors %}
+                        <tr class="formset-row-errors">
+                            <td colspan="5" class="form-error">{{ f.errors }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -198,6 +208,11 @@ Back </a>
                                 <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
+                        {% if f.errors %}
+                        <tr class="formset-row-errors">
+                            <td colspan="9" class="form-error">{{ f.errors }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -225,6 +240,11 @@ Back </a>
                                 <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
+                        {% if f.errors %}
+                        <tr class="formset-row-errors">
+                            <td colspan="4" class="form-error">{{ f.errors }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -239,11 +259,12 @@ Back </a>
             </div>
             <div class="table-wrapper">
                 <table class="table">
-                    <thead><tr><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Good</th><th>Bad</th><th>NA</th><th style="width:60px;">Action</th></tr></thead>
+                    <thead><tr><th>Variant</th><th>Item</th><th>Yes</th><th>No</th><th>OK</th><th>High</th><th>Low</th><th>Good</th><th>Bad</th><th>NA</th><th style="width:60px;">Action</th></tr></thead>
                     <tbody id="chasis-formset-body">
                         {% for f in chasis_formset %}
                         <tr class="formset-row chasis-row">
                             {{ f.id }}
+                            <td>{{ f.variant }}</td>
                             <td>{{ f.items }}</td>
                             <td>{{ f.yes }}</td>
                             <td>{{ f.no }}</td>
@@ -258,6 +279,11 @@ Back </a>
                                 <button type="button" class="btn btn-sm btn-danger remove-row" aria-label="Remove row"><i class="fas fa-trash"></i></button>
                             </td>
                         </tr>
+                        {% if f.errors %}
+                        <tr class="formset-row-errors">
+                            <td colspan="11" class="form-error">{{ f.errors }}</td>
+                        </tr>
+                        {% endif %}
                         {% endfor %}
                     </tbody>
                 </table>
@@ -325,6 +351,19 @@ Back </a>
 {% block extra_js %}
 <script>
 (function () {
+    // Renumber every row of a formset to 0..N-1 and sync TOTAL_FORMS. Needed
+    // whenever a freshly-added (unsaved) row is removed from the DOM, so the
+    // formset never submits a dangling empty form at a stale index.
+    function reindexRows(tbody, rowClass, prefix, totalForms) {
+        const rows = tbody.querySelectorAll('.' + rowClass);
+        rows.forEach(function (row, idx) {
+            row.querySelectorAll('[name], [id]').forEach(function (el) {
+                if (el.name) el.name = el.name.replace(new RegExp(prefix + '-\\d+-'), prefix + '-' + idx + '-');
+                if (el.id) el.id = el.id.replace(new RegExp(prefix + '-\\d+-'), prefix + '-' + idx + '-');
+            });
+        });
+        totalForms.value = rows.length;
+    }
     function makeAdder(prefix, addBtnId, tbodyId, rowClass) {
         const totalForms = document.querySelector('[name="' + prefix + '-TOTAL_FORMS"]');
         const tbody = document.getElementById(tbodyId);
@@ -341,24 +380,52 @@ Back </a>
             });
             tbody.appendChild(newRow);
             totalForms.value = formCount + 1;
-            bindRemove(newRow);
+            bindRemove(newRow, prefix, tbody, rowClass, totalForms);
         });
     }
-    function bindRemove(row) {
+    function bindRemove(row, prefix, tbody, rowClass, totalForms) {
         const btn = row.querySelector('.remove-row');
         if (!btn) return;
         btn.addEventListener('click', function () {
             const deleteField = row.querySelector('[id$="-DELETE"]');
-            if (deleteField) { deleteField.checked = true; row.style.display = 'none'; }
-            else { row.remove(); }
+            const errorRow = row.nextElementSibling && row.nextElementSibling.classList.contains('formset-row-errors')
+                ? row.nextElementSibling : null;
+            if (deleteField) {
+                // Existing (already-saved) row: soft-delete via the DELETE
+                // checkbox so Django's formset drops it on save. TOTAL_FORMS
+                // stays as-is since the form is still submitted (just marked
+                // deleted), matching this codebase's established convention.
+                deleteField.checked = true;
+                row.style.display = 'none';
+                if (errorRow) errorRow.style.display = 'none';
+            } else {
+                // Freshly-added, unsaved row: there is no DELETE field to mark,
+                // so it must be removed from the DOM AND TOTAL_FORMS must be
+                // decremented (with the remaining rows re-indexed) — otherwise
+                // the formset still expects a form at this index and fails
+                // validation on an empty/missing form.
+                row.remove();
+                if (errorRow) errorRow.remove();
+                reindexRows(tbody, rowClass, prefix, totalForms);
+            }
         });
     }
-    document.querySelectorAll('.formset-row').forEach(bindRemove);
-    makeAdder('complaints', 'add-complaint-row', 'complaint-formset-body', 'complaint-row');
-    makeAdder('observations', 'add-observation-row', 'observation-formset-body', 'observation-row');
-    makeAdder('engine', 'add-engine-row', 'engine-formset-body', 'engine-row');
-    makeAdder('lights', 'add-light-row', 'light-formset-body', 'light-row');
-    makeAdder('chasis', 'add-chasis-row', 'chasis-formset-body', 'chasis-row');
+    const FORMSETS = [
+        { prefix: 'complaints',   addBtnId: 'add-complaint-row',   tbodyId: 'complaint-formset-body',   rowClass: 'complaint-row' },
+        { prefix: 'observations', addBtnId: 'add-observation-row', tbodyId: 'observation-formset-body', rowClass: 'observation-row' },
+        { prefix: 'engine',       addBtnId: 'add-engine-row',      tbodyId: 'engine-formset-body',      rowClass: 'engine-row' },
+        { prefix: 'lights',       addBtnId: 'add-light-row',       tbodyId: 'light-formset-body',       rowClass: 'light-row' },
+        { prefix: 'chasis',       addBtnId: 'add-chasis-row',      tbodyId: 'chasis-formset-body',      rowClass: 'chasis-row' },
+    ];
+    FORMSETS.forEach(function (cfg) {
+        const totalForms = document.querySelector('[name="' + cfg.prefix + '-TOTAL_FORMS"]');
+        const tbody = document.getElementById(cfg.tbodyId);
+        if (!tbody || !totalForms) return;
+        tbody.querySelectorAll('.' + cfg.rowClass).forEach(function (row) {
+            bindRemove(row, cfg.prefix, tbody, cfg.rowClass, totalForms);
+        });
+        makeAdder(cfg.prefix, cfg.addBtnId, cfg.tbodyId, cfg.rowClass);
+    });
 })();
 </script>
 {% endblock %}

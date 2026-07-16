@@ -36,6 +36,7 @@ class InvoiceForm(AccessibleFormMixin, forms.ModelForm):
         subtotal        = cleaned.get('subtotal') or Decimal('0')
         gst_amount      = cleaned.get('gst_amount') or Decimal('0')
         discount_amount = cleaned.get('discount_amount') or Decimal('0')
+        sales_order     = cleaned.get('sales_order')
 
         if subtotal < Decimal('0'):
             self.add_error('subtotal', 'Subtotal cannot be negative.')
@@ -56,6 +57,37 @@ class InvoiceForm(AccessibleFormMixin, forms.ModelForm):
             self.add_error('discount_amount', 'Discount cannot exceed subtotal + GST.')
         else:
             cleaned['final_amount'] = expected_final
+
+        if sales_order is not None:
+            # Sanity-check the invoice against its Sales Order: subtotal should
+            # be in the same ballpark as the order total (subtotal is
+            # pre-tax, order total_amount is on-road/incl. extras, so this is
+            # a generous tolerance, not an exact match) — catches the "wildly
+            # different amount" case, not legitimate GST/discount variance.
+            order_total = sales_order.total_amount or Decimal('0')
+            if order_total > 0 and subtotal > 0:
+                variance = abs(subtotal - order_total) / order_total
+                if variance > Decimal('0.5'):
+                    self.add_error(
+                        'subtotal',
+                        f'Subtotal (₹{subtotal}) looks very different from the linked '
+                        f'Sales Order total (₹{order_total}). Please verify the amount.'
+                    )
+
+            # One active (non-cancelled) invoice per order at a time — a
+            # legitimate re-invoice after cancel+amend is still possible
+            # since current_invoice/this query only counts non-cancelled ones.
+            existing_active = sales_order.invoices.exclude(
+                docstatus=Invoice.DocStatus.CANCELLED
+            )
+            if self.instance and self.instance.pk:
+                existing_active = existing_active.exclude(pk=self.instance.pk)
+            if existing_active.exists():
+                self.add_error(
+                    'sales_order',
+                    f'{sales_order.order_number or sales_order.pk} already has an active '
+                    'invoice. Cancel it before creating a new one.'
+                )
 
         return cleaned
 
@@ -292,6 +324,16 @@ class InvoiceItemLineForm(AccessibleFormMixin, forms.ModelForm):
             'rate':      forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'discount':  forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
+
+    def clean_rate(self):
+        from decimal import Decimal
+        rate = self.cleaned_data.get('rate')
+        return rate if rate is not None else Decimal('0')
+
+    def clean_discount(self):
+        from decimal import Decimal
+        discount = self.cleaned_data.get('discount')
+        return discount if discount is not None else Decimal('0')
 
 
 InvoiceItemFormSet = inlineformset_factory(

@@ -1014,8 +1014,8 @@ class VehicleSaleItem(models.Model):
         related_name='items'
     )
     item_name   = models.CharField(max_length=200)
-    rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
-    quantity    = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True)
+    rate        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, validators=[MinValueValidator(0)])
+    quantity    = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True, validators=[MinValueValidator(0)])
     amount      = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     created_at  = models.DateTimeField(auto_now_add=True)
 
@@ -1347,6 +1347,46 @@ def on_delivery_created(sender, instance, created, **kwargs):
         # Use .save() so the VehicleSalesOrder post_save signal fires
         order.sales_status = VehicleSalesOrder.SalesStatus.DELIVERED
         order.save(update_fields=['sales_status'])
+
+
+@receiver(post_save, sender=VehicleDelivery)
+def on_delivery_cancelled(sender, instance, created, **kwargs):
+    """When a VehicleDelivery is cancelled, revert the linked Sales Order's
+    sales_status back off 'Delivered' — otherwise the order is stuck showing
+    'Delivered' even though the delivery that put it there no longer stands.
+    Reverts to 'Invoiced' if the order has an active invoice, else 'Booked'
+    (mirrors the forward transitions already driven by current_invoice /
+    current_delivery elsewhere on this model)."""
+    if instance.docstatus != VehicleDelivery.DocStatus.CANCELLED:
+        return
+    order = instance.sales_order
+    if order.sales_status != VehicleSalesOrder.SalesStatus.DELIVERED:
+        return
+    if order.current_delivery is not None:
+        # Another non-cancelled delivery (e.g. an amended replacement)
+        # already exists for this order — leave sales_status as Delivered.
+        return
+    if order.current_invoice is not None:
+        order.sales_status = VehicleSalesOrder.SalesStatus.INVOICED
+    else:
+        order.sales_status = VehicleSalesOrder.SalesStatus.BOOKED
+    order.save(update_fields=['sales_status'])
+
+
+@receiver(post_save, sender=VehicleSalesOrder)
+def sync_sales_status_on_order_cancel(sender, instance, created, **kwargs):
+    """Keep sales_status in lockstep when an order's docstatus is cancelled —
+    otherwise the order can end up in a stale sales_status (e.g. still
+    'Booked') alongside a Cancelled docstatus, showing contradictory badges
+    on the order detail page. Uses .update() (not instance.save()) so this
+    doesn't recurse back into post_save."""
+    if instance.docstatus != VehicleSalesOrder.DocStatus.CANCELLED:
+        return
+    if instance.sales_status == VehicleSalesOrder.SalesStatus.CANCELLED:
+        return
+    VehicleSalesOrder.objects.filter(pk=instance.pk).update(
+        sales_status=VehicleSalesOrder.SalesStatus.CANCELLED
+    )
 
 
 @receiver(post_save, sender=VehicleSalesOrder)

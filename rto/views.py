@@ -9,7 +9,7 @@ from accounts.audit import log_action
 from accounts.permissions import require_module_action
 
 from .forms import NumberPlateOrderForm, RTORegistrationForm
-from .models import NumberPlateOrder, RTORegistration
+from .models import Form20Creation, NumberPlateOrder, RTORegistration
 
 
 # ---------------------------------------------------------------------------
@@ -121,7 +121,24 @@ def form20_print(request, pk):
         pk=pk
     )
     company = CompanySettings.get_instance()
-    return render(request, 'rto/form20_print.html', {'rto': rto, 'company': company})
+    # Prefer the submitted Form20Creation's own engine_no/frame_no (explicitly entered and
+    # saved on that document) over the vehicle master's snapshot -- the print view was
+    # silently ignoring them and always showing the original vehicle-master values, even
+    # when the submitted Form20Creation recorded different numbers.
+    form20_creation = (
+        rto.sales_order.form20_creations
+        .filter(docstatus=Form20Creation.DocStatus.SUBMITTED)
+        .order_by('-created_at')
+        .first()
+    )
+    engine_no = (form20_creation.engine_no if form20_creation and form20_creation.engine_no
+                 else getattr(rto.sales_order.vehicle, 'engine_no', ''))
+    frame_no = (form20_creation.frame_no if form20_creation and form20_creation.frame_no
+                else getattr(rto.sales_order.vehicle, 'chassis_no', ''))
+    return render(request, 'rto/form20_print.html', {
+        'rto': rto, 'company': company,
+        'engine_no': engine_no, 'frame_no': frame_no,
+    })
 
 
 @login_required

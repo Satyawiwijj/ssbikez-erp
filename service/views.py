@@ -370,6 +370,14 @@ def jobcard_status_update(request, pk):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     new_status = request.POST.get('service_status')
     if new_status in dict(JobCard.ServiceStatus.choices):
+        # Guard: once a Service Invoice exists for this job card, its status
+        # is locked at 'invoiced' -- no rolling back to an earlier stage.
+        if _job_card_has_invoice(job_card) and new_status != JobCard.ServiceStatus.INVOICED:
+            messages.error(
+                request,
+                'Cannot change status — a Service Invoice already exists for this Job Card.'
+            )
+            return redirect('service:jobcard_detail', pk=job_card.pk)
         job_card.service_status = new_status
         job_card.save(update_fields=['service_status'])
         log_action(request, 'Job Card', 'update', pk)
@@ -910,6 +918,42 @@ def vehicle_service_master_update(request, pk):
 # Phase 2 — reference-parity workshop stage documents
 # ---------------------------------------------------------------------------
 
+# Ordered workshop stages (earliest -> latest) with the JobCard related_name
+# that holds that stage's documents. Used to guard against cancelling an
+# earlier-stage document once a later stage (or the Service Invoice) already
+# has a submitted document for the same Job Card.
+_STAGE_RELATED_NAMES = [
+    ('water_wash',       'water_wash_entries'),
+    ('bay_in',           'bay_in_entries'),
+    ('bay_out',          'bay_out_entries'),
+    ('outwork_issue',    'outwork_issues'),
+    ('outwork_return',   'outwork_returns'),
+    ('final_inspection', 'final_inspections'),
+]
+
+
+def _job_card_has_invoice(job_card):
+    return ServiceInvoice.objects.filter(job_card=job_card).exists()
+
+
+def _later_stage_submitted(job_card, list_name):
+    """True if a workshop stage later than `list_name` already has a
+    submitted document for this job card, or a Service Invoice already
+    exists (the final gate nothing earlier should be cancelled past)."""
+    if _job_card_has_invoice(job_card):
+        return True
+    names = [n for n, _ in _STAGE_RELATED_NAMES]
+    if list_name not in names:
+        return False
+    idx = names.index(list_name)
+    from accounts.models import DocStatusMixin
+    for _, related in _STAGE_RELATED_NAMES[idx + 1:]:
+        manager = getattr(job_card, related, None)
+        if manager is not None and manager.filter(docstatus=DocStatusMixin.DocStatus.SUBMITTED).exists():
+            return True
+    return False
+
+
 def _stage_submit(request, model, pk, list_name):
     from accounts.permissions import user_owns
     from django.http import HttpResponseForbidden
@@ -931,6 +975,13 @@ def _stage_cancel(request, model, pk, list_name):
     obj = get_object_or_404(model, pk=pk)
     if not user_owns(request.user, obj.job_card):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+    if _later_stage_submitted(obj.job_card, list_name):
+        messages.error(
+            request,
+            'Cannot cancel — a later workshop stage (or Service Invoice) already '
+            'exists for this Job Card.'
+        )
+        return redirect(f'service:{list_name}_detail', pk=pk)
     try:
         obj.cancel(request.user)
         log_action(request, model.__name__, 'update', pk)

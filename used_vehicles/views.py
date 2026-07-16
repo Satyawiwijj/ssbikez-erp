@@ -1,6 +1,9 @@
+from decimal import Decimal
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
+from django.db.models import Sum
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
@@ -44,7 +47,8 @@ from .models import (UsedVehicleBayIn, UsedVehicleBayOut, UsedVehicleDelivery,
                      UsedVehicleRegisterNo, UsedVehicleSale, UsedVehicleServiceInvoice,
                      UsedVechileRCBookIssue, UsedVehicleMasterSettings, UsedVehicleSalesSetting,
                      UsedVehicleInsuranceUpdate,
-                     UsedVehiclePurchaseOrder, UsedVehiclePurchaseReceipt)
+                     UsedVehiclePurchaseOrder, UsedVehiclePurchaseReceipt,
+                     UsedVehiclePurchaseReceiptItem)
 
 
 # ---------------------------------------------------------------------------
@@ -307,13 +311,40 @@ def purchase_receipt_create(request):
     formset = UsedVehiclePurchaseReceiptItemFormSet(request.POST or None, prefix='items')
     if request.method == 'POST':
         if form.is_valid() and formset.is_valid():
-            obj = form.save()
-            formset.instance = obj
-            formset.save()
-            log_action(request, 'Used Vehicle Purchase Receipt', 'create', obj.pk)
-            messages.success(request, f'{obj} created.')
-            return redirect('used_vehicles:purchase_receipt_detail', pk=obj.pk)
-        messages.error(request, 'Please correct the errors below.')
+            # Phase-11 -- reject an over-receipt: this receipt's item quantities
+            # (plus anything already received against the same PO) must not exceed
+            # what the linked Purchase Order actually ordered.
+            po = form.cleaned_data.get('purchase_order')
+            over_receipt_error = None
+            if po:
+                ordered_qty = po.purchase_items.aggregate(t=Sum('quantity'))['t'] or Decimal('0')
+                already_received = UsedVehiclePurchaseReceiptItem.objects.filter(
+                    receipt__purchase_order=po
+                ).exclude(
+                    receipt__docstatus=UsedVehiclePurchaseReceipt.DocStatus.CANCELLED
+                ).aggregate(t=Sum('quantity'))['t'] or Decimal('0')
+                new_qty = sum(
+                    (f.cleaned_data.get('quantity') or Decimal('0'))
+                    for f in formset.forms
+                    if f.cleaned_data and not f.cleaned_data.get('DELETE')
+                )
+                total_received = already_received + new_qty
+                if total_received > ordered_qty:
+                    over_receipt_error = (
+                        f"Received quantity ({total_received}) would exceed {po}'s ordered "
+                        f"quantity ({ordered_qty})."
+                    )
+            if over_receipt_error:
+                messages.error(request, over_receipt_error)
+            else:
+                obj = form.save()
+                formset.instance = obj
+                formset.save()
+                log_action(request, 'Used Vehicle Purchase Receipt', 'create', obj.pk)
+                messages.success(request, f'{obj} created.')
+                return redirect('used_vehicles:purchase_receipt_detail', pk=obj.pk)
+        else:
+            messages.error(request, 'Please correct the errors below.')
     return render(request, 'used_vehicles/purchase_receipt_form.html', {
         'form': form, 'formset': formset, 'title': 'Create Used Vehicle Purchase Receipt',
     })
@@ -413,6 +444,13 @@ def sale_create(request):
             advance_formset.instance = obj
             advance_formset.save()
             log_action(request, 'Used Vehicle Sale', 'create', obj.pk)
+            if obj.vehicle_number.stock_status != UsedVehicleRegisterNo.StockStatus.AVAILABLE:
+                messages.warning(
+                    request,
+                    f"Warning: {obj.vehicle_number.registration_no} is currently "
+                    f"'{obj.vehicle_number.get_stock_status_display()}', not Available -- "
+                    f"this Draft sale will be blocked from submitting until that changes."
+                )
             messages.success(request, f'{obj} created.')
             return redirect('used_vehicles:sale_detail', pk=obj.pk)
         messages.error(request, 'Please correct the errors below.')

@@ -51,6 +51,12 @@ class AMCPackageForm(AccessibleFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for f in ('sales_order', 'invoice', 'gst_amount', 'without_gst_amount'):
             self.fields[f].required = False
+        # amc_type/amount have blank=True/null=True at the model level (so a stub package
+        # could in principle be built up server-side without them yet), but the create form
+        # must not let a user-submitted package through without them -- reproduced a blank
+        # submission being silently accepted before this fix.
+        for f in ('amc_type', 'amount'):
+            self.fields[f].required = True
 
 
 class RSAPackageForm(AccessibleFormMixin, forms.ModelForm):
@@ -66,6 +72,8 @@ class RSAPackageForm(AccessibleFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for f in ('sales_order', 'invoice', 'gst_amount', 'without_gst_amount'):
             self.fields[f].required = False
+        for f in ('rsa_type', 'amount'):
+            self.fields[f].required = True
 
 
 class ProtectionPlusPackageForm(AccessibleFormMixin, forms.ModelForm):
@@ -81,6 +89,8 @@ class ProtectionPlusPackageForm(AccessibleFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         for f in ('sales_order', 'invoice', 'gst_amount', 'without_gst_amount'):
             self.fields[f].required = False
+        for f in ('warranty_type', 'amount'):
+            self.fields[f].required = True
 
 
 # ---------------------------------------------------------------------------

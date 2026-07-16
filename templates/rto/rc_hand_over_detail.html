@@ -27,7 +27,7 @@
         <div class="detail-row"><dt>RC Book Received</dt><dd>{{ obj.get_rc_book_received_display|default:"—" }}</dd></div>
         <div class="detail-row"><dt>NOC</dt><dd>{{ obj.get_noc_display|default:"—" }}</dd></div>
         <div class="detail-row"><dt>RC Book Number</dt><dd>{{ obj.rc_book_number|default:"—" }}</dd></div>
-        <div class="detail-row"><dt>Vehicle Received</dt><dd>{% if obj.vehicle_received %}&#x2705;{% else %}—{% endif %}</dd></div>
+        <div class="detail-row"><dt>Vehicle Received</dt><dd>{{ obj.get_vehicle_received_display|default:"—" }}</dd></div>
         <div class="detail-row"><dt>T.O. Received</dt><dd>{% if obj.to_received %}&#x2705;{% else %}—{% endif %}</dd></div>
         <div class="detail-row"><dt>HP Endorsement</dt><dd>{% if obj.hp_endorsement %}&#x2705;{% else %}—{% endif %}</dd></div>
         <div class="detail-row"><dt>Year of Make</dt><dd>{{ obj.year_of_make|default:"—" }}</dd></div>

@@ -183,6 +183,12 @@ class PurchaseOrderItemForm(AccessibleFormMixin, forms.ModelForm):
             'branch':      forms.Select(attrs={'class': 'form-select', 'style': 'min-width:120px'}),
         }
 
+    def clean_quantity(self):
+        qty = self.cleaned_data.get('quantity')
+        if qty is not None and qty <= 0:
+            raise forms.ValidationError('Quantity must be greater than zero.')
+        return qty
+
 
 PurchaseOrderItemFormSet = inlineformset_factory(
     PurchaseOrder, PurchaseOrderItem,
@@ -206,7 +212,7 @@ class PurchaseInvoiceForm(AccessibleFormMixin, forms.ModelForm):
         model = PurchaseInvoice
         exclude = ['invoice_no', 'created_at', 'updated_at', 'created_by',
                    'total_quantity', 'total_amount', 'total_sgst', 'total_cgst',
-                   'total_taxes', 'grand_total']
+                   'total_taxes', 'grand_total', 'amended_from']
         widgets = {
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -268,7 +274,8 @@ class CounterSaleForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = CounterSale
         exclude = ['sale_no', 'created_at', 'updated_at', 'created_by',
-                   'total_qty', 'total_amount', 'payment_status']
+                   'total_qty', 'total_amount', 'payment_status',
+                   'stock_posted', 'stock_reversed']
         widgets = {
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'customer': forms.TextInput(attrs={'class': 'form-control'}),
@@ -322,7 +329,8 @@ CounterSaleItemFormSet = inlineformset_factory(
 class CounterSaleReturnForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = CounterSaleReturn
-        exclude = ['return_no', 'created_at', 'created_by', 'total_amount']
+        exclude = ['return_no', 'created_at', 'created_by', 'total_amount',
+                   'status', 'stock_posted', 'stock_reversed']
         widgets = {
             'original_sale': forms.Select(attrs={'class': 'form-select'}),
             'return_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -363,7 +371,8 @@ class SparesIssueAlterationForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = SparesIssueAlteration
         exclude = ['created_at', 'created_by', 'spares_total', 'labour_total',
-                   'outwork_total', 'total', 'updated_total']
+                   'outwork_total', 'total', 'updated_total',
+                   'status', 'stock_posted', 'stock_reversed']
         widgets = {
             'job_card': forms.Select(attrs={'class': 'form-select'}),
             'used_vehicle_job_card': forms.Select(attrs={'class': 'form-select'}),
@@ -468,6 +477,12 @@ class StockTransferItemForm(AccessibleFormMixin, forms.ModelForm):
             'to_rack': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:100px'}),
             'to_bin': forms.Select(attrs={'class': 'form-select', 'style': 'min-width:100px'}),
         }
+
+    def clean_quantity(self):
+        qty = self.cleaned_data.get('quantity')
+        if qty is not None and qty <= 0:
+            raise forms.ValidationError('Quantity must be greater than zero.')
+        return qty
 
 
 StockTransferItemFormSet = inlineformset_factory(

@@ -5,6 +5,12 @@
 
 {% block topbar_actions %}
 
+{% if sale.status == 'draft' %}
+<form method="post" action="{% url 'spares:counter_sale_submit' sale.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-primary btn-sm" type="submit">Submit</button></form>
+{% elif sale.status == 'submitted' %}
+<form method="post" action="{% url 'spares:counter_sale_cancel' sale.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this counter sale? Stock will be given back.');">Cancel</button></form>
+{% endif %}
+
 <a href="{% url 'spares:counter_sale_list' %}"
    class="btn btn-outline-primary">
     Back

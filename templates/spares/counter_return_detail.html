@@ -4,6 +4,9 @@
 {% block page_title %}Counter Sale Return{% endblock %}
 
 {% block topbar_actions %}
+{% if ret.status == 'submitted' %}
+<form method="post" action="{% url 'spares:counter_return_cancel' ret.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-outline-danger btn-sm" type="submit" onclick="return confirm('Cancel this return? The restored stock will be taken back out.');">Cancel</button></form>
+{% endif %}
 <a href="{% url 'spares:counter_return_list' %}"
    class="btn btn-secondary btn-sm">
     Back
@@ -56,6 +59,19 @@
             <div class="detail-row">
                 <dt>Return Date</dt>
                 <dd>{{ ret.return_date|date:"d M Y" }}</dd>
+            </div>
+
+            <div class="detail-row">
+                <dt>Status</dt>
+                <dd>
+                    {% if ret.status == 'draft' %}
+                        <span class="badge badge-gray">Draft</span>
+                    {% elif ret.status == 'submitted' %}
+                        <span class="badge badge-green">Submitted</span>
+                    {% elif ret.status == 'cancelled' %}
+                        <span class="badge badge-red">Cancelled</span>
+                    {% endif %}
+                </dd>
             </div>
 
             <div class="detail-row">

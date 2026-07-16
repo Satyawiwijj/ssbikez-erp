@@ -575,19 +575,15 @@ def order_create(request):
             if enquiry.customer_id:
                 initial['customer'] = enquiry.customer_id
             elif enquiry.prospect:
-                # Auto-create Customer from Prospect so the order can be saved
-                from customers.models import Customer
-                customer, _ = Customer.objects.get_or_create(
-                    phone=enquiry.prospect.phone,
-                    defaults={'full_name': enquiry.prospect.full_name}
-                )
-                # Link back to enquiry
-                SalesEnquiry.objects.filter(pk=enquiry.pk).update(customer=customer)
-                enquiry.customer = customer
-                initial['customer'] = customer.pk
+                # No DB writes here — a GET request must stay side-effect-free.
+                # The Customer is auto-created from the Prospect only on actual
+                # save, in VehicleSalesOrderForm.clean() below. Just surface a
+                # heads-up to the user so the blank Customer field makes sense.
                 messages.info(
                     request,
-                    f'Customer "{customer.full_name}" auto-created from prospect record.'
+                    f'This enquiry has Prospect "{enquiry.prospect.full_name}" but no '
+                    'linked Customer yet. A Customer record will be auto-created from '
+                    'the prospect when you save this order.'
                 )
         except SalesEnquiry.DoesNotExist:
             pass
@@ -754,6 +750,14 @@ def delivery_create(request):
         if not user_owns(request.user, order):
             from django.http import HttpResponseForbidden
             return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
+        if order.docstatus != VehicleSalesOrder.DocStatus.SUBMITTED:
+            messages.error(
+                request,
+                f'Cannot create a delivery against '
+                f'{order.order_number or f"ORD-{order.pk}"}: the order must be '
+                f'Submitted first (currently {order.get_docstatus_display()}).'
+            )
+            return redirect('sales:order_detail', pk=order.pk)
     form = VehicleDeliveryForm(request.POST or None, initial=initial)
     items_formset   = DeliveryNoteItemFormSet(request.POST or None, prefix='delivery_items')
     advance_formset = DeliveryNoteAdvancePaymentFormSet(request.POST or None, prefix='delivery_advance')
@@ -1279,10 +1283,17 @@ def sale_profit_report(request):
 def enquiry_info_api(request, pk):
     from django.http import JsonResponse
     enq = get_object_or_404(SalesEnquiry, pk=pk)
+    address_parts = [p for p in [
+        enq.address_line1, enq.address_line2, enq.address_line3, enq.address_line4,
+        enq.city, enq.district, enq.state, enq.pincode,
+    ] if p]
     return JsonResponse({
-        'name':       enq.lead_name,
-        'phone':      enq.lead_phone,
-        'bike_model': str(enq.bike_model) if enq.bike_model else '',
+        'name':        enq.lead_name,
+        'phone':       enq.lead_phone,
+        'bike_model':  str(enq.bike_model) if enq.bike_model else '',
+        'gender':      enq.gender,
+        'address':     ', '.join(address_parts),
+        'whatsapp_no': enq.whatsapp_no,
     })
 
 

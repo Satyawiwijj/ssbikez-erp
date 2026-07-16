@@ -200,6 +200,26 @@ class BayAssignment(models.Model):
         ordering = ['-created_at']
         verbose_name_plural = 'Bay Assignments'
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self._sync_bay_status()
+
+    def _sync_bay_status(self):
+        """Keep ServiceBay.status in step with this assignment so a bay
+        doesn't sit 'available' while actively holding a job (and can't be
+        double-booked)."""
+        if self.assignment_status == self.AssignmentStatus.ACTIVE:
+            if self.bay.status != ServiceBay.Status.OCCUPIED:
+                ServiceBay.objects.filter(pk=self.bay_id).update(status=ServiceBay.Status.OCCUPIED)
+        else:
+            # Only free the bay back up if no other assignment is still
+            # actively holding it.
+            still_active = BayAssignment.objects.filter(
+                bay_id=self.bay_id, assignment_status=self.AssignmentStatus.ACTIVE
+            ).exclude(pk=self.pk).exists()
+            if not still_active and self.bay.status != ServiceBay.Status.AVAILABLE:
+                ServiceBay.objects.filter(pk=self.bay_id).update(status=ServiceBay.Status.AVAILABLE)
+
     def __str__(self):
         return f"BAY-{self.pk} | JC-{self.job_card_id} in {self.bay}"
 
@@ -245,11 +265,29 @@ class ServiceInvoice(models.Model):
             or Decimal('0.00')
         )
 
-        # Spares total is now managed via spares.SparesIssueAlteration; set to 0 here
+        # Spares total comes from submitted spares.SparesIssueAlteration records
+        # linked to this job card -- the real spares-issue workflow the app
+        # actually uses. (NOT a placeholder: this used to be hardcoded to 0.)
         self.spares_total = Decimal('0.00')
+        try:
+            from spares.models import SparesIssueAlteration
+            self.spares_total = (
+                SparesIssueAlteration.objects.filter(
+                    job_card=self.job_card, status='submitted'
+                ).aggregate(total=Sum('spares_total'))['total']
+                or Decimal('0.00')
+            )
+        except Exception:
+            pass
 
+        # Outwork total comes from submitted OutworkEntryReturn records (the
+        # real outwork workflow -- OutworkEntry is an orphaned legacy model
+        # that is never instantiated anywhere in the codebase and must not be
+        # read from here).
         self.outwork_total = (
-            self.job_card.outwork_entries.aggregate(total=Sum('cost'))['total']
+            self.job_card.outwork_returns.filter(
+                docstatus=OutworkEntryReturn.DocStatus.SUBMITTED
+            ).aggregate(total=Sum('total'))['total']
             or Decimal('0.00')
         )
 
@@ -294,7 +332,7 @@ class LaborCharge(models.Model):
         related_name='labor_charges'
     )
     service_name = models.CharField(max_length=255)
-    labor_cost   = models.DecimalField(max_digits=10, decimal_places=2)
+    labor_cost   = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
     created_at   = models.DateTimeField(auto_now_add=True)
 
     class Meta:

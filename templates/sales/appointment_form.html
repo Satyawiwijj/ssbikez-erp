@@ -211,9 +211,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     var phoneField = document.querySelector('[name="phone_no"]');
                     var vehicleField = document.querySelector('[name="vehicle_name"]');
                     var nameField = document.getElementById('id_lead_name');
+                    var genderField = document.querySelector('[name="gender"]');
+                    var addressField = document.querySelector('[name="address"]');
+                    var whatsappField = document.querySelector('[name="whatsapp_no"]');
                     if (phoneField && !phoneField.value) phoneField.value = data.phone || '';
                     if (vehicleField && !vehicleField.value) vehicleField.value = data.bike_model || '';
                     if (nameField) nameField.value = data.name || '';
+                    if (genderField && !genderField.value) genderField.value = data.gender || '';
+                    if (addressField && !addressField.value) addressField.value = data.address || '';
+                    if (whatsappField && !whatsappField.value) whatsappField.value = data.whatsapp_no || '';
                 })
                 .catch(() => {});
         });

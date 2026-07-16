@@ -128,6 +128,38 @@
           <td><span class="badge badge-gray">Not yet a Customer</span></td>
         </tr>
         {% endif %}
+        <tr>
+          <th>WhatsApp No</th>
+          <td>{{ enquiry.whatsapp_no|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Email</th>
+          <td>{{ enquiry.email|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Gender</th>
+          <td>{{ enquiry.gender|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Customer Type</th>
+          <td>{{ enquiry.customer_type|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Address</th>
+          <td>
+            {% with a1=enquiry.address_line1 a2=enquiry.address_line2 a3=enquiry.address_line3 a4=enquiry.address_line4 %}
+            {% if a1 or a2 or a3 or a4 or enquiry.city or enquiry.district or enquiry.state or enquiry.pincode %}
+              {{ a1 }}{% if a1 and a2 %}, {% endif %}{{ a2 }}{% if a2 and a3 %}, {% endif %}{{ a3 }}{% if a3 and a4 %}, {% endif %}{{ a4 }}
+              {% if enquiry.city %}, {{ enquiry.city }}{% endif %}
+              {% if enquiry.district %}, {{ enquiry.district }}{% endif %}
+              {% if enquiry.state %}, {{ enquiry.state }}{% endif %}
+              {% if enquiry.pincode %} - {{ enquiry.pincode }}{% endif %}
+            {% else %}
+              —
+            {% endif %}
+            {% endwith %}
+          </td>
+        </tr>
       </tbody>
     </table>
   </div>
@@ -159,6 +191,38 @@
         <tr>
           <th>Branch</th>
           <td>{{ enquiry.branch|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Enquiry Type</th>
+          <td>{{ enquiry.enquiry_type|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Purpose</th>
+          <td>{{ enquiry.purpose|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Payment Type</th>
+          <td>{{ enquiry.payment_type|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Test Ride Taken</th>
+          <td>{{ enquiry.test_ride_taken|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Customer Interested in Exchange</th>
+          <td>{{ enquiry.customer_interested_in_exchange|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Source of Information</th>
+          <td>{{ enquiry.source_of_information|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Customer Enquiry Date</th>
+          <td>{{ enquiry.customer_enquiry_date|date:"d M Y"|default:"—" }}</td>
+        </tr>
+        <tr>
+          <th>Expected Purchase Date</th>
+          <td>{{ enquiry.expected_purchase_date|date:"d M Y"|default:"—" }}</td>
         </tr>
         <tr>
           <th>Remarks</th>

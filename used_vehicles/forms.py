@@ -51,7 +51,8 @@ class UsedVehiclePurchaseInvoiceForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = UsedVehiclePurchaseInvoice
         fields = ('own_purchase', 'supplier_purchase', 'supplier', 'purchase_receipt',
-                  'required_date', 'branch', 'payment_type', 'invoice_date', 'customer_name',
+                  'required_date', 'branch', 'payment_type', 'invoice_no', 'cash_account',
+                  'invoice_date', 'customer_name',
                   'phone_number', 'address', 'target_warehouse', 'vehicle_status',
                   'total_quantity', 'total_amount', 'discount', 'grand_total',
                   'pending_amount', 'payment_status')
@@ -64,6 +65,11 @@ class UsedVehiclePurchaseInvoiceForm(AccessibleFormMixin, forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['purchase_receipt'].required = False
+        # Mandatory per the reference spec (06_Used_Vehicle_Purchase.md); the model
+        # field itself stays blank=True so the additive migration doesn't choke on
+        # existing rows.
+        self.fields['invoice_no'].required = True
+        self.fields['cash_account'].required = True
 
 
 # ---------------------------------------------------------------------------
@@ -141,6 +147,16 @@ class UsedVehicleSaleForm(AccessibleFormMixin, forms.ModelForm):
                   'items_qty', 'total', 'tax_amount', 'base_rate', 'additional_discount',
                   'advance_payment', 'balance_amount', 'sale_status')
         widgets = {'delivery_date': forms.DateInput(attrs={'type': 'date'})}
+
+    def clean(self):
+        # Reference client-script (07_Used_Vehicle_Sale.md): "Sale amount could't be
+        # less than Vehicle Value" -- ported here as a real server-side check.
+        cleaned_data = super().clean()
+        sale_amount = cleaned_data.get('sale_amount')
+        vehicle_value = cleaned_data.get('vehicle_value')
+        if sale_amount is not None and vehicle_value is not None and sale_amount < vehicle_value:
+            self.add_error('sale_amount', "Sale amount can't be less than Vehicle Value.")
+        return cleaned_data
 
 
 class UsedVehicleFittingForm(AccessibleFormMixin, forms.ModelForm):

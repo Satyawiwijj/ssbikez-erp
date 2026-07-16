@@ -103,6 +103,16 @@ class InvoiceItem(models.Model):
         return f"{self.item_code} — Rs.{self.total}"
 
     def save(self, *args, **kwargs):
+        # Defensive guard: rate/discount are blank=True DecimalFields with no
+        # null=True (so the DB column is NOT NULL), so a partially-filled
+        # invoice item row can reach here with either set to None
+        # (form-level clean_rate/clean_discount on InvoiceItemLineForm should
+        # already coerce blank -> 0, but guard here too in case any other
+        # caller constructs/saves an InvoiceItem directly with None).
+        if self.rate is None:
+            self.rate = 0
+        if self.discount is None:
+            self.discount = 0
         self.total = self.rate - self.discount
         super().save(*args, **kwargs)
 

@@ -201,7 +201,11 @@ class RCHandOver(DocStatusMixin, models.Model):
     sales_order      = models.ForeignKey('sales.VehicleSalesOrder', on_delete=models.PROTECT, related_name='rc_hand_overs')
     rc_book_received = models.CharField(max_length=5, choices=YesNo.choices, blank=True)
     noc              = models.CharField(max_length=5, choices=YesNo.choices, blank=True)
-    vehicle_received = models.BooleanField(default=False)
+    # Reference spec: 3-state Select (blank/Yes/No), same as rc_book_received/noc above --
+    # a plain BooleanField can never be made "required" in a ModelForm (Django always forces
+    # required=False for BooleanField, since an unchecked checkbox posts nothing), so it had
+    # no way to distinguish "not yet answered" from "answered No". Converted to match.
+    vehicle_received = models.CharField(max_length=5, choices=YesNo.choices, blank=True)
     year_of_make     = models.PositiveIntegerField(null=True, blank=True)
     hp_endorsement   = models.BooleanField(default=False)
     to_received      = models.BooleanField(default=False, verbose_name='T.O. Received')

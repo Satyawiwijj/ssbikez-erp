@@ -78,7 +78,7 @@
                 {% for f in formset %}
                 <tr class="formset-row">
                     <td>{{ f.item }}{{ f.id }}</td>
-                    <td>{{ f.quantity }}</td>
+                    <td>{{ f.quantity }}{% if f.quantity.errors %}<div class="form-error">{{ f.quantity.errors|join:", " }}</div>{% endif %}</td>
                     <td>{{ f.rate }}</td>
                     <td>{{ f.uom }}</td>
                     <td>{{ f.from_rack }}</td>

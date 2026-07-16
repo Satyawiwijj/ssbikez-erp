@@ -167,6 +167,24 @@ class UsedVehiclePurchaseOrder(DocStatusMixin, models.Model):
     def __str__(self):
         return self.po_number
 
+    def cancel(self, user):
+        # Phase-11 downstream-reference guard: don't let a PO be cancelled out from
+        # under a Receipt/Invoice that's already submitted against it.
+        submitted_receipt = self.receipts.filter(docstatus=UsedVehiclePurchaseReceipt.DocStatus.SUBMITTED).first()
+        if submitted_receipt:
+            raise ValueError(
+                f"Cannot cancel: a submitted Purchase Receipt ({submitted_receipt}) already references this Purchase Order."
+            )
+        submitted_invoice = UsedVehiclePurchaseInvoice.objects.filter(
+            purchase_receipt__purchase_order=self,
+            docstatus=UsedVehiclePurchaseInvoice.DocStatus.SUBMITTED,
+        ).first()
+        if submitted_invoice:
+            raise ValueError(
+                f"Cannot cancel: a submitted Purchase Invoice ({submitted_invoice}) already references this Purchase Order."
+            )
+        super().cancel(user)
+
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Used Vehicle Purchase Orders'
@@ -231,6 +249,15 @@ class UsedVehiclePurchaseReceipt(DocStatusMixin, models.Model):
     def __str__(self):
         return self.receipt_number
 
+    def cancel(self, user):
+        # Same class of downstream-reference guard as UsedVehiclePurchaseOrder.cancel().
+        submitted_invoice = self.invoices.filter(docstatus=UsedVehiclePurchaseInvoice.DocStatus.SUBMITTED).first()
+        if submitted_invoice:
+            raise ValueError(
+                f"Cannot cancel: a submitted Purchase Invoice ({submitted_invoice}) already references this Purchase Receipt."
+            )
+        super().cancel(user)
+
     class Meta:
         ordering = ['-created_at']
         verbose_name_plural = 'Used Vehicle Purchase Receipts'
@@ -281,6 +308,14 @@ class UsedVehiclePurchaseInvoice(DocStatusMixin, models.Model):
     required_date     = models.DateField(null=True, blank=True)
     branch            = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='used_vehicle_purchases')
     payment_type      = models.CharField(max_length=20, choices=PaymentType.choices, blank=True)
+    invoice_no        = models.CharField(max_length=100, blank=True, verbose_name='Invoice No',
+                                          help_text="Mandatory in the reference spec (06_Used_Vehicle_Purchase.md) -- the supplier's "
+                                                     "own invoice number, distinct from this record's auto-generated invoice_number. "
+                                                     "Left blank=True here for additive-migration safety; enforced required in the form.")
+    cash_account      = models.CharField(max_length=100, blank=True,
+                                          help_text='No Chart of Accounts model exists in Django -- free text, matching the '
+                                                     'from_account/to_account free-text fallback convention used elsewhere '
+                                                     '(e.g. UsedVehicleInsuranceUpdate)')
     invoice_date      = models.DateField()
     customer_name     = models.CharField(max_length=200, blank=True, help_text='For own-purchase (trade-in from a customer, not a supplier)')
     phone_number      = models.CharField(max_length=20, blank=True)
@@ -394,6 +429,46 @@ class UsedVehicleSale(DocStatusMixin, models.Model):
 
     def __str__(self):
         return f"{self.sale_number} | {self.customer} — {self.vehicle_number}"
+
+    def submit(self, user):
+        # Phase-11 stock-safety guard: the same physical vehicle must never be
+        # claimed by two different submitted Sales. A Sale can only be submitted
+        # while its vehicle is still Available; submitting it immediately reserves
+        # the vehicle (distinct from fully Sold, which only happens at Delivery
+        # submit -- see on_used_vehicle_delivered below), matching the existing
+        # convention of a stock guard raised as ValueError (vas.AMCPackage.submit()).
+        with transaction.atomic():
+            reg = UsedVehicleRegisterNo.objects.select_for_update().get(pk=self.vehicle_number_id)
+            if reg.stock_status != UsedVehicleRegisterNo.StockStatus.AVAILABLE:
+                raise ValueError(
+                    f"{reg.registration_no} is not available for sale "
+                    f"(current status: {reg.get_stock_status_display()})."
+                )
+            super().submit(user)
+            reg.stock_status = UsedVehicleRegisterNo.StockStatus.RESERVED
+            reg.save(update_fields=['stock_status'])
+
+    def cancel(self, user):
+        # Guard: block cancelling a Sale that already has a submitted Delivery
+        # against it (Phase-11 downstream-reference guard, same class of bug as
+        # UsedVehiclePurchaseOrder.cancel() below).
+        if hasattr(self, 'delivery') and self.delivery.docstatus == UsedVehicleDelivery.DocStatus.SUBMITTED:
+            raise ValueError(
+                f"Cannot cancel: a submitted Delivery ({self.delivery}) already references this Sale."
+            )
+        with transaction.atomic():
+            super().cancel(user)
+            # sale_status was left stale on cancel before this fix -- reflect the
+            # cancellation instead of leaving whatever booked/invoiced/delivered
+            # value it last had.
+            self.sale_status = self.SaleStatus.CANCELLED
+            self.save(update_fields=['sale_status'])
+            # Release the vehicle back to Available if this sale had reserved it
+            # (a cancelled Sale should never leave stock stuck as Reserved).
+            reg = self.vehicle_number
+            if reg.stock_status == UsedVehicleRegisterNo.StockStatus.RESERVED:
+                reg.stock_status = UsedVehicleRegisterNo.StockStatus.AVAILABLE
+                reg.save(update_fields=['stock_status'])
 
     class Meta:
         ordering = ['-created_at']
