@@ -270,6 +270,9 @@ class DeliveryCreateTests(TestCase):
         self.order = VehicleSalesOrder.objects.create(
             customer=customer, sales_executive=self.owner, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
         )
+        # Delivery can only be created against a Submitted order (fixed to reject
+        # Draft orders in the same session this test predates).
+        self.order.submit(self.owner)
 
     def _payload(self, **overrides):
         payload = {

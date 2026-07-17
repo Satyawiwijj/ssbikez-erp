@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Used Vehicle RC Book Issues — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle RC Book Issues{% endblock %}
+
+{% block topbar_actions %}
+<a href="{% url 'used_vehicles:rc_book_issue_create' %}" class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Create</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="table-wrapper">
+        <table class="table">
+            <thead><tr><th>Sale</th><th>RC Number</th><th>Issue Date</th><th>Status</th><th>Docstatus</th></tr></thead>
+            <tbody>
+                {% for i in issues %}
+                <tr>
+                    <td><a href="{% url 'used_vehicles:rc_book_issue_detail' pk=i.pk %}">{{ i.sale }}</a></td>
+                    <td>{{ i.rc_number|default:"—" }}</td>
+                    <td>{{ i.issue_date|date:"d M Y"|default:"—" }}</td>
+                    <td>{{ i.get_status_display }}</td>
+                    <td>
+                        {% if i.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif i.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="empty-state">No RC book issues yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% include 'partials/pagination.html' %}
+    </div>
+</div>
+{% endblock %}

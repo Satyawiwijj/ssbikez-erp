@@ -62,8 +62,19 @@ urlpatterns = [
     path('invoices/<int:pk>/md-approve/', views.invoice_md_approve, name='invoice_md_approve'),
 
     # RC Hand Over / RC Book Issue
+    path('rc-handover/', views.rc_handover_list, name='rc_handover_list'),
     path('rc-handover/create/', views.rc_handover_create, name='rc_handover_create'),
+    path('rc-handover/<int:pk>/', views.rc_handover_detail, name='rc_handover_detail'),
+    path('rc-handover/<int:pk>/submit/', views.rc_handover_submit, name='rc_handover_submit'),
+    path('rc-handover/<int:pk>/cancel/', views.rc_handover_cancel, name='rc_handover_cancel'),
+    path('rc-handover/<int:pk>/amend/', views.rc_handover_amend, name='rc_handover_amend'),
+
+    path('rc-book-issue/', views.rc_book_issue_list, name='rc_book_issue_list'),
     path('rc-book-issue/create/', views.rc_book_issue_create, name='rc_book_issue_create'),
+    path('rc-book-issue/<int:pk>/', views.rc_book_issue_detail, name='rc_book_issue_detail'),
+    path('rc-book-issue/<int:pk>/submit/', views.rc_book_issue_submit, name='rc_book_issue_submit'),
+    path('rc-book-issue/<int:pk>/cancel/', views.rc_book_issue_cancel, name='rc_book_issue_cancel'),
+    path('rc-book-issue/<int:pk>/amend/', views.rc_book_issue_amend, name='rc_book_issue_amend'),
 
     # Phase 3b — Job Card
     path('jobcards/', views.jobcard_list, name='jobcard_list'),

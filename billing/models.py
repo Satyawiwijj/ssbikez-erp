@@ -6,19 +6,40 @@ from django.db import models
 from accounts.models import DocStatusMixin
 
 
-def split_gst(gst_amount):
-    """Split a GST amount into (cgst, sgst) using the company's actual rates,
-    instead of assuming an even 50/50 split."""
+def split_gst(gst_amount, customer=None):
+    """Split a GST amount into (cgst, sgst, igst).
+
+    Interstate-aware: if `customer` is given and its `.state` is set and
+    differs (case-insensitively) from `CompanySettings.state`, this is an
+    interstate sale — the whole `gst_amount` goes to IGST and CGST/SGST are
+    both zero. Otherwise (customer is None, customer.state is blank, or it
+    matches the company's state) this is the pre-existing intrastate
+    behaviour: split across CGST/SGST using the company's actual rates
+    instead of assuming an even 50/50 split.
+
+    `customer` is optional and defaults to None so existing callers that
+    haven't been updated yet keep getting the old intrastate-only behaviour
+    (backward compatible) rather than breaking outright — but every call
+    site in this codebase has been updated to pass the customer through.
+    """
     from decimal import Decimal
     from accounts.models import CompanySettings
     settings_ = CompanySettings.get_instance()
+
+    if customer is not None:
+        customer_state = (getattr(customer, 'state', '') or '').strip()
+        company_state  = (settings_.state or '').strip()
+        if customer_state and company_state and customer_state.lower() != company_state.lower():
+            igst = gst_amount.quantize(Decimal('0.01'))
+            return Decimal('0.00'), Decimal('0.00'), igst
+
     rate_total = (settings_.cgst_rate or 0) + (settings_.sgst_rate or 0)
     if rate_total:
         cgst = (gst_amount * settings_.cgst_rate / rate_total).quantize(Decimal('0.01'))
         sgst = (gst_amount * settings_.sgst_rate / rate_total).quantize(Decimal('0.01'))
     else:
         cgst = sgst = (gst_amount / Decimal('2')).quantize(Decimal('0.01'))
-    return cgst, sgst
+    return cgst, sgst, Decimal('0.00')
 
 
 class Invoice(DocStatusMixin, models.Model):
@@ -79,6 +100,41 @@ class Invoice(DocStatusMixin, models.Model):
 
     def __str__(self):
         return f"{self.invoice_number} — Rs.{self.final_amount}"
+
+    def submit(self, user):
+        """Draft -> Submitted, then auto-post the sales-recognition entry to
+        the General Ledger. GL posting only happens on a *real* submit
+        (never for Draft/Cancelled invoices) because DocStatusMixin.submit()
+        itself raises ValueError unless docstatus is currently Draft."""
+        super().submit(user)
+        self.post_journal_entry(user)
+
+    def post_journal_entry(self, user=None):
+        """Auto-create the balanced JournalEntry for this invoice:
+        Dr Accounts Receivable / Cr Sales Revenue, both for final_amount.
+
+        Idempotency guard mirrors VASStockMovement's source_* OneToOneField
+        pattern in vas/models.py: JournalEntry.source_invoice is a OneToOne
+        back-reference, so `hasattr(self, 'journal_entry')` is True once a
+        line has been posted for this invoice, and a second call is a no-op.
+        Simplification: this posts subtotal/GST as a single lump sum against
+        two accounts rather than breaking GST out into its own GL line(s) —
+        deliberately kept simple per the brief.
+        """
+        if hasattr(self, 'journal_entry'):
+            return self.journal_entry
+        entry = JournalEntry.objects.create(
+            entry_date=self.invoice_date,
+            description=f'Auto-posted on submit: Sales Invoice {self.invoice_number}',
+            reference=self.invoice_number,
+            reference_doctype='billing.Invoice',
+            reference_docname=str(self.pk),
+            created_by=user,
+            source_invoice=self,
+        )
+        JournalEntryLine.objects.create(entry=entry, account='Accounts Receivable', debit=self.final_amount)
+        JournalEntryLine.objects.create(entry=entry, account='Sales Revenue', credit=self.final_amount)
+        return entry
 
 
 class InvoiceItem(models.Model):
@@ -157,6 +213,61 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"PAY-{self.pk} | {self.invoice.invoice_number} — {self.payment_method} Rs.{self.amount}"
+
+    def save(self, *args, **kwargs):
+        # Same is_new-then-super().save()-then-post-effects shape as
+        # VASStockMovement.save() in vas/models.py.
+        is_new = self._state.adding
+        super().save(*args, **kwargs)
+        if is_new and self.payment_status == self.PaymentStatus.COMPLETED:
+            self.post_journal_entry()
+
+    def post_journal_entry(self):
+        """Auto-create the balanced JournalEntry for this completed payment:
+        Dr Cash/Bank / Cr Accounts Receivable, both for `amount`.
+
+        Only fires for a Payment created already-COMPLETED (per the brief:
+        "on Payment create ... a completed payment"). A Payment that starts
+        Pending and is later marked Completed via the payment_reconciliation
+        bulk queryset .update() (billing/_gap14_31_views.py) does NOT go
+        through save() and so is NOT auto-posted -- a known gap, noted in
+        the report rather than silently patched over.
+
+        Account choice: 'Cash' for the Cash method, 'Bank' for every other
+        (electronic/instrument) method -- Card/UPI/NEFT/Cheque/blank -- since
+        none of those are physical cash into the till.
+
+        Idempotency guard: same source_* OneToOneField pattern as Invoice
+        (and as VASStockMovement in vas/models.py) via JournalEntry.source_payment.
+        """
+        if hasattr(self, 'journal_entry'):
+            return self.journal_entry
+        from django.utils import timezone
+        entry_date = timezone.now().date()
+        if self.payment_date:
+            if hasattr(self.payment_date, 'date'):
+                # A real datetime (the normal case via form-validated input).
+                entry_date = self.payment_date.date()
+            else:
+                # payment_date arrived as a plain string/date -- e.g. a direct
+                # Payment.objects.create(payment_date='2026-08-01', ...) call
+                # that bypassed form validation's datetime coercion.
+                from django.utils.dateparse import parse_date, parse_datetime
+                parsed = parse_datetime(str(self.payment_date)) or parse_date(str(self.payment_date))
+                if parsed:
+                    entry_date = parsed.date() if hasattr(parsed, 'date') else parsed
+        account = 'Cash' if self.payment_method == self.Method.CASH else 'Bank'
+        entry = JournalEntry.objects.create(
+            entry_date=entry_date,
+            description=f'Auto-posted on payment: {self.invoice.invoice_number}',
+            reference=self.transaction_reference or f'PAY-{self.pk}',
+            reference_doctype='billing.Payment',
+            reference_docname=str(self.pk),
+            source_payment=self,
+        )
+        JournalEntryLine.objects.create(entry=entry, account=account, debit=self.amount)
+        JournalEntryLine.objects.create(entry=entry, account='Accounts Receivable', credit=self.amount)
+        return entry
 
 
 class InsurancePolicy(models.Model):
@@ -318,6 +429,17 @@ class JournalEntry(models.Model):
     multi_currency      = models.BooleanField(default=False)
     created_by          = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True
+    )
+    # Idempotency links for auto-posted entries -- same OneToOneField
+    # "source_*" pattern VASStockMovement uses in vas/models.py
+    # (source_invoice_item / source_amc_package / ...) to guarantee a given
+    # source document posts at most one GL entry. NULL for manually-created
+    # journal entries (journal_entry_create view), which don't set these.
+    source_invoice      = models.OneToOneField(
+        'Invoice', on_delete=models.SET_NULL, null=True, blank=True, related_name='journal_entry'
+    )
+    source_payment       = models.OneToOneField(
+        'Payment', on_delete=models.SET_NULL, null=True, blank=True, related_name='journal_entry'
     )
     created_at          = models.DateTimeField(auto_now_add=True)
 

@@ -721,9 +721,18 @@ class UsedVehicleInvoiceItem(models.Model):
 # RC handover / issue
 # ---------------------------------------------------------------------------
 
-class UsedVehicleRCHandOver(models.Model):
+class UsedVehicleRCHandOver(DocStatusMixin, models.Model):
     """Reference: 'Used Vehicle RC Hand Over' -- tracks the original RC book
-    handover from the trade-in/previous owner side of the sale."""
+    handover from the trade-in/previous owner side of the sale.
+
+    Round-4 sweep: reference declares this is_submittable=1 (Draft/Submitted/
+    Cancelled + amended_from), matching the DocStatusMixin pattern already used
+    by the sibling Purchase Order/Receipt/Invoice/Sale/Delivery/Invoice docs in
+    this same file. `status` is kept unchanged as an independent sub-state field
+    (Pending/Handed Over describing the physical handover, same relationship as
+    UsedVehicleInvoice.status tracking payment independently of docstatus) --
+    docstatus is the new document lifecycle, not a replacement for it. No
+    _amend_reset_number_field: this doc has no auto-numbered field."""
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pending'
         HANDED_OVER = 'handed_over', 'Handed Over'
@@ -753,9 +762,12 @@ class UsedVehicleRCHandOver(models.Model):
         verbose_name_plural = 'Used Vehicle RC Hand Overs'
 
 
-class UsedVechileRCBookIssue(models.Model):
+class UsedVechileRCBookIssue(DocStatusMixin, models.Model):
     """Reference: 'Used Vechile RC Book Issue' (sic, reference's own spelling) --
-    tracks issuing the NEW RC book to the buyer after RTO transfer."""
+    tracks issuing the NEW RC book to the buyer after RTO transfer.
+
+    Round-4 sweep: same DocStatusMixin restructure as UsedVehicleRCHandOver above --
+    see that model's docstring for the status-vs-docstatus rationale."""
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pending'
         ISSUED  = 'issued',  'Issued'

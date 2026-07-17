@@ -633,14 +633,10 @@ def service_invoice_detail(request, pk):
     labor_charges   = invoice.job_card.labor_charges.all()
     spares_issues   = _spares_issued_for(invoice.job_card)
     outwork_entries = invoice.job_card.outwork_entries.all()
-    from accounts.models import CompanySettings
-    settings_ = CompanySettings.get_instance()
-    rate_total = (settings_.cgst_rate or 0) + (settings_.sgst_rate or 0)
-    if rate_total:
-        cgst_amount = (invoice.gst_amount * settings_.cgst_rate / rate_total).quantize(Decimal('0.01'))
-        sgst_amount = (invoice.gst_amount * settings_.sgst_rate / rate_total).quantize(Decimal('0.01'))
-    else:
-        cgst_amount = sgst_amount = (invoice.gst_amount / Decimal('2')).quantize(Decimal('0.01'))
+    from billing.models import split_gst
+    cgst_amount, sgst_amount, igst_amount = split_gst(
+        invoice.gst_amount, invoice.job_card.customer_vehicle.customer
+    )
     return render(request, 'service/service_invoice_detail.html', {
         'invoice':         invoice,
         'labor_charges':   labor_charges,
@@ -648,6 +644,8 @@ def service_invoice_detail(request, pk):
         'outwork_entries': outwork_entries,
         'cgst_amount':     cgst_amount,
         'sgst_amount':     sgst_amount,
+        'igst_amount':     igst_amount,
+        'is_interstate':   igst_amount > 0,
     })
 
 

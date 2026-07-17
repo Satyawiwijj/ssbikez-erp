@@ -23,6 +23,12 @@ class Customer(models.Model):
     phone        = models.CharField(max_length=15)
     email        = models.EmailField(blank=True, null=True)
     address      = models.TextField(blank=True, null=True)
+    # Free-text like the other address fields on this model (and on
+    # accounts.CompanySettings.state) -- no State master model in this
+    # codebase, so no FK/choices here either. Blank means "unknown" and is
+    # treated as intrastate (same state as the company) by billing.split_gst,
+    # which keeps every pre-existing Customer row backward compatible.
+    state        = models.CharField(max_length=100, blank=True)
     aadhaar_no   = models.CharField(max_length=20, blank=True, null=True)
     pan_no       = models.CharField(max_length=20, blank=True, null=True)
     gst_category = models.CharField(

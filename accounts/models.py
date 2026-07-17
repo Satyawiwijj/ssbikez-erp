@@ -177,6 +177,11 @@ class CompanySettings(models.Model):
     gst_rate      = models.DecimalField(max_digits=5, decimal_places=2, default=18)
     cgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
     sgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    # IGST applies instead of CGST+SGST for interstate sales (customer.state
+    # != CompanySettings.state). Defaults to cgst_rate + sgst_rate (9+9) so a
+    # freshly-migrated singleton stays consistent with the existing rates
+    # rather than silently being 0.
+    igst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=18)
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:

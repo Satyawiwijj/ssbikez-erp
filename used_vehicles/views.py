@@ -696,7 +696,27 @@ def invoice_md_approve(request, pk):
 
 # ---------------------------------------------------------------------------
 # RC Hand Over / RC Book Issue
+# Phase 13 — restructured onto DocStatusMixin (Draft/Submitted/Cancelled +
+# amend), matching the reference's is_submittable=1 on both. Follows the
+# same list/detail/submit/cancel/amend view shape as purchase_order_* above
+# and sales.dealer_rc_handover_* / rto.rc_book_issue_* (closest same-shaped
+# sibling docs elsewhere in this codebase). Created docs now land as Draft
+# and the create-flow redirects to the doc's own detail page (where Submit
+# lives) instead of straight back to sale_detail -- previously `status` was
+# the only state and could be set to its terminal value directly on create;
+# now that a real docstatus lifecycle exists, "handed over" / "issued" is
+# finalized via Submit, matching every sibling Submittable doc in this file.
 # ---------------------------------------------------------------------------
+
+@login_required
+def rc_handover_list(request):
+    qs = UsedVehicleRCHandOver.objects.select_related('sale').all()
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'used_vehicles/rc_handover_list.html', {
+        'handovers': page_obj, 'page_obj': page_obj,
+    })
+
 
 @login_required
 @require_module_action('used_vehicles', 'create')
@@ -709,8 +729,67 @@ def rc_handover_create(request):
         obj = form.save()
         log_action(request, 'Used Vehicle RC Hand Over', 'create', obj.pk)
         messages.success(request, 'RC Hand Over recorded.')
-        return redirect('used_vehicles:sale_detail', pk=obj.sale_id)
+        return redirect('used_vehicles:rc_handover_detail', pk=obj.pk)
     return render(request, 'used_vehicles/rc_handover_form.html', {'form': form, 'title': 'RC Hand Over'})
+
+
+@login_required
+def rc_handover_detail(request, pk):
+    obj = get_object_or_404(UsedVehicleRCHandOver, pk=pk)
+    return render(request, 'used_vehicles/rc_handover_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_handover_submit(request, pk):
+    obj = get_object_or_404(UsedVehicleRCHandOver, pk=pk)
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Used Vehicle RC Hand Over', 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_handover_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_handover_cancel(request, pk):
+    obj = get_object_or_404(UsedVehicleRCHandOver, pk=pk)
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Used Vehicle RC Hand Over', 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_handover_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_handover_amend(request, pk):
+    obj = get_object_or_404(UsedVehicleRCHandOver, pk=pk)
+    try:
+        new_obj = obj.amend()
+        log_action(request, 'Used Vehicle RC Hand Over', 'create', new_obj.pk)
+        messages.success(request, f'Amended as {new_obj}.')
+        return redirect('used_vehicles:rc_handover_detail', pk=new_obj.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_handover_detail', pk=pk)
+
+
+@login_required
+def rc_book_issue_list(request):
+    qs = UsedVechileRCBookIssue.objects.select_related('sale').all()
+    paginator = Paginator(qs, 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'used_vehicles/rc_book_issue_list.html', {
+        'issues': page_obj, 'page_obj': page_obj,
+    })
 
 
 @login_required
@@ -724,8 +803,57 @@ def rc_book_issue_create(request):
         obj = form.save()
         log_action(request, 'Used Vehicle RC Book Issue', 'create', obj.pk)
         messages.success(request, 'RC Book Issue recorded.')
-        return redirect('used_vehicles:sale_detail', pk=obj.sale_id)
+        return redirect('used_vehicles:rc_book_issue_detail', pk=obj.pk)
     return render(request, 'used_vehicles/rc_book_issue_form.html', {'form': form, 'title': 'RC Book Issue'})
+
+
+@login_required
+def rc_book_issue_detail(request, pk):
+    obj = get_object_or_404(UsedVechileRCBookIssue, pk=pk)
+    return render(request, 'used_vehicles/rc_book_issue_detail.html', {'obj': obj})
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_book_issue_submit(request, pk):
+    obj = get_object_or_404(UsedVechileRCBookIssue, pk=pk)
+    try:
+        obj.submit(request.user)
+        log_action(request, 'Used Vehicle RC Book Issue', 'update', pk)
+        messages.success(request, f'{obj} submitted.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_book_issue_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_book_issue_cancel(request, pk):
+    obj = get_object_or_404(UsedVechileRCBookIssue, pk=pk)
+    try:
+        obj.cancel(request.user)
+        log_action(request, 'Used Vehicle RC Book Issue', 'update', pk)
+        messages.success(request, f'{obj} cancelled.')
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_book_issue_detail', pk=pk)
+
+
+@login_required
+@require_POST
+@require_module_action('used_vehicles', 'edit')
+def rc_book_issue_amend(request, pk):
+    obj = get_object_or_404(UsedVechileRCBookIssue, pk=pk)
+    try:
+        new_obj = obj.amend()
+        log_action(request, 'Used Vehicle RC Book Issue', 'create', new_obj.pk)
+        messages.success(request, f'Amended as {new_obj}.')
+        return redirect('used_vehicles:rc_book_issue_detail', pk=new_obj.pk)
+    except ValueError as e:
+        messages.error(request, str(e))
+    return redirect('used_vehicles:rc_book_issue_detail', pk=pk)
 
 
 # ---------------------------------------------------------------------------

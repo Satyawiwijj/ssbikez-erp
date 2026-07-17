@@ -102,6 +102,7 @@ class RCHandOverCRUDTests(_TestCase):
     def test_create_then_detail_then_submit(self):
         response = self.client.post(_reverse('rto:rc_hand_over_create'), {
             'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': 'RCB-0001',
+            'noc': 'yes', 'vehicle_received': 'yes',
         })
         self.assertEqual(response.status_code, 302)
         handover = _RCHandOver.objects.get(sales_order=self.order)
@@ -129,10 +130,13 @@ class Form20CreationCRUDTests(_TestCase):
         self.user = _User.objects.create_superuser(username='f20_admin', email='f20admin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.order = _make_order('F20-1')
+        from rto.models import RegistrationArea
+        self.area = RegistrationArea.objects.create(name='F20 Test Area')
 
     def test_create_then_detail(self):
         response = self.client.post(_reverse('rto:form20_creation_create'), {
             'sales_order': self.order.pk, 'engine_no': 'ENF20001', 'frame_no': 'FRF20001', 'application_no': 'APP-0001',
+            'registration_area': self.area.pk,
         })
         self.assertEqual(response.status_code, 302)
         f20 = _Form20Creation.objects.get(sales_order=self.order)
@@ -149,10 +153,13 @@ class RegistrationNoCreationCRUDTests(_TestCase):
         self.user = _User.objects.create_superuser(username='regno_admin', email='regnoadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.order = _make_order('REGNO1')
+        from rto.models import RegistrationArea
+        self.area = RegistrationArea.objects.create(name='RegNo Test Area')
 
     def test_create(self):
         response = self.client.post(_reverse('rto:registration_no_creation_create'), {
             'sales_order': self.order.pk, 'reg_no': 'KA05REG0001', 'status': 'open',
+            'registration_area': self.area.pk,
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(_RegistrationNoCreation.objects.filter(sales_order=self.order).exists())

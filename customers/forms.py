@@ -10,7 +10,7 @@ from .models import BikeModel, Customer, VehicleStock, VehicleMasterSettings, Ve
 class CustomerForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = Customer
-        fields = ('full_name', 'phone', 'email', 'address', 'aadhaar_no', 'pan_no')
+        fields = ('full_name', 'phone', 'email', 'address', 'state', 'aadhaar_no', 'pan_no')
         widgets = {
             'address': forms.Textarea(attrs={'rows': 3}),
         }

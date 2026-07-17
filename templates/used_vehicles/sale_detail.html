@@ -98,12 +98,20 @@
                 </tr>
                 <tr>
                     <td>RC Hand Over</td>
-                    <td>{% for r in obj.rc_hand_overs.all %}{{ r.get_status_display }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
+                    <td>{% for r in obj.rc_hand_overs.all %}<a href="{% url 'used_vehicles:rc_handover_detail' pk=r.pk %}">{{ r.get_status_display }}</a>
+                        {% if r.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif r.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                        {% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
                     <td><a href="{% url 'used_vehicles:rc_handover_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
                 </tr>
                 <tr>
                     <td>RC Book Issue</td>
-                    <td>{% for r in obj.rc_book_issues.all %}{{ r.get_status_display }}{% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
+                    <td>{% for r in obj.rc_book_issues.all %}<a href="{% url 'used_vehicles:rc_book_issue_detail' pk=r.pk %}">{{ r.get_status_display }}</a>
+                        {% if r.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+                        {% elif r.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+                        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+                        {% if not forloop.last %}, {% endif %}{% empty %}<span class="text-muted">—</span>{% endfor %}</td>
                     <td><a href="{% url 'used_vehicles:rc_book_issue_create' %}?sale={{ obj.pk }}" class="btn btn-sm btn-outline-primary">+ Add</a></td>
                 </tr>
             </tbody>

@@ -300,8 +300,12 @@
         <th style="width:9%">HSN</th>
         <th style="width:4%" class="r">Qty</th>
         <th style="width:14%" class="r">Ex-Showroom (&#x20B9;)</th>
+        {% if is_interstate %}
+        <th style="width:24%" class="r">IGST (&#x20B9;)</th>
+        {% else %}
         <th style="width:12%" class="r">CGST 9% (&#x20B9;)</th>
         <th style="width:12%" class="r">SGST 9% (&#x20B9;)</th>
+        {% endif %}
         <th style="width:13%" class="r">Total (&#x20B9;)</th>
       </tr>
     </thead>
@@ -316,8 +320,12 @@
         <td class="r">{{ hsn_code }}</td>
         <td class="r">1</td>
         <td class="r">{{ invoice.subtotal }}</td>
+        {% if is_interstate %}
+        <td class="r">{{ igst_amount }}</td>
+        {% else %}
         <td class="r">{{ cgst_amount }}</td>
         <td class="r">{{ sgst_amount }}</td>
+        {% endif %}
         <td class="r"><strong>{{ invoice.final_amount }}</strong></td>
       </tr>
     </tbody>
@@ -325,8 +333,12 @@
       <tr>
         <td colspan="3" style="text-align:right; font-weight:600; color:#555;">Sub-Total</td>
         <td class="r">{{ invoice.subtotal }}</td>
+        {% if is_interstate %}
+        <td class="r">{{ igst_amount }}</td>
+        {% else %}
         <td class="r">{{ cgst_amount }}</td>
         <td class="r">{{ sgst_amount }}</td>
+        {% endif %}
         <td class="r">{{ invoice.final_amount }}</td>
       </tr>
     </tfoot>
@@ -343,6 +355,12 @@
         <div class="tot-lbl">Ex-Showroom Price</div>
         <div class="tot-val">&#x20B9;&nbsp;{{ invoice.subtotal }}</div>
       </div>
+      {% if is_interstate %}
+      <div class="tot-row">
+        <div class="tot-lbl">IGST</div>
+        <div class="tot-val">&#x20B9;&nbsp;{{ igst_amount }}</div>
+      </div>
+      {% else %}
       <div class="tot-row">
         <div class="tot-lbl">CGST</div>
         <div class="tot-val">&#x20B9;&nbsp;{{ cgst_amount }}</div>
@@ -351,6 +369,7 @@
         <div class="tot-lbl">SGST</div>
         <div class="tot-val">&#x20B9;&nbsp;{{ sgst_amount }}</div>
       </div>
+      {% endif %}
       {% if invoice.discount_amount %}
       <div class="tot-row disc">
         <div class="tot-lbl">Discount</div>

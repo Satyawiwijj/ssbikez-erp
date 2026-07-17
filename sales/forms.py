@@ -247,6 +247,11 @@ class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
                     phone=prospect.phone,
                     email=enquiry.email or '',
                     address=', '.join(address_parts),
+                    # Carry the enquiry's state through so the new Customer's
+                    # GST locality (used by billing.split_gst for CGST/SGST
+                    # vs. IGST) is populated instead of always defaulting to
+                    # blank/intrastate.
+                    state=enquiry.state or '',
                 )
             SalesEnquiry.objects.filter(pk=enquiry.pk).update(customer=customer)
             cleaned_data['customer'] = customer

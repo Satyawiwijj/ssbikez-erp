@@ -87,7 +87,7 @@ def invoice_detail(request, pk):
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0.00')
     balance    = invoice.final_amount - total_paid
     from .models import split_gst
-    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
+    cgst_amount, sgst_amount, igst_amount = split_gst(invoice.gst_amount, invoice.sales_order.customer)
     return render(request, 'billing/invoice_detail.html', {
         'invoice':     invoice,
         'payments':    payments,
@@ -95,6 +95,8 @@ def invoice_detail(request, pk):
         'balance':     balance,
         'cgst_amount': cgst_amount,
         'sgst_amount': sgst_amount,
+        'igst_amount': igst_amount,
+        'is_interstate': igst_amount > 0,
     })
 
 

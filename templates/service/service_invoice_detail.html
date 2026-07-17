@@ -125,6 +125,12 @@
             <dt>Subtotal</dt>
             <dd>₹ {{ invoice.subtotal }}</dd>
         </div>
+        {% if is_interstate %}
+        <div class="detail-row">
+            <dt>IGST</dt>
+            <dd>₹ {{ igst_amount }}</dd>
+        </div>
+        {% else %}
         <div class="detail-row">
             <dt>CGST</dt>
             <dd>₹ {{ cgst_amount }}</dd>
@@ -133,6 +139,7 @@
             <dt>SGST</dt>
             <dd>₹ {{ sgst_amount }}</dd>
         </div>
+        {% endif %}
         {% if invoice.discount_amount %}
         <div class="detail-row">
             <dt>Discount</dt>

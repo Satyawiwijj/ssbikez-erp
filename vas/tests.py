@@ -159,10 +159,12 @@ class AMCPackageCreateViewTests(TestCase):
         self.user = User.objects.create_superuser(username='amcview_admin', email='amcviewadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.customer_vehicle, _ = _make_customer_vehicle('AMCVIEW1')
+        self.amc_type = AMCType.objects.create(code='AMCVIEW-T', name='AMC View Test Type')
 
     def test_create(self):
         response = self.client.post(_reverse('vas:amc_create'), {
             'customer_vehicle': self.customer_vehicle.pk, 'status': 'active',
+            'amc_type': self.amc_type.pk, 'amount': '2500',
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(AMCPackage.objects.filter(customer_vehicle=self.customer_vehicle).exists())
@@ -187,9 +189,11 @@ class RSAPackageCreateViewTests(TestCase):
         self.user = User.objects.create_superuser(username='rsaview_admin', email='rsaviewadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.customer_vehicle, _ = _make_customer_vehicle('RSAVIEW1')
+        self.rsa_type = _RSAType.objects.create(code='RSAVIEW-T', name='RSA View Test Type')
 
     def test_create(self):
         response = self.client.post(_reverse('vas:rsa_create'), {
             'customer_vehicle': self.customer_vehicle.pk, 'status': 'active',
+            'rsa_type': self.rsa_type.pk, 'amount': '600',
         })
         self.assertEqual(response.status_code, 302)

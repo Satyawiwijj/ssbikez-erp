@@ -128,7 +128,7 @@ def invoice_pdf(request, pk):
     loan     = getattr(order, 'loan', None)
 
     from .models import split_gst
-    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
+    cgst_amount, sgst_amount, igst_amount = split_gst(invoice.gst_amount, order.customer)
 
     # Total paid breakdown
     from decimal import Decimal as D
@@ -148,6 +148,8 @@ def invoice_pdf(request, pk):
         'loan':          loan,
         'cgst_amount':   cgst_amount,
         'sgst_amount':   sgst_amount,
+        'igst_amount':   igst_amount,
+        'is_interstate': igst_amount > 0,
         'amount_words':  amount_in_words(invoice.final_amount),
         'total_paid':    total_paid,
         'balance':       balance,
@@ -193,7 +195,9 @@ def service_invoice_pdf(request, job_card_id):
     )
     outwork_entries = job_card.outwork_entries.all()
     from .models import split_gst
-    cgst_amount, sgst_amount = split_gst(invoice.gst_amount)
+    cgst_amount, sgst_amount, igst_amount = split_gst(
+        invoice.gst_amount, job_card.customer_vehicle.customer
+    )
 
     try:
         from accounts.models import CompanySettings
@@ -209,6 +213,8 @@ def service_invoice_pdf(request, job_card_id):
         'outwork_entries': outwork_entries,
         'cgst_amount':     cgst_amount,
         'sgst_amount':     sgst_amount,
+        'igst_amount':     igst_amount,
+        'is_interstate':   igst_amount > 0,
         'amount_words':    amount_in_words(invoice.final_amount),
         'company':         company,
     }

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}{{ obj }} — SSBikez ERP{% endblock %}
+{% block page_title %}Used Vehicle RC Book Issue{% endblock %}
+
+{% block topbar_actions %}
+{% if obj.docstatus == 0 %}
+<form method="post" action="{% url 'used_vehicles:rc_book_issue_submit' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Submit</button></form>
+{% elif obj.docstatus == 1 %}
+<form method="post" action="{% url 'used_vehicles:rc_book_issue_cancel' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-outline-danger"><i class="fas fa-ban me-1"></i>Cancel</button></form>
+{% elif obj.docstatus == 2 %}
+<form method="post" action="{% url 'used_vehicles:rc_book_issue_amend' obj.pk %}" style="display:inline;">{% csrf_token %}<button class="btn btn-sm btn-primary"><i class="fas fa-copy me-1"></i>Amend</button></form>
+{% endif %}
+<a href="{% url 'used_vehicles:sale_detail' pk=obj.sale_id %}" class="btn btn-sm btn-outline-secondary"><i class="fas fa-arrow-left me-1"></i>Back to Sale</a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <span class="card-title"><i class="fas fa-id-card me-2"></i>{{ obj }}</span>
+        {% if obj.docstatus == 0 %}<span class="badge badge-gray">Draft</span>
+        {% elif obj.docstatus == 1 %}<span class="badge badge-green">Submitted</span>
+        {% else %}<span class="badge badge-red">Cancelled</span>{% endif %}
+    </div>
+    <div class="table-wrapper">
+        <table class="table">
+            <tbody>
+                <tr><th>Sale</th><td><a href="{% url 'used_vehicles:sale_detail' pk=obj.sale_id %}">{{ obj.sale }}</a></td></tr>
+                <tr><th>RC Number</th><td>{{ obj.rc_number|default:"—" }}</td></tr>
+                <tr><th>Issue Date</th><td>{{ obj.issue_date|date:"d M Y"|default:"—" }}</td></tr>
+                <tr><th>Issued To</th><td>{{ obj.issued_to|default:"—" }}</td></tr>
+                <tr><th>Status</th><td>{{ obj.get_status_display }}</td></tr>
+                <tr><th>Notes</th><td>{{ obj.notes|default:"—" }}</td></tr>
+                {% if obj.amended_from %}<tr><th>Amended From</th><td><a href="{% url 'used_vehicles:rc_book_issue_detail' pk=obj.amended_from_id %}">{{ obj.amended_from }}</a></td></tr>{% endif %}
+                <tr><th>Created</th><td>{{ obj.created_at|date:"d M Y H:i" }}</td></tr>
+                {% if obj.submitted_at %}<tr><th>Submitted</th><td>{{ obj.submitted_at|date:"d M Y H:i" }} by {{ obj.submitted_by|default:"—" }}</td></tr>{% endif %}
+                {% if obj.cancelled_at %}<tr><th>Cancelled</th><td>{{ obj.cancelled_at|date:"d M Y H:i" }} by {{ obj.cancelled_by|default:"—" }}</td></tr>{% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

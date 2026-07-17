@@ -167,6 +167,14 @@
             </td>
         </tr>
 
+        {% if is_interstate %}
+        <tr>
+            <td>IGST</td>
+            <td class="text-right">
+                ₹ {{ igst_amount }}
+            </td>
+        </tr>
+        {% else %}
         <tr>
             <td>CGST</td>
             <td class="text-right">
@@ -180,6 +188,7 @@
                 ₹ {{ sgst_amount }}
             </td>
         </tr>
+        {% endif %}
 
         <tr>
             <td>Total GST</td>
@@ -200,8 +209,12 @@
     <tr><td>Outwork</td><td class="text-right">&#x20B9; {{ invoice.outwork_total }}</td></tr>
     {% endif %}
     <tr><td>Subtotal</td><td class="text-right">&#x20B9; {{ invoice.subtotal }}</td></tr>
+    {% if is_interstate %}
+    <tr><td>IGST</td><td class="text-right">&#x20B9; {{ igst_amount }}</td></tr>
+    {% else %}
     <tr><td>CGST</td><td class="text-right">&#x20B9; {{ cgst_amount }}</td></tr>
     <tr><td>SGST</td><td class="text-right">&#x20B9; {{ sgst_amount }}</td></tr>
+    {% endif %}
     {% if invoice.discount_amount %}
     <tr><td>Discount</td><td class="text-right" style="color:#DC2626;">— &#x20B9; {{ invoice.discount_amount }}</td></tr>
     {% endif %}
