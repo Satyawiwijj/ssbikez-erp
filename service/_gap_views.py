@@ -105,7 +105,15 @@ def jobcard_issue_spare(request, pk):
         sia.spares_total = (sia.spares_total or Decimal('0')) + item_total
         sia.total = (sia.total or Decimal('0')) + item_total
         sia.updated_total = sia.total
-        sia.save(update_fields=['spares_total', 'total', 'updated_total'])
+        # This quick-action already decrements StockLedger itself, below --
+        # mark the record submitted (with stock_posted already True) so
+        # ServiceInvoice.calculate_totals() picks it up (it only sums
+        # status='submitted' records), without also letting
+        # on_spares_issue_alteration_status_changed's post_save signal
+        # double-decrement the stock this view just adjusted manually.
+        sia.status = 'submitted'
+        sia.stock_posted = True
+        sia.save(update_fields=['spares_total', 'total', 'updated_total', 'status', 'stock_posted'])
 
         ledger = StockLedger.objects.filter(
             item=item, warehouse=warehouse, rack_id=rack_id or None, bin_id=bin_id or None,

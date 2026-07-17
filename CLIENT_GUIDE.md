@@ -252,8 +252,11 @@ The core flow: **Enquiry → Appointment → Feedback → Sales Order → Delive
   approval gates (Manager/Finance), and its own item/payment sub-tables. Submitting a Delivery
   automatically advances the parent Sales Order's status and creates the linked
   `CustomerVehicle` record that Service/RTO/VAS all depend on.
-- **Invoice**: GST auto-calculated from Company Settings' tax rate, split into CGST/SGST,
-  gated behind an MD-approval step before it can be submitted.
+- **Invoice**: GST auto-calculated from Company Settings' tax rate. If the customer's **State**
+  (set on their profile) differs from the company's own state, the full GST amount is charged as
+  **IGST** (interstate); otherwise it's split CGST/SGST as usual (intrastate) — a customer with no
+  state set falls back to the CGST/SGST split. Gated behind an MD-approval step before it can be
+  submitted.
 - **Exchange Vehicle / Dealer resale**: if a customer trades in a vehicle, `ExchangeVehicle`
   captures its details. If that traded-in vehicle is then resold wholesale to another dealer,
   the **Dealers** sub-module (`Dealer`, `Exchange Vehicle Dealer`, `Exchange Dealer Payment`,
@@ -278,6 +281,10 @@ Structurally mirrors the new-vehicle flow, but for pre-owned stock:
   reference system doesn't have one for used bikes).
 - **Insurance Update**: track purchasing/renewing insurance on a used-stock unit that currently
   has none or expired cover.
+- **RC Hand Over / RC Book Issue**: both follow the same real Draft → Submitted → Cancelled →
+  Amended lifecycle as every other document in this system — create as a Draft, click Submit to
+  lock it in with a proper audit trail (who/when), Cancel and Amend if a correction is needed
+  later, rather than just flipping a status flag with no history.
 - **Master Settings**: a batch intake screen — generate multiple chassis/registration rows at
   once instead of one at a time; submitting creates the real stock rows, skipping (not
   crashing on) any chassis number that already exists.
@@ -340,6 +347,15 @@ tracking), Finance Loans/EMI tracking, Insurance Policies, Journal Entries (real
 accounting with debit/credit line validation), and the Daily Collection / General Ledger
 reports. PDF generation (tax invoices, service invoices, payment receipts) uses `xhtml2pdf` —
 see the troubleshooting section if PDFs come back as plain HTML instead.
+
+**General Ledger auto-posting**: submitting an Invoice, or recording a completed Payment,
+automatically posts a balanced Journal Entry to the General Ledger — you don't need to
+hand-enter these as manual Journal Entries too. Two known, deliberate limitations: (1)
+cancelling an Invoice does **not** reverse its already-posted ledger entry — if you cancel an
+invoice that had a GL entry posted, add a manual correcting Journal Entry; (2) a Payment marked
+Completed via the bulk **Payment Reconciliation** screen (as opposed to being created
+already-Completed) does not auto-post — post that one manually too. Both are flagged here so
+they're a known workflow step, not a surprise.
 
 ### 6.8 Masters — shared reference data
 
@@ -420,7 +436,7 @@ simply retrying the create is safe and will succeed with the next number.
 
 ## 8. Testing & CI
 
-A real automated test suite (58 tests) covers the highest-risk parts of 10 of the 11 apps —
+A real automated test suite (138 tests) covers the highest-risk parts of all 11 apps —
 RBAC/permission enforcement, ownership checks, auto-numbering uniqueness, financial-validation
 rules, and the specific bugs found and fixed during development. Run it any time with:
 
@@ -443,11 +459,15 @@ workflow has been automatically verified.
 
 Recorded here plainly so nothing is a surprise later:
 
-- **Test coverage is targeted, not exhaustive.** 10 of 11 apps have real tests; `customer_vehicles`
-  (a small bridge app with no complex logic) does not yet.
+- **Test coverage is targeted, not exhaustive.** All 11 apps have real tests, but this is a
+  strong regression floor on the riskiest mechanisms — not a guarantee every workflow is
+  automatically verified (see section 8).
 - **Pagination**: most list pages load their full result set at once rather than paginating.
   Not a problem at today's data volumes; worth revisiting if any single list grows into the
   thousands of rows.
+- **GL auto-posting doesn't reverse on invoice cancel**, and a Payment completed via bulk
+  **Payment Reconciliation** doesn't auto-post its Journal Entry — both need a manual correcting
+  entry in that specific situation. See section 6.7 for the full explanation.
 - **Accessibility**: the large majority of WCAG issues found during an accessibility pass were
   fixed; one remaining item (table-row-stripe color contrast against link-blue text) is a
   deliberate, not-yet-made design trade-off, not an oversight.

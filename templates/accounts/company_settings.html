@@ -162,8 +162,9 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label" for="{{ form.igst_rate.id_for_label }}">IGST Rate (%)</label>
-                {{ form.igst_rate }}
+                <label class="form-label">IGST Rate (%)</label>
+                <input type="text" class="form-control" value="{{ form.instance.igst_rate }}" disabled>
+                <small class="text-muted">Computed as CGST + SGST — not independently editable (matches GST law: IGST is the same combined rate, just applied differently for interstate sales).</small>
             </div>
 
         </div>

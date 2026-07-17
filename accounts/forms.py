@@ -27,7 +27,7 @@ class CompanySettingsForm(AccessibleFormMixin, forms.ModelForm):
         fields = ('company_name', 'tagline', 'address_line1', 'address_line2',
                   'city', 'state', 'pincode', 'phone', 'email',
                   'gstin', 'pan_number', 'logo_url',
-                  'gst_rate', 'cgst_rate', 'sgst_rate', 'igst_rate')
+                  'gst_rate', 'cgst_rate', 'sgst_rate')
 
 
 class DiscountPercentageMasterForm(AccessibleFormMixin, forms.ModelForm):

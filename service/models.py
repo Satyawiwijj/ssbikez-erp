@@ -1,3 +1,4 @@
+import logging
 from decimal import Decimal
 
 from django.conf import settings
@@ -6,6 +7,8 @@ from django.db import models, transaction
 from django.db.models import Sum
 
 from accounts.models import DocStatusMixin
+
+logger = logging.getLogger(__name__)
 
 
 class ServiceEnquiry(models.Model):
@@ -278,18 +281,31 @@ class ServiceInvoice(models.Model):
                 or Decimal('0.00')
             )
         except Exception:
-            pass
+            logger.error(
+                'ServiceInvoice.calculate_totals(): failed to sum spares_total '
+                'for job_card=%s, defaulting to 0', self.job_card_id, exc_info=True
+            )
 
-        # Outwork total comes from submitted OutworkEntryReturn records (the
-        # real outwork workflow -- OutworkEntry is an orphaned legacy model
-        # that is never instantiated anywhere in the codebase and must not be
-        # read from here).
-        self.outwork_total = (
+        # Outwork total sums BOTH real outwork workflows this app has, not
+        # just one -- OutworkEntry is NOT orphaned (a prior version of this
+        # method assumed it was and dropped it entirely): it has its own
+        # live, routed create view (service:outwork_create) linked from
+        # jobcard_detail.html, and real job cards have real OutworkEntry.cost
+        # data recorded through it, alongside job cards that use the newer
+        # OutworkEntryIssue/OutworkEntryReturn docstatus-based pair. Summing
+        # only one source silently drops real outwork charges recorded
+        # through whichever workflow wasn't summed.
+        legacy_outwork_total = (
+            self.job_card.outwork_entries.aggregate(total=Sum('cost'))['total']
+            or Decimal('0.00')
+        )
+        returned_outwork_total = (
             self.job_card.outwork_returns.filter(
                 docstatus=OutworkEntryReturn.DocStatus.SUBMITTED
             ).aggregate(total=Sum('total'))['total']
             or Decimal('0.00')
         )
+        self.outwork_total = legacy_outwork_total + returned_outwork_total
 
         subtotal       = self.labor_total + self.spares_total + self.outwork_total
         self.subtotal  = subtotal
@@ -300,7 +316,10 @@ class ServiceInvoice(models.Model):
             from accounts.models import CompanySettings
             gst_rate = Decimal(str(CompanySettings.get_instance().gst_rate or 18))
         except Exception:
-            pass
+            logger.error(
+                'ServiceInvoice.calculate_totals(): failed to read gst_rate from '
+                'CompanySettings, defaulting to 18%%', exc_info=True
+            )
         self.gst_amount = (subtotal * gst_rate / Decimal('100')).quantize(Decimal('0.01'))
 
         # GAP 11: auto-apply ServiceDiscountMaster (if no manual discount)
@@ -316,7 +335,10 @@ class ServiceInvoice(models.Model):
                             subtotal * sdm.discount_percent / Decimal('100')
                         ).quantize(Decimal('0.01'))
             except Exception:
-                pass
+                logger.error(
+                    'ServiceInvoice.calculate_totals(): failed to auto-apply '
+                    'ServiceDiscountMaster for job_card=%s', self.job_card_id, exc_info=True
+                )
 
         self.final_amount = subtotal + self.gst_amount - (self.discount_amount or Decimal('0.00'))
         self.save(update_fields=[

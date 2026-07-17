@@ -210,15 +210,23 @@ PurchaseOrderTaxFormSet = inlineformset_factory(
 class PurchaseInvoiceForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model = PurchaseInvoice
+        # 'status' is deliberately excluded: PurchaseInvoiceItem.save() only
+        # credits StockLedger for items that are both new AND already
+        # status=='submitted' at save time. Letting this form set status
+        # directly (e.g. draft -> submitted on an edit) would flip the
+        # invoice to Submitted without ever re-crediting stock for its
+        # pre-existing items -- received goods silently missing from
+        # inventory. All status transitions must go through
+        # PurchaseInvoice.submit()/.cancel() (see invoice_submit/invoice_cancel
+        # views), which correctly credits/reverses every item.
         exclude = ['invoice_no', 'created_at', 'updated_at', 'created_by',
                    'total_quantity', 'total_amount', 'total_sgst', 'total_cgst',
-                   'total_taxes', 'grand_total', 'amended_from']
+                   'total_taxes', 'grand_total', 'amended_from', 'status']
         widgets = {
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'due_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'supplier': forms.Select(attrs={'class': 'form-select'}),
             'purchase_order': forms.Select(attrs={'class': 'form-select'}),
-            'status': forms.Select(attrs={'class': 'form-select'}),
             'supplier_gstin': forms.TextInput(attrs={'class': 'form-control'}),
             'gst_category': forms.TextInput(attrs={'class': 'form-control'}),
             'place_of_supply': forms.TextInput(attrs={'class': 'form-control'}),

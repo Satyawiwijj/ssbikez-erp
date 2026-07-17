@@ -321,6 +321,20 @@ class SalesFeedback(models.Model):
 class VehicleSalesOrder(DocStatusMixin, models.Model):
     _amend_reset_number_field = 'order_number'
 
+    def cancel(self, user):
+        # Guard: block cancelling an order that already has a submitted
+        # Delivery against it -- same class of downstream-reference guard as
+        # used_vehicles.UsedVehicleSale.cancel(). Without this, an order could
+        # flip to Cancelled (this diff's own sync_sales_status_on_order_cancel
+        # signal forces sales_status=Cancelled too) while a live, Submitted
+        # VehicleDelivery still points at it -- a contradictory state the
+        # used_vehicles equivalent relationship already prevents.
+        if self.deliveries.filter(docstatus=self.DocStatus.SUBMITTED).exists():
+            raise ValueError(
+                'Cannot cancel: a submitted Delivery already exists for this order.'
+            )
+        super().cancel(user)
+
     class SalesStatus(models.TextChoices):
         BOOKED    = 'booked',    'Booked'
         INVOICED  = 'invoiced',  'Invoiced'

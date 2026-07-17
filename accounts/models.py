@@ -177,11 +177,6 @@ class CompanySettings(models.Model):
     gst_rate      = models.DecimalField(max_digits=5, decimal_places=2, default=18)
     cgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
     sgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
-    # IGST applies instead of CGST+SGST for interstate sales (customer.state
-    # != CompanySettings.state). Defaults to cgst_rate + sgst_rate (9+9) so a
-    # freshly-migrated singleton stays consistent with the existing rates
-    # rather than silently being 0.
-    igst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=18)
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -190,6 +185,15 @@ class CompanySettings(models.Model):
 
     def __str__(self):
         return self.company_name
+
+    @property
+    def igst_rate(self):
+        # IGST applies instead of CGST+SGST for interstate sales (customer.state
+        # != CompanySettings.state). Per GST law, IGST is the same combined
+        # rate as CGST+SGST -- not an independently configurable rate -- so
+        # this is computed, not stored, and can never drift out of sync with
+        # cgst_rate/sgst_rate the way a separately-edited field could.
+        return (self.cgst_rate or 0) + (self.sgst_rate or 0)
 
     def save(self, *args, **kwargs):
         # Force singleton: always pk=1

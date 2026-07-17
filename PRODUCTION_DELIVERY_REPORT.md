@@ -172,3 +172,51 @@ Customer Vehicle is the record that ties a customer to the exact unit they bough
 This is why it's load-bearing in the system as it stands today — Service, VAS, RTO, and warranty tracking all read from it, and removing it would break that chain. If your workflow genuinely doesn't need post-sale vehicle tracking the way ours assumes, that's a scoping conversation worth having explicitly, rather than something to "fix" in code — happy to walk through it if useful.
 
 **How this was verified:** every fix above (including the items found and fixed during this round, like the leftover test data and the search UX bug) was confirmed against the live application and database, and the full regression suite — end-to-end workflow tests, feature tests, and the broader QA suite — was re-run clean after each change, with zero failures.
+
+---
+
+## 10. Response to a fresh, zero-context adversarial QA round + two new features
+
+This round used a different verification method than every one before it: instead of testing
+our own work, we ran independent tester agents with **zero prior context on this codebase** —
+they logged in fresh, read the reference ERP's spec documents themselves, and tried to break
+every module with real data, with no assumption that anything already worked. That found
+several real, previously-undetected bugs that all prior rounds (including the security audit in
+Section 3 and the visual QA in Section 6) had missed, because those rounds were checking "does
+this look right," not "does this actually enforce every business rule end to end." Every finding
+below was independently re-verified against the live code before being fixed (two of the
+tester's original findings turned out to be false positives on closer inspection and were
+correctly left alone, not "fixed").
+
+**Bugs found and fixed — ranked by real business impact:**
+
+| # | Issue | Fix |
+|---|---|---|
+| 1 | **The same used vehicle could be sold to two different customers.** Nothing checked whether a vehicle was already sold before letting a second Sale be created and submitted against it. | A vehicle is now reserved the moment its Sale is submitted (not just at delivery), and a second sale against an already-reserved/sold vehicle is blocked with a clear message. |
+| 2 | **Spares stock was never actually deducted or restored** by Counter Sale, Counter Sale Return, or Issue Alteration — the three most common day-to-day spares transactions. Selling 99,999 units of a 50-unit item succeeded with no warning. | All three now properly move real stock on submit/cancel, and a sale exceeding available stock is blocked. |
+| 3 | **Job Card creation was broken for every user** through the normal screen — a required field on the Chasis Details checklist had no way to be filled in, so every submission silently failed with no visible error. | Fixed the missing field, fixed a related "remove row" bug that left invisible broken rows behind, and made every checklist section on this form show its actual validation errors instead of failing silently. |
+| 4 | **Service Invoices were silently under-billing** — they were reading Outwork costs from an old, disconnected record type instead of the real one in use, and Spares costs were hardcoded to zero. A real job with ₹1,100 of Outwork work and Spares issued was being billed as if neither had happened. | Service Invoice totals now correctly include real Outwork and Spares costs. |
+| 5 | A GET request (just loading a page) was **silently creating a permanent Customer record** the moment a Sales Order create screen loaded for a walk-in enquiry, with less information than the enquiry actually had on file. | Moved this to only happen on an actual save, and it now carries over the customer's full details instead of just name and phone. |
+| 6 | Cancelling a submitted AMC/RSA/Protection Plus package **never returned its stock** — repeatedly cancelling and re-issuing the same plan slowly consumed stock that was never really used. | Cancel now correctly restores the stock it had consumed. |
+| 7 | A handful of smaller but real gaps: negative quantities/amounts accepted on several forms (Sales Order lines, Stock Transfer, Labor Charges), a blank invoice line item crashing the page instead of showing a validation message, Purchase Orders staying fully editable after being invoiced against (causing the two documents to silently disagree), Deliveries creatable against Sales Orders that were never actually confirmed, and a few RTO forms not enforcing fields the reference system requires. | All fixed individually; full list available on request. |
+
+**Two new capabilities added in this round**, since testing surfaced them as real, missing pieces
+of the reference ERP's behavior rather than bugs in existing code:
+
+- **Interstate GST (IGST)**: previously every sale was taxed as if it were always local
+  (CGST+SGST), with no way to charge IGST for an out-of-state customer. Customers now have a
+  State field, and the system automatically applies IGST instead of CGST/SGST when the
+  customer's state differs from the company's.
+- **General Ledger auto-posting**: submitting an Invoice, or recording a completed Payment, now
+  automatically posts the matching entry to the General Ledger — this previously had to be
+  entered by hand as a separate Journal Entry every time. Two known, deliberate limits on this
+  (documented in `CLIENT_GUIDE.md` section 6.7 and 9): cancelling an invoice doesn't reverse its
+  ledger entry, and a payment marked complete via the bulk Payment Reconciliation screen doesn't
+  auto-post — both need a manual correcting entry in that specific case.
+
+**How this was verified:** every fix was independently re-confirmed against the live database
+with real before/after values (not just "the form submits now") by an agent separate from the
+one that made the fix. The full automated test suite (138 tests, up from 58 at the start of this
+engagement) passes, and a full-application regression pass — every route in the system (585 of
+them) plus a real-browser pass over 417 pages — came back clean with zero new issues after all
+fixes landed.

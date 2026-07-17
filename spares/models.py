@@ -657,14 +657,18 @@ class CounterSaleReturnItem(models.Model):
 @receiver(post_save, sender=CounterSaleReturn)
 def on_counter_sale_return_status_changed(sender, instance, **kwargs):
     """A return gives stock back on submit; cancelling a submitted return
-    takes it back out. Uses return_qty (the actual quantity returned) and
-    falls back to the original sale quantity only if return_qty was left
-    at its default 0 (e.g. rows created before this field existed)."""
+    takes it back out. Always uses return_qty (the actual quantity returned)
+    directly -- a prior version fell back to the original sale quantity
+    whenever return_qty was 0, which incorrectly also fired for a
+    genuinely-zero return (e.g. a line kept on the return doc for record-
+    keeping but not actually returned), not just legacy pre-field rows.
+    Legacy rows were backfilled by migration 0015 so return_qty is now
+    always the real, trustworthy value."""
     if not instance.godown_id:
         return  # godown is optional on this model; nothing to post against
     if instance.status == 'submitted' and not instance.stock_posted:
         for line in instance.items.all():
-            qty = line.return_qty if line.return_qty else line.quantity
+            qty = line.return_qty
             ledger, _ = StockLedger.objects.get_or_create(
                 item=line.item, warehouse=instance.godown, rack=None, bin=None,
                 defaults={'quantity': 0},
@@ -674,7 +678,7 @@ def on_counter_sale_return_status_changed(sender, instance, **kwargs):
         instance.stock_posted = True
     elif instance.status == 'cancelled' and instance.stock_posted and not instance.stock_reversed:
         for line in instance.items.all():
-            qty = line.return_qty if line.return_qty else line.quantity
+            qty = line.return_qty
             ledger, _ = StockLedger.objects.get_or_create(
                 item=line.item, warehouse=instance.godown, rack=None, bin=None,
                 defaults={'quantity': 0},

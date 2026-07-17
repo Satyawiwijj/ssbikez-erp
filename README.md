@@ -66,8 +66,8 @@ ssbikez-erp/
 python manage.py test
 ```
 
-58 automated tests cover RBAC/permissions, ownership checks, and the specific bugs found and
-fixed during development, across 10 of the 11 apps. Runs automatically in CI on every push/PR.
+138 automated tests cover RBAC/permissions, ownership checks, and the specific bugs found and
+fixed during development, across all 11 apps. Runs automatically in CI on every push/PR.
 
 ## License
 
