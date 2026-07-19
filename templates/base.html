@@ -900,10 +900,16 @@ setInterval(loadNotificationCount, 60000);
     });
   });
 
-  // Prevent double-submit
+  // Prevent double-submit. A <button> with no explicit type="..." still
+  // submits its form by default HTML behavior, so it must be caught here
+  // too -- several templates (RC Hand Over/Book Issue/Sale Submit-Cancel-
+  // Amend buttons) rely on that default rather than writing type="submit"
+  // explicitly. button:not([type]) matches those; button[type="button"]/
+  // [type="reset"] (e.g. formset "Add row"/"Remove row" controls) are
+  // correctly excluded since they always set type explicitly.
   document.querySelectorAll('form').forEach(form => {
     form.addEventListener('submit', function () {
-      this.querySelectorAll('button[type="submit"]').forEach(btn => {
+      this.querySelectorAll('button[type="submit"], button:not([type])').forEach(btn => {
         btn.disabled = true;
         if (btn.textContent && !btn.textContent.includes('…')) btn.textContent = 'Saving…';
       });
