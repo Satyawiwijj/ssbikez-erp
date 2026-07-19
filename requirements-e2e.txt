@@ -1,0 +1,8 @@
+# E2E test-only dependency -- NOT part of the production runtime.
+# Install alongside requirements.txt to run the e2e/ suite locally or in CI:
+#
+#   pip install -r requirements.txt -r requirements-e2e.txt
+#   python -m playwright install chromium
+#   python manage.py test e2e
+#
+playwright==1.61.0
