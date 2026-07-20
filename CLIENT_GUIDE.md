@@ -352,10 +352,11 @@ see the troubleshooting section if PDFs come back as plain HTML instead.
 automatically posts a balanced Journal Entry to the General Ledger — you don't need to
 hand-enter these as manual Journal Entries too. Cancelling an Invoice now automatically posts a
 reversing Journal Entry for its already-posted ledger entry (swapped debit/credit, same
-accounts), so no manual correcting entry is needed for that case. One remaining known,
-deliberate limitation: a Payment marked Completed via the bulk **Payment Reconciliation** screen
-(as opposed to being created already-Completed) does not auto-post — post that one manually.
-Flagged here so it's a known workflow step, not a surprise.
+accounts), so no manual correcting entry is needed for that case. A Payment marked Completed via
+the bulk **Payment Reconciliation** screen now also auto-posts its Journal Entry the same way an
+individually-recorded Payment does — this was a gap until the 2026-07-20 parity audit found and
+closed it (see `docs/audit/DEVIATIONS.md`); no manual correcting entry is needed for this case
+either anymore.
 
 ### 6.8 Masters — shared reference data
 
@@ -465,9 +466,6 @@ Recorded here plainly so nothing is a surprise later:
 - **Pagination**: most list pages load their full result set at once rather than paginating.
   Not a problem at today's data volumes; worth revisiting if any single list grows into the
   thousands of rows.
-- **Payment completed via bulk Payment Reconciliation doesn't auto-post** its Journal Entry —
-  needs a manual correcting entry in that specific situation. See section 6.7 for the full
-  explanation.
 - **Accessibility**: the large majority of WCAG issues found during an accessibility pass were
   fixed; one remaining item (table-row-stripe color contrast against link-blue text) is a
   deliberate, not-yet-made design trade-off, not an oversight.
