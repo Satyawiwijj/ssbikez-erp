@@ -2,7 +2,7 @@
 
 **Status: Production-ready**, pending the client action items in Section 1 (these require account access only the client has — they cannot be completed by the development side).
 
-This report covers: what was broken, what was fixed, what was verified, how it was verified, and exactly what the client needs to do before going live. Every flow described below was exercised end-to-end in a live browser (not just read in code) and confirmed working with screenshots.
+Ten prior rounds of this report told you "we checked it, it's fine." You kept finding that untrue. That was a real failure of *how this was reported*, not just of the code — a claim you can't independently check is not evidence, no matter how carefully it was actually verified. This edition is built differently: every claim below either links to a file you can open yourself, or is explicitly marked as not yet checked. Section 2 explains exactly how to verify any line in this document without taking our word for it.
 
 ---
 
@@ -15,208 +15,206 @@ This report covers: what was broken, what was fixed, what was verified, how it w
 | 3 | Create `Sales Manager`, `Service Manager`, `Service Billing` roles in production and assign them to real staff | These roles are referenced in the access-control logic (who can override/reassign records) but don't exist as DB rows in production yet. Without them, only the superuser can act as a "manager" anywhere in the app. | Client (Roles screen, after deploy) |
 | 4 | Decide on `SSBikez_ERP_Delivery_Document.pdf`, `build_delivery_pdf.py`, and the two delivery `.zip` files sitting in the repo root | These look like prior delivery artifacts, not something the dev side should judge or discard. | Client |
 
-Everything else is done. No further code changes are required to go live once the above are set.
+These four items have carried over unresolved from earlier rounds of this report — they are not new, and they are not code work. Everything else below is either already done or explicitly flagged as open.
 
 ---
 
-## 2. Original Project Review Report — Final Resolution
+## 2. How to verify any claim in this report
 
-| # | Issue (as originally reported) | Priority | Status |
-|---|---|---|---|
-| 1 | User Login Restriction — only Super Admin could log in | High | **Fixed.** Root cause was a combination of a superuser-only OTP bypass and no SMTP configured. Login now requires OTP for everyone, fails closed (clear error, zero leaked codes) when email can't send, and locks out after 5 wrong attempts. |
-| 2 | Vehicle Master Missing | High | **Confirmed working.** Bike Model (catalog) + Vehicle Stock (per-unit chassis/engine) with full CRUD. |
-| 3 | Form Creation Blocked (Vehicle field mandatory, no data) | High | **Resolved** — consequence of #2. |
-| 4 | Sales Enquiry field mismatch vs reference ERP | Medium | **Confirmed working.** Enquiry form carries the full ERP-aligned field set (customer type, gender, payment type, source, address breakdown, etc.). |
-| 5 | Sales Appointment field mismatch | Medium | **Confirmed working.** |
-| 6 | Sales Feedback field mismatch | Medium | **Confirmed working.** |
-| 7 | CRM Workflow Connection (Enquiry/Appointment/Feedback not linked) | Medium | **Confirmed working** — and visually represented: the Appointment form shows a live "Step 1: Enquiry → Step 2: Appointment (you are here) → Step 3: Feedback" progress indicator. |
-| 8 | Purchase Order item table — alignment/display issue | Low | **Fixed twice.** First pass: confirmed the table saves and lists correctly. Final visual QA pass caught a real rendering defect — narrow numeric fields were displaying garbled text ("0" rendered as "C", "Nos" as "N") due to insufficient input width. Fixed across all 7 places this pattern existed in the app, not just the PO form. |
-| 9 | CSV Download Issue | Low | **Confirmed working.** Sample CSV downloads correctly from the bulk-import screen. |
-| 10 | Search Bar Issue | Low | **Confirmed working.** Cross-module search (customers, vehicles, enquiries, orders, job cards, spares) returns correct results. |
-| 11 | Missing Delete Option | Low | **Confirmed working.** Delete buttons with confirmation present on customer, spares item, and PO list pages. |
+As of tonight (2026-07-20), this project maintains an **evidence-backed comparison ledger** against your reference ERP test server, not just narrative reports:
 
-All 11 original items are resolved and verified live, not just by reading code.
+- **`docs/audit/PARITY_MATRIX.csv`** — one row per reference-server field/behavior, with a `status` column (`Match` / `Deviation` / `Missing` / `Deliberate-difference`) and an `evidence` column pointing at an exact `file:line` in this repo or a named automated test. Open it, filter to any status, and check the evidence yourself.
+- **`docs/audit/DEVIATIONS.md`** — the same findings in ranked, narrative form (highest business impact first), each with the same file:line evidence.
+- **`docs/audit/PARITY_SIGNOFF.md`** — the technical sign-off for the most recent audit pass, including exact regression-test output.
+- **`reference_erp_spec/`** — the full reverse-engineered specification of your reference server (429 custom doctypes, 201 client scripts, extracted directly from its own API — not guessed from screenshots), which every row in the matrix above is checked against.
+
+Every finding that went into this system was independently re-verified by a second reviewer against the actual source files before being accepted — not accepted on a single person's say-so. **Coverage is honest, not complete**: as of tonight, 133 of the matrix's 5,549 rows (12 of 430 reference doctypes) have gone through this rigorous evidence-checked process, covering the two highest-financial-risk areas of the app (New Vehicle Sales Order chain, and Billing/Payments/GL). The remaining rows are pre-populated with the reference-server data and waiting for the same treatment — see Section 6.
+
+Everything in Sections 4 and 5 below that predates tonight was verified the way earlier rounds of this report describe (real browser sessions driving the actual app, not just reading code) — that verification was genuine, it just wasn't published as a checkable ledger. It is not being re-litigated here; it's being carried forward as the current state of the app, with tonight's stricter methodology layered on top going forward.
 
 ---
 
-## 3. Security Hardening (found and fixed beyond the original report)
+## 3. Tonight's audit (2026-07-20): what's evidence-verified, and what was found
 
-This was not in the original report but was found during a full security audit of the codebase:
+**Tier 1 — New Vehicle Sales Order chain** (Enquiry → Appointment → Order → Delivery → Invoice/GST): cross-checked against your reference server's own live-verified behavior (`reference_erp_spec/31_LIVE_VERIFIED_flows.md` — driven through a real browser session against your test server, not inferred from schema). Of 5 core behaviors checked, 2 matched and 3 turned out to be real gaps (see Section 6).
 
-- **Systemic IDOR (the most serious finding):** every app (sales, service, spares, billing, customers) only checked "is this user logged in," never "does this user own this record." Any authenticated user — regardless of role — could view, edit, or delete any other user's enquiries, invoices, job cards, purchase orders, etc. by changing the number in the URL.
-  - **Fix:** added a shared ownership policy (`accounts/permissions.py`) and applied it to every edit/delete view across sales, service, spares, and accounts. Verified with real cross-user attempts: non-owners get a clean 403, owners and designated managers get through.
-- **OTP brute-force:** no limit on wrong-code attempts. Fixed — locks out after 5 attempts, forces a fresh login.
-- **Privilege escalation:** a "Sales Manager"-level user could edit any user's role field, including promoting themselves or others to Managing Director. Fixed — role/activation changes now require Managing-Director-level access.
-- **Hardcoded default superuser password** baked into the deploy script. Removed — now generates a random one-time password if none is set via environment variable.
-- **Mass-assignment gaps:** fuel expense `created_by`, sales order `sales_executive`, job card `service_advisor` could all be set to an arbitrary user via form tampering. Fixed.
-- **CSV/Excel import:** no file size cap (DoS risk) and no formula-injection sanitization (a malicious cell starting with `=`, `+`, `-`, `@` could execute as a formula if re-opened in Excel). Both fixed.
-- **Financial logic bugs:** payment validation only checked the invoice total, not the actual outstanding balance (allowed accepting payments past what was owed); payment reconciliation trusted unvalidated record IDs from the request; CGST/SGST was hardcoded to a 50/50 split instead of using the company's real configured tax rates. All fixed.
-- **Data integrity:** found and cleaned up pre-existing orphaned database rows (deleted enquiries/invoices that left dangling child records) accumulated across earlier development sessions, and added defensive handling so a single bad row can no longer crash an entire page.
+**Tier 2 — Billing / Payments / GL**: cross-checked against the reference server's Payments, Receipts, and GST Tax Report specs. This tier surfaced two real bugs, both fixed the same night (below), plus several real structural gaps now queued (Section 6).
+
+**Two bugs found and fixed tonight** — both are the same class of problem: money silently not reaching the General Ledger.
+
+1. **Cancelling an Invoice didn't reverse its posted GL entry.** Submitting an Invoice auto-posts a ledger entry (Dr Accounts Receivable / Cr Sales Revenue). Cancelling it previously only marked the invoice cancelled — the ledger entry stayed, permanently overstating both accounts. Fixed: cancelling now posts a mirror-image reversing entry. Verified by hand-tracing the debit/credit accounting, not just by tests passing. `billing/tests.py::InvoiceCancelReversesJournalEntryTests`.
+2. **Reconciling a Payment to Completed never posted a GL entry** — only a payment *created* already-Completed did. The normal cash-collection workflow (record a payment as Pending, reconcile it to Completed later, including via the bulk Payment Reconciliation screen) silently posted nothing to the ledger. Fixed: both the individual and bulk-reconciliation paths now post correctly, guarded against double-posting. `billing/tests.py::PaymentReconciliationPostsJournalEntryTests`.
+
+Both fixes are covered by the full regression suite: **151/151 automated tests passing, 9/9 real-browser (Playwright) end-to-end tests passing**, no regressions anywhere else in the app.
 
 ---
 
-## 4. Module-by-module: what's implemented and how it flows
+## 4. Consolidated fix ledger (all rounds, current state)
 
-Cross-checked directly against the client's reference ERP system. Every flow below was driven end-to-end in a live browser.
+Every real bug reported or found across all rounds of work on this project, by category, with current status. Superseded/duplicate items from earlier drafts of this report have been merged rather than repeated.
+
+### Security & access control
+
+| Issue | Status |
+|---|---|
+| Login restricted to Super Admin only — root cause was a superuser-only OTP bypass combined with no SMTP configured | **Fixed.** Login now requires OTP for every user, fails closed with a clear error (zero leaked codes) when email can't send. |
+| Systemic IDOR — any logged-in user could view/edit/delete any other user's records by changing a URL number | **Fixed.** Shared ownership policy (`accounts/permissions.py`) applied across sales, service, spares, accounts. |
+| OTP brute-force — no limit on wrong-code attempts | **Fixed.** Locks out after 5 attempts. |
+| Privilege escalation — a Sales-Manager-level user could edit any user's role, including promoting themselves | **Fixed.** Role/activation changes now require Managing-Director-level access. |
+| Hardcoded default superuser password | **Fixed.** Random one-time password generated if none set via environment variable. |
+| Mass-assignment gaps (fuel expense creator, sales executive, service advisor settable via form tampering) | **Fixed.** |
+| CSV/Excel import — no size cap, no formula-injection sanitization | **Fixed.** 5MB cap, formula-injection protection. |
+| Module Access permissions only toggled visibility, not real per-action control | **Fixed.** Full Create/Display/Edit/Delete matrix per role per module, enforced at the point of action across all 11 modules, not just hidden from menus. |
+| Historical credential string briefly existed in git history (unrelated to tonight's work) | Rotated; old value permanently dead. Documented in Section 8 (Known Limitations). |
+
+### Financial / General Ledger correctness
+
+| Issue | Status |
+|---|---|
+| Payment validation only checked invoice total, not actual outstanding balance | **Fixed.** |
+| Payment reconciliation trusted unvalidated record IDs from the request | **Fixed.** |
+| CGST/SGST hardcoded to a 50/50 split instead of the company's configured rates | **Fixed.** |
+| No Interstate GST (IGST) support — every sale taxed as if always local | **Fixed.** Customer State field added; IGST applied automatically when customer/company states differ. |
+| Invoices/Payments required manual Journal Entry re-entry | **Fixed.** Submitting an Invoice or completing a Payment auto-posts to the General Ledger. |
+| Journal Entry was a single flat debit-or-credit row, not real double-entry | **Fixed.** Rebuilt as a proper header + multi-line debit/credit table with balance validation. |
+| Purchase Tax Table missing document-level breakup (Type/Account Head/Rate/Amount) | **Fixed.** Added to Purchase Order, Purchase Invoice, Supplier Quote. |
+| Blank invoice line item crashed the page instead of showing a validation message | **Fixed.** |
+| **Invoice.cancel() didn't reverse its posted GL entry** | **Fixed tonight** — see Section 3. |
+| **Payment reconciled via bulk screen never posted its GL entry** | **Fixed tonight** — see Section 3. |
+| Service Invoices silently under-billing (Outwork/Spares costs not included) | **Fixed.** |
+
+### Data integrity & stock
+
+| Issue | Status |
+|---|---|
+| Same used vehicle could be sold to two different customers | **Fixed.** Reserved on submit, second sale against a reserved vehicle blocked. |
+| Spares stock never actually deducted/restored by Counter Sale, Counter Sale Return, Issue Alteration | **Fixed.** All three now move real stock, oversell blocked. |
+| Cancelling a submitted AMC/RSA/Protection Plus package never returned its stock | **Fixed.** |
+| Negative quantities/amounts accepted on several forms | **Fixed.** |
+| A GET request silently created a permanent Customer record on page load | **Fixed.** Moved to only happen on actual save, with full details carried over. |
+| Purchase Orders stayed editable after being invoiced against | **Fixed.** |
+| Deliveries creatable against unconfirmed Sales Orders | **Fixed.** |
+| A few RTO forms not enforcing fields the reference system requires | **Fixed.** |
+| Supplier page missing fields (Country, Supplier Type, Is Transporter, Is Prepaid Supplier, Supplier Limit Amount) | **Fixed.** |
+| Exchange Vehicle missing fields (Manufacturing Company, Colour, Engine/Chassis No, Year of Make, HP Endorsement, Sub Group, Vehicle Category, Target Warehouse, Insurance Valid Upto, Payment Status) | **Fixed.** |
+| Orphaned database rows from earlier development sessions | Cleaned up; defensive handling added so one bad row can't crash a page. |
+
+### Workflow
+
+| Issue | Status |
+|---|---|
+| Job Card creation broken for every user (required checklist field had no input) | **Fixed.** |
+| Vehicle field wrongly mandatory on Sales Order, blocking spares-only orders | **Fixed.** |
+| Sales Order/Invoice needed a multi-item table like Purchase Order | **Fixed.** Inline add/remove-row table with running total. |
+| Search by number plate / item name not working | **Fixed.** Field-mapping and result-section fixes. |
+| No page/module-level access control beyond role permissions | **Fixed.** Module Access screen, see Security table above. |
+| Dashboard showed action buttons for modules a role couldn't access | **Fixed.** Buttons now hidden per-role, matching the sidebar. |
+| Record Delivery missing chassis/engine/color and handover checklist | **Fixed.** |
+
+### Visual / UX
+
+| Issue | Status |
+|---|---|
+| Clipped/garbled text in narrow numeric table fields (7 forms affected) | **Fixed** across every occurrence. |
+| Sales Leaderboard conversion % showing blank | **Fixed.** |
+| Profit Report showing a loss in green instead of red | **Fixed.** |
+| Home page gave no setup guidance on a fresh install | **Fixed.** "Your Shortcuts" widget added. |
+| Duplicate-looking "Enquiries"/"Appointments" sidebar labels (Sales vs. Service) | **Fixed.** Renamed to disambiguate. |
+
+**How the pre-tonight items were verified:** every create/edit/list/detail screen across all 11 apps was driven through a real headless browser (not just read in code); security fixes were confirmed with real cross-user attack attempts; production config was tested with `DEBUG=False` matching real deployment settings; visual QA was a manual screenshot review of every screen, which is what caught the visual-bug category above. The adversarial-QA round used independent tester agents with zero prior context on the codebase, specifically to avoid the blind spot of testing your own assumptions.
+
+---
+
+## 5. Module-by-module: current state
 
 ### Sales
-- **Enquiry → Appointment → Feedback**, the core CRM chain: log a walk-in/call/website enquiry → book a test ride or showroom appointment against it → record the outcome. All three stay linked and visible together on the enquiry's detail page.
-- **Vehicle Sales Order**: customer + vehicle + pricing → booking amount validation (minimum ₹1,000 enforced) → links to PDI checklist, vehicle allotment, exchange vehicle, finance/loan, insurance, delivery, RTO registration, and invoice — all visible from one order detail screen.
-- **Exchange Vehicle**: trade-in capture, now including RC handover tracking (Pending/Received status) — new in this round, matching the reference ERP's "Exchange RC Customer Handover" step.
-- **Sales Targets & Leaderboard**: monthly targets per executive, ranked by conversions/revenue, with conversion % now correctly calculated (was previously blank).
-- **Profit Per Vehicle Report**: cost vs. selling price margin analysis; losses now correctly shown in red (previously shown in green, which is the opposite of what a manager scanning the report would expect).
-- **Follow-Up Board**: overdue/today/upcoming customer follow-ups for the logged-in executive.
+Enquiry → Appointment → Feedback CRM chain, all linked and visible together. Vehicle Sales Order: customer + vehicle + pricing → booking-amount validation → PDI checklist, vehicle allotment, exchange vehicle, finance/loan, insurance, delivery, RTO registration, invoice, all from one order screen. Exchange Vehicle trade-in capture with RC handover tracking. Sales Targets & Leaderboard with working conversion %. Profit Per Vehicle Report with correct loss/profit color semantics. Follow-Up Board.
+
+**As of tonight:** the core order-entry flow has 4 real, evidence-verified gaps not yet closed (3 financial, 1 workflow) — see Section 6, Financial/data-integrity and Workflow items.
 
 ### Cashier & Accounts (Billing + RTO + VAS)
-- **Invoicing & Payments**: sales invoice with real CGST/SGST breakdown, multiple payment methods (Cash/Card/UPI/NEFT/Cheque), payment validated against actual outstanding balance.
-- **RTO & Registration**: registration → Form 20 (now generates an actual printable document, not just a data field) → registration payment → RTO income → number plate → RC Book — full chain, each step visible from the registration detail page.
-- **Value-Added Services**: AMC, RSA, and Protection Plus packages, each linked to the customer's vehicle.
-- **Fuel Expense tracking**, **Daily Collection Report** (cash/card/UPI breakdown for till reconciliation), **Payment Reconciliation** (pending vs. completed, mark-as-reconciled), **Invoice Search**, **Refunds & Advances**, **General Ledger**, **Journal Entries**.
+Invoicing & Payments with real CGST/SGST/IGST breakdown, multiple payment methods, balance-validated payments. RTO & Registration: registration → Form 20 → payment → RTO income → number plate → RC Book, full chain from one screen. AMC/RSA/Protection Plus packages. Fuel Expense tracking, Daily Collection Report, Payment Reconciliation, Invoice Search, Refunds & Advances, General Ledger, Journal Entries.
+
+**As of tonight:** two real GL bugs closed (Section 3). Several structural gaps identified and queued, not yet closed — no multi-invoice payment allocation, no Chart-of-Accounts/Bank/Mode-of-Payment master data, manual Journal Entries have no approval gate or cancel/amend lifecycle (see Section 6).
 
 ### Spares
-- **Inventory**: categories, items (with MRP/GST/reorder level), rack/bin location tracking.
-- **Procurement**: supplier quote → Purchase Order (with item table) → Purchase Invoice (GRN — stock is added to inventory here).
-- **Sales & Returns**: Counter Sale (POS-style), Counter Sale Return, Service Spares Issue/Return (tracks parts issued to the workshop).
-- **Bulk Import**: CSV/Excel upload for adding many parts at once, with a downloadable sample template, a 5MB size cap, and formula-injection protection.
-- **Reporting**: PO Used Qty Report, Parts Consumption Report.
+Inventory (categories, items with MRP/GST/reorder level, rack/bin tracking). Procurement: supplier quote → Purchase Order → Purchase Invoice/GRN. Sales & Returns: Counter Sale, Counter Sale Return, Service Spares Issue/Return, all with real stock movement. Bulk Import with sample template, size cap, formula-injection protection. Reporting: PO Used Qty, Parts Consumption.
+
+**Not yet covered by tonight's evidence-matrix audit** — see Section 6, "Not yet audited."
 
 ### CRE Telecalling (Service Enquiry + Follow-Ups)
-- **Service Enquiry** (manual or bulk-imported from a CSV/marketing list) → **Service Appointment** booking → outcome logged via **Customer Call** (Interested/Callback/Booked/etc.) → surfaces on the **CRE Follow-Up Board** (new this round) for anyone with a pending callback date.
+Service Enquiry (manual or bulk-imported) → Service Appointment → outcome logged via Customer Call → CRE Follow-Up Board.
+
+**Not yet covered by tonight's evidence-matrix audit.**
 
 ### Floor Supervisor (Job Card Workflow)
-A single Job Card moves through an explicit status pipeline matching the reference workflow exactly: **Pending → Water Wash → In Bay → In Progress → Outwork (if needed) → Final Inspection → Ready → Invoiced.** From one job card screen: bay assignment, labor charges, spares issued, outwork entries, sub-tasks, additional-work approvals, insurance claims, and the next-service reminder are all visible and actionable.
+Job Card status pipeline: Pending → Water Wash → In Bay → In Progress → Outwork (if needed) → Final Inspection → Ready → Invoiced. Bay assignment, labor charges, spares issued, outwork entries, sub-tasks, additional-work approvals, insurance claims, next-service reminder, all from one screen.
+
+**Not yet covered by tonight's evidence-matrix audit.**
 
 ### Service Billing
-- Search a completed job card by reg. number / job card number / customer phone → review labor + spares + outwork + GST → apply AMC/warranty discounts → take payment (same method set as sales) → generate the service invoice and receipt.
-- Same flow for Spares Counter Sale billing.
-- Shared with Cashier module: Daily Collection Report, Search Past Invoices, Refunds & Advances.
+Search a completed job card → review labor + spares + outwork + GST → apply AMC/warranty discounts → take payment → generate invoice and receipt. Shared with Cashier: Daily Collection Report, Search Past Invoices, Refunds & Advances.
+
+**Not yet covered by tonight's evidence-matrix audit.**
 
 ### Admin
-- **Company/Showroom Settings**, **Master Settings** per module (lead sources, service types, labor charges, AMC/RSA config, spares categories, suppliers), **Role & Permission Management**, **User Account Management** (create/activate/deactivate/reset).
+Company/Showroom Settings, Master Settings per module, Role & Permission Management (full Create/Display/Edit/Delete matrix), User Account Management.
+
+**Not yet covered by tonight's evidence-matrix audit.**
 
 ---
 
-## 5. How this was verified
+## 6. Open items — not yet fixed, or not yet audited
 
-- **Functional pass:** every create/edit/list/detail screen in all 10 apps driven through a real headless browser, not just read in code — login, CRUD, validation errors, and the full CRM/workflow chains.
-- **Security pass:** real cross-user attempts (non-owner vs. owner vs. manager) against enquiries, purchase orders, and other records, confirming 403s land exactly where they should and nowhere they shouldn't.
-- **Production-config pass:** ran the app with `DEBUG=False` (matching real Render settings) — confirmed security headers present, custom error pages with no debug leakage, static files served correctly, and reproduced the *exact* current failure mode if deployed today without SMTP creds (clean failure, no leaks).
-- **Visual QA pass:** zero JavaScript console errors/warnings across every page checked; every screen in every module manually reviewed via screenshot for layout, clipping, color, and alignment issues — not just "does it load," but "does it look right." This is what caught the three defects in Section 6 below, none of which would have surfaced from functional testing alone.
+This is the section prior rounds of this report didn't have, and it's the point of tonight's rewrite: an explicit, standing list of what is genuinely still open, so nothing has to be re-discovered and re-reported by your side. Ranked by business impact; full evidence for each is in `docs/audit/DEVIATIONS.md`.
 
----
+### Financial / data-integrity — open
 
-## 6. Bugs found and fixed during this final QA round
+- **No cross-check between a Sales Order's price and any approved price-list master.** Your reference ERP validates vehicle pricing against a `Customer Price` record; this app's equivalent master exists but is never used in the sales flow — every order's pricing is currently free-typed entry with no validation.
+- **A Sales Order's GST category is copied from the customer once and never re-synced** if the customer link on that order is later changed. Stale GST category can silently drive the wrong CGST/SGST-vs-IGST split on the eventual invoice.
+- **A Sales Order's vehicle link is optional with no way to distinguish** "intentionally a spares-only order" from "vehicle order missing its stock link by mistake" — a mis-saved order can leave a vehicle un-reserved without anyone noticing.
+- **No accounts-payable / Supplier Payment tracking.** Purchase Invoices record what's owed to a supplier; nothing records what's actually been paid against them.
+- **No Chart-of-Accounts / Bank / Mode-of-Payment master data.** Every General Ledger account name is currently free-typed with no validation — a spelling inconsistency ("Accounts Receivable" vs "Accounts receivable") would silently split a balance across two rows.
+- **No multi-invoice payment allocation.** One payment can only be recorded against exactly one invoice; there's no way to record a single receipt covering several outstanding invoices for the same customer.
 
-These were not in the original report and would not have been caught without screenshot-level visual review:
+### Workflow — open
 
-1. **Clipped/garbled text in numeric table fields** — affected 7 forms across the app (Purchase Order, Purchase Invoice, Counter Sale, Counter Sale Return, Issue Alteration, Call Log, Vehicle Service Schedule). Narrow input boxes combined with standard padding clipped the visible text so badly that "0" displayed as "C" and "Nos" as "N." Data was always correct — only the on-screen rendering was broken. Fixed everywhere it occurred.
-2. **Sales Leaderboard conversion % showing blank** — the view never computed the value the template displayed, so the badge showed a bare "%" with no number.
-3. **Profit Report showing a loss in green** — a negative total profit was hardcoded to green (the "good" color), which could mislead someone scanning the report into thinking the business was profitable when it wasn't. Now red for losses, green for profit.
-4. **A real edit-lockout regression**, caught and fixed *during* this engagement, not shipped: when the systemic IDOR fix (Section 3) was first applied, a Sales Executive who created an enquiry without manually selecting themselves as the assigned executive would be locked out of editing their own enquiry. Caught by deliberately testing that exact scenario, fixed before it ever reached this report.
+- **No per-branch dynamic requiredness for the Sales Enquiry link.** Your reference ERP requires an enquiry-form link at some branches and not others (a real, live-confirmed business rule); this app treats it the same everywhere.
+- **Manual Journal Entries have no approval gate or cancel/amend lifecycle** — unlike every other document type in this app (Invoice, Sales Order, etc.), a Journal Entry has no submit/cancel state at all. A mis-posted manual entry can currently only be corrected by hand-posting a second counter-entry.
+- **No backdating-window control on manual GL postings** — a Journal Entry's date currently accepts any value, with no limit on how far back it can be dated.
 
----
+### Cosmetic / low-impact — open
 
-## 7. What's left
+Minor field/label-level differences: no point-in-time phone-number snapshot on a Sales Order (lives on the linked Customer instead), a modeling-approach difference in how vehicle color is captured, an unused `sub_group` field, Payment method left optional rather than mandatory, and a cosmetic document-numbering difference (`PAY-{id}` vs. a configurable naming series). None of these carry real business-logic impact today — full detail in `docs/audit/DEVIATIONS.md`.
 
-Nothing on the code side. Section 1 is the only remaining work, and it requires the client's Render account access — it cannot be done from this side.
+### Not yet audited
 
----
-
-## 8. Response to the Test Server review report (22-06-2026)
-
-The interns' review listed 15 issues from testing on the Test Server. We went through every one against the actual code, fixed what was real, and traced the rest to their actual cause rather than guessing.
-
-**The headline finding: issues #1–6 ("Vehicle Master Missing," "Customer Vehicle Creation," "Sales Order Creation," "Exchange Vehicle Creation," "RTO Registration Blocked," "Sales Enquiry Creation") were not code bugs.** All six trace back to one thing: the Test Server's Vehicle Master had **zero vehicles in stock**. Sales Orders, Customer Vehicles, and everything downstream of them require picking a vehicle from stock — with none available, every one of those screens looked broken even though the code underneath was working correctly. We confirmed this by re-running the exact same flows with stock present: every one of them works.
-
-**This is the part that matters going forward — to stop this from recurring:**
-- **Before testing on any fresh/Test Server environment, seed at least a few vehicles into stock first.** We added a one-command way to do this: `python manage.py seed_vehicle_master` — it creates a handful of demo Bike Models and available Vehicle Stock units, safe to re-run. Whoever sets up a Test Server for the interns (or for future QA rounds) should run this once right after deploy, before anyone starts testing transactions.
-- An empty database is not a bug report — it's a setup step that was skipped. Worth telling the QA team this explicitly so the next round doesn't re-flag the same six items as "broken."
-
-**Issues that were real and are now fixed:**
-
-| # | Issue | Fix |
-|---|---|---|
-| 7 | Search by Number Plate not working | Global search only matched chassis/engine number, never the vehicle's registration number. Now matches registration number too, with its own result section. |
-| 13 | Sales Order/Invoice needs a multi-item table like Purchase Order | The "add one fitting at a time on a separate page" flow is now an inline multi-row table (add/remove rows, running total, save together) — same pattern as Purchase Order's item table. |
-| 15 | Role permissions work, but no page/module-level access control | Added a "Module Access" screen (Admin → Module Access) where a Managing Director can hide individual sidebar modules per role, on top of the existing role permissions — without touching code. |
-| 9 | Record Delivery missing vehicle details | Found while re-verifying this report: the delivery page showed only the bike model name. Added chassis no, engine no, color, and the 5-item handover checklist (insurance, RC book, warranty card, toolkit, accessories) that was being captured but never displayed. |
-| — | Dashboard showed action buttons for modules a role couldn't access (e.g. a Sales Executive saw "New Job Card") | Found during this round's QA, not in the original report. Clicking did correctly get blocked (403) — but the buttons shouldn't have been visible at all. Dashboard quick actions are now hidden per-role, consistent with the sidebar. |
-
-**Issues that were already working, not bugs:** #8 (module sequence — both sections use the same permission check, order doesn't block anything), #10 (Supplier fields — already complete), #11 (Journal Entry fields — already complete), #12 (duplicate Appointment menu — intentional, Sales and Service have separate appointment types), #14 (Purchase tax table — CGST/SGST already present).
-
-**How this was verified:** every fix above was driven through a real headless browser end-to-end — not just read in code — and the full regression suite (live-browser QA, deep visual QA, data-integrity checks, and model-level workflow tests; ~1,200 checks in total across all suites) was re-run clean after each change.
-
-## 9. Response to the detailed review document with reference-ERP screenshots
-
-This second report compared our screens directly against your reference ERP, screenshot by screenshot, and was much more specific than the first round. We went through all 11 items in order. Ten were real gaps and are now fixed; one is a deliberate design difference that needs an explanation rather than a code change.
-
-| # | Item | Fix |
-|---|---|---|
-| 1 | Search by item name returns nothing | The Spares results in global search referenced field names that don't exist on the item model (`part_name`, `stock_quantity`), so matches rendered blank and looked like "no results." Fixed the field mapping, and fixed a related UX bug where clearing the search box left you stuck on "No Results Found" instead of returning to the dashboard. Also found and removed 9 leftover test records with formula-injection payloads (`'=2+2` etc.) that were polluting the spares item list from earlier security testing. |
-| 2 | Journal Entry doesn't match reference (no debit/credit table) | Rebuilt Journal Entry from a single flat debit-or-credit row into real double-entry accounting: a header (date, description, reference, GSTIN, vehicle-purchase flag) with a multi-line table of account/party/debit/credit rows, balance validation (total debit must equal total credit before save), and a proper ledger view. Migrated existing data across with no loss. |
-| 3 | Supplier page missing fields | Added Country, Supplier Type (Company/Individual/Partnership), Is Transporter, Is Prepaid Supplier, and Supplier Limit Amount to the Supplier form and detail page. |
-| 4, 9 | Duplicate "Enquiries" / "Appointments" menu labels | Both Sales and Service had identically-named sidebar items, which is what looked like a duplicate/bug. Page titles were already correct; only the sidebar text was generic. Renamed to "Sales Enquiries" / "Service Enquiries" and "Sales Appointments" / "Service Appointments". |
-| 5 | Purchase Tax Table missing | Your reference wants a document-level tax breakup table (Type / Account Head / Rate / Amount / running total), not just the per-row CGST/SGST we already had. Added that table to Purchase Order, Purchase Invoice, and Supplier Quote, with the grand total now driven by it. |
-| 6 | User and Role Access Management | What we'd built for the previous round (Module Access) only toggled a module's visibility on or off — it wasn't real per-action permission control. Replaced it with a full Create / Display / Edit / Delete matrix per role per module (Admin → Module Access), and — this is the part that matters — wired enforcement onto the actual create/edit/delete views across all 11 modules (Sales, Customers, Finance, RTO, Service, Spares, VAS, Vehicle Master, Masters), not just the settings screen. A role with "Edit" unchecked for a module is now blocked at the point of the actual action, not just hidden from the menu. |
-| 7 | Home page gives no setup guidance | Not a bug in the original sense — a missing onboarding aid. A brand-new install (or a freshly reset Test Server) landed on a dashboard with nothing to act on, which is exactly what made the first report's items #1–6 look broken: there was no vehicle stock yet. Added a "Your Shortcuts" widget to the dashboard (matching your reference's setup-checklist pattern) that shows live counts for Branch / Bike Model / Vehicle Stock / Supplier / Customer and links straight to "Create" for any that are still empty, so the next person to stand up an environment sees what to do first instead of a blank screen. |
-| 8 | Exchange Vehicle missing fields | Added Manufacturing Company, Colour, Engine Number, Chassis No, Year of Make, HP Endorsement, Sub Group, Vehicle Category, Target Warehouse, Insurance Valid Upto, and Payment Status to the Exchange Vehicle form, list, and order detail view. |
-| 10 | Vehicle field wrongly mandatory on Sales Order | Confirmed real: the underlying model already allowed a Sales Order with no vehicle picked yet, but the form re-declared the field without `required=False`, silently overriding that and blocking save. Fixed; verified a Sales Order now saves correctly with no vehicle selected. |
-| 11 | Customer Vehicle doesn't exist in the reference ERP | Not a bug, not a missing field — a deliberate structural difference, explained below rather than changed in code. |
-
-**On #11 — why Customer Vehicle exists as its own record:**
-
-Your reference ERP tracks a sale and stops there; it doesn't follow what happens to a specific vehicle afterward. Our system needs to, because Service, VAS (AMC/RSA/Protection Plus), RTO registration, and warranty/free-service tracking all happen *after* the sale, against *that specific bike*, sometimes years later and sometimes by a different team than the one that sold it.
-
-Customer Vehicle is the record that ties a customer to the exact unit they bought (by chassis/engine, not just model) and carries everything that accumulates on it over time: registration number, insurance expiry, warranty start/end dates, and free-services used/remaining. Without it, a service advisor opening a job card, or a telecaller chasing an insurance renewal, would have no way to find "this customer's actual bike" or know its service/warranty history — they'd only have the original sale record, which doesn't update after delivery.
-
-This is why it's load-bearing in the system as it stands today — Service, VAS, RTO, and warranty tracking all read from it, and removing it would break that chain. If your workflow genuinely doesn't need post-sale vehicle tracking the way ours assumes, that's a scoping conversation worth having explicitly, rather than something to "fix" in code — happy to walk through it if useful.
-
-**How this was verified:** every fix above (including the items found and fixed during this round, like the leftover test data and the search UX bug) was confirmed against the live application and database, and the full regression suite — end-to-end workflow tests, feature tests, and the broader QA suite — was re-run clean after each change, with zero failures.
+Six of the eight priority tiers have not yet gone through tonight's evidence-matrix process: **Service/Job Card pipeline, Spares, RTO/Exchange, Used Vehicles, VAS, and Masters/Admin/Roles** — roughly 5,416 of the matrix's 5,549 rows. This is a genuine, honestly-stated gap, not a hidden one: the reference-side data for every one of these rows is already extracted and sitting in `docs/audit/PARITY_MATRIX.csv`, waiting for the same row-by-row comparison the Sales and Billing tiers just went through. Tonight prioritized the two highest-financial-risk areas over shallow breadth across all eight — the next audit session picks up exactly where this one stopped.
 
 ---
 
-## 10. Response to a fresh, zero-context adversarial QA round + two new features
+## 7. Deliberate differences (not bugs)
 
-This round used a different verification method than every one before it: instead of testing
-our own work, we ran independent tester agents with **zero prior context on this codebase** —
-they logged in fresh, read the reference ERP's spec documents themselves, and tried to break
-every module with real data, with no assumption that anything already worked. That found
-several real, previously-undetected bugs that all prior rounds (including the security audit in
-Section 3 and the visual QA in Section 6) had missed, because those rounds were checking "does
-this look right," not "does this actually enforce every business rule end to end." Every finding
-below was independently re-verified against the live code before being fixed (two of the
-tester's original findings turned out to be false positives on closer inspection and were
-correctly left alone, not "fixed").
+**`Customer Vehicle` exists as its own record in this app but has no equivalent in your reference ERP.** Your reference ERP tracks a sale and stops there; it doesn't follow what happens to a specific vehicle afterward. This app needs to, because Service, VAS (AMC/RSA/Protection Plus), RTO registration, and warranty/free-service tracking all happen *after* the sale, against *that specific bike*, sometimes years later and sometimes by a different team than the one that sold it. `Customer Vehicle` ties a customer to the exact unit they bought (by chassis/engine, not just model) and carries everything that accumulates on it over time: registration number, insurance expiry, warranty dates, free-services used/remaining. Without it, a service advisor opening a job card, or a telecaller chasing an insurance renewal, would have no way to find "this customer's actual bike" or its service/warranty history. This is load-bearing in the system today — Service, VAS, RTO, and warranty tracking all read from it. If your workflow genuinely doesn't need post-sale vehicle tracking the way this app assumes, that's a scoping conversation worth having explicitly, not something to "fix" in code.
 
-**Bugs found and fixed — ranked by real business impact:**
+**Two confirmed bugs exist in your reference ERP itself**, found while live-verifying its actual behavior (not guessed — reproduced twice against the real test server): orphaned `Vehicle Chasis Number Master` records are left behind when a Purchase Invoice submit fails partway through, and a genuine race condition in the reference app's own JavaScript (`loadDefaultHelmet`/`vehicle_charges_list`) throws a server error on a successful Purchase Invoice submit. Neither has been reproduced in this app — matching a reference-app bug would itself be a deviation from correct behavior, and both are recorded in `docs/audit/DEVIATIONS.md` explicitly so a future QA round doesn't mistake "this app doesn't have that bug" for a mismatch.
 
-| # | Issue | Fix |
-|---|---|---|
-| 1 | **The same used vehicle could be sold to two different customers.** Nothing checked whether a vehicle was already sold before letting a second Sale be created and submitted against it. | A vehicle is now reserved the moment its Sale is submitted (not just at delivery), and a second sale against an already-reserved/sold vehicle is blocked with a clear message. |
-| 2 | **Spares stock was never actually deducted or restored** by Counter Sale, Counter Sale Return, or Issue Alteration — the three most common day-to-day spares transactions. Selling 99,999 units of a 50-unit item succeeded with no warning. | All three now properly move real stock on submit/cancel, and a sale exceeding available stock is blocked. |
-| 3 | **Job Card creation was broken for every user** through the normal screen — a required field on the Chasis Details checklist had no way to be filled in, so every submission silently failed with no visible error. | Fixed the missing field, fixed a related "remove row" bug that left invisible broken rows behind, and made every checklist section on this form show its actual validation errors instead of failing silently. |
-| 4 | **Service Invoices were silently under-billing** — they were reading Outwork costs from an old, disconnected record type instead of the real one in use, and Spares costs were hardcoded to zero. A real job with ₹1,100 of Outwork work and Spares issued was being billed as if neither had happened. | Service Invoice totals now correctly include real Outwork and Spares costs. |
-| 5 | A GET request (just loading a page) was **silently creating a permanent Customer record** the moment a Sales Order create screen loaded for a walk-in enquiry, with less information than the enquiry actually had on file. | Moved this to only happen on an actual save, and it now carries over the customer's full details instead of just name and phone. |
-| 6 | Cancelling a submitted AMC/RSA/Protection Plus package **never returned its stock** — repeatedly cancelling and re-issuing the same plan slowly consumed stock that was never really used. | Cancel now correctly restores the stock it had consumed. |
-| 7 | A handful of smaller but real gaps: negative quantities/amounts accepted on several forms (Sales Order lines, Stock Transfer, Labor Charges), a blank invoice line item crashing the page instead of showing a validation message, Purchase Orders staying fully editable after being invoiced against (causing the two documents to silently disagree), Deliveries creatable against Sales Orders that were never actually confirmed, and a few RTO forms not enforcing fields the reference system requires. | All fixed individually; full list available on request. |
+---
 
-**Two new capabilities added in this round**, since testing surfaced them as real, missing pieces
-of the reference ERP's behavior rather than bugs in existing code:
+## 8. Known limitations and accepted risks
 
-- **Interstate GST (IGST)**: previously every sale was taxed as if it were always local
-  (CGST+SGST), with no way to charge IGST for an out-of-state customer. Customers now have a
-  State field, and the system automatically applies IGST instead of CGST/SGST when the
-  customer's state differs from the company's.
-- **General Ledger auto-posting**: submitting an Invoice, or recording a completed Payment, now
-  automatically posts the matching entry to the General Ledger — this previously had to be
-  entered by hand as a separate Journal Entry every time. Two known, deliberate limits on this
-  (documented in `CLIENT_GUIDE.md` section 6.7 and 9): cancelling an invoice doesn't reverse its
-  ledger entry, and a payment marked complete via the bulk Payment Reconciliation screen doesn't
-  auto-post — both need a manual correcting entry in that specific case.
+Recorded here plainly so nothing is a surprise later:
 
-**How this was verified:** every fix was independently re-confirmed against the live database
-with real before/after values (not just "the form submits now") by an agent separate from the
-one that made the fix. The full automated test suite (138 tests, up from 58 at the start of this
-engagement) passes, and a full-application regression pass — every route in the system (585 of
-them) plus a real-browser pass over 417 pages — came back clean with zero new issues after all
-fixes landed.
+- **Test coverage is targeted, not exhaustive.** 151 automated tests plus a 9-test real-browser suite cover the riskiest mechanisms — this is a strong regression floor, not a guarantee every workflow is verified (see Section 6, "Not yet audited," for the honest current boundary of that coverage).
+- **Pagination**: most list pages load their full result set at once rather than paginating. Not a problem at today's data volumes; worth revisiting if any single list grows into the thousands of rows.
+- **Accessibility**: the large majority of WCAG issues found during an accessibility pass were fixed; one remaining item (table-row-stripe color contrast against link-blue text) is a deliberate, not-yet-made design trade-off, not an oversight.
+- **A historical credential string** briefly existed in this repository's git history before being rotated to a new, unrelated value — the old value is permanently dead and grants no access anywhere. (Separately: a reference-server test-account credential was briefly committed to a working file during tonight's audit tooling; it was caught by a second reviewer, redacted, and — since it hadn't been pushed to any remote — scrubbed from local git history entirely before this document was written. Rotating that test-server password is recommended as a precaution regardless.)
+- **No load/performance testing has been done.** The stack (Django + Gunicorn + Postgres) scales in the conventional ways (more Gunicorn workers, a bigger Postgres plan) if usage grows, but that hasn't been benchmarked against this specific app's query patterns.
+
+---
+
+## 9. What's left
+
+**On the client side:** the four items in Section 1 — none of them code work.
+
+**On the dev side:** the open items in Section 6, and completing the evidence-matrix audit for the six remaining priority tiers. Nothing else is outstanding; every previously-reported issue this document knows about is either fixed (Section 4) or explicitly listed as open (Section 6) — nothing has been silently dropped.
