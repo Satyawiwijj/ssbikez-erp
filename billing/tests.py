@@ -194,6 +194,51 @@ class JournalEntryCreateTests(_TestCase):
         self.assertFalse(JournalEntry.objects.filter(description='Unbalanced entry').exists())
 
 
+class InvoiceCancelReversesJournalEntryTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(
+            username='cancel_admin', email='canceladmin@example.com', password='Test-Pass-123!'
+        )
+        from billing.models import Invoice
+        order = _make_order('CANCELJE1')
+        self.invoice = Invoice.objects.create(
+            sales_order=order, invoice_number='CANCEL-INV-0001',
+            subtotal=_Decimal('50000'), final_amount=_Decimal('50000'),
+            invoice_date='2026-08-01',
+        )
+
+    def test_cancel_posts_a_reversing_journal_entry(self):
+        self.invoice.submit(self.user)
+        original_entry = self.invoice.journal_entry
+        self.assertEqual(original_entry.total_debit, _Decimal('50000.00'))
+
+        self.invoice.cancel(self.user)
+
+        from billing.models import JournalEntry
+        reversal = JournalEntry.objects.filter(
+            reference_doctype='billing.Invoice',
+            reference_docname=str(self.invoice.pk),
+        ).exclude(pk=original_entry.pk).first()
+        self.assertIsNotNone(reversal, 'Expected a reversing JournalEntry after cancel')
+        self.assertEqual(reversal.lines.get(account='Accounts Receivable').credit, _Decimal('50000.00'))
+        self.assertEqual(reversal.lines.get(account='Sales Revenue').debit, _Decimal('50000.00'))
+
+    def test_cancel_twice_does_not_double_reverse(self):
+        self.invoice.submit(self.user)
+        self.invoice.cancel(self.user)
+        from billing.models import JournalEntry
+        count_after_first_cancel = JournalEntry.objects.filter(
+            reference_doctype='billing.Invoice', reference_docname=str(self.invoice.pk),
+        ).count()
+        with self.assertRaises(ValueError):
+            self.invoice.cancel(self.user)  # DocStatusMixin.cancel already guards non-Submitted state
+        count_after_second_attempt = JournalEntry.objects.filter(
+            reference_doctype='billing.Invoice', reference_docname=str(self.invoice.pk),
+        ).count()
+        self.assertEqual(count_after_first_cancel, count_after_second_attempt)
+
+
 class RefundAdvanceCreateTests(_TestCase):
 
     def setUp(self):

@@ -109,6 +109,17 @@ class Invoice(DocStatusMixin, models.Model):
         super().submit(user)
         self.post_journal_entry(user)
 
+    def cancel(self, user):
+        """Submitted -> Cancelled, then reverse the GL entry this invoice
+        posted on submit (if any). Without this, a cancelled invoice leaves
+        its Accounts Receivable/Sales Revenue entries live forever, silently
+        overstating both — an accounting-correctness gap independent of
+        reference-server parity, previously accepted as a known limitation
+        (see CLIENT_GUIDE.md, Known limitations). Idempotent the same way
+        post_journal_entry is: reverse_journal_entry no-ops if already run."""
+        super().cancel(user)
+        self.reverse_journal_entry(user)
+
     def post_journal_entry(self, user=None):
         """Auto-create the balanced JournalEntry for this invoice:
         Dr Accounts Receivable / Cr Sales Revenue, both for final_amount.
@@ -134,6 +145,47 @@ class Invoice(DocStatusMixin, models.Model):
         )
         JournalEntryLine.objects.create(entry=entry, account='Accounts Receivable', debit=self.final_amount)
         JournalEntryLine.objects.create(entry=entry, account='Sales Revenue', credit=self.final_amount)
+        return entry
+
+    # Marker written to JournalEntry.reference_number on a reversal entry so
+    # it can be told apart from the original post_journal_entry entry even
+    # though both share reference_doctype='billing.Invoice' and the same
+    # reference_docname (the original never sets reference_number).
+    _REVERSAL_REFERENCE_NUMBER = 'CANCEL-REVERSAL'
+
+    def reverse_journal_entry(self, user=None):
+        """Post the mirror-image JournalEntry of post_journal_entry's
+        Dr Accounts Receivable / Cr Sales Revenue, net-zeroing this
+        invoice's GL impact on cancel. Tagged with the same
+        reference_doctype/reference_docname as the original entry (so both
+        show up together against this invoice in the GL); idempotency uses
+        reference_number as a distinguishing marker instead, since an
+        Invoice can only be cancelled once — DocStatusMixin.cancel already
+        raises ValueError on a second call — but this guard keeps
+        reverse_journal_entry safe to call standalone, e.g. from a future
+        data-fix script."""
+        if not hasattr(self, 'journal_entry'):
+            return None
+        if JournalEntry.objects.filter(
+            reference_doctype='billing.Invoice', reference_docname=str(self.pk),
+            reference_number=self._REVERSAL_REFERENCE_NUMBER,
+        ).exists():
+            return None
+        original = self.journal_entry
+        entry = JournalEntry.objects.create(
+            entry_date=self.cancelled_at.date() if self.cancelled_at else self.invoice_date,
+            description=f'Reversal on cancel: Sales Invoice {self.invoice_number}',
+            reference=self.invoice_number,
+            reference_doctype='billing.Invoice',
+            reference_docname=str(self.pk),
+            reference_number=self._REVERSAL_REFERENCE_NUMBER,
+            created_by=user,
+        )
+        for line in original.lines.all():
+            JournalEntryLine.objects.create(
+                entry=entry, account=line.account,
+                debit=line.credit, credit=line.debit,
+            )
         return entry
 
 

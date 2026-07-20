@@ -350,12 +350,12 @@ see the troubleshooting section if PDFs come back as plain HTML instead.
 
 **General Ledger auto-posting**: submitting an Invoice, or recording a completed Payment,
 automatically posts a balanced Journal Entry to the General Ledger — you don't need to
-hand-enter these as manual Journal Entries too. Two known, deliberate limitations: (1)
-cancelling an Invoice does **not** reverse its already-posted ledger entry — if you cancel an
-invoice that had a GL entry posted, add a manual correcting Journal Entry; (2) a Payment marked
-Completed via the bulk **Payment Reconciliation** screen (as opposed to being created
-already-Completed) does not auto-post — post that one manually too. Both are flagged here so
-they're a known workflow step, not a surprise.
+hand-enter these as manual Journal Entries too. Cancelling an Invoice now automatically posts a
+reversing Journal Entry for its already-posted ledger entry (swapped debit/credit, same
+accounts), so no manual correcting entry is needed for that case. One remaining known,
+deliberate limitation: a Payment marked Completed via the bulk **Payment Reconciliation** screen
+(as opposed to being created already-Completed) does not auto-post — post that one manually.
+Flagged here so it's a known workflow step, not a surprise.
 
 ### 6.8 Masters — shared reference data
 
@@ -465,9 +465,9 @@ Recorded here plainly so nothing is a surprise later:
 - **Pagination**: most list pages load their full result set at once rather than paginating.
   Not a problem at today's data volumes; worth revisiting if any single list grows into the
   thousands of rows.
-- **GL auto-posting doesn't reverse on invoice cancel**, and a Payment completed via bulk
-  **Payment Reconciliation** doesn't auto-post its Journal Entry — both need a manual correcting
-  entry in that specific situation. See section 6.7 for the full explanation.
+- **Payment completed via bulk Payment Reconciliation doesn't auto-post** its Journal Entry —
+  needs a manual correcting entry in that specific situation. See section 6.7 for the full
+  explanation.
 - **Accessibility**: the large majority of WCAG issues found during an accessibility pass were
   fixed; one remaining item (table-row-stripe color contrast against link-blue text) is a
   deliberate, not-yet-made design trade-off, not an oversight.
