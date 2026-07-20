@@ -2692,14 +2692,14 @@ Ssbikez,New Vehicle Sales Invoice,status,Data,no,Status,,,,,
 Ssbikez,New Vehicle Sales Invoice,ledger_voucher_no,Link,no,Ledger Voucher No,,,,,
 Ssbikez,New Vehicle Sales Order,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,New Vehicle Sales Order,company,Link,no,Company,,,,,
-Ssbikez,New Vehicle Sales Order,customer,Link,yes,Customer,,,,,
-Ssbikez,New Vehicle Sales Order,phone_number,Data,yes,Phone Number,,,,,
+Ssbikez,New Vehicle Sales Order,customer,Link,yes,Customer,sales,VehicleSalesOrder,customer,Deviation,sales/models.py:466-468
+Ssbikez,New Vehicle Sales Order,phone_number,Data,yes,Phone Number,sales,VehicleSalesOrder,(none),Missing,sales/models.py:352-464 (no phone_number field on VehicleSalesOrder)
 Ssbikez,New Vehicle Sales Order,insurance_name,Link,no,Insurance Name,,,,,
 Ssbikez,New Vehicle Sales Order,sales_finance_id,Link,no,Sales Finance Id,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_n2fud,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,branch,Link,yes,Branch,,,,,
-Ssbikez,New Vehicle Sales Order,gst_category,Data,yes,GST Category,,,,,
-Ssbikez,New Vehicle Sales Order,sales_enquiry_form,Link,no,Sales Enquiry Form,,,,,
+Ssbikez,New Vehicle Sales Order,gst_category,Data,yes,GST Category,sales,VehicleSalesOrder,gst_category,Deviation,sales/models.py:466-468; sales/forms.py:186
+Ssbikez,New Vehicle Sales Order,sales_enquiry_form,Link,no,Sales Enquiry Form,sales,VehicleSalesOrder,enquiry,Missing,sales/models.py:352-357; accounts/models.py:93-106 (no Branch.allow_without_enquiry_form)
 Ssbikez,New Vehicle Sales Order,column_break_4zw5o,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,delivery_date,Date,yes,Delivery Date,,,,,
 Ssbikez,New Vehicle Sales Order,order_form_id,Link,no,Order Form ID,,,,,
@@ -2724,7 +2724,7 @@ Ssbikez,New Vehicle Sales Order,finance_closing,Select,no,Finance Closing,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_8jvtk,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,exchange_amount,Currency,no,Exchange Amount,,,,,
 Ssbikez,New Vehicle Sales Order,section_break_ff6dj,Section Break,no,,,,,,
-Ssbikez,New Vehicle Sales Order,items,Table,no,Items,,,,,
+Ssbikez,New Vehicle Sales Order,items,Table,no,Items,sales,VehicleSaleItem,items (related_name),Match,sales/models.py:1024-1045 (VehicleSaleItem is a distinct child table from vehicle selection); sales/views.py:601-616
 Ssbikez,New Vehicle Sales Order,section_break_futi,Section Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,temp_charges_applied,Check,no,Temp Charges Applied,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_jblk,Column Break,no,,,,,,
@@ -2744,7 +2744,7 @@ Ssbikez,New Vehicle Sales Order,advance_payment,Currency,no,Advance Payment,,,,,
 Ssbikez,New Vehicle Sales Order,additional_discount_amount_company_currency,Currency,no,Additional Discount Amount (Currency),,,,,
 Ssbikez,New Vehicle Sales Order,payment_reference,Data,no,Payment Reference,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_jrjje,Column Break,no,,,,,,
-Ssbikez,New Vehicle Sales Order,total,Currency,no,Total,,,,,
+Ssbikez,New Vehicle Sales Order,total,Currency,no,Total,sales,VehicleSalesOrder,total_amount,Match,"sales/forms.py:190 (total_amount is directly editable, not computed); sales/views.py:601-616 (items_formset saved independently, no auto-sum)"
 Ssbikez,New Vehicle Sales Order,number_plate_amount,Currency,yes,Number Plate Amount,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_zhkxx,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,balance_payment,Currency,no,Balance Payment,,,,,
@@ -5358,12 +5358,12 @@ Ssbikez,Vehicle Fittings,column_break_xtmi,Column Break,no,,,,,,
 Ssbikez,Vehicle Fittings,updated_total,Currency,no,Updated Total,,,,,
 Ssbikez,Vehicle Fittings,submit_status,Check,no,Submit Status,,,,,
 Ssbikez,Vehicle Fittings,sales_order,Data,no,Sales Order,,,,,
-Ssbikez,Vehicle List,vehicle_code,Link,yes,Vehicle Code,,,,,
+Ssbikez,Vehicle List,vehicle_code,Link,yes,Vehicle Code,sales,VehicleSalesOrder,vehicle,Deviation,sales/models.py:363-368; customers/models.py:81-106
 Ssbikez,Vehicle List,vehicle_name,Data,yes,Vehicle Name,,,,,
 Ssbikez,Vehicle List,quantity,Int,yes,Quantity,,,,,
-Ssbikez,Vehicle List,sub_group,Link,no,Sub Group,,,,,
-Ssbikez,Vehicle List,vehicle_color,Link,yes,Vehicle Color,,,,,
-Ssbikez,Vehicle List,price_lists,Link,yes,Price Lists,,,,,
+Ssbikez,Vehicle List,sub_group,Link,no,Sub Group,customers,VehicleStock,(none),Missing,customers/models.py:81-106 (no sub_group field on VehicleStock)
+Ssbikez,Vehicle List,vehicle_color,Link,yes,Vehicle Color,customers,VehicleStock,color,Deviation,"customers/models.py:100 (color is a direct field on the physical stock unit, not derived from a Customer Price/price-list selection)"
+Ssbikez,Vehicle List,price_lists,Link,yes,Price Lists,sales,VehicleSalesOrder,(none),Missing,grep for CustomerPrice in sales/ returns no matches; masters/models.py:311-321 (CustomerPrice exists but is never linked from the sales order flow)
 Ssbikez,Vehicle Master Settings Child table,vehicle_name,Link,no,Vehicle Name,,,,,
 Ssbikez,Vehicle Master Settings Child table,model,Data,yes,Model,,,,,
 Ssbikez,Vehicle Master Settings Child table,chasis_no,Data,yes,Chasis No,,,,,
@@ -5546,3 +5546,5 @@ Ssbikez,Workshop Voucher Creation,type,Data,no,Type,,,,,
 Ssbikez,Workshop Voucher Creation,leger_name,Data,no,Leger Name,,,,,
 Ssbikez,Workshop Voucher Creation,cash,Data,no,Cash,,,,,
 Ssbikez,Workshop Voucher Creation,amount,Currency,no,Amount,,,,,
+Ssbikez,Branch,allow_without_enquiry_form,Check,no,"Dynamically gates whether New Vehicle Sales Order.sales_enquiry_form is mandatory, per branch (confirmed live: Coimbatore/Sulur - E/Tiruppur = 0/required, Gobi/Nambiyur/Puliampatti/Sathyamangalam/Sulur/Trichy = 1/not required)",accounts,Branch,(none),Missing,accounts/models.py:93-106 (full Branch field list -- no allow_without_enquiry_form field; sales/forms.py has no branch-conditional requiredness logic for enquiry/sales_enquiry_form)
+Ssbikez,New Vehicle Sales Invoice,gst_split_cgst_sgst_igst,Computed,no,GST split (CGST/SGST vs IGST) depends on customer state vs company state -- interstate sales route the full GST amount to IGST,billing,split_gst (module function),"split_gst(gst_amount, customer)",Match,"billing/models.py:9-39 (customer.state vs CompanySettings.state comparison, IGST branch at lines 29-34); billing/views.py:90 (call site passing invoice.sales_order.customer)"
