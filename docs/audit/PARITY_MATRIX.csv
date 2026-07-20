@@ -400,38 +400,38 @@ Ssbikez,Customer Call,number,Data,yes,Number,,,,,
 Ssbikez,Customer Call,call,Button,no,Call,,,,,
 Ssbikez,Customer Mobile Numbers,date,Data,no,Date,,,,,
 Ssbikez,Customer Mobile Numbers,mobile_no,Data,no,Mobile No,,,,,
-Ssbikez,Customer Payment Items,ref_doctype,Link,no,Ref Doctype,,,,,
-Ssbikez,Customer Payment Items,ref_docname,Dynamic Link,no,Ref Docname,,,,,
-Ssbikez,Customer Payment Items,total_amount,Currency,no,Total Amount,,,,,
-Ssbikez,Customer Payment Items,allocate_amount,Data,no,Allocate Amount,,,,,
-Ssbikez,Customer Payment Items,select,Check,no,Select,,,,,
-Ssbikez,Customer Payment Items,balance_amount,Currency,no,Balance Amount,,,,,
-Ssbikez,Customer Payment,date,Date,yes,Date,,,,,
-Ssbikez,Customer Payment,bank_name,Link,no,Bank Name,,,,,
-Ssbikez,Customer Payment,payment_default_account,Data,no,Payment Default Account,,,,,
-Ssbikez,Customer Payment,column_break_qscre,Column Break,no,,,,,,
-Ssbikez,Customer Payment,customer_name,Link,yes,Customer Name,,,,,
-Ssbikez,Customer Payment,bank_ref_no,Data,no,Bank Ref No,,,,,
-Ssbikez,Customer Payment,company,Link,no,Company,,,,,
-Ssbikez,Customer Payment,column_break_pshyr,Column Break,no,,,,,,
-Ssbikez,Customer Payment,payment_type,Select,yes,Pay Type,,,,,
-Ssbikez,Customer Payment,bank_ref_date,Date,no,Bank Ref Date,,,,,
-Ssbikez,Customer Payment,branch,Link,no,Branch,,,,,
-Ssbikez,Customer Payment,column_break_wzguc,Column Break,no,,,,,,
-Ssbikez,Customer Payment,pay_mode,Link,yes,Pay Mode,,,,,
-Ssbikez,Customer Payment,section_break_g0avj,Section Break,no,,,,,,
-Ssbikez,Customer Payment,customer_items,Table,no,Customer Items,,,,,
-Ssbikez,Customer Payment,section_break_c0zix,Section Break,no,,,,,,
-Ssbikez,Customer Payment,paid_amount,Currency,yes,Paid Amount,,,,,
-Ssbikez,Customer Payment,account_from,Link,no,Accounts From,,,,,
-Ssbikez,Customer Payment,account_balance_from,Data,no,Account Balance (From),,,,,
-Ssbikez,Customer Payment,column_break_vw22d,Column Break,no,,,,,,
-Ssbikez,Customer Payment,reference_no,Data,no,Reference No,,,,,
-Ssbikez,Customer Payment,account_to,Link,no,Accounts To,,,,,
-Ssbikez,Customer Payment,account_balance_to,Currency,no,Account Balance (To),,,,,
-Ssbikez,Customer Payment,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Customer Payment,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Customer Payment,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Customer Payment Items,ref_doctype,Link,no,Ref Doctype,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment Items,ref_docname,Dynamic Link,no,Ref Docname,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment Items,total_amount,Currency,no,Total Amount,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment Items,allocate_amount,Data,no,Allocate Amount,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment Items,select,Check,no,Select,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment Items,balance_amount,Currency,no,Balance Amount,,,,Missing,"Child table of Customer Payment's multi-invoice allocation flow, which billing.Payment does not implement (see Customer Payment.customer_items row)."
+Ssbikez,Customer Payment,date,Date,yes,Date,billing,Payment,payment_date,Deviation,"billing/models.py:259 payment_date is DateTimeField(blank=True,null=True) -- optional, vs reference's mandatory Date field."
+Ssbikez,Customer Payment,bank_name,Link,no,Bank Name,,,,Missing,No Bank/Account link model anywhere in repo (grep for 'class Account\b|class Bank\b' returns zero hits outside reference_erp_spec/).
+Ssbikez,Customer Payment,payment_default_account,Data,no,Payment Default Account,,,,Missing,No equivalent field.
+Ssbikez,Customer Payment,column_break_qscre,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,customer_name,Link,yes,Customer Name,billing,Payment,invoice.sales_order.customer,Deviation,"billing/models.py:241-245 Payment has no direct customer FK -- customer is only reachable indirectly via payment.invoice.sales_order.customer, and is not itself a mandatory field captured at receipt time the way reference's customer_name is."
+Ssbikez,Customer Payment,bank_ref_no,Data,no,Bank Ref No,,,,Missing,No bank-instrument reference fields on billing.Payment; only a single generic transaction_reference (see reference_no mapping below).
+Ssbikez,Customer Payment,company,Link,no,Company,,,,Missing,No multi-company Company model in repo.
+Ssbikez,Customer Payment,column_break_pshyr,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,payment_type,Select,yes,Pay Type,billing,Payment,payment_method,Deviation,"billing/models.py:246-250 payment_method is CharField(blank=True, null=True) -- optional -- vs reference's mandatory Pay Type (Cash/Bank) gate that also drives account resolution."
+Ssbikez,Customer Payment,bank_ref_date,Date,no,Bank Ref Date,,,,Missing,No equivalent field.
+Ssbikez,Customer Payment,branch,Link,no,Branch,,,,Missing,billing.Payment has no branch FK.
+Ssbikez,Customer Payment,column_break_wzguc,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,pay_mode,Link,yes,Pay Mode,billing,Payment,payment_method,Deviation,"billing/models.py:246 payment_method is a plain TextChoices field (cash/card/upi/neft/cheque), not a Link to a Mode of Payment master doctype -- no master-data validation."
+Ssbikez,Customer Payment,section_break_g0avj,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,customer_items,Table,no,Customer Items,,,,Missing,billing/models.py:241-245 Payment.invoice is a single ForeignKey to one Invoice -- there is no child table letting one receipt allocate across multiple outstanding invoices the way reference's customer_items/allocate_amount/balance_amount table does. Every Django Payment is scoped to exactly one Invoice.
+Ssbikez,Customer Payment,section_break_c0zix,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,paid_amount,Currency,yes,Paid Amount,billing,Payment,amount,Match,"billing/models.py:252 amount = DecimalField(...), mandatory (no blank=True); PaymentForm.clean_amount (billing/forms.py:115-122) rejects <=0."
+Ssbikez,Customer Payment,account_from,Link,no,Accounts From,,,,Missing,No Account master/link.
+Ssbikez,Customer Payment,account_balance_from,Data,no,Account Balance (From),,,,Missing,No Account master/link.
+Ssbikez,Customer Payment,column_break_vw22d,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Customer Payment,reference_no,Data,no,Reference No,billing,Payment,transaction_reference,Match,"billing/models.py:251 transaction_reference = CharField(blank=True, null=True) is the closest equivalent free-text reference field (reference doctype splits this into bank_ref_no/reference_no -- Django collapses both into one field, a deliberate simplification, not a missing capability)."
+Ssbikez,Customer Payment,account_to,Link,no,Accounts To,,,,Missing,No Account master/link.
+Ssbikez,Customer Payment,account_balance_to,Currency,no,Account Balance (To),,,,Missing,No Account master/link.
+Ssbikez,Customer Payment,naming_series,Select,no,Naming Series,billing,Payment,pk,Deviation,"Django uses the auto integer PK ('PAY-{pk}' display string in __str__, billing/models.py:267) instead of a configurable naming-series document number -- cosmetic, low impact."
+Ssbikez,Customer Payment,amended_from,Link,no,Amended From,,,,Missing,"billing.Payment is a plain models.Model (no DocStatusMixin) -- no Draft/Submitted/Cancelled/Amended lifecycle at all, so there is no amended_from concept."
+Ssbikez,Customer Payment,amended_from,Link,no,Amended From,,,,Missing,"billing.Payment is a plain models.Model (no DocStatusMixin) -- no Draft/Submitted/Cancelled/Amended lifecycle at all, so there is no amended_from concept."
 Ssbikez,Customer Price Child Table,type,Data,no,Type,,,,,
 Ssbikez,Customer Price Child Table,amount,Currency,no,Amount,,,,,
 Ssbikez,Customer Price,company,Link,no,Company,,,,,
@@ -1928,30 +1928,30 @@ Ssbikez,GST Item Child,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,,,,,
 Ssbikez,GST Item Child,rate,Currency,no,Rate,,,,,
 Ssbikez,GST Item Child,gst,Link,no,GST,,,,,
 Ssbikez,GST Item Child,indirect_income_ledger,Check,no,Indirect Income Ledger,,,,,
-Ssbikez,Generate GST Bill,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,Generate GST Bill,generate_gst_bill,Check,no,Generate GST Bill,,,,,
-Ssbikez,Generate GST Bill,date,Date,yes,Date,,,,,
-Ssbikez,Generate GST Bill,company,Link,no,Company,,,,,
-Ssbikez,Generate GST Bill,column_break_09n7a,Column Break,no,,,,,,
-Ssbikez,Generate GST Bill,warehouse,Link,no,Warehouse,,,,,
-Ssbikez,Generate GST Bill,color,Data,no,Color,,,,,
-Ssbikez,Generate GST Bill,branch,Link,no,Branch,,,,,
-Ssbikez,Generate GST Bill,column_break_u5ugf,Column Break,no,,,,,,
-Ssbikez,Generate GST Bill,customer,Data,yes,Customer,,,,,
-Ssbikez,Generate GST Bill,sub_group,Data,no,Sub Group,,,,,
-Ssbikez,Generate GST Bill,column_break_gshzc,Column Break,no,,,,,,
-Ssbikez,Generate GST Bill,vehicle_name,Data,yes,Vehicle Code,,,,,
-Ssbikez,Generate GST Bill,column_break_lvgm0,Column Break,no,,,,,,
-Ssbikez,Generate GST Bill,vehicle_code,Data,no,Vehicle Name,,,,,
-Ssbikez,Generate GST Bill,section_break_d8cgt,Section Break,no,,,,,,
-Ssbikez,Generate GST Bill,items,Table,no,Items,,,,,
-Ssbikez,Generate GST Bill,section_break_m4xht,Section Break,no,,,,,,
-Ssbikez,Generate GST Bill,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Generate GST Bill,total_quantity,Int,no,Total Quantity,,,,,
-Ssbikez,Generate GST Bill,column_break_rvttg,Column Break,no,,,,,,
-Ssbikez,Generate GST Bill,total_amount,Currency,no,Total Amount,,,,,
-Ssbikez,Generate GST Bill,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Generate GST Bill,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Generate GST Bill,order_form_id,Link,yes,Order Form ID,billing,Invoice,sales_order,Match,billing/models.py:57-61 Invoice.sales_order is a mandatory FK to sales.VehicleSalesOrder -- same role as order_form_id linking the bill back to its originating order.
+Ssbikez,Generate GST Bill,generate_gst_bill,Check,no,Generate GST Bill,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,date,Date,yes,Date,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,company,Link,no,Company,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,column_break_09n7a,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,warehouse,Link,no,Warehouse,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,color,Data,no,Color,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,branch,Link,no,Branch,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,column_break_u5ugf,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,customer,Data,yes,Customer,billing,Invoice,sales_order.customer,Match,"Reachable via invoice.sales_order.customer (billing/views.py:90); already GST-split-verified in Task 3's Tier 1 walk (split_gst(), billing/models.py:9-42) -- not re-litigated here."
+Ssbikez,Generate GST Bill,sub_group,Data,no,Sub Group,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,column_break_gshzc,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,vehicle_name,Data,yes,Vehicle Code,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,column_break_lvgm0,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,vehicle_code,Data,no,Vehicle Name,billing,Invoice,sales_order.vehicle,Match,Reachable via invoice.sales_order.vehicle.
+Ssbikez,Generate GST Bill,section_break_d8cgt,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,items,Table,no,Items,billing,InvoiceItem,(reverse FK invoice.items),Match,billing/models.py:192-225 InvoiceItem is the line-item table for an Invoice.
+Ssbikez,Generate GST Bill,section_break_m4xht,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,naming_series,Select,no,Naming Series,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,total_quantity,Int,no,Total Quantity,billing,Invoice,total_quantity,Match,billing/models.py:82 total_quantity field exists on Invoice.
+Ssbikez,Generate GST Bill,column_break_rvttg,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Generate GST Bill,total_amount,Currency,no,Total Amount,billing,Invoice,final_amount,Match,billing/models.py:67 final_amount = subtotal + gst_amount - discount_amount.
+Ssbikez,Generate GST Bill,amended_from,Link,no,Amended From,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
+Ssbikez,Generate GST Bill,amended_from,Link,no,Amended From,,,,Missing,"Not itemized individually -- reference_erp_spec/20_For_Payout_GST_Bill.md itself came back 'NOT FOUND on server (fetch failed or renamed)', so this doctype's full live schema could not be re-verified this pass; Generate GST Bill rows here were cross-checked against billing.Invoice as the closest live match for the core order/customer/items/total facts only. Minor fields (warehouse, color, branch, sub_group, naming conventions) not present on billing.Invoice -- see file directly for the full field list."
 Ssbikez,Generate Service GST,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Generate Service GST,chasis_number,Link,yes,Chasis Number,,,,,
 Ssbikez,Generate Service GST,reference_doctype,Link,no,Reference Doctype,,,,,
@@ -2386,33 +2386,33 @@ Ssbikez,Labor Spares Items,cgst,Percent,no,CGST,,,,,
 Ssbikez,Labour Work Vehicle Child,vehicle,Link,no,Vehicle,,,,,
 Ssbikez,Labour Work,disable,Check,no,Disable,,,,,
 Ssbikez,Labour Work,labour_work,Data,yes,Labour Work,,,,,
-Ssbikez,Ledger Creation Date Master,allowed_days,Int,yes,Allowed Days,,,,,
-Ssbikez,Ledger Creation,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Ledger Creation,ledger_name,Link,yes,Ledger Name,,,,,
-Ssbikez,Ledger Creation,voucher_type,Link,yes,Voucher Type,,,,,
-Ssbikez,Ledger Creation,supplier,Link,no,Supplier,,,,,
-Ssbikez,Ledger Creation,customer,Link,no,Customer,,,,,
-Ssbikez,Ledger Creation,description,Small Text,yes,Description,,,,,
-Ssbikez,Ledger Creation,voucher_name,Data,no,Voucher Name,,,,,
-Ssbikez,Ledger Creation,voucher_name_sales,Data,no,Voucher Name,,,,,
-Ssbikez,Ledger Creation,column_break_mvn1a,Column Break,no,,,,,,
-Ssbikez,Ledger Creation,date,Date,yes,Date,,,,,
-Ssbikez,Ledger Creation,amount,Currency,yes,Amount,,,,,
-Ssbikez,Ledger Creation,payment_mode,Select,yes,Payment Mode,,,,,
-Ssbikez,Ledger Creation,reference_number,Data,no,Reference Number,,,,,
-Ssbikez,Ledger Creation,reference_date,Date,no,Reference Date,,,,,
-Ssbikez,Ledger Creation,bank_name,Link,yes,To Account,,,,,
-Ssbikez,Ledger Creation,is_gst,Check,no,Is GST,,,,,
-Ssbikez,Ledger Creation,gst,Link,no,GST,,,,,
-Ssbikez,Ledger Creation,section_break_rdby,Section Break,no,,,,,,
-Ssbikez,Ledger Creation,voucher_amount_split_up,Table,no,Voucher Amount Split Up,,,,,
-Ssbikez,Ledger Creation,section_break_qrndd,Section Break,no,Approver Section,,,,,
-Ssbikez,Ledger Creation,approve,Check,no,Approved,,,,,
-Ssbikez,Ledger Creation,column_break_lkgop,Column Break,no,,,,,,
-Ssbikez,Ledger Creation,from_account,Link,no,From Account,,,,,
-Ssbikez,Ledger Creation,to_account,Link,no,To Account,,,,,
-Ssbikez,Ledger Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Ledger Creation,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Ledger Creation Date Master,allowed_days,Int,yes,Allowed Days,,,,Missing,"No backdating-window setting anywhere in accounts.CompanySettings (accounts/models.py:163-215) or billing/forms.py -- JournalEntryForm has no clean_entry_date, so a manual Journal Entry's entry_date can be set to any date with no min/max validation."
+Ssbikez,Ledger Creation,naming_series,Select,no,Naming Series,billing,JournalEntry,pk,Deviation,"Django uses auto PK, no naming series -- cosmetic, low impact."
+Ssbikez,Ledger Creation,ledger_name,Link,yes,Ledger Name,,,,Missing,"billing/models.py:522 JournalEntryLine.account is a free-text CharField -- no 'Ledger Name List' or Chart-of-Accounts master exists anywhere in the repo (grep for 'class Account\b' returns zero hits outside reference_erp_spec/), so account names are typed by hand with no validation."
+Ssbikez,Ledger Creation,voucher_type,Link,yes,Voucher Type,,,,Missing,No voucher_type concept -- reference branches from_account query rules and payment_mode default by voucher_type (Purchase Invoice/Sales Invoice/Bank Entry/Journal Entry); Django's journal_entry_create (billing/_gap14_31_views.py:166-192) has no such branching.
+Ssbikez,Ledger Creation,supplier,Link,no,Supplier,,,,Missing,No supplier field on JournalEntry.
+Ssbikez,Ledger Creation,customer,Link,no,Customer,,,,Missing,No customer field on JournalEntry.
+Ssbikez,Ledger Creation,description,Small Text,yes,Description,billing,JournalEntry,description,Match,"billing/models.py:472 description = TextField(), mandatory in JournalEntryForm."
+Ssbikez,Ledger Creation,voucher_name,Data,no,Voucher Name,,,,Missing,No equivalent field.
+Ssbikez,Ledger Creation,voucher_name_sales,Data,no,Voucher Name,,,,Missing,No equivalent field.
+Ssbikez,Ledger Creation,column_break_mvn1a,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Ledger Creation,date,Date,yes,Date,billing,JournalEntry,entry_date,Deviation,"billing/models.py:471 entry_date = DateField() exists and is mandatory (Match at the field level), but the reference's backdating-window enforcement (Ledger Creation Date Master.allowed_days, before_save client script) has no Django equivalent -- see the Ledger Creation Date Master row."
+Ssbikez,Ledger Creation,amount,Currency,yes,Amount,billing,JournalEntry,lines,Deliberate-difference,"Reference posts a single amount plus a Voucher Amount Split Up department table; Django instead requires a full double-entry JournalEntryLine breakdown (debit/credit per account, checked balanced in billing/_gap14_31_views.py:171-182) -- a stricter, not weaker, accounting model, so this is an intentional design improvement rather than a gap."
+Ssbikez,Ledger Creation,payment_mode,Select,yes,Payment Mode,,,,Missing,"No payment_mode field on JournalEntry -- account/payment-instrument is only expressed via free-text JournalEntryLine.account, not a structured Cash/Bank selector."
+Ssbikez,Ledger Creation,reference_number,Data,no,Reference Number,billing,JournalEntry,reference_number,Match,"billing/models.py:478 reference_number = CharField(blank=True) exists (also reused internally as the CANCEL-REVERSAL marker, billing/models.py:154)."
+Ssbikez,Ledger Creation,reference_date,Date,no,Reference Date,billing,JournalEntry,reference_date,Match,"billing/models.py:479 reference_date = DateField(null=True, blank=True) exists."
+Ssbikez,Ledger Creation,bank_name,Link,yes,To Account,,,,Missing,No Account/Bank master to link against.
+Ssbikez,Ledger Creation,is_gst,Check,no,Is GST,,,,Missing,"No is_gst/gst tax-template linkage on JournalEntry -- GST is only ever computed at the Invoice level (split_gst(), billing/models.py:9-42), never on a manual journal voucher."
+Ssbikez,Ledger Creation,gst,Link,no,GST,,,,Missing,See is_gst row -- no Item Tax Template link exists.
+Ssbikez,Ledger Creation,section_break_rdby,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Ledger Creation,voucher_amount_split_up,Table,no,Voucher Amount Split Up,billing,JournalEntry,lines,Deliberate-difference,"JournalEntryLine (billing/models.py:520-532) is Django's line-item breakdown -- by account/debit/credit rather than by department, matching standard double-entry bookkeeping. See 'amount' row."
+Ssbikez,Ledger Creation,section_break_qrndd,Section Break,no,Approver Section,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Ledger Creation,approve,Check,no,Approved,,,,Missing,Reference's before_submit client script (reference_erp_spec/14_Receipts.md:969-972) throws unless approve=1 and both from_account/to_account are filled -- i.e. a manual voucher cannot go live without an approval step. Django's journal_entry_create (billing/_gap14_31_views.py:166-192) only checks debit==credit; there is no approval gate at all.
+Ssbikez,Ledger Creation,column_break_lkgop,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Ledger Creation,from_account,Link,no,From Account,,,,Missing,No Account master to link against.
+Ssbikez,Ledger Creation,to_account,Link,no,To Account,,,,Missing,No Account master to link against.
+Ssbikez,Ledger Creation,amended_from,Link,no,Amended From,,,,Missing,"billing.JournalEntry (billing/models.py:464) is a plain models.Model with NO docstatus field at all (confirmed: only billing.Invoice extends DocStatusMixin, billing/models.py:6,45) -- no Draft/Submitted/Cancelled/Amended lifecycle. urls.py only wires list/create/detail for JournalEntry (billing/urls.py:60-62) -- there is no update or cancel route, so a manually created JournalEntry can never be corrected or reversed once saved, unlike the auto-posted entries from Invoice.submit()/cancel() which have a dedicated reverse_journal_entry()."
+Ssbikez,Ledger Creation,amended_from,Link,no,Amended From,,,,Missing,"billing.JournalEntry (billing/models.py:464) is a plain models.Model with NO docstatus field at all (confirmed: only billing.Invoice extends DocStatusMixin, billing/models.py:6,45) -- no Draft/Submitted/Cancelled/Amended lifecycle. urls.py only wires list/create/detail for JournalEntry (billing/urls.py:60-62) -- there is no update or cancel route, so a manually created JournalEntry can never be corrected or reversed once saved, unlike the auto-posted entries from Invoice.submit()/cancel() which have a dedicated reverse_journal_entry()."
 Ssbikez,Ledger Name List Child,account,Link,yes,Account,,,,,
 Ssbikez,Ledger Name List,ledger_name,Data,yes,Ledger Name,,,,,
 Ssbikez,Ledger Name List,ledger_accounts,Table,yes,Ledger Accounts,,,,,
@@ -4394,42 +4394,42 @@ Ssbikez,Stock Transfer,items,Table,no,Items,,,,,
 Ssbikez,Stock Transfer,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Stock Transfer,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Supplier Names Child,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Supplier Pay Child,ref_doctype,Link,no,Ref Doctype,,,,,
-Ssbikez,Supplier Pay Child,ref_docname,Dynamic Link,no,Ref Docname,,,,,
-Ssbikez,Supplier Pay Child,invoice_no,Data,no,Invoice No,,,,,
-Ssbikez,Supplier Pay Child,invoice_date,Date,no,Invoice Date,,,,,
-Ssbikez,Supplier Pay Child,total_amount,Currency,no,Total Amount,,,,,
-Ssbikez,Supplier Pay Child,allocate_amount,Currency,no,Allocate Amount,,,,,
-Ssbikez,Supplier Pay Child,select,Check,no,Select,,,,,
-Ssbikez,Supplier Pay Child,balance_amount,Currency,no,Balance Amount,,,,,
-Ssbikez,Supplier Payment,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Supplier Payment,date,Date,no,Date,,,,,
-Ssbikez,Supplier Payment,bank_name,Link,no,Bank Name,,,,,
-Ssbikez,Supplier Payment,company,Link,no,Company,,,,,
-Ssbikez,Supplier Payment,column_break_tmpu1,Column Break,no,,,,,,
-Ssbikez,Supplier Payment,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Supplier Payment,bank_ref_no,Data,no,Bank Ref No,,,,,
-Ssbikez,Supplier Payment,branch,Link,no,Branch,,,,,
-Ssbikez,Supplier Payment,column_break_n4got,Column Break,no,,,,,,
-Ssbikez,Supplier Payment,payment_type,Select,no,Payment Type,,,,,
-Ssbikez,Supplier Payment,bank_ref_date,Date,no,Bank Ref Date,,,,,
-Ssbikez,Supplier Payment,column_break_lkxls,Column Break,no,,,,,,
-Ssbikez,Supplier Payment,pay_mode,Link,no,Pay Mode,,,,,
-Ssbikez,Supplier Payment,section_break_fhoad,Section Break,no,,,,,,
-Ssbikez,Supplier Payment,items,Table,no,Items,,,,,
-Ssbikez,Supplier Payment,section_break_gjpkx,Section Break,no,,,,,,
-Ssbikez,Supplier Payment,paid_amount,Currency,no,Paid Amount,,,,,
-Ssbikez,Supplier Payment,account_from,Link,no,Account From,,,,,
-Ssbikez,Supplier Payment,account_balance_from,Currency,no,Account Balance (From),,,,,
-Ssbikez,Supplier Payment,column_break_9xlp0,Column Break,no,,,,,,
-Ssbikez,Supplier Payment,reference_no,Data,yes,Reference No,,,,,
-Ssbikez,Supplier Payment,total_amount,Float,no,Total Amount,,,,,
-Ssbikez,Supplier Payment,column_break_a7lpa,Column Break,no,,,,,,
-Ssbikez,Supplier Payment,reference_date,Date,yes,Reference Date,,,,,
-Ssbikez,Supplier Payment,account_to,Link,no,Account To,,,,,
-Ssbikez,Supplier Payment,account_balance_to,Currency,no,Account Balance (To),,,,,
-Ssbikez,Supplier Payment,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Supplier Payment,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Supplier Pay Child,ref_doctype,Link,no,Ref Doctype,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,ref_docname,Dynamic Link,no,Ref Docname,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,invoice_no,Data,no,Invoice No,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,invoice_date,Date,no,Invoice Date,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,total_amount,Currency,no,Total Amount,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,allocate_amount,Currency,no,Allocate Amount,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,select,Check,no,Select,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Pay Child,balance_amount,Currency,no,Balance Amount,,,,Missing,"Child table of Supplier Payment, which has no Django equivalent (see Supplier Payment rows)."
+Ssbikez,Supplier Payment,naming_series,Select,no,Naming Series,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,date,Date,no,Date,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,bank_name,Link,no,Bank Name,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,company,Link,no,Company,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,column_break_tmpu1,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,supplier,Link,yes,Supplier,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,bank_ref_no,Data,no,Bank Ref No,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,branch,Link,no,Branch,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,column_break_n4got,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,payment_type,Select,no,Payment Type,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,bank_ref_date,Date,no,Bank Ref Date,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,column_break_lkxls,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,pay_mode,Link,no,Pay Mode,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,section_break_fhoad,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,items,Table,no,Items,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,section_break_gjpkx,Section Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,paid_amount,Currency,no,Paid Amount,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,account_from,Link,no,Account From,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,account_balance_from,Currency,no,Account Balance (From),,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,column_break_9xlp0,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,reference_no,Data,yes,Reference No,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,total_amount,Float,no,Total Amount,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,column_break_a7lpa,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
+Ssbikez,Supplier Payment,reference_date,Date,yes,Reference Date,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,account_to,Link,no,Account To,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,account_balance_to,Currency,no,Account Balance (To),,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,amended_from,Link,no,Amended From,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
+Ssbikez,Supplier Payment,amended_from,Link,no,Amended From,,,,Missing,"grep -rn ""Supplier Payment|SupplierPayment"" *.py across repo: zero hits outside reference_erp_spec/; masters/models.py:20 Supplier is a master-data record only, no payment/ledger tracking against it anywhere in billing/, spares/, or masters/."
 Ssbikez,Supplier Quote Child,spare_name,Link,yes,Spare Name,,,,,
 Ssbikez,Supplier Quote Child,qty,Int,yes,QTY,,,,,
 Ssbikez,Supplier Quote Child,uom,Link,yes,UOM,,,,,
@@ -5449,8 +5449,8 @@ Ssbikez,Vehicle Transfer Master,to_received,Select,no,T.O Received,,,,,
 Ssbikez,Vehicle Transfer Master,column_break_qovv,Column Break,no,,,,,,
 Ssbikez,Vehicle Transfer Master,insurance,Select,no,Insurance,,,,,
 Ssbikez,Vehicle Type,vehicle_type,Data,yes,Vehicle Type,,,,,
-Ssbikez,Voucher Creation Ledger Child,department,Select,no,Department,,,,,
-Ssbikez,Voucher Creation Ledger Child,amount,Float,no,Amount,,,,,
+Ssbikez,Voucher Creation Ledger Child,department,Select,no,Department,,,,Missing,"Child table of Ledger Creation's department-based split, which JournalEntryLine (account/debit/credit based) does not replicate field-for-field -- see Ledger Creation rows."
+Ssbikez,Voucher Creation Ledger Child,amount,Float,no,Amount,,,,Missing,"Child table of Ledger Creation's department-based split, which JournalEntryLine (account/debit/credit based) does not replicate field-for-field -- see Ledger Creation rows."
 Ssbikez,Voucher Details Table,voucher_no,Link,yes,Voucher No,,,,,
 Ssbikez,Voucher Details Table,purpose,Link,yes,Purpose,,,,,
 Ssbikez,Voucher Details Table,bunk_name,Link,yes,Bunk Name,,,,,
