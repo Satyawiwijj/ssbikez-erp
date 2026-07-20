@@ -53,7 +53,7 @@ def main():
 
     doctype_resp = session.get(
         f'{site_root}/api/resource/DocType',
-        params={'filters': '[["module","=","Ssbikez"],["custom","=",1]]', 'limit_page_length': 0},
+        params={'filters': '[["module","=","Ssbikez"]]', 'limit_page_length': 0},
         timeout=60,
     )
     doctype_resp.raise_for_status()
@@ -67,7 +67,7 @@ def main():
     script_resp.raise_for_status()
     live_script_count = len(script_resp.json().get('data', []))
 
-    print(f'Live custom doctype count (Ssbikez module): {live_doctype_count} (baseline: {BASELINE_DOCTYPE_COUNT})')
+    print(f'Live doctype count (Ssbikez module): {live_doctype_count} (baseline: {BASELINE_DOCTYPE_COUNT})')
     print(f'Live client script count: {live_script_count} (baseline: {BASELINE_CLIENT_SCRIPT_COUNT})')
 
     drifted = (live_doctype_count != BASELINE_DOCTYPE_COUNT) or (live_script_count != BASELINE_CLIENT_SCRIPT_COUNT)
