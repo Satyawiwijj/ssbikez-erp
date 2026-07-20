@@ -268,22 +268,29 @@ class Payment(models.Model):
 
     def save(self, *args, **kwargs):
         # Same is_new-then-super().save()-then-post-effects shape as
-        # VASStockMovement.save() in vas/models.py.
-        is_new = self._state.adding
+        # VASStockMovement.save() in vas/models.py, but the post_journal_entry()
+        # trigger itself no longer depends on is_new (see post_journal_entry
+        # docstring) -- any save() that leaves this Payment COMPLETED attempts
+        # to post, and post_journal_entry()'s own idempotency guard makes
+        # repeated saves (or a Pending -> Completed transition) safe.
         super().save(*args, **kwargs)
-        if is_new and self.payment_status == self.PaymentStatus.COMPLETED:
+        if self.payment_status == self.PaymentStatus.COMPLETED:
             self.post_journal_entry()
 
     def post_journal_entry(self):
         """Auto-create the balanced JournalEntry for this completed payment:
         Dr Cash/Bank / Cr Accounts Receivable, both for `amount`.
 
-        Only fires for a Payment created already-COMPLETED (per the brief:
-        "on Payment create ... a completed payment"). A Payment that starts
-        Pending and is later marked Completed via the payment_reconciliation
-        bulk queryset .update() (billing/_gap14_31_views.py) does NOT go
-        through save() and so is NOT auto-posted -- a known gap, noted in
-        the report rather than silently patched over.
+        Fires on ANY save() that leaves payment_status COMPLETED -- a Payment
+        created already-Completed, or one that starts Pending and is later
+        transitioned to Completed (e.g. via the payment_reconciliation view
+        in billing/_gap14_31_views.py, which now saves each Payment instance
+        individually instead of a bulk QuerySet.update() so this hook fires).
+        Previously this only fired for a Payment created already-COMPLETED,
+        which meant a reconciled payment could show as "Completed" in the UI
+        with no corresponding General Ledger entry ever posted -- the same
+        class of bug as the Invoice.cancel() GL-reversal gap fixed earlier
+        in this audit. Fixed as part of the Tier 2 (Billing/GL) parity walk.
 
         Account choice: 'Cash' for the Cash method, 'Bank' for every other
         (electronic/instrument) method -- Card/UPI/NEFT/Cheque/blank -- since

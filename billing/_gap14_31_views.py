@@ -47,9 +47,16 @@ def payment_reconciliation(request):
         ids = request.POST.getlist('payment_ids')
         # Only reconcile payments that are actually pending AND within the
         # date range/queryset shown on this page — never trust posted ids alone.
-        n = unreconciled.filter(pk__in=ids).update(
-            payment_status=Payment.PaymentStatus.COMPLETED
-        )
+        # Saved one-by-one (not a bulk QuerySet.update()) so each Payment's
+        # save() hook fires and auto-posts its GL JournalEntry — a bulk
+        # .update() bypasses save() entirely and previously left reconciled
+        # payments with no General Ledger entry (see billing/tests.py
+        # PaymentReconciliationPostsJournalEntryTests).
+        n = 0
+        for payment in unreconciled.filter(pk__in=ids):
+            payment.payment_status = Payment.PaymentStatus.COMPLETED
+            payment.save()
+            n += 1
         messages.success(request, f'{n} payment(s) marked as completed.')
         return redirect(request.path + f'?start={start_str}&end={end_str}')
 

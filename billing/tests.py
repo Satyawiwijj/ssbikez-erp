@@ -239,6 +239,71 @@ class InvoiceCancelReversesJournalEntryTests(_TestCase):
         self.assertEqual(count_after_first_cancel, count_after_second_attempt)
 
 
+class PaymentReconciliationPostsJournalEntryTests(_TestCase):
+    """GAP found during Tier 2 (Billing/GL) parity audit: a Payment created
+    Pending and later reconciled to Completed via the bulk payment_reconciliation
+    view never posted its Dr Cash-or-Bank / Cr Accounts Receivable JournalEntry,
+    because Payment.save() only auto-posted for a *newly created* already-Completed
+    Payment (`is_new and status == COMPLETED`), and the reconciliation view used
+    QuerySet.update() which bypasses save() entirely -- so neither path could ever
+    fire the GL hook for a Pending -> Completed transition. Same class of bug as
+    the Invoice.cancel() GL-reversal gap fixed earlier in this audit: a payment
+    the UI shows as "Completed" with no corresponding General Ledger entry."""
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(
+            username='recon_admin', email='reconadmin@example.com', password='Test-Pass-123!'
+        )
+        self.client.force_login(self.user)
+        from billing.models import Invoice
+        order = _make_order('RECON1')
+        self.invoice = Invoice.objects.create(
+            sales_order=order, invoice_number='RECON-INV-0001', subtotal=_Decimal('30000'),
+            final_amount=_Decimal('30000'), invoice_date='2026-08-01',
+        )
+
+    def test_reconciling_a_pending_payment_posts_journal_entry(self):
+        from billing.models import Payment
+        payment = Payment.objects.create(
+            invoice=self.invoice, amount=_Decimal('30000'),
+            payment_method=Payment.Method.CASH,
+            payment_status=Payment.PaymentStatus.PENDING,
+            payment_date='2026-08-01',
+        )
+        self.assertFalse(hasattr(payment, 'journal_entry'))
+
+        # start/end are read from GET (they scope the page's queryset), not
+        # POST -- match the view's request.GET.get('start')/('end') contract.
+        url = _reverse('billing:payment_reconciliation') + '?start=2026-07-01&end=2026-12-31'
+        response = self.client.post(url, {
+            'reconcile': '1', 'payment_ids': [str(payment.pk)],
+        })
+        self.assertEqual(response.status_code, 302)
+
+        payment.refresh_from_db()
+        self.assertEqual(payment.payment_status, Payment.PaymentStatus.COMPLETED)
+        self.assertTrue(hasattr(payment, 'journal_entry'))
+        entry = payment.journal_entry
+        self.assertEqual(entry.lines.get(account='Cash').debit, _Decimal('30000.00'))
+        self.assertEqual(entry.lines.get(account='Accounts Receivable').credit, _Decimal('30000.00'))
+
+    def test_reconciling_twice_does_not_double_post(self):
+        from billing.models import JournalEntry, Payment
+        payment = Payment.objects.create(
+            invoice=self.invoice, amount=_Decimal('15000'),
+            payment_method=Payment.Method.CASH,
+            payment_status=Payment.PaymentStatus.PENDING,
+            payment_date='2026-08-01',
+        )
+        payment.payment_status = Payment.PaymentStatus.COMPLETED
+        payment.save()
+        payment.save()  # second save while already Completed must not double-post
+        count = JournalEntry.objects.filter(
+            reference_doctype='billing.Payment', reference_docname=str(payment.pk),
+        ).count()
+        self.assertEqual(count, 1)
+
+
 class RefundAdvanceCreateTests(_TestCase):
 
     def setUp(self):
