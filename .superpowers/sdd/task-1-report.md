@@ -14,8 +14,8 @@ All 5 steps of the task brief were completed successfully:
 ### Step 1: Reference Server Credentials ✓
 - Added three environment variables to `.env` (gitignored):
   - `REFERENCE_ERP_URL=http://95.216.169.103/app/ssbikez`
-  - `REFERENCE_ERP_USER=administrator`
-  - `REFERENCE_ERP_PASSWORD=<redacted -- see local .env>`
+  - `REFERENCE_ERP_USER=<redacted — see local .env>`
+  - `REFERENCE_ERP_PASSWORD=<redacted — see local .env>`
 - Verified `.env` is gitignored before writing
 - Confirmed `.env` does not appear in git staging or commit
 
