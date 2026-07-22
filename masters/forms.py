@@ -25,7 +25,7 @@ class SupplierForm(AccessibleFormMixin, forms.ModelForm):
         text_fields = [
             'supplier_name', 'supplier_group', 'country', 'contact_person', 'phone', 'gstin', 'gst_category',
             'address_line1', 'address_line2', 'city', 'state', 'pincode', 'place_of_supply',
-            'supplier_limit_amount',
+            'supplier_limit_amount', 'default_currency', 'payment_terms', 'tax_id',
         ]
         for f in text_fields:
             if f in self.fields:

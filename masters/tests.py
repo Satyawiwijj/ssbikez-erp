@@ -109,6 +109,26 @@ class SupplierCRUDTests(TestCase):
         response = self.client.get(reverse('masters:supplier_list'))
         self.assertEqual(response.status_code, 200)
 
+    def test_default_currency_payment_terms_tax_id_fields_save(self):
+        """Live re-check of the reference server's Supplier doctype (Pending
+        Correction #2) found default_currency, payment_terms and tax_id as
+        real fields not covered by the earlier 5-field fix."""
+        response = self.client.post(reverse('masters:supplier_create'), {
+            'supplier_name': 'Precision Parts Co', 'country': 'India', 'supplier_type': 'company',
+            'default_currency': 'INR', 'payment_terms': 'Net 30', 'tax_id': 'ABCDE1234F',
+        })
+        self.assertEqual(response.status_code, 302)
+        supplier = _Supplier.objects.get(supplier_name='Precision Parts Co')
+        self.assertEqual(supplier.default_currency, 'INR')
+        self.assertEqual(supplier.payment_terms, 'Net 30')
+        self.assertEqual(supplier.tax_id, 'ABCDE1234F')
+
+        from masters.forms import SupplierForm
+        form = SupplierForm()
+        self.assertIn('default_currency', form.fields)
+        self.assertIn('payment_terms', form.fields)
+        self.assertIn('tax_id', form.fields)
+
 
 class WarehouseCRUDTests(TestCase):
 

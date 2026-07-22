@@ -188,6 +188,27 @@ Back </a>
                         {{ form.place_of_supply }}
                     </div>
 
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="{{ form.default_currency.id_for_label }}">
+                            {{ form.default_currency.label }}
+                        </label>
+                        {{ form.default_currency }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="{{ form.payment_terms.id_for_label }}">
+                            {{ form.payment_terms.label }}
+                        </label>
+                        {{ form.payment_terms }}
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold" for="{{ form.tax_id.id_for_label }}">
+                            {{ form.tax_id.label }}
+                        </label>
+                        {{ form.tax_id }}
+                    </div>
+
                     <div class="col-md-4 d-flex align-items-center">
                         <div class="form-check mt-4">
                             {{ form.is_active }}

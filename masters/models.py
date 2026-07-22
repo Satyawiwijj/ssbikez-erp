@@ -31,6 +31,9 @@ class Supplier(models.Model):
     is_prepaid_supplier = models.BooleanField(default=False, verbose_name='Is Prepaid Supplier')
     supplier_limit_amount = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True,
                                                   verbose_name='Supplier Limit Amount')
+    default_currency = models.CharField(max_length=10, blank=True, default='INR', verbose_name='Default Currency')
+    payment_terms = models.CharField(max_length=100, blank=True, verbose_name='Payment Terms')
+    tax_id = models.CharField(max_length=50, blank=True, verbose_name='Tax ID / PAN')
     contact_person = models.CharField(max_length=200, blank=True)
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
