@@ -614,9 +614,16 @@ class CounterSaleReturn(models.Model):
             super().save(*args, **kwargs)
 
     def submit(self, user=None):
-        # No stock-safety check here -- a return only ever adds stock back.
+        # No stock-quantity safety check here -- a return only ever adds
+        # stock back. godown IS required though: the stock-reversal
+        # post_save signal below silently no-ops without one, so allowing
+        # submission without a godown would mark the return "submitted"
+        # while the returned stock is never actually credited to any
+        # warehouse -- silently lost from the ledger.
         if self.status != 'draft':
             raise ValueError('Only a Draft return can be submitted.')
+        if not self.godown_id:
+            raise ValueError('Godown is required to submit a return -- stock cannot be credited back without one.')
         self.status = 'submitted'
         self.save()
 

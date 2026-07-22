@@ -259,3 +259,62 @@ class MRPRevisionCreateTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         from spares.models import SparesMRPPriceRevision
         self.assertTrue(SparesMRPPriceRevision.objects.exists())
+
+
+class CounterSaleReturnGodownRequiredTests(_TestCase):
+    """Tier 4 audit finding: CounterSaleReturn.godown is optional
+    (models.SET_NULL, null=True, blank=True) and the create view
+    (spares/views.py:counter_return_create) always auto-submits a return
+    right after saving. The stock-reversal post_save signal
+    (on_counter_sale_return_status_changed) explicitly no-ops when
+    godown_id is None ("if not instance.godown_id: return"), so a return
+    created without a godown silently ends up 'submitted' with the refunded
+    stock never actually credited back to any warehouse -- the physical
+    stock is lost from the ledger entirely, with no error surfaced anywhere."""
+
+    def setUp(self):
+        self.warehouse = _Warehouse.objects.create(name='CSR Godown Test WH')
+
+    def test_submit_without_godown_is_rejected(self):
+        from spares.models import CounterSale, CounterSaleReturn, CounterSaleItem, SparesItem
+
+        item = _SparesItem.objects.create(item_name='Godown Guard Test Part', uom='Nos')
+        sale = CounterSale.objects.create(
+            customer='Walk-in', mobile='9800000001', godown=self.warehouse, date='2026-08-01',
+        )
+        CounterSaleItem.objects.create(sale=sale, item=item, quantity=Decimal('2'), rate=Decimal('50'))
+
+        ret = CounterSaleReturn.objects.create(
+            original_sale=sale, return_date='2026-08-02', godown=None,
+        )
+        from spares.models import CounterSaleReturnItem
+        CounterSaleReturnItem.objects.create(
+            sale_return=ret, item=item, quantity=Decimal('2'), rate=Decimal('50'), return_qty=Decimal('2'),
+        )
+
+        with self.assertRaises(ValueError):
+            ret.submit()
+
+        ret.refresh_from_db()
+        self.assertEqual(ret.status, 'draft')
+
+    def test_submit_with_godown_still_works(self):
+        from spares.models import CounterSale, CounterSaleReturn, CounterSaleItem, CounterSaleReturnItem, StockLedger
+
+        item = _SparesItem.objects.create(item_name='Godown Guard Test Part 2', uom='Nos')
+        sale = CounterSale.objects.create(
+            customer='Walk-in', mobile='9800000002', godown=self.warehouse, date='2026-08-01',
+        )
+        CounterSaleItem.objects.create(sale=sale, item=item, quantity=Decimal('2'), rate=Decimal('50'))
+
+        ret = CounterSaleReturn.objects.create(
+            original_sale=sale, return_date='2026-08-02', godown=self.warehouse,
+        )
+        CounterSaleReturnItem.objects.create(
+            sale_return=ret, item=item, quantity=Decimal('2'), rate=Decimal('50'), return_qty=Decimal('2'),
+        )
+        ret.submit()
+        ret.refresh_from_db()
+        self.assertEqual(ret.status, 'submitted')
+        ledger = StockLedger.objects.get(item=item, warehouse=self.warehouse, rack=None, bin=None)
+        self.assertEqual(ledger.quantity, Decimal('2'))

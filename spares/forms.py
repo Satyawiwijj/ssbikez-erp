@@ -353,6 +353,15 @@ class CounterSaleReturnForm(AccessibleFormMixin, forms.ModelForm):
             'discount': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Model field is blank=True (SET_NULL on the FK), but a return
+        # without a godown can never have its stock credited back -- see
+        # CounterSaleReturn.submit(). Require it at the form layer too so
+        # the user sees a normal field error instead of a raised ValueError
+        # after the record has already been created.
+        self.fields['godown'].required = True
+
 
 class CounterSaleReturnItemForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
