@@ -498,3 +498,33 @@ class VehicleDeliveryTotalRecomputeTests(TestCase):
 
         delivery = VehicleDelivery.objects.get(sales_order=order)
         self.assertEqual(delivery.total_amount, Decimal('1250'))
+
+
+class OrderTotalInvoicedAcrossInvoicesTests(TestCase):
+
+    def test_sums_final_amount_across_all_non_cancelled_invoices(self):
+        from customers.models import Customer
+        from sales.models import VehicleSalesOrder
+        from billing.models import Invoice
+
+        customer = Customer.objects.create(full_name='Multi Invoice Customer', phone='9000000040')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('80000'))
+        Invoice.objects.create(sales_order=order, invoice_number='MULTI-INV-0001', subtotal=Decimal('50000'), final_amount=Decimal('50000'), invoice_date='2026-08-01')
+        Invoice.objects.create(sales_order=order, invoice_number='MULTI-INV-0002', subtotal=Decimal('5000'), final_amount=Decimal('5000'), invoice_date='2026-08-05')
+
+        self.assertEqual(order.total_invoiced_amount, Decimal('55000'))
+
+    def test_excludes_cancelled_invoices(self):
+        from customers.models import Customer
+        from accounts.models import User
+        from sales.models import VehicleSalesOrder
+        from billing.models import Invoice
+
+        customer = Customer.objects.create(full_name='Cancelled Invoice Customer', phone='9000000041')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        user = User.objects.create_superuser(username='cancel_invoiced_admin', email='cancelinvoiced@example.com', password='Test-Pass-123!')
+        inv = Invoice.objects.create(sales_order=order, invoice_number='CANCELLED-INV-0001', subtotal=Decimal('50000'), final_amount=Decimal('50000'), invoice_date='2026-08-01')
+        inv.submit(user)
+        inv.cancel(user)
+
+        self.assertEqual(order.total_invoiced_amount, Decimal('0'))

@@ -491,6 +491,18 @@ class VehicleSalesOrder(DocStatusMixin, models.Model):
         """The active (non-cancelled) invoice, if any — same reasoning as current_delivery."""
         return self.invoices.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED).order_by('-created_at').first()
 
+    @property
+    def total_invoiced_amount(self):
+        """Sum of final_amount across every non-cancelled invoice on this
+        order — unlike current_invoice (the single latest one), this is
+        the real total when an order has more than one active invoice
+        (e.g. a main invoice plus a later supplementary one)."""
+        from decimal import Decimal
+        total = Decimal('0')
+        for invoice in self.invoices.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED):
+            total += invoice.final_amount or Decimal('0')
+        return total
+
     def recompute_totals(self):
         """Sum VehicleSaleItem.amount across this order's items and persist
         into total_amount. Called after the items formset is saved — see

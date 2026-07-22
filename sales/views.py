@@ -546,14 +546,15 @@ def order_detail(request, pk):
     exchange  = getattr(order, 'exchange_vehicle', None)
     policies  = order.insurance_policies.all()
     return render(request, 'sales/order_detail.html', {
-        'order':     order,
-        'invoice':   invoice,
-        'loan':      loan,
-        'exchange':  exchange,
-        'rto':       rto_reg,    # keep key 'rto' so existing template sections work
-        'delivery':  delivery,
-        'policies':  policies,
-        'insurance': insurance,  # single policy for the Documents hub
+        'order':                order,
+        'invoice':              invoice,
+        'total_invoiced_amount': order.total_invoiced_amount,
+        'loan':                 loan,
+        'exchange':             exchange,
+        'rto':                  rto_reg,    # keep key 'rto' so existing template sections work
+        'delivery':             delivery,
+        'policies':             policies,
+        'insurance':            insurance,  # single policy for the Documents hub
     })
 
 
