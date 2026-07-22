@@ -503,6 +503,13 @@ class VehicleSalesOrder(DocStatusMixin, models.Model):
             total += invoice.final_amount or Decimal('0')
         return total
 
+    @property
+    def active_invoice_count(self):
+        """Count of non-cancelled invoices on this order — used alongside
+        total_invoiced_amount so the UI can show "N invoices" instead of
+        presenting the aggregate as if it were a single invoice's amount."""
+        return self.invoices.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED).count()
+
     def recompute_totals(self):
         """Sum VehicleSaleItem.amount across this order's items and persist
         into total_amount. Called after the items formset is saved — see

@@ -549,6 +549,7 @@ def order_detail(request, pk):
         'order':                order,
         'invoice':              invoice,
         'total_invoiced_amount': order.total_invoiced_amount,
+        'active_invoice_count':  order.active_invoice_count,
         'loan':                 loan,
         'exchange':             exchange,
         'rto':                  rto_reg,    # keep key 'rto' so existing template sections work
