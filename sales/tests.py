@@ -462,3 +462,39 @@ class VehicleDeliveryTotalRecomputeTests(TestCase):
 
         delivery.refresh_from_db()
         self.assertEqual(delivery.total_amount, Decimal('1250'))
+
+    def test_total_amount_reflects_summed_delivery_items_after_create_view(self):
+        from django.test import Client
+        from accounts.models import User
+        from customers.models import Customer
+        from sales.models import VehicleDelivery
+
+        customer = Customer.objects.create(full_name='Delivery Total View Customer', phone='9000000031')
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'),
+            docstatus=VehicleSalesOrder.DocStatus.SUBMITTED,
+        )
+
+        user = User.objects.create_superuser(username='delivery_total_admin', email='deliverytotal@example.com', password='Test-Pass-123!')
+        client = Client()
+        client.force_login(user)
+
+        payload = {
+            'sales_order': order.pk, 'delivery_date': '2026-08-01',
+            'payment_status': VehicleDelivery.PaymentStatus.UNPAID,
+        }
+        payload.update(_formset_management_form('delivery_items', total=2))
+        payload.update({
+            'delivery_items-0-item_code': 'HELMET', 'delivery_items-0-warranty_rsa_amc': 'none',
+            'delivery_items-0-rate': '500', 'delivery_items-0-actual_amount': '500',
+            'delivery_items-1-item_code': 'ACCESSORY-KIT', 'delivery_items-1-warranty_rsa_amc': 'none',
+            'delivery_items-1-rate': '750', 'delivery_items-1-actual_amount': '750',
+        })
+        payload.update(_formset_management_form('delivery_advance'))
+        payload.update(_formset_management_form('delivery_payments'))
+
+        response = client.post(reverse('sales:delivery_create'), payload)
+        self.assertEqual(response.status_code, 302)
+
+        delivery = VehicleDelivery.objects.get(sales_order=order)
+        self.assertEqual(delivery.total_amount, Decimal('1250'))
