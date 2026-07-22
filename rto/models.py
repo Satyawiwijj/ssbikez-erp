@@ -431,14 +431,36 @@ class NumberReceiptEntryCreation(DocStatusMixin, models.Model):
     agent        = models.ForeignKey('masters.Supplier', on_delete=models.PROTECT, related_name='number_receipt_entries')
     payment_type = models.CharField(max_length=10, choices=PaymentType.choices, blank=True)
     rate         = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, validators=[MinValueValidator(0)])
-    cgst         = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True, validators=[MinValueValidator(0)])
-    sgst         = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True, validators=[MinValueValidator(0)])
+    cgst_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, validators=[MinValueValidator(0)])
+    sgst_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, validators=[MinValueValidator(0)])
+    igst_amount  = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, validators=[MinValueValidator(0)])
     total        = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True)
     created_at   = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        rate = self.rate or 0
-        self.total = rate + (rate * (self.cgst or 0) / 100) + (rate * (self.sgst or 0) / 100)
+        # GST used to be a hardcoded cgst=9/sgst=9 (18% flat) baked into the
+        # old field defaults, with no awareness of CompanySettings or
+        # interstate customers. Delegate to billing.split_gst() so RTO gets
+        # the same company-configured-rate + IGST behaviour as every other
+        # tax-bearing module.
+        from decimal import Decimal
+        from accounts.models import CompanySettings
+        from billing.models import split_gst
+
+        rate = self.rate or Decimal('0')
+        company_settings = CompanySettings.get_instance()
+        gst_rate = (company_settings.cgst_rate or Decimal('0')) + (company_settings.sgst_rate or Decimal('0'))
+        gst_amount = (rate * gst_rate / Decimal('100')).quantize(Decimal('0.01'))
+
+        customer = None
+        if self.order_entry_id and self.order_entry.sales_order_id:
+            customer = self.order_entry.sales_order.customer
+
+        cgst_amt, sgst_amt, igst_amt = split_gst(gst_amount, customer=customer)
+        self.cgst_amount = cgst_amt
+        self.sgst_amount = sgst_amt
+        self.igst_amount = igst_amt
+        self.total = rate + cgst_amt + sgst_amt + igst_amt
         super().save(*args, **kwargs)
 
     def __str__(self):

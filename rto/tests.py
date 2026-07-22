@@ -218,3 +218,59 @@ class RCBookIssueCreateTests(_TestCase):
         }
         response = self.client.post(_reverse('rto:rc_book_issue_create'), payload)
         self.assertEqual(response.status_code, 302)
+
+
+from accounts.models import CompanySettings as _CompanySettings
+from masters.models import Supplier as _Supplier
+from rto.models import NumberReceiptEntryCreation as _NumberReceiptEntryCreation
+
+
+class NumberReceiptEntryCreationTaxTests(_TestCase):
+    """rto.models.NumberReceiptEntryCreation.save() used to hardcode
+    cgst=9/sgst=9 (an 18% flat rate baked into the field defaults) and never
+    looked at CompanySettings or the customer's state. That silently
+    produced the wrong tax total the moment the company's configured GST
+    rate wasn't 9%/9%, or the customer was out-of-state (no IGST branch
+    existed at all). Fixed by delegating to billing.models.split_gst(),
+    same as every other tax-bearing module."""
+
+    def setUp(self):
+        settings_ = _CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('6')
+        settings_.sgst_rate = Decimal('6')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+        self.agent = _Supplier.objects.create(supplier_name='NumRec Agent Co')
+
+    def _make_order_entry(self, customer_state):
+        customer = Customer.objects.create(
+            full_name='RTO Tax Customer', phone='9000000001', state=customer_state,
+        )
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
+        )
+        return _NumberOrderEntryCreation.objects.create(sales_order=order, agent=self.agent)
+
+    def test_intrastate_uses_company_configured_rate_not_hardcoded_nine(self):
+        order_entry = self._make_order_entry('Tamil Nadu')
+        doc = _NumberReceiptEntryCreation.objects.create(
+            order_entry=order_entry, agent=self.agent, rate=Decimal('1000'),
+        )
+        doc.refresh_from_db()
+        # 6% + 6% = 12%, not the old hardcoded 9%+9%=18%
+        self.assertEqual(doc.total, Decimal('1120.00'))
+        self.assertEqual(doc.cgst_amount, Decimal('60.00'))
+        self.assertEqual(doc.sgst_amount, Decimal('60.00'))
+        self.assertEqual(doc.igst_amount, Decimal('0.00'))
+
+    def test_interstate_customer_gets_igst_not_cgst_sgst(self):
+        order_entry = self._make_order_entry('Karnataka')
+        doc = _NumberReceiptEntryCreation.objects.create(
+            order_entry=order_entry, agent=self.agent, rate=Decimal('1000'),
+        )
+        doc.refresh_from_db()
+        # Company is Tamil Nadu, customer is Karnataka -> full 12% as IGST, same total
+        self.assertEqual(doc.total, Decimal('1120.00'))
+        self.assertEqual(doc.cgst_amount, Decimal('0.00'))
+        self.assertEqual(doc.sgst_amount, Decimal('0.00'))
+        self.assertEqual(doc.igst_amount, Decimal('120.00'))

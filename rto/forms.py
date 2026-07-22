@@ -265,7 +265,7 @@ class NumberOrderEntryCreationForm(AccessibleFormMixin, forms.ModelForm):
 class NumberReceiptEntryCreationForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:
         model  = NumberReceiptEntryCreation
-        fields = ('order_entry', 'agent', 'payment_type', 'rate', 'cgst', 'sgst', 'total')
+        fields = ('order_entry', 'agent', 'payment_type', 'rate', 'total')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
