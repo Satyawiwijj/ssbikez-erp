@@ -418,9 +418,11 @@ class BillingDisplayPermissionAuditTests(_TestCase):
     Views intentionally NOT covered here (left ungated, see task report):
       - dashboard: billing's landing page, analogous to a namespace-level
         entry point rather than a specific-record view.
-      - invoice_search: a cross-reference/search screen the task brief
-        specifically flagged as plausibly intended to stay open to anyone
-        with billing namespace access.
+
+    invoice_search was originally left ungated too (see prior version of
+    this docstring) but a later whole-branch review flagged it as an
+    inconsistent boundary with invoice_list/invoice_detail, which expose
+    the same customer/amount fields -- it is now gated below.
     """
 
     def setUp(self):
@@ -507,4 +509,8 @@ class BillingDisplayPermissionAuditTests(_TestCase):
 
     def test_journal_entry_list_blocked(self):
         response = self.client.get(_reverse('billing:journal_entry_list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_invoice_search_blocked(self):
+        response = self.client.get(_reverse('billing:invoice_search'))
         self.assertEqual(response.status_code, 403)

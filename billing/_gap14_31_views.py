@@ -73,6 +73,7 @@ def payment_reconciliation(request):
 # --- GAP 17: Invoice Search ------------------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def invoice_search(request):
     invoices = Invoice.objects.select_related('sales_order__customer').all()
     q = request.GET.get('q', '').strip()
