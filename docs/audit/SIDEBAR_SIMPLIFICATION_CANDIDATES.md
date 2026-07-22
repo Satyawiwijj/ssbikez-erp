@@ -67,11 +67,15 @@ this task.
 
 - **119 sidebar entries checked**
 - **9 flagged as hide candidates** (explicit match to `27_not_in_main_nav.md`)
-- **2 flagged as merge/dedup candidates** (same underlying data exposed twice under different
+- **6 flagged as merge/dedup candidates** (same underlying data exposed twice under different
   labels — a "too many modules" complaint is often really about duplication like this, not
   about any single module being unwanted)
-- **108 recommended keep** (either a confirmed reference-nav concept, or no reference match but
+- **104 recommended keep** (either a confirmed reference-nav concept, or no reference match but
   a plausible genuine business need — no evidence to act on either way)
+
+(9 + 6 + 104 = 119, reconciling exactly against the table below — corrected after an initial
+arithmetic slip undercounted the merge rows as 2 instead of 6, which also threw off the keep
+count.)
 
 ---
 
