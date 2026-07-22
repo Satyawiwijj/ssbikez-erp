@@ -126,18 +126,50 @@ class InvoiceLifecycleCRUDTests(_TestCase):
         self.client.force_login(self.user)
 
     def test_invoice_create_computes_gst_from_subtotal(self):
+        # subtotal is posted as '0' (not '100000') because Invoice.recompute_totals()
+        # now derives subtotal from the InvoiceItem line items after the items
+        # formset saves -- a posted subtotal is no longer authoritative. This test
+        # previously posted subtotal=100000 with zero line items and asserted it
+        # survived untouched, which was asserting the pre-fix bug (client report:
+        # "Invoice calculation is not working during invoice creation").
         order = _make_order('INV1')
         response = self.client.post(_reverse('billing:invoice_create'), {
-            'sales_order': order.pk, 'invoice_number': 'BILL-INV-0001', 'subtotal': '100000', 'discount_amount': '0',
+            'sales_order': order.pk, 'invoice_number': 'BILL-INV-0001', 'subtotal': '0', 'discount_amount': '0',
             'invoice_date': '2026-08-01', 'status': 'unpaid',
-            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-TOTAL_FORMS': '1', 'items-INITIAL_FORMS': '0',
             'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'items-0-item_code': 'FULL-KIT', 'items-0-rate': '100000', 'items-0-discount': '0', 'items-0-total': '100000',
         })
         self.assertEqual(response.status_code, 302)
         from billing.models import Invoice
         invoice = Invoice.objects.get(invoice_number='BILL-INV-0001')
+        self.assertEqual(invoice.subtotal, _Decimal('100000'))
         self.assertGreater(invoice.gst_amount, 0)
         self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount - invoice.discount_amount)
+
+
+class InvoiceSubtotalRecomputeTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='inv_recalc_admin', email='invrecalc@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+
+    def test_subtotal_reflects_summed_line_items_after_create(self):
+        order = _make_order('INVRECALC1')
+        response = self.client.post(_reverse('billing:invoice_create'), {
+            'sales_order': order.pk, 'invoice_number': 'RECALC-INV-0001',
+            'subtotal': '0', 'discount_amount': '0',
+            'invoice_date': '2026-08-01', 'status': 'unpaid',
+            'items-TOTAL_FORMS': '2', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'items-0-item_code': 'ENGINE-OIL', 'items-0-rate': '400', 'items-0-discount': '0', 'items-0-total': '400',
+            'items-1-item_code': 'BRAKE-PAD', 'items-1-rate': '600', 'items-1-discount': '0', 'items-1-total': '600',
+        })
+        self.assertEqual(response.status_code, 302)
+        from billing.models import Invoice
+        invoice = Invoice.objects.get(invoice_number='RECALC-INV-0001')
+        self.assertEqual(invoice.subtotal, _Decimal('1000'))
+        self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount)
 
 
 class PaymentCRUDTests(_TestCase):

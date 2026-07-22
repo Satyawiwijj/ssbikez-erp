@@ -113,6 +113,7 @@ def invoice_create(request):
             invoice = form.save()
             items_formset.instance = invoice
             items_formset.save()
+            invoice.recompute_totals()
             log_action(request, 'Invoice', 'create', invoice.pk)
             messages.success(request, 'Invoice created successfully.')
             return redirect('billing:invoice_detail', pk=invoice.pk)
@@ -139,6 +140,7 @@ def invoice_update(request, pk):
         if form.is_valid() and items_formset.is_valid():
             form.save()
             items_formset.save()
+            invoice.recompute_totals()
             log_action(request, 'Invoice', 'update', pk)
             messages.success(request, 'Invoice updated successfully.')
             return redirect('billing:invoice_detail', pk=invoice.pk)

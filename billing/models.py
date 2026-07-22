@@ -188,6 +188,28 @@ class Invoice(DocStatusMixin, models.Model):
             )
         return entry
 
+    def recompute_totals(self):
+        """Sum InvoiceItem.total across this invoice's items and re-derive
+        subtotal/gst_amount/final_amount from the result — mirrors the
+        InvoiceForm.clean() cascade formula exactly so the two paths never
+        disagree. Called after the items formset is saved — see
+        billing/views.py invoice_create/invoice_update."""
+        from decimal import Decimal
+        from accounts.models import CompanySettings
+        from accounts.utils import recompute_total_from_items
+
+        self.subtotal = recompute_total_from_items(self, 'items', 'total')
+        if self.subtotal > Decimal('0'):
+            try:
+                rate = Decimal(str(CompanySettings.get_instance().gst_rate or 18))
+            except Exception:
+                rate = Decimal('18')
+            self.gst_amount = (self.subtotal * rate / Decimal('100')).quantize(Decimal('0.01'))
+        else:
+            self.gst_amount = Decimal('0')
+        self.final_amount = self.subtotal + self.gst_amount - (self.discount_amount or Decimal('0'))
+        self.save(update_fields=['subtotal', 'gst_amount', 'final_amount'])
+
 
 class InvoiceItem(models.Model):
     """Priced line items on the invoice — matches reference "Items" table."""
