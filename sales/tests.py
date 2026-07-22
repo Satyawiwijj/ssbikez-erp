@@ -410,3 +410,37 @@ class FeedbackCreateTests(TestCase):
         self.assertEqual(response.status_code, 302)
         from sales.models import SalesFeedback
         self.assertTrue(SalesFeedback.objects.filter(enquiry=self.enquiry).exists())
+
+
+class SalesOrderTotalRecomputeTests(TestCase):
+
+    def setUp(self):
+        from customers.models import Customer
+        self.customer = Customer.objects.create(full_name='Order Total Customer', phone='9000000020')
+
+    def test_total_amount_reflects_summed_line_items_after_create(self):
+        from django.test import Client
+        from django.urls import reverse
+        from accounts.models import User
+
+        user = User.objects.create_superuser(username='order_total_admin', email='ordertotal@example.com', password='Test-Pass-123!')
+        client = Client()
+        client.force_login(user)
+
+        response = client.post(reverse('sales:order_create'), {
+            'customer': self.customer.pk, 'booking_amount': '1000', 'discount_amount': '0',
+            'sales_status': VehicleSalesOrder.SalesStatus.BOOKED,
+            'payment_status': VehicleSalesOrder.PaymentStatus.UNPAID,
+            'items-TOTAL_FORMS': '2', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'items-0-item_name': 'Helmet', 'items-0-rate': '500', 'items-0-quantity': '1', 'items-0-amount': '500',
+            'items-1-item_name': 'Accessories', 'items-1-rate': '300', 'items-1-quantity': '2', 'items-1-amount': '600',
+            'additional_fittings-TOTAL_FORMS': '0', 'additional_fittings-INITIAL_FORMS': '0',
+            'additional_fittings-MIN_NUM_FORMS': '0', 'additional_fittings-MAX_NUM_FORMS': '1000',
+            'advance_payments-TOTAL_FORMS': '0', 'advance_payments-INITIAL_FORMS': '0',
+            'advance_payments-MIN_NUM_FORMS': '0', 'advance_payments-MAX_NUM_FORMS': '1000',
+        })
+        self.assertEqual(response.status_code, 302)
+
+        order = VehicleSalesOrder.objects.get(customer=self.customer)
+        self.assertEqual(order.total_amount, Decimal('1100'))

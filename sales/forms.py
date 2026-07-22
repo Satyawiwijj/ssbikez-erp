@@ -206,6 +206,11 @@ class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
         self.fields['booking_amount'].help_text = 'Advance collected at booking. Minimum ₹1,000.'
         self.fields['discount_amount'].help_text = 'Maximum discount is 20% of total amount.'
         self.fields['order_form_series'].required = False
+        # total_amount is always derived from the items formset in the view
+        # (VehicleSalesOrder.recompute_totals) — same pattern InvoiceForm
+        # already uses for gst_amount/final_amount. Don't force the user to
+        # guess a number before the items formset has even been saved.
+        self.fields['total_amount'].required = False
         # Not required at the widget level: when the linked enquiry only has a
         # Prospect (no Customer yet), clean() below auto-creates/links the
         # Customer instead of requiring the user to pick one that doesn't exist.
@@ -281,6 +286,13 @@ class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
             if discount_amount > max_discount:
                 self.add_error('discount_amount',
                                f'Discount cannot exceed 20% of total amount (₹{max_discount:.0f}).')
+
+        # total_amount is optional here (see __init__) because it's always
+        # recomputed from the items formset right after save — but the
+        # column itself is NOT NULL, so the initial order.save() (before the
+        # items formset even exists yet) needs a placeholder, not None.
+        if cleaned_data.get('total_amount') is None:
+            cleaned_data['total_amount'] = Decimal('0')
 
         return cleaned_data
 

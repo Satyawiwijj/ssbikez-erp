@@ -491,6 +491,14 @@ class VehicleSalesOrder(DocStatusMixin, models.Model):
         """The active (non-cancelled) invoice, if any — same reasoning as current_delivery."""
         return self.invoices.exclude(docstatus=DocStatusMixin.DocStatus.CANCELLED).order_by('-created_at').first()
 
+    def recompute_totals(self):
+        """Sum VehicleSaleItem.amount across this order's items and persist
+        into total_amount. Called after the items formset is saved — see
+        sales/views.py order_create/order_update."""
+        from accounts.utils import recompute_total_from_items
+        self.total_amount = recompute_total_from_items(self, 'items', 'amount')
+        self.save(update_fields=['total_amount'])
+
 
 # ---------------------------------------------------------------------------
 # VehicleDelivery

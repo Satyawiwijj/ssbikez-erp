@@ -610,6 +610,7 @@ def order_create(request):
             order.save()
             items_formset.instance = order
             items_formset.save()
+            order.recompute_totals()
             fittings2_formset.instance = order
             fittings2_formset.save()
             advance_formset.instance = order
@@ -648,6 +649,7 @@ def order_update(request, pk):
                 and fittings2_formset.is_valid() and advance_formset.is_valid()):
             form.save()
             items_formset.save()
+            order.recompute_totals()
             fittings2_formset.save()
             advance_formset.save()
             log_action(request, 'Sales Order', 'update', pk)
