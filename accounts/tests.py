@@ -357,3 +357,32 @@ class FuelExpenseCRUDTests(TestCase):
         self.assertEqual(response.status_code, 302)
         expense.refresh_from_db()
         self.assertEqual(expense.amount, Decimal('650'))
+
+
+class RecomputeTotalFromItemsTests(TestCase):
+
+    def test_sums_the_amount_field_across_related_items(self):
+        from sales.models import VehicleSalesOrder, VehicleSaleItem
+        from customers.models import Customer
+        from accounts.utils import recompute_total_from_items
+
+        customer = Customer.objects.create(full_name='Recompute Test Customer', phone='9000000010')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('0'))
+        VehicleSaleItem.objects.create(sales_order=order, item_name='Helmet', rate=Decimal('500'), quantity=1, amount=Decimal('500'))
+        VehicleSaleItem.objects.create(sales_order=order, item_name='Accessories', rate=Decimal('300'), quantity=2, amount=Decimal('600'))
+
+        total = recompute_total_from_items(order, 'items', 'amount')
+
+        self.assertEqual(total, Decimal('1100'))
+
+    def test_returns_zero_for_no_items(self):
+        from sales.models import VehicleSalesOrder
+        from customers.models import Customer
+        from accounts.utils import recompute_total_from_items
+
+        customer = Customer.objects.create(full_name='Recompute Empty Customer', phone='9000000011')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('0'))
+
+        total = recompute_total_from_items(order, 'items', 'amount')
+
+        self.assertEqual(total, Decimal('0'))
