@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Document Locked{% endblock %}
+
+{% block content %}
+<div class="card mb-4">
+  <div class="card-body" style="padding:28px;text-align:center;">
+    <i class="fas fa-lock" style="font-size:32px;color:#DC2626;margin-bottom:12px;"></i>
+    <h2 style="font-size:20px;margin-bottom:8px;">This document is submitted and locked</h2>
+    <p style="color:#64748B;margin-bottom:20px;">
+      Submitted documents can't be edited directly. Cancel it to unlock it for
+      correction — cancelling opens an Amend action that creates a fresh,
+      linked draft copy carrying the same history.
+    </p>
+    <a href="{{ detail_url }}" class="btn btn-primary">
+      <i class="fas fa-arrow-left me-1"></i> Go to the document — Cancel &amp; Amend from there
+    </a>
+  </div>
+</div>
+{% endblock %}

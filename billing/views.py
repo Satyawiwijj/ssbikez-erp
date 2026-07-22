@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from accounts.audit import log_action
 from accounts.permissions import require_module_action
@@ -132,8 +133,8 @@ def invoice_update(request, pk):
     # namespace-level role gate (RolePermissionMiddleware) for now.
     invoice = get_object_or_404(Invoice, pk=pk)
     if invoice.docstatus != Invoice.DocStatus.DRAFT:
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('billing:invoice_detail', args=[invoice.pk]))
     form = InvoiceForm(request.POST or None, instance=invoice)
     items_formset = InvoiceItemFormSet(request.POST or None, instance=invoice, prefix='items')
     if request.method == 'POST':

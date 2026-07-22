@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
@@ -638,8 +639,8 @@ def order_update(request, pk):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('sales:order_detail', args=[order.pk]))
     form  = VehicleSalesOrderForm(request.POST or None, instance=order)
     if not user_is_manager(request.user):
         form.fields.pop('sales_executive', None)
@@ -798,8 +799,8 @@ def delivery_update(request, pk):
         from django.http import HttpResponseForbidden
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if delivery.docstatus != VehicleDelivery.DocStatus.DRAFT:
-        from django.http import HttpResponseForbidden
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('sales:order_detail', args=[delivery.sales_order_id]))
     form = VehicleDeliveryForm(request.POST or None, instance=delivery)
     items_formset   = DeliveryNoteItemFormSet(request.POST or None, instance=delivery, prefix='delivery_items')
     advance_formset = DeliveryNoteAdvancePaymentFormSet(request.POST or None, instance=delivery, prefix='delivery_advance')
@@ -994,7 +995,8 @@ def fitting_create(request, order_pk):
     if not user_owns(request.user, order):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('sales:order_detail', args=[order.pk]))
     formset = VehicleFittingFormSet(request.POST or None, instance=order, prefix='fittings')
     if request.method == 'POST' and formset.is_valid():
         formset.save()
@@ -1017,7 +1019,8 @@ def fitting_delete(request, pk):
     if not user_owns(request.user, fit.sales_order):
         return HttpResponseForbidden('<h1>403 — Access Denied</h1>')
     if fit.sales_order.docstatus != VehicleSalesOrder.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('sales:order_detail', args=[order_id]))
     if request.method == 'POST':
         fit.delete()
         log_action(request, 'Vehicle Fitting', 'delete', pk)

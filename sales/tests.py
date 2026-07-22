@@ -528,3 +528,28 @@ class OrderTotalInvoicedAcrossInvoicesTests(TestCase):
         inv.cancel(user)
 
         self.assertEqual(order.total_invoiced_amount, Decimal('0'))
+
+
+class SubmittedDocumentLockedPageTests(TestCase):
+
+    def test_editing_a_submitted_order_shows_a_working_cancel_amend_link(self):
+        from django.test import Client
+        from django.urls import reverse
+        from accounts.models import User
+        from customers.models import Customer
+        from sales.models import VehicleSalesOrder
+
+        user = User.objects.create_superuser(username='locked_doc_admin', email='lockeddoc@example.com', password='Test-Pass-123!')
+        customer = Customer.objects.create(full_name='Locked Doc Customer', phone='9000000050')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        order.submit(user)
+
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse('sales:order_update', args=[order.pk]))
+
+        self.assertEqual(response.status_code, 403)
+        # The old bug: a bare <h1> with no link. The fix: an actual link
+        # back to the order detail page, where Cancel & Amend lives.
+        self.assertContains(response, reverse('sales:order_detail', args=[order.pk]), status_code=403)
+        self.assertContains(response, 'Cancel', status_code=403)

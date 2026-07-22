@@ -29,6 +29,18 @@ MAX_FAILED_LOGIN_ATTEMPTS = 5
 LOGIN_LOCKOUT_MINUTES     = 15
 
 
+def submitted_document_locked(request, detail_url):
+    """Render a real page (not a bare error string) when a user tries to
+    edit a Submitted document directly. Points them at the document's own
+    detail page, where the existing Cancel & Amend action actually lives —
+    the previous bare HttpResponseForbidden told the user what to do
+    without giving them any way to do it."""
+    from django.http import HttpResponseForbidden
+    from django.template.loader import render_to_string
+    html = render_to_string('accounts/submitted_locked.html', {'detail_url': detail_url}, request=request)
+    return HttpResponseForbidden(html)
+
+
 def login_view(request):
     if request.user.is_authenticated:
         return redirect('accounts:home')

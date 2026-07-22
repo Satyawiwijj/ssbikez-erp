@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
@@ -102,7 +103,8 @@ def amc_create(request):
 def amc_update(request, pk):
     package = get_object_or_404(AMCPackage, pk=pk)
     if package.docstatus != AMCPackage.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('vas:amc_detail', args=[package.pk]))
     form    = AMCPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -173,7 +175,8 @@ def rsa_create(request):
 def rsa_update(request, pk):
     package = get_object_or_404(RSAPackage, pk=pk)
     if package.docstatus != RSAPackage.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('vas:rsa_detail', args=[package.pk]))
     form    = RSAPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -244,7 +247,8 @@ def pp_create(request):
 def pp_update(request, pk):
     package = get_object_or_404(ProtectionPlusPackage, pk=pk)
     if package.docstatus != ProtectionPlusPackage.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('vas:pp_detail', args=[package.pk]))
     form    = ProtectionPlusPackageForm(request.POST or None, instance=package)
     if request.method == 'POST' and form.is_valid():
         form.save()
@@ -574,7 +578,8 @@ def vas_invoice_create(request):
 def vas_invoice_update(request, pk):
     invoice = get_object_or_404(VASSupplierInvoice, pk=pk)
     if invoice.docstatus != VASSupplierInvoice.DocStatus.DRAFT:
-        return HttpResponseForbidden('<h1>403 — Submitted documents cannot be edited. Cancel and amend instead.</h1>')
+        from accounts.views import submitted_document_locked
+        return submitted_document_locked(request, reverse('vas:vas_invoice_detail', args=[invoice.pk]))
     form = VASSupplierInvoiceForm(request.POST or None, instance=invoice)
     items_formset = VASSupplierInvoiceItemFormSet(request.POST or None, instance=invoice, prefix='items')
     if request.method == 'POST':
