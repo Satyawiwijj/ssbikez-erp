@@ -757,7 +757,10 @@ setInterval(loadNotificationCount, 60000);
   <h1 class="topbar-title">{% block page_title %}SSBikez ERP{% endblock %}</h1>
   <form method="get" action="{% url 'accounts:search' %}" style="flex:1; max-width:320px; margin: 0 12px;">
     <div style="position:relative;">
-      <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#6B7280;font-size:13px;"></i>
+      <button type="submit" aria-label="Search"
+              style="position:absolute;left:6px;top:50%;transform:translateY(-50%);background:none;border:none;padding:4px;cursor:pointer;color:#6B7280;font-size:13px;">
+        <i class="fas fa-search"></i>
+      </button>
       <input type="text" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Search…"
              id="topbar-search-input"
              data-on-search-page="{% if request.resolver_match.url_name == 'search' %}1{% endif %}"
