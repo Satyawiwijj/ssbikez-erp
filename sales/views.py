@@ -770,6 +770,7 @@ def delivery_create(request):
             delivery = form.save()
             items_formset.instance = delivery
             items_formset.save()
+            delivery.recompute_totals()
             advance_formset.instance = delivery
             advance_formset.save()
             payment_formset.instance = delivery
@@ -806,6 +807,7 @@ def delivery_update(request, pk):
                 and advance_formset.is_valid() and payment_formset.is_valid()):
             form.save()
             items_formset.save()
+            delivery.recompute_totals()
             advance_formset.save()
             payment_formset.save()
             log_action(request, 'Vehicle Delivery', 'update', pk)

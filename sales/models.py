@@ -571,6 +571,14 @@ class VehicleDelivery(DocStatusMixin, models.Model):
     def __str__(self):
         return f"DELIVERY-{self.pk} | ORD-{self.sales_order_id} on {self.delivery_date}"
 
+    def recompute_totals(self):
+        """Sum DeliveryNoteItem.actual_amount across this delivery's items
+        and persist into total_amount. Called after the items formset is
+        saved — see sales/views.py delivery_create/delivery_update."""
+        from accounts.utils import recompute_total_from_items
+        self.total_amount = recompute_total_from_items(self, 'items', 'actual_amount')
+        self.save(update_fields=['total_amount'])
+
 
 # ---------------------------------------------------------------------------
 # Vehicle Delivery child tables

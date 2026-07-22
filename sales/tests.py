@@ -444,3 +444,21 @@ class SalesOrderTotalRecomputeTests(TestCase):
 
         order = VehicleSalesOrder.objects.get(customer=self.customer)
         self.assertEqual(order.total_amount, Decimal('1100'))
+
+
+class VehicleDeliveryTotalRecomputeTests(TestCase):
+
+    def test_total_amount_reflects_summed_delivery_items(self):
+        from customers.models import Customer
+        from sales.models import VehicleDelivery, DeliveryNoteItem
+
+        customer = Customer.objects.create(full_name='Delivery Total Customer', phone='9000000030')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        delivery = VehicleDelivery.objects.create(sales_order=order, delivery_date='2026-08-01', total_amount=Decimal('0'))
+        DeliveryNoteItem.objects.create(delivery=delivery, item_code='HELMET', rate=Decimal('500'), actual_amount=Decimal('500'))
+        DeliveryNoteItem.objects.create(delivery=delivery, item_code='ACCESSORY-KIT', rate=Decimal('750'), actual_amount=Decimal('750'))
+
+        delivery.recompute_totals()
+
+        delivery.refresh_from_db()
+        self.assertEqual(delivery.total_amount, Decimal('1250'))
