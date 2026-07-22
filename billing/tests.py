@@ -351,3 +351,30 @@ class RefundAdvanceCreateTests(_TestCase):
         self.assertEqual(response.status_code, 302)
         from billing.models import RefundAdvance
         self.assertTrue(RefundAdvance.objects.filter(customer=self.customer).exists())
+
+
+class GeneralLedgerFilterTests(_TestCase):
+
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='gl_filter_admin', email='glfilter@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        from billing.models import JournalEntry, JournalEntryLine
+        old = JournalEntry.objects.create(entry_date='2020-01-01', description='Old entry', reference='OLD-1')
+        JournalEntryLine.objects.create(entry=old, account='Cash', debit=_Decimal('100'))
+        JournalEntryLine.objects.create(entry=old, account='Sales', credit=_Decimal('100'))
+        recent = JournalEntry.objects.create(entry_date='2026-08-01', description='Recent entry', reference='RECENT-1')
+        JournalEntryLine.objects.create(entry=recent, account='Bank', debit=_Decimal('200'))
+        JournalEntryLine.objects.create(entry=recent, account='Sales', credit=_Decimal('200'))
+
+    def test_date_range_filter_excludes_entries_outside_range(self):
+        response = self.client.get(_reverse('billing:general_ledger'), {'from_date': '2026-01-01', 'to_date': '2026-12-31'})
+        self.assertEqual(response.status_code, 200)
+        account_names = {a['name'] for a in response.context['accounts']}
+        self.assertIn('Bank', account_names)
+        self.assertNotIn('Cash', account_names)
+
+    def test_account_filter_shows_only_the_selected_account(self):
+        response = self.client.get(_reverse('billing:general_ledger'), {'account': 'Sales'})
+        self.assertEqual(response.status_code, 200)
+        account_names = {a['name'] for a in response.context['accounts']}
+        self.assertEqual(account_names, {'Sales'})

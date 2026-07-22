@@ -14,6 +14,19 @@
     </div>
 </div>
 
+<form method="get" class="search-bar">
+  <input type="date" name="from_date" value="{{ from_date }}" placeholder="From date">
+  <input type="date" name="to_date" value="{{ to_date }}" placeholder="To date">
+  <select name="account" class="form-select" style="max-width:220px;">
+    <option value="">All accounts</option>
+    {% for acc in all_accounts %}
+      <option value="{{ acc }}" {% if acc == selected_account %}selected{% endif %}>{{ acc }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary btn-sm">Filter</button>
+  <a href="{% url 'billing:general_ledger' %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+</form>
+
 {% for account in accounts %}
 
 <div class="card" style="margin-bottom:20px;">

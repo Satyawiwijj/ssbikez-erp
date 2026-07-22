@@ -200,9 +200,23 @@ def journal_entry_create(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def general_ledger(request):
+    lines = JournalEntryLine.objects.select_related('entry').order_by('account', 'entry__entry_date')
+
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    account_filter = request.GET.get('account', '').strip()
+
+    if from_date:
+        lines = lines.filter(entry__entry_date__gte=from_date)
+    if to_date:
+        lines = lines.filter(entry__entry_date__lte=to_date)
+    if account_filter:
+        lines = lines.filter(account=account_filter)
+
     accounts = {}
-    for line in JournalEntryLine.objects.select_related('entry').order_by('account', 'entry__entry_date'):
+    for line in lines:
         a = accounts.setdefault(line.account, {
             'name': line.account, 'debit': Decimal('0'),
             'credit': Decimal('0'), 'entries': [],
@@ -213,4 +227,15 @@ def general_ledger(request):
     for a in accounts.values():
         a['balance'] = a['debit'] - a['credit']
     accounts_list = sorted(accounts.values(), key=lambda x: x['name'])
-    return render(request, 'billing/general_ledger.html', {'accounts': accounts_list})
+
+    all_accounts = list(
+        JournalEntryLine.objects.order_by('account').values_list('account', flat=True).distinct()
+    )
+
+    return render(request, 'billing/general_ledger.html', {
+        'accounts': accounts_list,
+        'all_accounts': all_accounts,
+        'from_date': from_date or '',
+        'to_date': to_date or '',
+        'selected_account': account_filter,
+    })
