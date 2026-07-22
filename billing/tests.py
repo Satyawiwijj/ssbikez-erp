@@ -378,3 +378,133 @@ class GeneralLedgerFilterTests(_TestCase):
         self.assertEqual(response.status_code, 200)
         account_names = {a['name'] for a in response.context['accounts']}
         self.assertEqual(account_names, {'Sales'})
+
+
+class JournalEntryDisplayPermissionTests(_TestCase):
+    """Uses the 'Accounts' role name (present in accounts.permissions.
+    ROLE_PERMISSIONS with 'billing' namespace access) rather than an
+    unrecognised role name -- an unrecognised role_name resolves to an
+    empty allowed-namespaces list, so RolePermissionMiddleware would 403
+    the request at the namespace level before the view-level
+    @require_module_action('finance', 'view') check is ever reached,
+    making the test pass for the wrong reason."""
+
+    def setUp(self):
+        from accounts.models import Role, ModulePermission
+        self.role = Role.objects.create(role_name='Accounts')
+        ModulePermission.objects.create(role=self.role, module='finance', can_view=False)
+        self.user = _User.objects.create(username='no_finance_display', email='nofinance@example.com', role=self.role)
+        self.user.set_password('Test-Pass-123!')
+        self.user.save()
+        self.client.force_login(self.user)
+        from billing.models import JournalEntry
+        self.entry = JournalEntry.objects.create(entry_date='2026-08-01', description='Blocked entry test', reference='BLOCK-1')
+
+    def test_journal_entry_detail_blocked_when_display_permission_is_off(self):
+        response = self.client.get(_reverse('billing:journal_entry_detail', args=[self.entry.pk]))
+        self.assertEqual(response.status_code, 403)
+
+
+class BillingDisplayPermissionAuditTests(_TestCase):
+    """Covers the rest of billing's read-only views identified in the Step 5
+    audit (Task 10) as exposing specific financial records with only
+    @login_required -- the same gap pattern as general_ledger (fixed in
+    Task 8) and journal_entry_detail (fixed above). Uses the 'Accounts'
+    role (has 'billing' in ROLE_PERMISSIONS) with can_view=False on the
+    'finance' ModulePermission so the namespace-level middleware lets the
+    request through and only the view-level @require_module_action gate
+    is under test.
+
+    Views intentionally NOT covered here (left ungated, see task report):
+      - dashboard: billing's landing page, analogous to a namespace-level
+        entry point rather than a specific-record view.
+      - invoice_search: a cross-reference/search screen the task brief
+        specifically flagged as plausibly intended to stay open to anyone
+        with billing namespace access.
+    """
+
+    def setUp(self):
+        from accounts.models import Role, ModulePermission
+        self.role = Role.objects.create(role_name='Accounts')
+        ModulePermission.objects.create(role=self.role, module='finance', can_view=False)
+        self.user = _User.objects.create(username='audit_no_display', email='auditnodisplay@example.com', role=self.role)
+        self.user.set_password('Test-Pass-123!')
+        self.user.save()
+        self.client.force_login(self.user)
+
+        order = _make_order('AUDIT1')
+        self.customer = order.customer
+
+        from billing.models import (FinanceLoan, Invoice, InsurancePolicy,
+                                     JournalEntry, Payment, RefundAdvance)
+        self.invoice = Invoice.objects.create(
+            sales_order=order, invoice_number='AUDIT-INV-0001', subtotal=_Decimal('10000'),
+            final_amount=_Decimal('10000'), invoice_date='2026-08-01',
+        )
+        Payment.objects.create(
+            invoice=self.invoice, amount=_Decimal('5000'),
+            payment_method=Payment.Method.CASH,
+            payment_status=Payment.PaymentStatus.COMPLETED,
+            payment_date='2026-08-01',
+        )
+        self.loan = FinanceLoan.objects.create(
+            sales_order=order, bank_name='HDFC Bank', loan_amount=_Decimal('60000'),
+            loan_status='active', hp_status='not_applicable',
+        )
+        self.policy = InsurancePolicy.objects.create(
+            sales_order=order, provider_name='ICICI Lombard', policy_number='AUDIT-POL-0001',
+            premium_amount=_Decimal('3500'), start_date='2026-08-01', end_date='2027-08-01',
+        )
+        self.refund = RefundAdvance.objects.create(
+            customer=self.customer, amount=_Decimal('1000'), transaction_type='refund',
+            reason='Audit test', status='pending',
+        )
+        self.entry = JournalEntry.objects.create(entry_date='2026-08-01', description='Audit entry', reference='AUDIT-JE-1')
+
+    def test_invoice_list_blocked(self):
+        response = self.client.get(_reverse('billing:invoice_list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_invoice_detail_blocked(self):
+        response = self.client.get(_reverse('billing:invoice_detail', args=[self.invoice.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_payment_list_blocked(self):
+        response = self.client.get(_reverse('billing:payment_list', args=[self.invoice.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_daily_collection_report_blocked(self):
+        response = self.client.get(_reverse('billing:daily_collection_report'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_loan_list_blocked(self):
+        response = self.client.get(_reverse('billing:loan_list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_loan_detail_blocked(self):
+        response = self.client.get(_reverse('billing:loan_detail', args=[self.loan.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_insurance_policy_list_blocked(self):
+        response = self.client.get(_reverse('billing:insurance_policy_list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_insurance_policy_detail_blocked(self):
+        response = self.client.get(_reverse('billing:insurance_policy_detail', args=[self.policy.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_payment_reconciliation_blocked(self):
+        response = self.client.get(_reverse('billing:payment_reconciliation'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_refund_advance_list_blocked(self):
+        response = self.client.get(_reverse('billing:refund_advance_list'))
+        self.assertEqual(response.status_code, 403)
+
+    def test_refund_advance_detail_blocked(self):
+        response = self.client.get(_reverse('billing:refund_advance_detail', args=[self.refund.pk]))
+        self.assertEqual(response.status_code, 403)
+
+    def test_journal_entry_list_blocked(self):
+        response = self.client.get(_reverse('billing:journal_entry_list'))
+        self.assertEqual(response.status_code, 403)

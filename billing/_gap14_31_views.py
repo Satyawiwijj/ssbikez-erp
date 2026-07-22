@@ -18,6 +18,7 @@ from .models import Invoice, JournalEntry, JournalEntryLine, Payment, RefundAdva
 # --- GAP 16: Payment Reconciliation ----------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def payment_reconciliation(request):
     today = timezone.now().date()
     start_str = request.GET.get('start') or (today - timedelta(days=7)).isoformat()
@@ -116,6 +117,7 @@ def invoice_search(request):
 # --- GAP 18: Refunds & Advances --------------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def refund_advance_list(request):
     items = RefundAdvance.objects.select_related('customer').all()[:300]
     return render(request, 'billing/refund_advance_list.html', {'items': items})
@@ -135,6 +137,7 @@ def refund_advance_create(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def refund_advance_detail(request, pk):
     obj = get_object_or_404(RefundAdvance.objects.select_related('customer'), pk=pk)
     return render(request, 'billing/refund_advance_detail.html', {'obj': obj})
@@ -143,6 +146,7 @@ def refund_advance_detail(request, pk):
 # --- GAP 25: Journal & General Ledger --------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def journal_entry_list(request):
     entries = JournalEntry.objects.prefetch_related('lines')
     start = request.GET.get('start', '').strip()
@@ -163,6 +167,7 @@ def journal_entry_list(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def journal_entry_detail(request, pk):
     entry = get_object_or_404(JournalEntry.objects.prefetch_related('lines'), pk=pk)
     return render(request, 'billing/journal_entry_detail.html', {'entry': entry})

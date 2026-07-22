@@ -49,6 +49,7 @@ def dashboard(request):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def loan_list(request):
     q = request.GET.get('q', '').strip()
     qs = FinanceLoan.objects.select_related('sales_order__customer').order_by('-created_at')
@@ -64,6 +65,7 @@ def loan_list(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def invoice_list(request):
     q  = request.GET.get('q', '').strip()
     qs = Invoice.objects.select_related('sales_order__customer').all()
@@ -78,6 +80,7 @@ def invoice_list(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def invoice_detail(request, pk):
     invoice    = get_object_or_404(
         Invoice.objects.select_related('sales_order__customer'), pk=pk
@@ -276,6 +279,7 @@ def payment_update(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def payment_list(request, invoice_pk):
     invoice  = get_object_or_404(Invoice, pk=invoice_pk)
     payments = invoice.payments.all()
@@ -290,6 +294,7 @@ def payment_list(request, invoice_pk):
 # ---------------------------------------------------------------------------
 
 @login_required
+@require_module_action('finance', 'view')
 def daily_collection_report(request):
     from datetime import datetime, date as _date
     from django.utils import timezone
@@ -357,6 +362,7 @@ def daily_collection_report(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def insurance_policy_list(request):
     q  = request.GET.get('q', '').strip()
     qs = InsurancePolicy.objects.select_related('sales_order__customer').all()
@@ -372,6 +378,7 @@ def insurance_policy_list(request):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def insurance_policy_detail(request, pk):
     policy = get_object_or_404(
         InsurancePolicy.objects.select_related('sales_order__customer'), pk=pk
@@ -438,6 +445,7 @@ def loan_update(request, pk):
 
 
 @login_required
+@require_module_action('finance', 'view')
 def loan_detail(request, pk):
     loan = get_object_or_404(FinanceLoan.objects.select_related('sales_order__customer'), pk=pk)
     total_repayment = None
