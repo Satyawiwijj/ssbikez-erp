@@ -10,6 +10,7 @@ from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from accounts.audit import log_action
+from accounts.models import DocStatusMixin
 from accounts.permissions import require_module_action
 
 from .forms import (AdditionalVehicleFittingFormSet, CallLogFormSet,
@@ -546,9 +547,13 @@ def order_detail(request, pk):
     loan      = getattr(order, 'loan',             None)
     exchange  = getattr(order, 'exchange_vehicle', None)
     policies  = order.insurance_policies.all()
+    active_invoices = order.invoices.exclude(
+        docstatus=DocStatusMixin.DocStatus.CANCELLED
+    ).order_by('-created_at')
     return render(request, 'sales/order_detail.html', {
         'order':                order,
         'invoice':              invoice,
+        'active_invoices':      active_invoices,
         'total_invoiced_amount': order.total_invoiced_amount,
         'active_invoice_count':  order.active_invoice_count,
         'loan':                 loan,

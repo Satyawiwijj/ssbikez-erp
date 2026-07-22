@@ -779,21 +779,22 @@
             </tr>
         </thead>
         <tbody>
+            {% for inv in active_invoices %}
             <tr>
-                <td style="font-family:monospace;">{{ invoice.invoice_number }}</td>
-                <td>{{ invoice.invoice_date|date:"d M Y" }}</td>
-                <td>₹ {{ invoice.subtotal }}</td>
-                <td>₹ {{ invoice.gst_amount }}</td>
-                <td>₹ {{ invoice.discount_amount }}</td>
-                <td class="fw-bold text-primary">₹ {{ invoice.final_amount }}</td>
+                <td style="font-family:monospace;">{{ inv.invoice_number }}</td>
+                <td>{{ inv.invoice_date|date:"d M Y" }}</td>
+                <td>₹ {{ inv.subtotal }}</td>
+                <td>₹ {{ inv.gst_amount }}</td>
+                <td>₹ {{ inv.discount_amount }}</td>
+                <td class="fw-bold text-primary">₹ {{ inv.final_amount }}</td>
                 <td>
                     <div class="table-actions">
-                        <a href="{% url 'billing:invoice_detail' invoice.pk %}"
+                        <a href="{% url 'billing:invoice_detail' inv.pk %}"
                            class="btn btn-sm btn-outline-secondary">
                             <i class="fas fa-eye me-1"></i>
                             View
                         </a>
-                        <a href="{% url 'billing:invoice_update' invoice.pk %}"
+                        <a href="{% url 'billing:invoice_update' inv.pk %}"
                            class="btn btn-sm btn-outline-primary">
                             <i class="fas fa-edit me-1"></i>
                             Edit
@@ -801,6 +802,7 @@
                     </div>
                 </td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
 </div>

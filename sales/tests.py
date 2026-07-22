@@ -529,6 +529,32 @@ class OrderTotalInvoicedAcrossInvoicesTests(TestCase):
 
         self.assertEqual(order.total_invoiced_amount, Decimal('0'))
 
+    def test_order_detail_page_lists_every_active_invoice(self):
+        """order_detail's invoice table must render one row per non-cancelled
+        invoice, not just order.current_invoice (the single latest one) --
+        otherwise the per-invoice table under-reports what the aggregate
+        total_invoiced_amount/active_invoice_count summary above it shows."""
+        from django.test import Client
+        from django.urls import reverse
+        from accounts.models import User
+        from customers.models import Customer
+        from sales.models import VehicleSalesOrder
+        from billing.models import Invoice
+
+        customer = Customer.objects.create(full_name='Detail Page Multi Invoice Customer', phone='9000000042')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('80000'))
+        Invoice.objects.create(sales_order=order, invoice_number='DETAIL-INV-0001', subtotal=Decimal('50000'), final_amount=Decimal('50000'), invoice_date='2026-08-01')
+        Invoice.objects.create(sales_order=order, invoice_number='DETAIL-INV-0002', subtotal=Decimal('5000'), final_amount=Decimal('5000'), invoice_date='2026-08-05')
+
+        user = User.objects.create_superuser(username='detail_multi_invoice_admin', email='detailmultiinvoice@example.com', password='Test-Pass-123!')
+        client = Client()
+        client.force_login(user)
+        response = client.get(reverse('sales:order_detail', args=[order.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'DETAIL-INV-0001')
+        self.assertContains(response, 'DETAIL-INV-0002')
+
 
 class SubmittedDocumentLockedPageTests(TestCase):
 
