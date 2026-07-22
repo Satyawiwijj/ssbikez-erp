@@ -612,17 +612,19 @@ def order_create(request):
     if request.method == 'POST':
         if (form.is_valid() and items_formset.is_valid()
                 and fittings2_formset.is_valid() and advance_formset.is_valid()):
-            order = form.save(commit=False)
-            if not is_manager:
-                order.sales_executive = request.user
-            order.save()
-            items_formset.instance = order
-            items_formset.save()
-            order.recompute_totals()
-            fittings2_formset.instance = order
-            fittings2_formset.save()
-            advance_formset.instance = order
-            advance_formset.save()
+            from django.db import transaction
+            with transaction.atomic():
+                order = form.save(commit=False)
+                if not is_manager:
+                    order.sales_executive = request.user
+                order.save()
+                items_formset.instance = order
+                items_formset.save()
+                order.recompute_totals()
+                fittings2_formset.instance = order
+                fittings2_formset.save()
+                advance_formset.instance = order
+                advance_formset.save()
             log_action(request, 'Sales Order', 'create', order.pk)
             messages.success(request, 'Sales order created successfully.')
             return redirect('sales:order_detail', pk=order.pk)
@@ -655,11 +657,13 @@ def order_update(request, pk):
     if request.method == 'POST':
         if (form.is_valid() and items_formset.is_valid()
                 and fittings2_formset.is_valid() and advance_formset.is_valid()):
-            form.save()
-            items_formset.save()
-            order.recompute_totals()
-            fittings2_formset.save()
-            advance_formset.save()
+            from django.db import transaction
+            with transaction.atomic():
+                form.save()
+                items_formset.save()
+                order.recompute_totals()
+                fittings2_formset.save()
+                advance_formset.save()
             log_action(request, 'Sales Order', 'update', pk)
             messages.success(request, 'Sales order updated successfully.')
             return redirect('sales:order_detail', pk=order.pk)
@@ -775,14 +779,16 @@ def delivery_create(request):
     if request.method == 'POST':
         if (form.is_valid() and items_formset.is_valid()
                 and advance_formset.is_valid() and payment_formset.is_valid()):
-            delivery = form.save()
-            items_formset.instance = delivery
-            items_formset.save()
-            delivery.recompute_totals()
-            advance_formset.instance = delivery
-            advance_formset.save()
-            payment_formset.instance = delivery
-            payment_formset.save()
+            from django.db import transaction
+            with transaction.atomic():
+                delivery = form.save()
+                items_formset.instance = delivery
+                items_formset.save()
+                delivery.recompute_totals()
+                advance_formset.instance = delivery
+                advance_formset.save()
+                payment_formset.instance = delivery
+                payment_formset.save()
             log_action(request, 'Vehicle Delivery', 'create', delivery.pk)
             messages.success(request, 'Delivery recorded. Customer vehicle record auto-created on submit.')
             return redirect('sales:order_detail', pk=delivery.sales_order_id)
@@ -813,11 +819,13 @@ def delivery_update(request, pk):
     if request.method == 'POST':
         if (form.is_valid() and items_formset.is_valid()
                 and advance_formset.is_valid() and payment_formset.is_valid()):
-            form.save()
-            items_formset.save()
-            delivery.recompute_totals()
-            advance_formset.save()
-            payment_formset.save()
+            from django.db import transaction
+            with transaction.atomic():
+                form.save()
+                items_formset.save()
+                delivery.recompute_totals()
+                advance_formset.save()
+                payment_formset.save()
             log_action(request, 'Vehicle Delivery', 'update', pk)
             messages.success(request, 'Delivery updated successfully.')
             return redirect('sales:order_detail', pk=delivery.sales_order_id)

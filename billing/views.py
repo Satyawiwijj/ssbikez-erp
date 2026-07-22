@@ -114,10 +114,12 @@ def invoice_create(request):
     items_formset = InvoiceItemFormSet(request.POST or None, prefix='items')
     if request.method == 'POST':
         if form.is_valid() and items_formset.is_valid():
-            invoice = form.save()
-            items_formset.instance = invoice
-            items_formset.save()
-            invoice.recompute_totals()
+            from django.db import transaction
+            with transaction.atomic():
+                invoice = form.save()
+                items_formset.instance = invoice
+                items_formset.save()
+                invoice.recompute_totals()
             log_action(request, 'Invoice', 'create', invoice.pk)
             messages.success(request, 'Invoice created successfully.')
             return redirect('billing:invoice_detail', pk=invoice.pk)
@@ -142,9 +144,11 @@ def invoice_update(request, pk):
     items_formset = InvoiceItemFormSet(request.POST or None, instance=invoice, prefix='items')
     if request.method == 'POST':
         if form.is_valid() and items_formset.is_valid():
-            form.save()
-            items_formset.save()
-            invoice.recompute_totals()
+            from django.db import transaction
+            with transaction.atomic():
+                form.save()
+                items_formset.save()
+                invoice.recompute_totals()
             log_action(request, 'Invoice', 'update', pk)
             messages.success(request, 'Invoice updated successfully.')
             return redirect('billing:invoice_detail', pk=invoice.pk)
