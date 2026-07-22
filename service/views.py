@@ -568,6 +568,19 @@ def service_invoice_create(request):
             return redirect('service:service_invoice_detail', pk=existing.pk)
     form = ServiceInvoiceForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        # Guard: the workshop pipeline (Pending -> Water Wash -> In Bay ->
+        # In Progress -> Outwork -> Final Inspection -> Ready -> Invoiced) is
+        # only meaningful if billing can't skip straight to Invoiced -- a Job
+        # Card must have completed Final Inspection (status Ready) first.
+        target_job_card = get_object_or_404(JobCard, pk=form.cleaned_data['job_card'].pk)
+        if target_job_card.service_status != JobCard.ServiceStatus.READY:
+            messages.error(
+                request,
+                f'Cannot create a Service Invoice — Job Card status is '
+                f'"{target_job_card.get_service_status_display()}", not "Ready". '
+                f'Complete Final Inspection first.'
+            )
+            return redirect('service:jobcard_detail', pk=target_job_card.pk)
         invoice = form.save(commit=False)
         # Include time to avoid duplicate invoice_number on same day for same job card
         invoice.invoice_number = f'SINV-{invoice.job_card_id}-{timezone.now().strftime("%Y%m%d%H%M%S")}'

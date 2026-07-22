@@ -262,3 +262,41 @@ class LaborChargesAlterationCreateTests(TestCase):
             })
         response = self.client.post(reverse('service:labor_alteration_create'), payload)
         self.assertEqual(response.status_code, 302)
+
+
+class ServiceInvoiceCreateStatusGateTests(TestCase):
+    """The reference pipeline (Pending -> Water Wash -> In Bay -> In Progress
+    -> Outwork -> Final Inspection -> Ready -> Invoiced) is meaningless if a
+    Service Invoice can be raised on a Job Card that never reached Ready --
+    it means every earlier gate (water wash, bay work, final inspection) is
+    purely cosmetic and can be bypassed by billing staff on day one."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username='sinv_admin', email='sinvadmin@example.com', password='Test-Pass-123!'
+        )
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'SINV1')
+
+    def test_cannot_create_invoice_before_ready(self):
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+        response = self.client.post(reverse('service:service_invoice_create'), {
+            'job_card': self.job_card.pk, 'discount_amount': '0', 'status': 'draft',
+        })
+        self.assertEqual(response.status_code, 302)
+        from service.models import ServiceInvoice
+        self.assertFalse(ServiceInvoice.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+
+    def test_can_create_invoice_once_ready(self):
+        self.job_card.service_status = JobCard.ServiceStatus.READY
+        self.job_card.save(update_fields=['service_status'])
+        response = self.client.post(reverse('service:service_invoice_create'), {
+            'job_card': self.job_card.pk, 'discount_amount': '0', 'status': 'draft',
+        })
+        self.assertEqual(response.status_code, 302)
+        from service.models import ServiceInvoice
+        self.assertTrue(ServiceInvoice.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.INVOICED)
