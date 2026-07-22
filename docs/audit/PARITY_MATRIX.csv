@@ -2206,23 +2206,23 @@ Ssbikez,Job Card Creation,engine_no,Data,no,Engine No,,,,,
 Ssbikez,Job Card Creation,model,Data,no,Model,,,,,
 Ssbikez,Job Card Creation,column_break_5amgy,Column Break,no,,,,,,
 Ssbikez,Job Card Creation,branch,Link,no,Branch,,,,,
-Ssbikez,Job Card Creation,colour,Link,yes,Color,,,,,
-Ssbikez,Job Card Creation,vehicle_name,Link,yes,Vehicle Code,,,,,
+Ssbikez,Job Card Creation,colour,Link,yes,Color,service,JobCard,customer_vehicle.vehicle.color,Match,"service/models.py:103-107; customers/models.py:100 (via relation, not a JobCard field)"
+Ssbikez,Job Card Creation,vehicle_name,Link,yes,Vehicle Code,service,JobCard,customer_vehicle.vehicle,Match,service/models.py:103-107 (via customer_vehicle.vehicle relation)
 Ssbikez,Job Card Creation,company,Link,no,Company,,,,,
 Ssbikez,Job Card Creation,service_type_adjustment,Check,no,Service Type Adjustment,,,,,
 Ssbikez,Job Card Creation,fine_amount,Float,no,Fine Amount,,,,,
 Ssbikez,Job Card Creation,column_break_nouks,Column Break,no,,,,,,
-Ssbikez,Job Card Creation,date,Date,yes,Date,,,,,
+Ssbikez,Job Card Creation,date,Date,yes,Date,service,JobCard,created_at,Match,"service/models.py:140 -- auto_now_add, defaults to today like reference; not separately user-editable"
 Ssbikez,Job Card Creation,sales_invoice_date,Date,no,Sales Invoice Date,,,,,
 Ssbikez,Job Card Creation,job_card,Data,no,Job Card No,,,,,
-Ssbikez,Job Card Creation,service,Link,yes,Service,,,,,
+Ssbikez,Job Card Creation,service,Link,yes,Service,service,JobCard,(none),Missing,"service/models.py:92-141 -- JobCard has no own service-type field; only reachable via nullable service_appointment.service_type (line 108-113), so a walk-in job card created without an appointment captures no service type at all"
 Ssbikez,Job Card Creation,contact_details_section,Section Break,no,Customer Details,,,,,
-Ssbikez,Job Card Creation,customer,Data,yes,Customer Name,,,,,
+Ssbikez,Job Card Creation,customer,Data,yes,Customer Name,service,JobCard,customer_vehicle.customer.full_name,Match,service/models.py:103-107 (via customer_vehicles.CustomerVehicle.customer)
 Ssbikez,Job Card Creation,email,Data,no,Email,,,,,
 Ssbikez,Job Card Creation,gst_category,Data,no,GST Category,,,,,
 Ssbikez,Job Card Creation,gstin,Data,no,GSTIN,,,,,
 Ssbikez,Job Card Creation,column_break_euudo,Column Break,no,,,,,,
-Ssbikez,Job Card Creation,phone_no,Data,yes,Phone No,,,,,
+Ssbikez,Job Card Creation,phone_no,Data,yes,Phone No,service,JobCard,customer_vehicle.customer.phone,Match,"service/models.py:103-107 (via customer_vehicle relation, not a JobCard field)"
 Ssbikez,Job Card Creation,phone_number_change,Check,no,Phone Number Change,,,,,
 Ssbikez,Job Card Creation,new_phone_number,Data,no,New Phone Number,,,,,
 Ssbikez,Job Card Creation,city,Data,no,City,,,,,
@@ -2234,7 +2234,7 @@ Ssbikez,Job Card Creation,new_address_1,Data,no,Address Line 1,,,,,
 Ssbikez,Job Card Creation,address_line2,Data,no,Address Line2,,,,,
 Ssbikez,Job Card Creation,pincode,Data,no,Pincode,,,,,
 Ssbikez,Job Card Creation,last_service_section,Section Break,no,Last Service,,,,,
-Ssbikez,Job Card Creation,km,Int,yes,Service KM,,,,,
+Ssbikez,Job Card Creation,km,Int,yes,Service KM,service,JobCard,odometer_reading,Deviation,"service/models.py:132 -- odometer_reading is null=True, blank=True; reference Service KM is mandatory"
 Ssbikez,Job Card Creation,column_break_ioke,Column Break,no,,,,,,
 Ssbikez,Job Card Creation,service_date,Date,no,Service Date,,,,,
 Ssbikez,Job Card Creation,column_break_gyqe,Column Break,no,,,,,,
@@ -2282,8 +2282,8 @@ Ssbikez,Job Card Creation,labour_total_amount,Currency,no,Labour Total Amount,,,
 Ssbikez,Job Card Creation,column_break_bxos,Column Break,no,,,,,,
 Ssbikez,Job Card Creation,outwork_total_amount,Currency,no,Outwork Total Amount,,,,,
 Ssbikez,Job Card Creation,section_break_6ntbd,Section Break,no,,,,,,
-Ssbikez,Job Card Creation,opening_time,Datetime,yes,Opening Time,,,,,
-Ssbikez,Job Card Creation,closing_time,Datetime,yes,Closing Time,,,,,
+Ssbikez,Job Card Creation,opening_time,Datetime,yes,Opening Time,service,JobCard,(none),Missing,"service/models.py:92-141 -- no opening_time field; only auto created_at timestamp exists, not an explicit mandatory business opening-time capture"
+Ssbikez,Job Card Creation,closing_time,Datetime,yes,Closing Time,service,JobCard,(none),Missing,service/models.py:92-141 -- no closing_time field captured on JobCard
 Ssbikez,Job Card Creation,column_break_tesu1,Column Break,no,,,,,,
 Ssbikez,Job Card Creation,deliv_date_time,Datetime,no,Delivery Expected Date & Time,,,,,
 Ssbikez,Job Card Creation,total_estimated_cost,Currency,no,Total Estimated Cost,,,,,
@@ -2291,7 +2291,7 @@ Ssbikez,Job Card Creation,in_time,Time,no,In Time,,,,,
 Ssbikez,Job Card Creation,e_cost,Data,no,Estimation Cost,,,,,
 Ssbikez,Job Card Creation,mobile_app_entry,Datetime,no,Mobile App Entry,,,,,
 Ssbikez,Job Card Creation,column_break_jygye,Column Break,no,,,,,,
-Ssbikez,Job Card Creation,super_visor,Data,yes,Super Visor,,,,,
+Ssbikez,Job Card Creation,super_visor,Data,yes,Super Visor,service,JobCard,floor_supervisor,Deviation,"service/models.py:120-125 -- floor_supervisor FK is null=True, blank=True; reference Super Visor is mandatory"
 Ssbikez,Job Card Creation,reschedule_date_time,Datetime,no,Reschedule,,,,,
 Ssbikez,Job Card Creation,advance,Currency,no,Advance,,,,,
 Ssbikez,Job Card Creation,payment_status,Data,no,Payment Status,,,,,
@@ -3641,10 +3641,10 @@ Ssbikez,Service Appoinment Booking Call Logs,audio,Button,no,Audio,,,,,
 Ssbikez,Service Appoinment Booking,details_tab,Tab Break,no,Details,,,,,
 Ssbikez,Service Appoinment Booking,date,Date,yes,Date,,,,,
 Ssbikez,Service Appoinment Booking,phone_no,Data,no,Phone No,,,,,
-Ssbikez,Service Appoinment Booking,service,Link,no,Service,,,,,
-Ssbikez,Service Appoinment Booking,appointment_cancel_reason,Small Text,no,Appointment Cancel Reason,,,,,
+Ssbikez,Service Appoinment Booking,service,Link,no,Service,service,ServiceAppointment,service_type,Deviation,"service/models.py:66-70 -- fixed TextChoices (free_service/paid_service/accidental/general), not a Link to the Service Types master"
+Ssbikez,Service Appoinment Booking,appointment_cancel_reason,Small Text,no,Appointment Cancel Reason,service,ServiceAppointment,is_cancelled_postponed,Deviation,"service/models.py:81 -- boolean flag only, no free-text cancel-reason field captured"
 Ssbikez,Service Appoinment Booking,column_break_1bjtq,Column Break,no,,,,,,
-Ssbikez,Service Appoinment Booking,service_enquiry_id,Link,yes,Service Enquiry ID,,,,,
+Ssbikez,Service Appoinment Booking,service_enquiry_id,Link,yes,Service Enquiry ID,service,ServiceAppointment,service_enquiry,Match,service/models.py:60-64
 Ssbikez,Service Appoinment Booking,chasis_no,Data,no,Chasis No,,,,,
 Ssbikez,Service Appoinment Booking,customer,Data,no,Customer,,,,,
 Ssbikez,Service Appoinment Booking,column_break_x5rq1,Column Break,no,,,,,,
@@ -3717,11 +3717,11 @@ Ssbikez,Service Enquiry Form,party_area,Data,no,Party Area,,,,,
 Ssbikez,Service Enquiry Form,service,Link,no,Service,,,,,
 Ssbikez,Service Enquiry Form,colour,Data,no,Colour,,,,,
 Ssbikez,Service Enquiry Form,column_break_t0v9i,Column Break,no,,,,,,
-Ssbikez,Service Enquiry Form,chasis_no,Data,yes,Chasis No,,,,,
+Ssbikez,Service Enquiry Form,chasis_no,Data,yes,Chasis No,service,ServiceEnquiry,customer_vehicle,Match,service/models.py:20-24 (via customer_vehicle.vehicle.chassis_no relation)
 Ssbikez,Service Enquiry Form,engine_no,Data,no,Engine No,,,,,
 Ssbikez,Service Enquiry Form,whatsapp_no,Data,no,Whatsapp No,,,,,
 Ssbikez,Service Enquiry Form,pincode,Data,no,Pincode,,,,,
-Ssbikez,Service Enquiry Form,service_enquiry_status,Link,no,Service Enquiry Status,,,,,
+Ssbikez,Service Enquiry Form,service_enquiry_status,Link,no,Service Enquiry Status,service,ServiceEnquiry,status,Deviation,"service/models.py:14-36 -- fixed 3-value TextChoices (Open/Scheduled/Closed), not a Link to a configurable Service Enquiry Status master; also not Submittable (no docstatus/amended_from lifecycle) unlike the reference doctype"
 Ssbikez,Service Enquiry Form,column_break_7it3f,Column Break,no,,,,,,
 Ssbikez,Service Enquiry Form,vehicle_name,Data,yes,Vehicle Code,,,,,
 Ssbikez,Service Enquiry Form,customer,Data,yes,Customer,,,,,
@@ -3731,7 +3731,7 @@ Ssbikez,Service Enquiry Form,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Service Enquiry Form,log_details_tab,Tab Break,no,Log Details,,,,,
 Ssbikez,Service Enquiry Form,service_enq_customer_call_logs,Table,no,Customer Call Logs,,,,,
 Ssbikez,Service Enquiry Form,section_break_mpn8c,Section Break,no,,,,,,
-Ssbikez,Service Enquiry Form,historys,Table,no,History,,,,,
+Ssbikez,Service Enquiry Form,historys,Table,no,History,service,ServiceEnquiry,(none),Missing,service/models.py:14-44 -- no status-change history/audit child table; reference logs each status update with date+remarks via the historys (Service Enquiry Update) table
 Ssbikez,Service Enquiry Form,form_closed,Check,no,Form Closed,,,,,
 Ssbikez,Service Enquiry Form,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Service Enquiry Form,amended_from,Link,no,Amended From,,,,,
@@ -3756,7 +3756,7 @@ Ssbikez,Service Feed Back Child,type,Select,yes,Type,,,,,
 Ssbikez,Service Feed Back Child,ratings,Data,no,Ratings,,,,,
 Ssbikez,Service Feed Back Child,responses,Select,no,Responses,,,,,
 Ssbikez,Service Feed Back,details_tab,Tab Break,no,Details,,,,,
-Ssbikez,Service Feed Back,date,Date,yes,Appoinment Submit Date,,,,,
+Ssbikez,Service Feed Back,date,Date,yes,Appoinment Submit Date,service,(none),(none),Missing,"grep for ServiceFeedback/ServiceFeedBack/FeedBack across service/models.py -- zero hits; the reference Service Feed Back doctype (post-service customer satisfaction survey, per-question ratings/yes-no against a Service Feedback Question Master) has no Django equivalent at all"
 Ssbikez,Service Feed Back,service,Link,yes,Service,,,,,
 Ssbikez,Service Feed Back,phone_no,Data,yes,Phone No,,,,,
 Ssbikez,Service Feed Back,column_break_pgdrr,Column Break,no,,,,,,
@@ -5548,3 +5548,7 @@ Ssbikez,Workshop Voucher Creation,cash,Data,no,Cash,,,,,
 Ssbikez,Workshop Voucher Creation,amount,Currency,no,Amount,,,,,
 Ssbikez,Branch,allow_without_enquiry_form,Check,no,"Dynamically gates whether New Vehicle Sales Order.sales_enquiry_form is mandatory, per branch (confirmed live: Coimbatore/Sulur - E/Tiruppur = 0/required, Gobi/Nambiyur/Puliampatti/Sathyamangalam/Sulur/Trichy = 1/not required)",accounts,Branch,(none),Missing,accounts/models.py:93-106 (full Branch field list -- no allow_without_enquiry_form field; sales/forms.py has no branch-conditional requiredness logic for enquiry/sales_enquiry_form)
 Ssbikez,New Vehicle Sales Invoice,gst_split_cgst_sgst_igst,Computed,no,GST split (CGST/SGST vs IGST) depends on customer state vs company state -- interstate sales route the full GST amount to IGST,billing,split_gst (module function),"split_gst(gst_amount, customer)",Match,"billing/models.py:9-39 (customer.state vs CompanySettings.state comparison, IGST branch at lines 29-34); billing/views.py:90 (call site passing invoice.sales_order.customer)"
+service,Job Card Creation (workflow),service_status pipeline,Workflow,yes,"Reference has no single status field -- workflow is a chain of separate Submittable doctypes (Job Card Creation -> Water Wash Done -> Bay In/Out Creation -> Outwork Entry Issue/Return -> Final Inspection -> Service Invoice), documented in PRODUCTION_DELIVERY_REPORT.md:151 as Pending -> Water Wash -> In Bay -> In Progress -> Outwork (if needed) -> Final Inspection -> Ready -> Invoiced",service,JobCard.ServiceStatus + stage doc post_save signals,service_status,Match,"service/models.py:92-101 (enum), 767-1173 (WaterWashDone/BayInCreation/BayOutCreation/OutworkEntryIssue/OutworkEntryReturn/FinalInspection stage models + post_save signals at 1139-1173 that advance service_status on submit) -- correctly reimplements the reference chain-of-doctypes as one status field advanced by signals"
+service,Job Card Creation (workflow),stage submission order enforcement,Workflow,yes,(implicit in reference: each stage doctype naturally follows the prior one in the UI flow),service,JobCard/_advance_job_card_status + stage create views,service_status,Deviation,"service/models.py:767-770 (_advance_job_card_status unconditionally overwrites service_status whenever it differs, no check against current value) + service/views.py:1033-1043 (bay_in_create), 1070-1080 (bay_out_create) etc. have no precondition on the JobCard current service_status -- a stage document (e.g. Bay Out Creation) can be created and submitted before its predecessor (Bay In Creation) exists, letting a Job Card skip stages forward, or regress backward to an earlier status if an earlier-stage doc is submitted after a later one already advanced it"
+service,Job Card Creation (workflow),manual status override bypasses stage pipeline,Workflow,yes,(reference has no manual status field to override -- status is always the byproduct of which stage doctype was last submitted),service,JobCard,service_status (jobcard_status_update view),Deviation,"service/views.py:362-385 -- jobcard_status_update lets any user with service/edit permission and ownership of the Job Card POST an arbitrary service_status value (any pipeline stage, forward or backward) with no stage document created or submitted at all; the only guard is that status is locked once a Service Invoice exists (line 375). This is a UI-exposed escape hatch (used from jobcard_detail.html) that bypasses the entire stage-document audit trail the reference workflow relies on"
+service,Job Card Creation (workflow),Service Invoice requires Job Card at Ready,Workflow,yes,"PRODUCTION_DELIVERY_REPORT.md:156 -- Cashier workflow is ""Search a completed job card -> review labor + spares + outwork + GST -> ... -> generate invoice"", implying only a completed (Ready) job card should be invoiced",service,service_invoice_create view,service_status,Fixed,"service/views.py (service_invoice_create) now rejects invoice creation unless job_card.service_status == JobCard.ServiceStatus.READY, redirecting with an error message; previously had zero status check at all, so a brand-new Job Card at Pending could be invoiced immediately, skipping the entire workshop pipeline. Fixed this session with TDD -- see service/tests.py::ServiceInvoiceCreateStatusGateTests, commit 6e8278d"
