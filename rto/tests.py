@@ -274,3 +274,72 @@ class NumberReceiptEntryCreationTaxTests(_TestCase):
         self.assertEqual(doc.cgst_amount, Decimal('0.00'))
         self.assertEqual(doc.sgst_amount, Decimal('0.00'))
         self.assertEqual(doc.igst_amount, Decimal('120.00'))
+
+
+from django.db.migrations.executor import MigrationExecutor
+from django.db import connection
+from django.test import TransactionTestCase
+
+
+class BackfillRtoGstAmountsMigrationTests(TransactionTestCase):
+    """0008_replace_hardcoded_gst_with_split_gst added cgst_amount/
+    sgst_amount/igst_amount at default=0 and dropped the old cgst/sgst
+    percent fields, with no data migration -- every pre-existing
+    NumberReceiptEntryCreation row (many of them Submitted and therefore
+    locked, per DocStatusMixin, so save() never runs again) would have
+    permanently read 0 for all three GST amounts despite a real, nonzero
+    total. Fixed by 0009_backfill_rto_gst_amounts, which runs *before*
+    0010_remove_old_gst_percent_fields removes the old columns, so it can
+    still read each row's actual historical cgst/sgst percentage and
+    replicate the old pre-split_gst() formula (rate * pct / 100) instead of
+    leaving zeros or guessing with today's company-configured rate."""
+
+    # Squashing/optimizing later migrations could collapse this history and
+    # break the executor-based replay below; if that ever happens, this test
+    # needs to move to a fixture/data-only check instead.
+    migrate_from = [('rto', '0007_alter_rchandover_vehicle_received')]
+    migrate_to = [('rto', '0010_remove_old_gst_percent_fields')]
+
+    def setUp(self):
+        # customers/sales/masters aren't part of what's being tested here
+        # (only the rto 0007 -> 0010 transition is) and the test DB is
+        # already fully migrated for every app before this runs, so use the
+        # real, current model classes for the unrelated FKs and only reach
+        # for historical (pre-migration) models where the schema under test
+        # actually differs -- rto.NumberReceiptEntryCreation's old cgst/sgst
+        # percent fields.
+        customer = Customer.objects.create(
+            full_name='Migration Test Customer', phone='9000000099', state='Tamil Nadu',
+        )
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
+        )
+        agent = _Supplier.objects.create(supplier_name='Migration Test Agent')
+        order_entry = _NumberOrderEntryCreation.objects.create(sales_order=order, agent=agent)
+
+        executor = MigrationExecutor(connection)
+        executor.migrate(self.migrate_from)
+        old_apps = executor.loader.project_state(self.migrate_from).apps
+        OldNumberReceiptEntryCreation = old_apps.get_model('rto', 'NumberReceiptEntryCreation')
+
+        # Simulate a real historical Submitted document from before Task 2's
+        # fix: cgst/sgst stored as percentages (not the new amount fields,
+        # which don't exist yet at this point in history), total computed
+        # with the old hardcoded-style formula.
+        self.old_row_pk = OldNumberReceiptEntryCreation.objects.create(
+            order_entry_id=order_entry.pk, agent_id=agent.pk, docstatus=1,
+            rate=Decimal('500'), cgst=Decimal('9'), sgst=Decimal('9'), total=Decimal('590'),
+        ).pk
+
+        executor.loader.build_graph()
+        executor.migrate(self.migrate_to)
+
+    def test_backfill_produces_nonzero_gst_amounts_matching_historical_total(self):
+        doc = _NumberReceiptEntryCreation.objects.get(pk=self.old_row_pk)
+        self.assertEqual(doc.cgst_amount, Decimal('45.00'))
+        self.assertEqual(doc.sgst_amount, Decimal('45.00'))
+        self.assertEqual(doc.igst_amount, Decimal('0.00'))
+        # The total field was never touched by the migration (docstatus=1
+        # rows can't be re-saved) -- confirm the backfilled amounts actually
+        # reconcile with it, i.e. rate + cgst_amount + sgst_amount == total.
+        self.assertEqual(doc.rate + doc.cgst_amount + doc.sgst_amount + doc.igst_amount, doc.total)

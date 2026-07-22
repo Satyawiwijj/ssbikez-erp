@@ -11,14 +11,12 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='numberreceiptentrycreation',
-            name='cgst',
-        ),
-        migrations.RemoveField(
-            model_name='numberreceiptentrycreation',
-            name='sgst',
-        ),
+        # NOTE: the old cgst/sgst percent fields are intentionally NOT removed
+        # here. Removing them in the same migration as adding the new amount
+        # fields would drop their data before it could be backfilled into the
+        # new fields (see 0009_backfill_rto_gst_amounts and
+        # 0010_remove_old_gst_percent_fields, which do the backfill and then
+        # the removal as separate, ordered steps).
         migrations.AddField(
             model_name='numberreceiptentrycreation',
             name='cgst_amount',
