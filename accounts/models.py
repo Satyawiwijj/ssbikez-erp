@@ -96,6 +96,11 @@ class Branch(models.Model):
     phone       = models.CharField(max_length=15, blank=True, null=True)
     gstin       = models.CharField(max_length=20, blank=True, null=True)
     is_active   = models.BooleanField(default=True)
+    allow_without_enquiry_form = models.BooleanField(
+        default=True,
+        verbose_name='Allow Sales Order without Enquiry Form',
+        help_text='If unchecked, a Sales Order at this branch must be linked to a Sales Enquiry.',
+    )
     created_at  = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -597,3 +597,39 @@ class SalesOrderGSTCategoryResyncTests(TestCase):
         order.save()
         order.refresh_from_db()
         self.assertEqual(order.gst_category, 'Unregistered')
+
+
+class SalesOrderPerBranchEnquiryRequirednessTests(TestCase):
+
+    def test_enquiry_required_when_branch_does_not_allow_skipping_it(self):
+        from accounts.models import Branch
+        from customers.models import Customer
+        from sales.forms import VehicleSalesOrderForm
+
+        branch = Branch.objects.create(branch_name='Strict Branch', allow_without_enquiry_form=False)
+        customer = Customer.objects.create(full_name='Branch Enquiry Customer', phone='9000000300')
+
+        form = VehicleSalesOrderForm(data={
+            'customer': customer.pk, 'branch': branch.pk, 'booking_amount': '1000', 'discount_amount': '0',
+            'total_amount': '50000',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('enquiry', form.errors)
+
+    def test_enquiry_optional_when_branch_allows_skipping_it(self):
+        from accounts.models import Branch
+        from customers.models import Customer
+        from sales.forms import VehicleSalesOrderForm
+
+        branch = Branch.objects.create(branch_name='Lenient Branch', allow_without_enquiry_form=True)
+        customer = Customer.objects.create(full_name='Branch Enquiry Customer 2', phone='9000000301')
+
+        form = VehicleSalesOrderForm(data={
+            'customer': customer.pk, 'branch': branch.pk, 'booking_amount': '1000', 'discount_amount': '0',
+            'total_amount': '50000',
+        })
+        # Not asserting is_valid() True here since other required fields may
+        # be missing in this minimal payload -- only assert 'enquiry' is NOT
+        # in the error set specifically.
+        form.is_valid()
+        self.assertNotIn('enquiry', form.errors)

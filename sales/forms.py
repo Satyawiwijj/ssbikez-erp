@@ -221,9 +221,16 @@ class VehicleSalesOrderForm(AccessibleFormMixin, forms.ModelForm):
         cleaned_data    = super().clean()
         customer        = cleaned_data.get('customer')
         enquiry         = cleaned_data.get('enquiry')
+        branch          = cleaned_data.get('branch')
         booking_amount  = cleaned_data.get('booking_amount')
         total_amount    = cleaned_data.get('total_amount')
         discount_amount = cleaned_data.get('discount_amount')
+
+        if branch and not branch.allow_without_enquiry_form and not enquiry:
+            self.add_error(
+                'enquiry',
+                'This branch requires a linked Sales Enquiry before a Sales Order can be created.'
+            )
 
         if not customer and enquiry and enquiry.prospect_id and not enquiry.customer_id:
             # Auto-create/link a Customer from the Prospect on save only
