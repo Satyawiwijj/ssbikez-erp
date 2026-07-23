@@ -295,6 +295,18 @@ class JournalEntryForm(AccessibleFormMixin, forms.ModelForm):
             'reference':           forms.TextInput(attrs={'class': 'form-control'}),
         }
 
+    def clean_entry_date(self):
+        from datetime import date, timedelta
+        from accounts.models import CompanySettings
+        entry_date = self.cleaned_data['entry_date']
+        window_days = CompanySettings.get_instance().gl_backdating_days
+        earliest_allowed = date.today() - timedelta(days=window_days)
+        if entry_date < earliest_allowed:
+            raise forms.ValidationError(
+                f'Entry date cannot be more than {window_days} days in the past.'
+            )
+        return entry_date
+
 
 class JournalEntryLineForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:

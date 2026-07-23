@@ -200,8 +200,9 @@ class JournalEntryCreateTests(_TestCase):
         self.client.force_login(self.user)
 
     def test_create_balanced_entry(self):
+        from datetime import date
         payload = {
-            'entry_date': '2020-01-01', 'description': 'Test balanced entry',
+            'entry_date': date.today().isoformat(), 'description': 'Test balanced entry',
             'lines-TOTAL_FORMS': '2', 'lines-INITIAL_FORMS': '0',
             'lines-MIN_NUM_FORMS': '0', 'lines-MAX_NUM_FORMS': '1000',
             'lines-0-account': 'Cash', 'lines-0-debit': '1000', 'lines-0-credit': '0',
@@ -514,3 +515,30 @@ class BillingDisplayPermissionAuditTests(_TestCase):
     def test_invoice_search_blocked(self):
         response = self.client.get(_reverse('billing:invoice_search'))
         self.assertEqual(response.status_code, 403)
+
+
+class JournalEntryBackdatingWindowTests(_TestCase):
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.gl_backdating_days = 7
+        settings_.save()
+
+    def test_rejects_an_entry_date_older_than_the_backdating_window(self):
+        from datetime import date, timedelta
+        from billing.forms import JournalEntryForm
+
+        too_old = date.today() - timedelta(days=30)
+        form = JournalEntryForm(data={'entry_date': too_old.isoformat(), 'description': 'Backdating test'})
+        self.assertFalse(form.is_valid())
+        self.assertIn('entry_date', form.errors)
+
+    def test_accepts_an_entry_date_within_the_window(self):
+        from datetime import date, timedelta
+        from billing.forms import JournalEntryForm
+
+        recent = date.today() - timedelta(days=3)
+        form = JournalEntryForm(data={'entry_date': recent.isoformat(), 'description': 'Recent test'})
+        form.is_valid()
+        self.assertNotIn('entry_date', form.errors)

@@ -182,6 +182,11 @@ class CompanySettings(models.Model):
     gst_rate      = models.DecimalField(max_digits=5, decimal_places=2, default=18)
     cgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
     sgst_rate     = models.DecimalField(max_digits=5, decimal_places=2, default=9)
+    gl_backdating_days = models.PositiveIntegerField(
+        default=90,
+        verbose_name='GL Backdating Window (days)',
+        help_text='Manual Journal Entry dates cannot be older than this many days.',
+    )
     updated_at    = models.DateTimeField(auto_now=True)
 
     class Meta:
