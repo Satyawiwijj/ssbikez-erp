@@ -810,6 +810,9 @@ class SparesIssueAlterationItem(models.Model):
     rate = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     sgst = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
     cgst = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    igst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     discount_percent = models.DecimalField(max_digits=5, decimal_places=2, default=0, validators=[MinValueValidator(0), MaxValueValidator(100)])
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     last_return_quantity = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True)
@@ -819,9 +822,17 @@ class SparesIssueAlterationItem(models.Model):
     is_returned            = models.BooleanField(default=False, verbose_name='Returned')
 
     def save(self, *args, **kwargs):
+        from accounts.models import CompanySettings
+        from billing.models import split_gst
         amount = self.quantity * self.rate
         net = amount - (amount * self.discount_percent / 100)
-        self.total = net + (net * self.sgst / 100) + (net * self.cgst / 100)
+        company_settings = CompanySettings.get_instance()
+        gst_total = net * (company_settings.cgst_rate + company_settings.sgst_rate) / Decimal('100')
+        # No Customer/Supplier counterparty exists at spares-issue time (that
+        # is determined later, at Service Invoice time) -- customer=None
+        # falls back to an intrastate CGST/SGST split of the company's rates.
+        self.cgst_amount, self.sgst_amount, self.igst_amount = split_gst(gst_total, customer=None)
+        self.total = net + self.sgst_amount + self.cgst_amount + self.igst_amount
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -1267,16 +1278,26 @@ class ServiceSparesIssueReturnItem(models.Model):
     total                  = models.DecimalField(max_digits=12, decimal_places=2, default=0, blank=True)
     sgst                   = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
     cgst                   = models.DecimalField(max_digits=5, decimal_places=2, default=9, blank=True)
+    sgst_amount            = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    cgst_amount            = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    igst_amount            = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     discount_percentage    = models.DecimalField(max_digits=5, decimal_places=2, default=0, blank=True)
     is_returned            = models.BooleanField(default=True, verbose_name='Returned')
     ref_quantity           = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True)
     stock_balance          = models.DecimalField(max_digits=10, decimal_places=3, default=0, blank=True)
 
     def save(self, *args, **kwargs):
+        from accounts.models import CompanySettings
+        from billing.models import split_gst
         amount = self.return_qty * self.rate
         discount = amount * self.discount_percentage / 100
         net = amount - discount
-        self.total = net + (net * self.sgst / 100) + (net * self.cgst / 100)
+        company_settings = CompanySettings.get_instance()
+        gst_total = net * (company_settings.cgst_rate + company_settings.sgst_rate) / Decimal('100')
+        # Same rationale as SparesIssueAlterationItem: no real counterparty at
+        # spares-return time, so customer=None -> intrastate CGST/SGST split.
+        self.cgst_amount, self.sgst_amount, self.igst_amount = split_gst(gst_total, customer=None)
+        self.total = net + self.sgst_amount + self.cgst_amount + self.igst_amount
         super().save(*args, **kwargs)
 
     def __str__(self):

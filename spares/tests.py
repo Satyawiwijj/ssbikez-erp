@@ -478,3 +478,61 @@ class PurchaseInvoiceItemFormReadOnlyGSTTests(TestCase):
         line.refresh_from_db()
         self.assertEqual(line.sgst_amount, Decimal('90.00'))
         self.assertEqual(line.cgst_amount, Decimal('90.00'))
+
+
+class SparesIssueAlterationGSTCentralizedTests(TestCase):
+    """SparesIssueAlterationItem and ServiceSparesIssueReturnItem are linked
+    to a job_card, not a Customer/Supplier -- there is no real interstate
+    counterparty at spares-issue/return time (that is determined later, at
+    Service Invoice time). split_gst(gst_total, customer=None) must be used
+    instead of the old hardcoded 9%/9% split."""
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('6')
+        settings_.sgst_rate = Decimal('6')
+        settings_.save()
+
+        from customer_vehicles.models import CustomerVehicle
+        from customers.models import BikeModel, Customer, VehicleStock
+        from service.models import JobCard
+
+        self.warehouse = Warehouse.objects.create(name='SIA GST Warehouse')
+        customer = Customer.objects.create(full_name='SIA GST Customer', phone='9300000002')
+        bike_model = BikeModel.objects.create(brand='SIA GST Brand', model_name='SIA GST Model', ex_showroom_price=Decimal('90000'))
+        vehicle = VehicleStock.objects.create(bike_model=bike_model, chassis_no='SIAGSTCH001')
+        customer_vehicle = CustomerVehicle.objects.create(customer=customer, vehicle=vehicle)
+        self.job_card = JobCard.objects.create(customer_vehicle=customer_vehicle)
+        self.item = SparesItem.objects.create(item_code='SIA-GST-1', item_name='SIA GST Test Part', hsn_sac='1234')
+        self.alteration = SparesIssueAlteration.objects.create(
+            job_card=self.job_card, godown=self.warehouse, date='2026-08-01',
+        )
+
+    def test_issue_alteration_item_uses_company_configured_rate_not_hardcoded_nine(self):
+        from spares.models import SparesIssueAlterationItem
+
+        line = SparesIssueAlterationItem.objects.create(
+            alteration=self.alteration, item=self.item, quantity=Decimal('10'), rate=Decimal('100'),
+        )
+        line.refresh_from_db()
+        # 10 * 100 = 1000 base; 6%+6% = 120 total split evenly (no counterparty -> intrastate)
+        self.assertEqual(line.cgst_amount, Decimal('60.00'))
+        self.assertEqual(line.sgst_amount, Decimal('60.00'))
+        self.assertEqual(line.igst_amount, Decimal('0.00'))
+        self.assertEqual(line.total, Decimal('1120.00'))
+
+    def test_issue_return_item_uses_company_configured_rate_not_hardcoded_nine(self):
+        from spares.models import ServiceSparesIssueReturn, ServiceSparesIssueReturnItem
+
+        issue_return = ServiceSparesIssueReturn.objects.create(
+            spares_issue=self.alteration, godown=self.warehouse,
+        )
+        line = ServiceSparesIssueReturnItem.objects.create(
+            issue_return=issue_return, item=self.item, rate=Decimal('100'), return_qty=Decimal('10'),
+        )
+        line.refresh_from_db()
+        self.assertEqual(line.cgst_amount, Decimal('60.00'))
+        self.assertEqual(line.sgst_amount, Decimal('60.00'))
+        self.assertEqual(line.igst_amount, Decimal('0.00'))
+        self.assertEqual(line.total, Decimal('1120.00'))
