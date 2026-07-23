@@ -704,6 +704,12 @@ class ExchangeVehicle(models.Model):
         verbose_name='Payment Status'
     )
 
+    # Finance Details -- populated when the traded-in vehicle still has an
+    # active loan; the dealership pays off the balance to the financier.
+    finance_name           = models.CharField(max_length=200, blank=True, verbose_name='Finance Company')
+    finance_closing_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name='Finance Closing Amount')
+    balance_amount         = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, verbose_name='Balance Amount')
+
     created_at        = models.DateTimeField(auto_now_add=True)
 
     class Meta:

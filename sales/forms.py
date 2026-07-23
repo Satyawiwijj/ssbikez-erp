@@ -355,7 +355,8 @@ class ExchangeVehicleForm(AccessibleFormMixin, forms.ModelForm):
         fields = ('sales_order', 'old_vehicle_model', 'manufacturing_company', 'colour',
                   'vehicle_category', 'sub_group', 'registration_no', 'chassis_no', 'engine_no',
                   'year_of_make', 'valuation_amount', 'hp_endorsement', 'rc_handed_over',
-                  'rc_handover_date', 'insurance_valid_upto', 'target_warehouse', 'payment_status')
+                  'rc_handover_date', 'insurance_valid_upto', 'target_warehouse', 'payment_status',
+                  'finance_name', 'finance_closing_amount', 'balance_amount')
         widgets = {
             'registration_no':      forms.TextInput(attrs={'placeholder': 'e.g. TN11CD5678'}),
             'rc_handover_date':     forms.DateInput(attrs={'type': 'date'}),

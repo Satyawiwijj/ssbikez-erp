@@ -339,6 +339,24 @@ class ExchangeVehicleCreateTests(TestCase):
         self.assertTrue(ExchangeVehicle.objects.filter(sales_order=self.order).exists())
 
 
+class ExchangeVehicleFinanceDetailsTests(TestCase):
+
+    def test_finance_fields_exist_and_are_saveable(self):
+        from sales.models import ExchangeVehicle
+        customer = _make_customer('FINEX1')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        exchange = ExchangeVehicle.objects.create(
+            sales_order=order,
+            finance_name='Sample Finance Co',
+            finance_closing_amount=Decimal('25000'),
+            balance_amount=Decimal('5000'),
+        )
+        exchange.refresh_from_db()
+        self.assertEqual(exchange.finance_name, 'Sample Finance Co')
+        self.assertEqual(exchange.finance_closing_amount, Decimal('25000'))
+        self.assertEqual(exchange.balance_amount, Decimal('5000'))
+
+
 class OrderAmendTests(TestCase):
 
     def setUp(self):
