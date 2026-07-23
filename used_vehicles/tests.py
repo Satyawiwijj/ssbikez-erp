@@ -22,7 +22,8 @@ from masters.models import Supplier
 from used_vehicles.models import (UsedVehiclePurchaseInvoice, UsedVehiclePurchaseItem,
                                    UsedVehiclePurchaseOrder, UsedVehiclePurchaseReceipt,
                                    UsedVehicleRegisterNo, UsedVehicleColor, UsedVehicleModel,
-                                   UsedVehicleSale, ManufacturingCompany, UsedVehicleSubGroup)
+                                   UsedVehicleSale, ManufacturingCompany, UsedVehicleSubGroup,
+                                   UsedVehicleInvoice)
 
 
 class NamespaceAccessTests(TestCase):
@@ -397,3 +398,54 @@ class UsedVehicleRCHandOverFormGateTests(TestCase):
         from used_vehicles.forms import UsedVehicleRCHandOverForm
         form = UsedVehicleRCHandOverForm(self._payload())
         self.assertTrue(form.is_valid(), form.errors)
+
+
+class UsedVehicleInvoiceGSTCentralizedTests(TestCase):
+    """UsedVehicleInvoice.gst_amount used to be computed with a flat
+    CompanySettings.gst_rate and no interstate awareness (InvoiceForm.clean(),
+    the same shape billing.Invoice was in before e79e25f). recompute_totals()
+    now delegates to billing.split_gst() so interstate customers get IGST
+    instead of an incorrect CGST/SGST split."""
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('6')
+        settings_.sgst_rate = Decimal('6')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+
+    def _make_sale(self, customer):
+        manufacturer = ManufacturingCompany.objects.create(name='UV GST Mfg')
+        sub_group = UsedVehicleSubGroup.objects.create(name='UV GST SubGroup')
+        used_model = UsedVehicleModel.objects.create(
+            code='UVM-GST-1', manufacturer=manufacturer, used_vehicle_name='UV GST Model', sub_group=sub_group,
+        )
+        register_no = UsedVehicleRegisterNo.objects.create(registration_no='UV-GST-001', used_vehicle=used_model)
+        return UsedVehicleSale.objects.create(
+            customer=customer, vehicle_number=register_no,
+            delivery_date='2026-08-05', sale_amount=Decimal('60000'),
+        )
+
+    def test_interstate_customer_gets_igst(self):
+        customer = Customer.objects.create(full_name='Interstate UV Customer', phone='9000000100', state='Karnataka')
+        sale = self._make_sale(customer)
+        invoice = UsedVehicleInvoice.objects.create(
+            sale=sale, subtotal=Decimal('10000'), final_amount=Decimal('0'), invoice_date='2026-08-01',
+        )
+        invoice.recompute_totals()
+        invoice.refresh_from_db()
+        self.assertGreater(invoice.gst_amount, Decimal('0'))
+        self.assertEqual(invoice.gst_amount, Decimal('1200.00'))
+        self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount)
+
+    def test_intrastate_customer_uses_split_cgst_sgst(self):
+        customer = Customer.objects.create(full_name='Intrastate UV Customer', phone='9000000101', state='Tamil Nadu')
+        sale = self._make_sale(customer)
+        invoice = UsedVehicleInvoice.objects.create(
+            sale=sale, subtotal=Decimal('10000'), final_amount=Decimal('0'), invoice_date='2026-08-01',
+        )
+        invoice.recompute_totals()
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.gst_amount, Decimal('1200.00'))
+        self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount)

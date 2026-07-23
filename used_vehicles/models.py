@@ -694,6 +694,31 @@ class UsedVehicleInvoice(DocStatusMixin, models.Model):
         else:
             super().save(*args, **kwargs)
 
+    def recompute_totals(self):
+        """Re-derive gst_amount/final_amount from subtotal via billing.split_gst()
+        so interstate customers get IGST instead of the flat-rate CGST/SGST
+        split UsedVehicleInvoiceForm.clean() used to apply (same bug shape
+        billing.Invoice had before e79e25f). subtotal is a directly-entered
+        form field here, not summed from items -- UsedVehicleInvoiceItem rows
+        have no per-item GST fields of their own, so there's nothing to
+        re-derive it from. gst_amount stays a single collapsed field; the
+        cgst/sgst/igst split is computed but summed back into it rather than
+        stored separately, matching this model's existing schema."""
+        from decimal import Decimal
+        from accounts.models import CompanySettings
+        from billing.models import split_gst
+
+        if self.subtotal > Decimal('0'):
+            company_settings = CompanySettings.get_instance()
+            gst_rate = (company_settings.cgst_rate or Decimal('0')) + (company_settings.sgst_rate or Decimal('0'))
+            gst_total = (self.subtotal * gst_rate / Decimal('100')).quantize(Decimal('0.01'))
+        else:
+            gst_total = Decimal('0')
+        cgst, sgst, igst = split_gst(gst_total, customer=self.sale.customer)
+        self.gst_amount = cgst + sgst + igst
+        self.final_amount = self.subtotal + self.gst_amount - (self.discount_amount or Decimal('0'))
+        self.save(update_fields=['gst_amount', 'final_amount'])
+
     def __str__(self):
         return self.invoice_number
 
