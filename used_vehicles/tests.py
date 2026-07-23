@@ -449,3 +449,85 @@ class UsedVehicleInvoiceGSTCentralizedTests(TestCase):
         invoice.refresh_from_db()
         self.assertEqual(invoice.gst_amount, Decimal('1200.00'))
         self.assertEqual(invoice.final_amount, invoice.subtotal + invoice.gst_amount)
+
+
+class DuplicateRegistrationNoGuardTests(TestCase):
+    """Real bug found in the parity audit: on_used_vehicle_purchased's
+    update_or_create() had no pre-check, so re-submitting a Purchase Invoice
+    that reuses an already-Sold/Reserved registration number silently
+    overwrote the existing UsedVehicleRegisterNo row's vehicle/color/
+    chassis/engine/branch data and force-reset stock_status back to
+    Available."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='dup_reg_admin', email='dupreg@example.com', password='Test-Pass-123!')
+        manufacturer = ManufacturingCompany.objects.create(name='Dup Reg Manufacturer')
+        sub_group = UsedVehicleSubGroup.objects.create(name='Dup Reg Sub Group')
+        self.used_model = UsedVehicleModel.objects.create(
+            code='UVM-DUP-1', manufacturer=manufacturer, used_vehicle_name='Dup Reg Used Model', sub_group=sub_group,
+        )
+
+    def test_resubmitting_a_purchase_invoice_with_an_already_sold_registration_no_is_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        existing = UsedVehicleRegisterNo.objects.create(
+            registration_no='TN09AB1234', used_vehicle=self.used_model,
+            chassis_no='CHASSIS-ORIGINAL', engine_no='ENGINE-ORIGINAL',
+            stock_status=UsedVehicleRegisterNo.StockStatus.SOLD,
+        )
+
+        invoice = UsedVehiclePurchaseInvoice.objects.create(invoice_date='2026-08-03', own_purchase=True, supplier_purchase=False)
+        UsedVehiclePurchaseItem.objects.create(
+            invoice=invoice, used_vehicle=self.used_model, registration_no='TN09AB1234',
+            chassis_no='CHASSIS-DIFFERENT', engine_no='ENGINE-DIFFERENT',
+        )
+
+        with self.assertRaises(ValidationError):
+            invoice.submit(self.user)
+
+        existing.refresh_from_db()
+        # The existing SOLD record must NOT have been overwritten
+        self.assertEqual(existing.chassis_no, 'CHASSIS-ORIGINAL')
+        self.assertEqual(existing.stock_status, UsedVehicleRegisterNo.StockStatus.SOLD)
+
+    def test_resubmitting_a_purchase_invoice_with_an_already_reserved_registration_no_is_rejected(self):
+        from django.core.exceptions import ValidationError
+
+        existing = UsedVehicleRegisterNo.objects.create(
+            registration_no='TN09AB5678', used_vehicle=self.used_model,
+            chassis_no='CHASSIS-RESERVED', engine_no='ENGINE-RESERVED',
+            stock_status=UsedVehicleRegisterNo.StockStatus.RESERVED,
+        )
+
+        invoice = UsedVehiclePurchaseInvoice.objects.create(invoice_date='2026-08-03', own_purchase=True, supplier_purchase=False)
+        UsedVehiclePurchaseItem.objects.create(
+            invoice=invoice, used_vehicle=self.used_model, registration_no='TN09AB5678',
+            chassis_no='CHASSIS-DIFFERENT', engine_no='ENGINE-DIFFERENT',
+        )
+
+        with self.assertRaises(ValidationError):
+            invoice.submit(self.user)
+
+        existing.refresh_from_db()
+        self.assertEqual(existing.chassis_no, 'CHASSIS-RESERVED')
+        self.assertEqual(existing.stock_status, UsedVehicleRegisterNo.StockStatus.RESERVED)
+
+    def test_resubmitting_a_purchase_invoice_with_an_available_registration_no_still_updates_it(self):
+        # A registration number that's still Available (not Sold/Reserved) is
+        # legitimate to re-touch -- e.g. a genuine data correction re-run.
+        existing = UsedVehicleRegisterNo.objects.create(
+            registration_no='TN09AB9999', used_vehicle=self.used_model,
+            chassis_no='CHASSIS-OLD', engine_no='ENGINE-OLD',
+            stock_status=UsedVehicleRegisterNo.StockStatus.AVAILABLE,
+        )
+
+        invoice = UsedVehiclePurchaseInvoice.objects.create(invoice_date='2026-08-03', own_purchase=True, supplier_purchase=False)
+        UsedVehiclePurchaseItem.objects.create(
+            invoice=invoice, used_vehicle=self.used_model, registration_no='TN09AB9999',
+            chassis_no='CHASSIS-NEW', engine_no='ENGINE-NEW',
+        )
+        invoice.submit(self.user)
+
+        existing.refresh_from_db()
+        self.assertEqual(existing.chassis_no, 'CHASSIS-NEW')
+        self.assertEqual(existing.stock_status, UsedVehicleRegisterNo.StockStatus.AVAILABLE)

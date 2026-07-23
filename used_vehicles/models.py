@@ -1394,12 +1394,25 @@ def on_used_vehicle_delivered(sender, instance, **kwargs):
 def on_used_vehicle_purchased(sender, instance, **kwargs):
     """Submitting a Purchase Invoice makes its line-item register numbers
     available stock, mirroring sales.VehicleAllotment's save()-side-effect
-    convention from Phase 1."""
+    convention from Phase 1. Rejects reusing a registration number that's
+    already Sold or Reserved, to prevent silently overwriting an existing
+    vehicle's stock record."""
     if instance.docstatus != UsedVehiclePurchaseInvoice.DocStatus.SUBMITTED:
         return
+    from django.core.exceptions import ValidationError
     for item in instance.items.all():
         if not item.registration_no:
             continue
+        existing = UsedVehicleRegisterNo.objects.filter(registration_no=item.registration_no).first()
+        if existing and existing.stock_status in (
+            UsedVehicleRegisterNo.StockStatus.SOLD,
+            UsedVehicleRegisterNo.StockStatus.RESERVED,
+        ):
+            raise ValidationError(
+                f"Registration number {item.registration_no} is already recorded as "
+                f"{existing.get_stock_status_display()} — cannot re-purchase a vehicle "
+                f"still tied to an existing sold/reserved record."
+            )
         UsedVehicleRegisterNo.objects.update_or_create(
             registration_no=item.registration_no,
             defaults={
