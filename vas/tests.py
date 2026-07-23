@@ -366,3 +366,62 @@ class ProtectionPlusPackageGSTCentralizedTests(TestCase):
         self.assertGreater(package.gst_amount, Decimal('0'))
         self.assertEqual(package.gst_amount, Decimal('360.00'))
         self.assertEqual(package.without_gst_amount, Decimal('1640.00'))
+
+
+# ---------------------------------------------------------------------------
+# Task 10: branch field on AMC/RSA/Protection Plus packages
+# ---------------------------------------------------------------------------
+
+class VASPackageBranchFieldTests(TestCase):
+    """Task 10: Verify branch field exists and works on all three VAS package types."""
+
+    def setUp(self):
+        from accounts.models import Branch
+        self.branch = Branch.objects.create(
+            branch_name='Test Branch', phone='9876543210',
+        )
+        self.customer_vehicle, _ = _make_customer_vehicle('BRANCH1')
+        self.amc_type = _AMCType.objects.create(code='BRANCH-AMC', name='Branch Test AMC')
+        self.rsa_type = _RSAType.objects.create(code='BRANCH-RSA', name='Branch Test RSA')
+        self.warranty_type = _WarrantyType.objects.create(code='BRANCH-PP', name='Branch Test PP')
+
+    def test_amc_package_has_branch_field(self):
+        """Branch field exists on AMCPackage model."""
+        self.assertIn('branch', [f.name for f in AMCPackage._meta.get_fields()])
+
+    def test_rsa_package_has_branch_field(self):
+        """Branch field exists on RSAPackage model."""
+        from vas.models import RSAPackage
+        self.assertIn('branch', [f.name for f in RSAPackage._meta.get_fields()])
+
+    def test_protection_plus_package_has_branch_field(self):
+        """Branch field exists on ProtectionPlusPackage model."""
+        self.assertIn('branch', [f.name for f in _ProtectionPlusPackage._meta.get_fields()])
+
+    def test_amc_package_branch_persists(self):
+        """Creating AMCPackage with branch and retrieving it returns the same branch."""
+        package = AMCPackage.objects.create(
+            customer_vehicle=self.customer_vehicle, amc_type=self.amc_type,
+            branch=self.branch, amount=Decimal('1000'),
+        )
+        package.refresh_from_db()
+        self.assertEqual(package.branch_id, self.branch.pk)
+
+    def test_rsa_package_branch_persists(self):
+        """Creating RSAPackage with branch and retrieving it returns the same branch."""
+        from vas.models import RSAPackage
+        package = RSAPackage.objects.create(
+            customer_vehicle=self.customer_vehicle, rsa_type=self.rsa_type,
+            branch=self.branch, amount=Decimal('500'),
+        )
+        package.refresh_from_db()
+        self.assertEqual(package.branch_id, self.branch.pk)
+
+    def test_protection_plus_package_branch_persists(self):
+        """Creating ProtectionPlusPackage with branch and retrieving it returns the same branch."""
+        package = _ProtectionPlusPackage.objects.create(
+            customer_vehicle=self.customer_vehicle, warranty_type=self.warranty_type,
+            branch=self.branch, amount=Decimal('2000'),
+        )
+        package.refresh_from_db()
+        self.assertEqual(package.branch_id, self.branch.pk)

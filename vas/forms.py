@@ -43,7 +43,7 @@ class AMCPackageForm(AccessibleFormMixin, forms.ModelForm):
 
     class Meta:
         model  = AMCPackage
-        fields = ('customer_vehicle', 'amc_type', 'sales_order', 'invoice',
+        fields = ('customer_vehicle', 'amc_type', 'sales_order', 'invoice', 'branch',
                   'start_date', 'end_date', 'amount', 'gst_amount', 'without_gst_amount',
                   'vehicle_number', 'chasis_number', 'ss_bikes', 'yamaha', 'status')
 
@@ -65,7 +65,7 @@ class RSAPackageForm(AccessibleFormMixin, forms.ModelForm):
 
     class Meta:
         model  = RSAPackage
-        fields = ('customer_vehicle', 'rsa_type', 'sales_order', 'invoice', 'rsa_portal_no',
+        fields = ('customer_vehicle', 'rsa_type', 'sales_order', 'invoice', 'branch', 'rsa_portal_no',
                   'start_date', 'end_date', 'amount', 'gst_amount', 'without_gst_amount', 'status')
 
     def __init__(self, *args, **kwargs):
@@ -82,7 +82,7 @@ class ProtectionPlusPackageForm(AccessibleFormMixin, forms.ModelForm):
 
     class Meta:
         model  = ProtectionPlusPackage
-        fields = ('customer_vehicle', 'warranty_type', 'sales_order', 'invoice',
+        fields = ('customer_vehicle', 'warranty_type', 'sales_order', 'invoice', 'branch',
                   'start_date', 'end_date', 'amount', 'gst_amount', 'without_gst_amount', 'status')
 
     def __init__(self, *args, **kwargs):
