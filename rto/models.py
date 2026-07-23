@@ -524,7 +524,7 @@ class RCBookIssue(DocStatusMixin, models.Model):
         BRANCH     = 'branch',     'Issue to Branch'
         SUB_DEALER = 'sub_dealer', 'Issue to Sub Dealers'
 
-    rc_book_creation = models.ForeignKey(RCBookCreation, on_delete=models.PROTECT, related_name='issues')
+    rc_book_creation = models.ForeignKey(RCBookCreation, on_delete=models.PROTECT, related_name='issues', null=True, blank=True)
     issue_type       = models.CharField(max_length=20, choices=IssueType.choices, default=IssueType.CUSTOMER)
     from_branch       = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='rc_book_issues_from')
     to_branch         = models.ForeignKey('accounts.Branch', on_delete=models.SET_NULL, null=True, blank=True, related_name='rc_book_issues_to')

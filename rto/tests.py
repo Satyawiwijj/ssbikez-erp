@@ -367,3 +367,23 @@ class BackfillRtoGstAmountsMigrationTests(TransactionTestCase):
         # rows can't be re-saved) -- confirm the backfilled amounts actually
         # reconcile with it, i.e. rate + cgst_amount + sgst_amount == total.
         self.assertEqual(doc.rate + doc.cgst_amount + doc.sgst_amount + doc.igst_amount, doc.total)
+
+
+class RCBookIssueExchangeVehiclePathTests(TestCase):
+    """Reference only requires rc_book_creation when has_exchange_vehicle == 0.
+    RCBookIssue has no document-level exchange-vehicle flag of its own --
+    RCBookIssueItem.exchange_vehicle is the real per-item signal -- so
+    RCBookIssueForm gains a non-model is_exchange_vehicle field purely to
+    bridge that signal into the parent form's clean()."""
+
+    def test_rc_book_creation_not_required_for_exchange_vehicle_issue(self):
+        from rto.forms import RCBookIssueForm
+        form = RCBookIssueForm(data={'issue_type': 'customer', 'is_exchange_vehicle': True})
+        form.is_valid()
+        self.assertNotIn('rc_book_creation', form.errors)
+
+    def test_rc_book_creation_still_required_when_not_exchange_vehicle(self):
+        from rto.forms import RCBookIssueForm
+        form = RCBookIssueForm(data={'issue_type': 'customer'})
+        form.is_valid()
+        self.assertIn('rc_book_creation', form.errors)
