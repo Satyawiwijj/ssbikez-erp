@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import models, transaction
 from django.db.models import F
@@ -6,6 +8,35 @@ from django.dispatch import receiver
 from django.utils import timezone
 
 from accounts.models import DocStatusMixin
+
+
+def _compute_vas_package_gst(instance):
+    """Shared GST derivation for AMCPackage/RSAPackage/ProtectionPlusPackage.
+
+    These three models are not a shared base class (only DocStatusMixin is),
+    so this module-level helper is called from each save() instead of
+    duplicating the formula three times.
+
+    Formula confirmed from reference_erp_spec/18_Sales_Form.md client scripts
+    -- RSA (~L11776-11789), AMC (~L12072-12089), and Protection Plus
+    (~L12354-12382) all use the identical pair:
+        gst_amount         = amount * combined_gst_rate / 100
+        without_gst_amount = amount - gst_amount
+    `amount` is the value entered on the form; gst_amount is calculated
+    forward off it (not back-derived via amount * rate/(100+rate)).
+    without_gst_amount is NOT an echo of amount -- it's amount-minus-gst,
+    exactly as the legacy client script computes it.
+    """
+    if instance.amount is None:
+        return
+    from accounts.models import CompanySettings
+    from billing.models import split_gst
+    settings_ = CompanySettings.get_instance()
+    rate = (settings_.cgst_rate or 0) + (settings_.sgst_rate or 0)
+    gst_total = (instance.amount * rate / Decimal('100')).quantize(Decimal('0.01'))
+    cgst, sgst, igst = split_gst(gst_total, customer=instance.customer_vehicle.customer)
+    instance.gst_amount = cgst + sgst + igst
+    instance.without_gst_amount = instance.amount - instance.gst_amount
 
 
 # ---------------------------------------------------------------------------
@@ -118,6 +149,7 @@ class AMCPackage(DocStatusMixin, models.Model):
             self.service_interval = self.service_interval or self.amc_type.service_interval_days
             self.grace_days = self.grace_days or self.amc_type.grace_days
             self.vehicle_group = self.vehicle_group or self.amc_type.vehicle_type
+        _compute_vas_package_gst(self)
         super().save(*args, **kwargs)
 
     def submit(self, user):
@@ -186,6 +218,10 @@ class RSAPackage(DocStatusMixin, models.Model):
     )
     created_at       = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        _compute_vas_package_gst(self)
+        super().save(*args, **kwargs)
+
     def submit(self, user):
         VASStockLedger.get_or_create_for(rsa_type=self.rsa_type)
         with transaction.atomic():
@@ -245,6 +281,10 @@ class ProtectionPlusPackage(DocStatusMixin, models.Model):
         default=Status.ACTIVE
     )
     created_at       = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        _compute_vas_package_gst(self)
+        super().save(*args, **kwargs)
 
     def submit(self, user):
         VASStockLedger.get_or_create_for(warranty_type=self.warranty_type)

@@ -134,17 +134,23 @@ class AutoInvoiceTests(TestCase):
         order = VehicleSalesOrder.objects.create(
             customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('100000'),
         )
+        # amount/gst_amount/without_gst_amount are now derived by
+        # AMCPackage.save() via _compute_vas_package_gst() (GST centralization,
+        # Task 4) -- only `amount` needs to be supplied, the other two are
+        # computed forward from it using the company's GST rate (default
+        # cgst_rate=9 + sgst_rate=9 = 18%): gst_amount = 1000*18/100 = 180,
+        # without_gst_amount = 1000-180 = 820.
         package = AMCPackage.objects.create(
             customer_vehicle=customer_vehicle, amc_type=self.amc_type, sales_order=order,
-            amount=Decimal('1180'), gst_amount=Decimal('180'), without_gst_amount=Decimal('1000'),
+            amount=Decimal('1000'),
         )
         package.submit(self.user)
         package.refresh_from_db()
         self.assertIsNotNone(package.invoice_id)
         invoice = package.invoice
-        self.assertEqual(invoice.subtotal, Decimal('1000'))
+        self.assertEqual(invoice.subtotal, Decimal('820'))
         self.assertEqual(invoice.gst_amount, Decimal('180'))
-        self.assertEqual(invoice.final_amount, Decimal('1180'))
+        self.assertEqual(invoice.final_amount, Decimal('1000'))
         self.assertEqual(invoice.sales_order_id, order.pk)
 
     def test_no_invoice_created_when_sales_order_is_unset(self):
@@ -266,3 +272,97 @@ class RSAPackageCreateViewTests(TestCase):
             'rsa_type': self.rsa_type.pk, 'amount': '600',
         })
         self.assertEqual(response.status_code, 302)
+
+
+# ---------------------------------------------------------------------------
+# GST centralization -- AMC/RSA/Protection Plus previously had `amount` /
+# `gst_amount` / `without_gst_amount` fields with zero computation logic (no
+# save() derivation, no split_gst() usage). Reference formula confirmed from
+# reference_erp_spec/18_Sales_Form.md client scripts (RSA ~L11776-11789, AMC
+# ~L12072-12089, Protection Plus ~L12354-12382) -- all three use the identical
+# pair of formulas:
+#   gst_amount         = amount * combined_gst_rate / 100
+#   without_gst_amount = amount - gst_amount
+# `amount` is the value entered on the form and `gst_amount` is calculated
+# forward off it (not back-derived via amount * rate/(100+rate)), but
+# `without_gst_amount` is NOT simply an echo of `amount` -- it's
+# amount-minus-gst, exactly as the legacy client script computes it.
+# ---------------------------------------------------------------------------
+
+from vas.models import ProtectionPlusPackage as _ProtectionPlusPackage
+from vas.models import RSAPackage as _RSAPackageGST
+from vas.models import WarrantyType as _WarrantyType
+
+
+class AMCPackageGSTCentralizedTests(TestCase):
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('9')
+        settings_.sgst_rate = Decimal('9')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+        self.customer_vehicle, self.customer = _make_customer_vehicle('AMCGST1')
+        self.customer.state = 'Tamil Nadu'
+        self.customer.save()
+
+    def test_gst_amount_computed_from_company_rate_not_left_at_zero(self):
+        package = AMCPackage.objects.create(customer_vehicle=self.customer_vehicle, amount=Decimal('1000'))
+        package.refresh_from_db()
+        self.assertGreater(package.gst_amount, Decimal('0'))
+        self.assertEqual(package.gst_amount, Decimal('180.00'))
+        self.assertEqual(package.without_gst_amount, Decimal('820.00'))
+
+    def test_interstate_customer_routes_full_gst_to_igst(self):
+        self.customer.state = 'Kerala'
+        self.customer.save()
+        package = AMCPackage.objects.create(customer_vehicle=self.customer_vehicle, amount=Decimal('1000'))
+        package.refresh_from_db()
+        self.assertEqual(package.gst_amount, Decimal('180.00'))
+        self.assertEqual(package.without_gst_amount, Decimal('820.00'))
+
+
+class RSAPackageGSTCentralizedTests(TestCase):
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('9')
+        settings_.sgst_rate = Decimal('9')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+        self.customer_vehicle, self.customer = _make_customer_vehicle('RSAGST1')
+        self.customer.state = 'Tamil Nadu'
+        self.customer.save()
+
+    def test_gst_amount_computed_from_company_rate_not_left_at_zero(self):
+        package = _RSAPackageGST.objects.create(customer_vehicle=self.customer_vehicle, amount=Decimal('500'))
+        package.refresh_from_db()
+        self.assertGreater(package.gst_amount, Decimal('0'))
+        self.assertEqual(package.gst_amount, Decimal('90.00'))
+        self.assertEqual(package.without_gst_amount, Decimal('410.00'))
+
+
+class ProtectionPlusPackageGSTCentralizedTests(TestCase):
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('9')
+        settings_.sgst_rate = Decimal('9')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+        self.customer_vehicle, self.customer = _make_customer_vehicle('PPGST1')
+        self.customer.state = 'Tamil Nadu'
+        self.customer.save()
+        self.warranty_type = _WarrantyType.objects.create(code='PPGST-T', name='PP GST Test Type')
+
+    def test_gst_amount_computed_from_company_rate_not_left_at_zero(self):
+        package = _ProtectionPlusPackage.objects.create(
+            customer_vehicle=self.customer_vehicle, warranty_type=self.warranty_type, amount=Decimal('2000'),
+        )
+        package.refresh_from_db()
+        self.assertGreater(package.gst_amount, Decimal('0'))
+        self.assertEqual(package.gst_amount, Decimal('360.00'))
+        self.assertEqual(package.without_gst_amount, Decimal('1640.00'))
