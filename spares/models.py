@@ -413,16 +413,22 @@ class PurchaseInvoiceItem(models.Model):
     cgst = models.DecimalField(max_digits=5, decimal_places=2, default=9)
     sgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     cgst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    igst_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     item_category = models.CharField(max_length=100, blank=True)
     part_no       = models.CharField(max_length=100, blank=True, verbose_name='Part No.')
 
     def save(self, *args, **kwargs):
+        from accounts.models import CompanySettings
+        from billing.models import split_gst
         is_new = self.pk is None
         self.amount = self.quantity * self.rate
-        self.sgst_amount = self.amount * self.sgst / 100
-        self.cgst_amount = self.amount * self.cgst / 100
-        self.total = self.amount + self.sgst_amount + self.cgst_amount
+        company_settings = CompanySettings.get_instance()
+        gst_total = self.amount * (company_settings.cgst_rate + company_settings.sgst_rate) / Decimal('100')
+        self.cgst_amount, self.sgst_amount, self.igst_amount = split_gst(
+            gst_total, customer=self.invoice.supplier
+        )
+        self.total = self.amount + self.sgst_amount + self.cgst_amount + self.igst_amount
         super().save(*args, **kwargs)
         # Auto-update StockLedger when a new item is added to a submitted invoice
         if is_new and self.invoice.status == 'submitted':

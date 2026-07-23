@@ -318,3 +318,46 @@ class CounterSaleReturnGodownRequiredTests(_TestCase):
         self.assertEqual(ret.status, 'submitted')
         ledger = StockLedger.objects.get(item=item, warehouse=self.warehouse, rack=None, bin=None)
         self.assertEqual(ledger.quantity, Decimal('2'))
+
+
+class PurchaseInvoiceItemGSTCentralizedTests(TestCase):
+
+    def setUp(self):
+        from accounts.models import CompanySettings
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('6')
+        settings_.sgst_rate = Decimal('6')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+
+    def test_intrastate_supplier_uses_company_configured_rate(self):
+        from masters.models import Supplier, Warehouse
+        from spares.models import SparesItem, PurchaseInvoice, PurchaseInvoiceItem
+
+        supplier = Supplier.objects.create(supplier_name='Intrastate Supplier', state='Tamil Nadu')
+        warehouse = Warehouse.objects.create(name='Main Store')
+        item = SparesItem.objects.create(item_code='GST-TEST-1', item_name='Test Part', hsn_sac='1234')
+        invoice = PurchaseInvoice.objects.create(supplier=supplier, date='2026-08-01')
+        line = PurchaseInvoiceItem.objects.create(
+            invoice=invoice, item=item, warehouse=warehouse, quantity=Decimal('10'), rate=Decimal('100'),
+        )
+        line.refresh_from_db()
+        # 10 * 100 = 1000 base; 6%+6% = 120 total split evenly
+        self.assertEqual(line.sgst_amount, Decimal('60.00'))
+        self.assertEqual(line.cgst_amount, Decimal('60.00'))
+
+    def test_interstate_supplier_gets_igst_not_cgst_sgst(self):
+        from masters.models import Supplier, Warehouse
+        from spares.models import SparesItem, PurchaseInvoice, PurchaseInvoiceItem
+
+        supplier = Supplier.objects.create(supplier_name='Interstate Supplier', state='Karnataka')
+        warehouse = Warehouse.objects.create(name='Main Store 2')
+        item = SparesItem.objects.create(item_code='GST-TEST-2', item_name='Test Part 2', hsn_sac='1234')
+        invoice = PurchaseInvoice.objects.create(supplier=supplier, date='2026-08-01')
+        line = PurchaseInvoiceItem.objects.create(
+            invoice=invoice, item=item, warehouse=warehouse, quantity=Decimal('10'), rate=Decimal('100'),
+        )
+        line.refresh_from_db()
+        self.assertEqual(line.sgst_amount, Decimal('0.00'))
+        self.assertEqual(line.cgst_amount, Decimal('0.00'))
+        self.assertEqual(line.igst_amount, Decimal('120.00'))
