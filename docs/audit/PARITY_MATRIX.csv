@@ -151,17 +151,17 @@ Ssbikez,Add RSA Stock,rsa_type,Data,no,RSA Type,,,,,
 Ssbikez,Add RSA Stock,supplier,Link,yes,Supplier,,,,,
 Ssbikez,Add RSA Stock,purchase_quantity,Int,yes,Purchase Quantity,,,,,
 Ssbikez,Add RSA Stock,update_stock,Button,no,Update Stock,,,,,
-Ssbikez,Add Used Vehicle,disabled,Check,no,Disabled,,,,,
+Ssbikez,Add Used Vehicle,disabled,Check,no,Disabled,used_vehicles,UsedVehicleModel,disabled,Match,used_vehicles/models.py:61
 Ssbikez,Add Used Vehicle,section_break_ve9dr,Section Break,no,,,,,,
-Ssbikez,Add Used Vehicle,used_vehicle_code,Data,no,Used Vehicle Code,,,,,
-Ssbikez,Add Used Vehicle,manufacture,Link,yes,Manufacture,,,,,
-Ssbikez,Add Used Vehicle,vehicle_category,Link,yes,Vehicle Category,,,,,
+Ssbikez,Add Used Vehicle,used_vehicle_code,Data,no,Used Vehicle Code,used_vehicles,UsedVehicleModel,code,Match,used_vehicles/models.py:62
+Ssbikez,Add Used Vehicle,manufacture,Link,yes,Manufacture,used_vehicles,UsedVehicleModel,manufacturer,Match,used_vehicles/models.py:63 -- FK to ManufacturingCompany
+Ssbikez,Add Used Vehicle,vehicle_category,Link,yes,Vehicle Category,used_vehicles,UsedVehicleModel,vehicle_category,Deviation,"used_vehicles/models.py:55-64 -- fixed TextChoices enum (motorcycle/scooter/moped/other), not a Link to a configurable Vehicle Type master"
 Ssbikez,Add Used Vehicle,column_break_e1pgo,Column Break,no,,,,,,
-Ssbikez,Add Used Vehicle,used_vehicle_name,Link,yes,Used Vehicle Name,,,,,
+Ssbikez,Add Used Vehicle,used_vehicle_name,Link,yes,Used Vehicle Name,used_vehicles,UsedVehicleModel,used_vehicle_name,Deviation,"used_vehicles/models.py:65 -- free-text CharField, not a Link to an Exchange Master Used Vehicle Names master"
 Ssbikez,Add Used Vehicle,column_break_td1yu,Column Break,no,,,,,,
-Ssbikez,Add Used Vehicle,model,Data,no,Model,,,,,
-Ssbikez,Add Used Vehicle,item_sub_group,Link,yes,Item Sub Group,,,,,
-Ssbikez,Add Used Vehicle,naming_series,Select,no,Naming Series,,,,,
+Ssbikez,Add Used Vehicle,model,Data,no,Model,used_vehicles,UsedVehicleModel,model,Match,used_vehicles/models.py:66
+Ssbikez,Add Used Vehicle,item_sub_group,Link,yes,Item Sub Group,used_vehicles,UsedVehicleModel,sub_group,Match,used_vehicles/models.py:67 -- FK to UsedVehicleSubGroup
+Ssbikez,Add Used Vehicle,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleModel,,Missing,"used_vehicles/models.py:52-75 -- no autoname/naming_series; 'code' is a manually-entered unique CharField, not an auto-numbered document series"
 Ssbikez,Additional Vehicle Fittings,date,Date,no,Date,,,,,
 Ssbikez,Additional Vehicle Fittings,item_code,Link,no,Item Code,,,,,
 Ssbikez,Additional Vehicle Fittings,item_name,Data,yes,Item Name,,,,,
@@ -173,18 +173,18 @@ Ssbikez,Additional Vehicle Fittings,rate,Currency,yes,Rate,,,,,
 Ssbikez,Additional Vehicle Fittings,total,Currency,yes,Total,,,,,
 Ssbikez,Additional Vehicle Fittings,tool_status,Check,no,Tool Status,,,,,
 Ssbikez,Additional Vehicle Fittings,balance_count,Int,no,Balance Count,,,,,
-Ssbikez,Advance Payment Details,date,Date,yes,Date,,,,,
-Ssbikez,Advance Payment Details,mode_of_payment,Select,yes,Mode Of Payment,,,,,
-Ssbikez,Advance Payment Details,amount,Currency,yes,Amount,,,,,
-Ssbikez,Advance Payment Details,to_account,Link,yes,To Account,,,,,
+Ssbikez,Advance Payment Details,date,Date,yes,Date,used_vehicles,UsedVehicleAdvancePayment,date,Match,used_vehicles/models.py:514
+Ssbikez,Advance Payment Details,mode_of_payment,Select,yes,Mode Of Payment,used_vehicles,UsedVehicleAdvancePayment,mode_of_payment,Deviation,"used_vehicles/models.py:513 -- free-text CharField, not restricted to the reference's Cash/Bank Draft Select options"
+Ssbikez,Advance Payment Details,amount,Currency,yes,Amount,used_vehicles,UsedVehicleAdvancePayment,amount,Match,used_vehicles/models.py:515
+Ssbikez,Advance Payment Details,to_account,Link,yes,To Account,used_vehicles,UsedVehicleAdvancePayment,to_account,Match,used_vehicles/models.py:516 -- free-text CharField (no Chart-of-Accounts master exists in this app)
 Ssbikez,Advance Payment Details,column_break_qkqo,Column Break,no,,,,,,
-Ssbikez,Advance Payment Details,payment_entry_id,Data,no,Payment Entry ID,,,,,
-Ssbikez,Advance Payment Details,advance_entry_status,Data,no,Advance Entry Status,,,,,
-Ssbikez,Advance Payment Details,draft_type,Link,no,Draft Type,,,,,
+Ssbikez,Advance Payment Details,payment_entry_id,Data,no,Payment Entry ID,used_vehicles,UsedVehicleAdvancePayment,,Missing,used_vehicles/models.py:511-524 -- no payment_entry_id field (no linked Payment Entry doctype in this app)
+Ssbikez,Advance Payment Details,advance_entry_status,Data,no,Advance Entry Status,used_vehicles,UsedVehicleAdvancePayment,,Missing,used_vehicles/models.py:511-524 -- no advance_entry_status field
+Ssbikez,Advance Payment Details,draft_type,Link,no,Draft Type,used_vehicles,UsedVehicleAdvancePayment,,Missing,"used_vehicles/models.py:511-524 -- no draft_type field on the Sale-level advance payment row (present on UsedVehicleDeliveryAdvancePayment instead, see used_vehicles/models.py:639)"
 Ssbikez,Advance Payment Details,column_break_ifjw,Column Break,no,,,,,,
-Ssbikez,Advance Payment Details,swipe_charges,Data,no,Swipe Charges,,,,,
-Ssbikez,Advance Payment Details,ref_no,Data,no,Ref No,,,,,
-Ssbikez,Advance Payment Details,ref_date,Date,no,Ref Date,,,,,
+Ssbikez,Advance Payment Details,swipe_charges,Data,no,Swipe Charges,used_vehicles,UsedVehicleAdvancePayment,,Missing,used_vehicles/models.py:511-524 -- no swipe_charges field
+Ssbikez,Advance Payment Details,ref_no,Data,no,Ref No,used_vehicles,UsedVehicleAdvancePayment,,Missing,used_vehicles/models.py:511-524 -- no ref_no field
+Ssbikez,Advance Payment Details,ref_date,Date,no,Ref Date,used_vehicles,UsedVehicleAdvancePayment,,Missing,used_vehicles/models.py:511-524 -- no ref_date field
 Ssbikez,All Chasis No List,chasis_no,Data,yes,Chasis No,,,,,
 Ssbikez,All Chasis No List,engine_no,Data,no,Engine No,,,,,
 Ssbikez,All Chasis No List,register_no,Data,no,Register No,,,,,
@@ -4474,43 +4474,43 @@ Ssbikez,TeleCMI Setting,audio_url,Data,no,Audio URL,,,,,
 Ssbikez,TeleCMI Setting,disable,Check,no,Disable,,,,,
 Ssbikez,Test,log,Long Text,no,log,,,,,
 Ssbikez,Used Vechile RC Book Issue,rc_book_details,Section Break,no,RC Book Details,,,,,
-Ssbikez,Used Vechile RC Book Issue,date,Date,yes,Date,,,,,
-Ssbikez,Used Vechile RC Book Issue,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vechile RC Book Issue,company,Link,no,Company,,,,,
-Ssbikez,Used Vechile RC Book Issue,used_vehicle_sale_id,Link,yes,Used Vehicle Sale ID,,,,,
+Ssbikez,Used Vechile RC Book Issue,date,Date,yes,Date,used_vehicles,UsedVechileRCBookIssue,issue_date,Match,used_vehicles/models.py:777
+Ssbikez,Used Vechile RC Book Issue,naming_series,Select,no,Naming Series,used_vehicles,UsedVechileRCBookIssue,,Missing,"used_vehicles/models.py:765-788 -- no auto-numbered document identity, only the auto integer PK"
+Ssbikez,Used Vechile RC Book Issue,company,Link,no,Company,used_vehicles,UsedVechileRCBookIssue,,Missing,used_vehicles/models.py:765-788 -- no company FK (single-company app)
+Ssbikez,Used Vechile RC Book Issue,used_vehicle_sale_id,Link,yes,Used Vehicle Sale ID,used_vehicles,UsedVechileRCBookIssue,sale,Match,used_vehicles/models.py:775
 Ssbikez,Used Vechile RC Book Issue,column_break_3movf,Column Break,no,,,,,,
-Ssbikez,Used Vechile RC Book Issue,branch,Link,no,Branch,,,,,
-Ssbikez,Used Vechile RC Book Issue,order_form_id,Data,yes,Order Form ID,,,,,
+Ssbikez,Used Vechile RC Book Issue,branch,Link,no,Branch,used_vehicles,UsedVechileRCBookIssue,sale,Deviation,"used_vehicles/models.py:775 -- reachable via sale.branch, not its own column"
+Ssbikez,Used Vechile RC Book Issue,order_form_id,Data,yes,Order Form ID,used_vehicles,UsedVechileRCBookIssue,sale,Deviation,"used_vehicles/models.py:775 -- reachable via sale (ForeignKey), no separate Order Form Series master"
 Ssbikez,Used Vechile RC Book Issue,column_break_o9ufd,Column Break,no,,,,,,
-Ssbikez,Used Vechile RC Book Issue,issue_type,Select,no,Issue Type,,,,,
-Ssbikez,Used Vechile RC Book Issue,from_branch,Link,no,From Branch,,,,,
-Ssbikez,Used Vechile RC Book Issue,to_branch,Link,no,To Branch,,,,,
-Ssbikez,Used Vechile RC Book Issue,sub_dealer_name,Link,no,Sub Dealer Name,,,,,
+Ssbikez,Used Vechile RC Book Issue,issue_type,Select,no,Issue Type,used_vehicles,UsedVechileRCBookIssue,,Missing,used_vehicles/models.py:765-788 -- no issue_type field (Issue to customer/Branch/Sub Dealer); Django models this doctype as a plain customer-handover record only
+Ssbikez,Used Vechile RC Book Issue,from_branch,Link,no,From Branch,used_vehicles,UsedVechileRCBookIssue,,Missing,used_vehicles/models.py:765-788 -- no from_branch field (no inter-branch RC transfer path modeled)
+Ssbikez,Used Vechile RC Book Issue,to_branch,Link,no,To Branch,used_vehicles,UsedVechileRCBookIssue,,Missing,used_vehicles/models.py:765-788 -- no to_branch field
+Ssbikez,Used Vechile RC Book Issue,sub_dealer_name,Link,no,Sub Dealer Name,used_vehicles,UsedVechileRCBookIssue,,Missing,used_vehicles/models.py:765-788 -- no sub_dealer_name field (no sub-dealer RC issue path modeled)
 Ssbikez,Used Vechile RC Book Issue,vehicle_details_section,Section Break,no,Vehicle Details,,,,,
-Ssbikez,Used Vechile RC Book Issue,vehicle_number,Data,no,Vehicle Number,,,,,
+Ssbikez,Used Vechile RC Book Issue,vehicle_number,Data,no,Vehicle Number,used_vehicles,UsedVechileRCBookIssue,sale,Deviation,"used_vehicles/models.py:775 -- reachable via sale.vehicle_number, not its own snapshot column"
 Ssbikez,Used Vechile RC Book Issue,column_break_5kpkn,Column Break,no,,,,,,
-Ssbikez,Used Vechile RC Book Issue,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,Used Vechile RC Book Issue,vehicle_name,Link,no,Vehicle Name,used_vehicles,UsedVechileRCBookIssue,sale,Deviation,"used_vehicles/models.py:775 -- reachable via sale.vehicle_number, not its own column"
 Ssbikez,Used Vechile RC Book Issue,column_break_jvyeg,Column Break,no,,,,,,
-Ssbikez,Used Vechile RC Book Issue,customer_name,Link,no,Customer Name,,,,,
-Ssbikez,Used Vechile RC Book Issue,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vechile RC Book Issue,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle AMC Types,amc_type,Data,yes,AMC Type,,,,,
+Ssbikez,Used Vechile RC Book Issue,customer_name,Link,no,Customer Name,used_vehicles,UsedVechileRCBookIssue,issued_to,Match,"used_vehicles/models.py:778 -- free-text CharField, matches reference intent though reference types it as a Link"
+Ssbikez,Used Vechile RC Book Issue,amended_from,Link,no,Amended From,used_vehicles,UsedVechileRCBookIssue,docstatus,Match,"used_vehicles/models.py:765,769-770 -- DocStatusMixin, no _amend_reset_number_field"
+Ssbikez,Used Vechile RC Book Issue,amended_from,Link,no,Amended From,used_vehicles,UsedVechileRCBookIssue,docstatus,Match,"used_vehicles/models.py:765,769-770 -- DocStatusMixin, no _amend_reset_number_field"
+Ssbikez,Used Vehicle AMC Types,amc_type,Data,yes,AMC Type,vas,AMCType,name,Match,"vas/models.py:15-18 -- shared AMC Types master, reused for used-vehicle AMC (no separate used-vehicle-only model)"
 Ssbikez,Used Vehicle AMC Types,column_break_3yy26,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,amc_amount,Currency,yes,AMC Amount,,,,,
+Ssbikez,Used Vehicle AMC Types,amc_amount,Currency,yes,AMC Amount,vas,AMCType,amc_amount,Match,vas/models.py:20
 Ssbikez,Used Vehicle AMC Types,section_break_ttowe,Section Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,ss_bikes,Check,yes,SS Bikes,,,,,
+Ssbikez,Used Vehicle AMC Types,ss_bikes,Check,yes,SS Bikes,vas,AMCType,ss_bikes,Match,vas/models.py:22
 Ssbikez,Used Vehicle AMC Types,column_break_drikf,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,deactivate_amc,Check,no,Deactivate AMC,,,,,
+Ssbikez,Used Vehicle AMC Types,deactivate_amc,Check,no,Deactivate AMC,vas,AMCType,deactivate_amc,Match,vas/models.py:24
 Ssbikez,Used Vehicle AMC Types,section_break_ciaur,Section Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,vehicle_type,Link,no,Vehicle Type,,,,,
+Ssbikez,Used Vehicle AMC Types,vehicle_type,Link,no,Vehicle Type,vas,AMCType,vehicle_type,Deviation,"vas/models.py:25 -- free-text CharField snapshot label, not a Link to a Vehicle Type master (no such master exists)"
 Ssbikez,Used Vehicle AMC Types,column_break_d7skj,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,no_of_service,Int,no,No of Service,,,,,
+Ssbikez,Used Vehicle AMC Types,no_of_service,Int,no,No of Service,vas,AMCType,no_of_service,Match,vas/models.py:26
 Ssbikez,Used Vehicle AMC Types,column_break_0kiep,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,water_wash_count_free,Int,no,Water Wash Count (Free),,,,,
+Ssbikez,Used Vehicle AMC Types,water_wash_count_free,Int,no,Water Wash Count (Free),vas,AMCType,water_wash_count_free,Match,vas/models.py:27
 Ssbikez,Used Vehicle AMC Types,column_break_xtfxw,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,service_intervaldays,Int,no,Service Interval(Days),,,,,
+Ssbikez,Used Vehicle AMC Types,service_intervaldays,Int,no,Service Interval(Days),vas,AMCType,service_interval_days,Match,vas/models.py:28
 Ssbikez,Used Vehicle AMC Types,column_break_zc6pt,Column Break,no,,,,,,
-Ssbikez,Used Vehicle AMC Types,grace_days,Int,no,Grace Days,,,,,
+Ssbikez,Used Vehicle AMC Types,grace_days,Int,no,Grace Days,vas,AMCType,grace_days,Match,vas/models.py:29
 Ssbikez,Used Vehicle Bay In,bay_in_out_creation_section,Section Break,no,Bay In Creation,,,,,
 Ssbikez,Used Vehicle Bay In,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Used Vehicle Bay In,date,Datetime,yes,Date,,,,,
@@ -4542,80 +4542,80 @@ Ssbikez,Used Vehicle Chasis No Master,status,Select,no,status,,,,,
 Ssbikez,Used Vehicle Chasis No Master,column_break_crob,Column Break,no,,,,,,
 Ssbikez,Used Vehicle Chasis No Master,color,Data,no,Color,,,,,
 Ssbikez,Used Vehicle Chasis No Master,vehicle,Data,no,Vehicle,,,,,
-Ssbikez,Used Vehicle Color,color,Data,yes,Color,,,,,
-Ssbikez,Used Vehicle Color,color_code,Data,yes,Color Code,,,,,
+Ssbikez,Used Vehicle Color,color,Data,yes,Color,used_vehicles,UsedVehicleColor,name,Match,used_vehicles/models.py:41
+Ssbikez,Used Vehicle Color,color_code,Data,yes,Color Code,used_vehicles,UsedVehicleColor,,Missing,"used_vehicles/models.py:40-49 -- no color_code field, only name (the color label itself)"
 Ssbikez,Used Vehicle Complaint Detail,complaints,Data,no,Complaints,,,,,
 Ssbikez,Used Vehicle Complaint Detail,details,Data,no,Details,,,,,
 Ssbikez,Used Vehicle Complaint Detail,status,Select,no,Status,,,,,
 Ssbikez,Used Vehicle Complaint Detail,complaint_check_box,Check,no,Complaint Check Box,,,,,
-Ssbikez,Used Vehicle Delivery Items,item_code,Link,yes,Item Code,,,,,
-Ssbikez,Used Vehicle Delivery Items,reference_doctype,Link,no,Reference Doctype,,,,,
-Ssbikez,Used Vehicle Delivery Items,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,,,,,
-Ssbikez,Used Vehicle Delivery Items,rate,Currency,no,Rate,,,,,
-Ssbikez,Used Vehicle Delivery,order_form_id,Link,yes,Order Form Id,,,,,
+Ssbikez,Used Vehicle Delivery Items,item_code,Link,yes,Item Code,used_vehicles,UsedVehicleDeliveryItem,item_code,Match,used_vehicles/models.py:621
+Ssbikez,Used Vehicle Delivery Items,reference_doctype,Link,no,Reference Doctype,used_vehicles,UsedVehicleDeliveryItem,,Missing,used_vehicles/models.py:619-630 -- no reference_doctype field
+Ssbikez,Used Vehicle Delivery Items,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,used_vehicles,UsedVehicleDeliveryItem,warranty_rsa_amc,Deviation,"used_vehicles/models.py:622-623 -- free-text CharField, not the reference's Dynamic Link (no generic dynamic-link mechanism in Django)"
+Ssbikez,Used Vehicle Delivery Items,rate,Currency,no,Rate,used_vehicles,UsedVehicleDeliveryItem,rate,Match,used_vehicles/models.py:624
+Ssbikez,Used Vehicle Delivery,order_form_id,Link,yes,Order Form Id,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- OneToOneField directly to UsedVehicleSale, no separate Order Form Series master in this app"
 Ssbikez,Used Vehicle Delivery,column_break_yi2tp,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,login,Data,no,Login,,,,,
+Ssbikez,Used Vehicle Delivery,login,Data,no,Login,used_vehicles,UsedVehicleDelivery,delivered_by,Deviation,"used_vehicles/models.py:578 -- FK to the delivering staff User, not a free-text login snapshot field"
 Ssbikez,Used Vehicle Delivery,column_break_s1wjy,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,warehouse,Link,yes,Warehouse,,,,,
+Ssbikez,Used Vehicle Delivery,warehouse,Link,yes,Warehouse,used_vehicles,UsedVehicleDelivery,warehouse,Match,used_vehicles/models.py:594
 Ssbikez,Used Vehicle Delivery,column_break_qumj,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,allow_permission,Check,no,Manager Approval,,,,,
+Ssbikez,Used Vehicle Delivery,allow_permission,Check,no,Manager Approval,used_vehicles,UsedVehicleDelivery,manager_approval_requested/manager_approved,Deviation,"used_vehicles/models.py:585-586 -- split into two booleans (requested vs approved) rather than reference's single allow_permission checkbox; functionally stronger (captures the approval workflow, not just its outcome)"
 Ssbikez,Used Vehicle Delivery,details_section,Section Break,no,Details,,,,,
-Ssbikez,Used Vehicle Delivery,gst_category,Data,no,GST Category,,,,,
+Ssbikez,Used Vehicle Delivery,gst_category,Data,no,GST Category,used_vehicles,UsedVehicleDelivery,gst_category,Match,used_vehicles/models.py:595
 Ssbikez,Used Vehicle Delivery,column_break_lsrh6,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Delivery,date,Date,yes,Date,,,,,
-Ssbikez,Used Vehicle Delivery,company,Link,no,Company,,,,,
+Ssbikez,Used Vehicle Delivery,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleDelivery,,Missing,"used_vehicles/models.py:571-617 -- no auto-numbered document identity at all, only the auto integer PK"
+Ssbikez,Used Vehicle Delivery,date,Date,yes,Date,used_vehicles,UsedVehicleDelivery,delivery_date,Match,used_vehicles/models.py:577
+Ssbikez,Used Vehicle Delivery,company,Link,no,Company,used_vehicles,UsedVehicleDelivery,,Missing,used_vehicles/models.py:571-617 -- no company FK (single-company app)
 Ssbikez,Used Vehicle Delivery,column_break_0mkp7,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,customer,Link,no,Customer,,,,,
-Ssbikez,Used Vehicle Delivery,sale_id,Link,no,Sale ID,,,,,
-Ssbikez,Used Vehicle Delivery,branch,Link,no,Branch,,,,,
+Ssbikez,Used Vehicle Delivery,customer,Link,no,Customer,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.customer, not its own column"
+Ssbikez,Used Vehicle Delivery,sale_id,Link,no,Sale ID,used_vehicles,UsedVehicleDelivery,sale,Match,used_vehicles/models.py:576
+Ssbikez,Used Vehicle Delivery,branch,Link,no,Branch,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.branch, not its own column"
 Ssbikez,Used Vehicle Delivery,column_break_qzyo4,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,phone_number,Data,no,Phone Number,,,,,
+Ssbikez,Used Vehicle Delivery,phone_number,Data,no,Phone Number,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.phone_number, not its own column"
 Ssbikez,Used Vehicle Delivery,vehicle_details_section,Section Break,no,Vehicle Details,,,,,
-Ssbikez,Used Vehicle Delivery,vehicle_name,Link,no,Vehicle Name,,,,,
-Ssbikez,Used Vehicle Delivery,vehicle_code,Data,yes,Vehicle Code,,,,,
+Ssbikez,Used Vehicle Delivery,vehicle_name,Link,no,Vehicle Name,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.vehicle_number, not its own column"
+Ssbikez,Used Vehicle Delivery,vehicle_code,Data,yes,Vehicle Code,used_vehicles,UsedVehicleDelivery,,Missing,used_vehicles/models.py:571-617 -- no vehicle_code field
 Ssbikez,Used Vehicle Delivery,column_break_irvsk,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,vehicle_number,Data,no,Vehicle Number,,,,,
+Ssbikez,Used Vehicle Delivery,vehicle_number,Data,no,Vehicle Number,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.vehicle_number.registration_no, not its own column"
 Ssbikez,Used Vehicle Delivery,column_break_gnjti,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,sale_amount,Currency,no,Sale Amount,,,,,
+Ssbikez,Used Vehicle Delivery,sale_amount,Currency,no,Sale Amount,used_vehicles,UsedVehicleDelivery,sale,Deviation,"used_vehicles/models.py:576 -- reachable via sale.sale_amount, not its own snapshot column"
 Ssbikez,Used Vehicle Delivery,column_break_sajy1,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,payment_type,Select,no,Payment Type,,,,,
+Ssbikez,Used Vehicle Delivery,payment_type,Select,no,Payment Type,used_vehicles,UsedVehicleDelivery,,Missing,used_vehicles/models.py:571-617 -- no payment_type field (Cash/Adjustment) on the Delivery doc itself
 Ssbikez,Used Vehicle Delivery,section_break_cxvna,Section Break,no,Exchange Details,,,,,
-Ssbikez,Used Vehicle Delivery,has_exchange,Check,no,Has Exchange,,,,,
+Ssbikez,Used Vehicle Delivery,has_exchange,Check,no,Has Exchange,used_vehicles,UsedVehicleDelivery,has_exchange,Match,used_vehicles/models.py:596
 Ssbikez,Used Vehicle Delivery,column_break_lsgtn,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,finance_closing,Select,no,Finance Closing,,,,,
+Ssbikez,Used Vehicle Delivery,finance_closing,Select,no,Finance Closing,used_vehicles,UsedVehicleDelivery,finance_closing,Match,used_vehicles/models.py:597
 Ssbikez,Used Vehicle Delivery,column_break_775al,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,exchange_amount,Currency,no,Exchange Amount,,,,,
+Ssbikez,Used Vehicle Delivery,exchange_amount,Currency,no,Exchange Amount,used_vehicles,UsedVehicleDelivery,exchange_amount,Match,used_vehicles/models.py:598
 Ssbikez,Used Vehicle Delivery,on_delivery_process_section,Section Break,no,On Delivery Process,,,,,
-Ssbikez,Used Vehicle Delivery,delivery_items,Table,no,Delivery Items,,,,,
+Ssbikez,Used Vehicle Delivery,delivery_items,Table,no,Delivery Items,used_vehicles,UsedVehicleDelivery,delivery_items,Match,used_vehicles/models.py:620 -- related_name=delivery_items child table
 Ssbikez,Used Vehicle Delivery,section_break_si34a,Section Break,no,Advance Payments,,,,,
-Ssbikez,Used Vehicle Delivery,advance_payment_details,Table,no,Advance Payment Details,,,,,
+Ssbikez,Used Vehicle Delivery,advance_payment_details,Table,no,Advance Payment Details,used_vehicles,UsedVehicleDelivery,advance_payments,Match,used_vehicles/models.py:634 -- related_name=advance_payments child table
 Ssbikez,Used Vehicle Delivery,section_break_zzofd,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,offer_petrol,Check,no,Offer Petrol,,,,,
+Ssbikez,Used Vehicle Delivery,offer_petrol,Check,no,Offer Petrol,used_vehicles,UsedVehicleDelivery,offer_petrol,Match,used_vehicles/models.py:599
 Ssbikez,Used Vehicle Delivery,column_break_utlvs,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,petrol_type,Select,no,Petrol Type,,,,,
+Ssbikez,Used Vehicle Delivery,petrol_type,Select,no,Petrol Type,used_vehicles,UsedVehicleDelivery,petrol_type,Match,used_vehicles/models.py:600
 Ssbikez,Used Vehicle Delivery,column_break_vlhxv,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,litre,Int,no,Litre,,,,,
-Ssbikez,Used Vehicle Delivery,amount,Currency,no,Amount,,,,,
+Ssbikez,Used Vehicle Delivery,litre,Int,no,Litre,used_vehicles,UsedVehicleDelivery,petrol_litre,Match,used_vehicles/models.py:601
+Ssbikez,Used Vehicle Delivery,amount,Currency,no,Amount,used_vehicles,UsedVehicleDelivery,petrol_amount,Match,used_vehicles/models.py:602
 Ssbikez,Used Vehicle Delivery,column_break_cv0ua,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,issue_gate_pass,Check,no,Issue Gate Pass,,,,,
+Ssbikez,Used Vehicle Delivery,issue_gate_pass,Check,no,Issue Gate Pass,used_vehicles,UsedVehicleDelivery,issue_gate_pass,Match,used_vehicles/models.py:584
 Ssbikez,Used Vehicle Delivery,section_break_fzxmi,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,item_qty,Int,yes,Item Qty,,,,,
-Ssbikez,Used Vehicle Delivery,finance_amount,Currency,yes,Finance Amount,,,,,
+Ssbikez,Used Vehicle Delivery,item_qty,Int,yes,Item Qty,used_vehicles,UsedVehicleDelivery,item_qty,Match,used_vehicles/models.py:603
+Ssbikez,Used Vehicle Delivery,finance_amount,Currency,yes,Finance Amount,used_vehicles,UsedVehicleDelivery,finance_amount,Match,used_vehicles/models.py:604
 Ssbikez,Used Vehicle Delivery,column_break_fz9nx,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,total,Currency,yes,Total,,,,,
-Ssbikez,Used Vehicle Delivery,delivery_discount,Currency,no,Delivery Discount,,,,,
+Ssbikez,Used Vehicle Delivery,total,Currency,yes,Total,used_vehicles,UsedVehicleDelivery,total_amount,Match,used_vehicles/models.py:588
+Ssbikez,Used Vehicle Delivery,delivery_discount,Currency,no,Delivery Discount,used_vehicles,UsedVehicleDelivery,delivery_discount,Match,used_vehicles/models.py:605
 Ssbikez,Used Vehicle Delivery,column_break_oo121,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,base_rate,Currency,yes,Base Rate,,,,,
-Ssbikez,Used Vehicle Delivery,payment_status,Data,no,Payment Status,,,,,
+Ssbikez,Used Vehicle Delivery,base_rate,Currency,yes,Base Rate,used_vehicles,UsedVehicleDelivery,base_rate,Match,used_vehicles/models.py:606
+Ssbikez,Used Vehicle Delivery,payment_status,Data,no,Payment Status,used_vehicles,UsedVehicleDelivery,payment_status,Match,"used_vehicles/models.py:572-574,589 -- Unpaid/Completed TextChoices"
 Ssbikez,Used Vehicle Delivery,column_break_srvw8,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,additional_discount,Currency,yes,Sales Additional Discount,,,,,
+Ssbikez,Used Vehicle Delivery,additional_discount,Currency,yes,Sales Additional Discount,used_vehicles,UsedVehicleDelivery,additional_discount,Match,used_vehicles/models.py:607
 Ssbikez,Used Vehicle Delivery,column_break_bqr0f,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,advance_payment,Currency,yes,Advance Payment,,,,,
+Ssbikez,Used Vehicle Delivery,advance_payment,Currency,yes,Advance Payment,used_vehicles,UsedVehicleDelivery,advance_payment,Match,used_vehicles/models.py:608
 Ssbikez,Used Vehicle Delivery,column_break_dflqr,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Delivery,balance_amount,Currency,yes,Balance Amount,,,,,
-Ssbikez,Used Vehicle Delivery,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Delivery,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Used Vehicle Delivery,balance_amount,Currency,yes,Balance Amount,used_vehicles,UsedVehicleDelivery,balance_amount,Match,used_vehicles/models.py:609
+Ssbikez,Used Vehicle Delivery,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleDelivery,docstatus,Match,used_vehicles/models.py:571 -- DocStatusMixin (no _amend_reset_number_field since there is no naming_series field to reset)
+Ssbikez,Used Vehicle Delivery,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleDelivery,docstatus,Match,used_vehicles/models.py:571 -- DocStatusMixin (no _amend_reset_number_field since there is no naming_series field to reset)
 Ssbikez,Used Vehicle Engine Number,engine_number,Data,yes,Engine Number,,,,,
 Ssbikez,Used Vehicle Final Inspection,job_card_no,Link,yes,Job Card No,,,,,
 Ssbikez,Used Vehicle Final Inspection,column_break_r4lum,Column Break,no,,,,,,
@@ -4645,16 +4645,16 @@ Ssbikez,Used Vehicle Final Inspection,section_break_s0yrr,Section Break,no,,,,,,
 Ssbikez,Used Vehicle Final Inspection,final_inspection_remarks,Small Text,yes,Final Inspection Remarks,,,,,
 Ssbikez,Used Vehicle Final Inspection,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Used Vehicle Final Inspection,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Fittings,items_code,Link,no,Items Code,,,,,
-Ssbikez,Used Vehicle Fittings,items_name,Data,no,Items Name,,,,,
-Ssbikez,Used Vehicle Fittings,quantity_count,Int,no,Quantity Count,,,,,
-Ssbikez,Used Vehicle Fittings,rack,Data,no,Rack,,,,,
+Ssbikez,Used Vehicle Fittings,items_code,Link,no,Items Code,used_vehicles,UsedVehicleFitting,item_code,Match,used_vehicles/models.py:480
+Ssbikez,Used Vehicle Fittings,items_name,Data,no,Items Name,used_vehicles,UsedVehicleFitting,item_name,Match,used_vehicles/models.py:481
+Ssbikez,Used Vehicle Fittings,quantity_count,Int,no,Quantity Count,used_vehicles,UsedVehicleFitting,quantity,Match,used_vehicles/models.py:482
+Ssbikez,Used Vehicle Fittings,rack,Data,no,Rack,used_vehicles,UsedVehicleFitting,,Missing,used_vehicles/models.py:478-492 -- no rack field
 Ssbikez,Used Vehicle Fittings,column_break_wt4bt,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Fittings,bin,Data,no,Bin,,,,,
-Ssbikez,Used Vehicle Fittings,item_rate,Currency,no,Item Rate,,,,,
-Ssbikez,Used Vehicle Fittings,item_amount,Currency,no,Item Amount,,,,,
-Ssbikez,Used Vehicle Fittings,balance_count,Int,no,Balance Count,,,,,
-Ssbikez,Used Vehicle Fittings,uom,Data,no,UOM,,,,,
+Ssbikez,Used Vehicle Fittings,bin,Data,no,Bin,used_vehicles,UsedVehicleFitting,,Missing,used_vehicles/models.py:478-492 -- no bin field
+Ssbikez,Used Vehicle Fittings,item_rate,Currency,no,Item Rate,used_vehicles,UsedVehicleFitting,rate,Match,used_vehicles/models.py:483
+Ssbikez,Used Vehicle Fittings,item_amount,Currency,no,Item Amount,used_vehicles,UsedVehicleFitting,amount,Match,used_vehicles/models.py:484
+Ssbikez,Used Vehicle Fittings,balance_count,Int,no,Balance Count,used_vehicles,UsedVehicleFitting,,Missing,used_vehicles/models.py:478-492 -- no balance_count (running stock balance) field
+Ssbikez,Used Vehicle Fittings,uom,Data,no,UOM,used_vehicles,UsedVehicleFitting,,Missing,used_vehicles/models.py:478-492 -- no uom field
 Ssbikez,Used Vehicle Insurance Entry,register_no,Link,yes,Register No,,,,,
 Ssbikez,Used Vehicle Insurance Entry,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Used Vehicle Insurance Entry,column_break_kftza,Column Break,no,,,,,,
@@ -4679,89 +4679,89 @@ Ssbikez,Used Vehicle Insurance Update,payment_method,Select,yes,Payment Method,,
 Ssbikez,Used Vehicle Insurance Update,to_account,Link,yes,To Account,,,,,
 Ssbikez,Used Vehicle Insurance Update,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Used Vehicle Insurance Update,ref_date,Date,no,Ref Date,,,,,
-Ssbikez,Used Vehicle Invoice Child,item_code,Link,no,Item Code,,,,,
-Ssbikez,Used Vehicle Invoice Child,manufacture,Link,yes,Brand,,,,,
-Ssbikez,Used Vehicle Invoice Child,model,Link,no,Model,,,,,
-Ssbikez,Used Vehicle Invoice Child,color,Link,no,Color,,,,,
-Ssbikez,Used Vehicle Invoice Child,year,Data,no,Year,,,,,
-Ssbikez,Used Vehicle Invoice Child,rate,Currency,yes,Rate,,,,,
-Ssbikez,Used Vehicle Invoice Child,item_name,Link,yes,Item Name,,,,,
-Ssbikez,Used Vehicle Invoice Child,sub_group,Link,yes,Sub Group,,,,,
-Ssbikez,Used Vehicle Invoice Child,register_number,Data,yes,Register Number,,,,,
-Ssbikez,Used Vehicle Invoice Child,engine_number,Data,yes,Engine Number,,,,,
-Ssbikez,Used Vehicle Invoice Child,chasis_number,Data,yes,Chasis Number,,,,,
+Ssbikez,Used Vehicle Invoice Child,item_code,Link,no,Item Code,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no item_code field on the purchase line item
+Ssbikez,Used Vehicle Invoice Child,manufacture,Link,yes,Brand,used_vehicles,UsedVehiclePurchaseItem,used_vehicle,Deviation,"used_vehicles/models.py:358 -- brand is only reachable indirectly via used_vehicle.manufacturer, not its own column on the line item"
+Ssbikez,Used Vehicle Invoice Child,model,Link,no,Model,used_vehicles,UsedVehiclePurchaseItem,used_vehicle,Deviation,"used_vehicles/models.py:358 -- model captured via the used_vehicle FK, not its own column"
+Ssbikez,Used Vehicle Invoice Child,color,Link,no,Color,used_vehicles,UsedVehiclePurchaseItem,color,Match,used_vehicles/models.py:362
+Ssbikez,Used Vehicle Invoice Child,year,Data,no,Year,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no year field
+Ssbikez,Used Vehicle Invoice Child,rate,Currency,yes,Rate,used_vehicles,UsedVehiclePurchaseItem,rate,Match,used_vehicles/models.py:364
+Ssbikez,Used Vehicle Invoice Child,item_name,Link,yes,Item Name,used_vehicles,UsedVehiclePurchaseItem,used_vehicle,Match,used_vehicles/models.py:358 -- FK to UsedVehicleModel
+Ssbikez,Used Vehicle Invoice Child,sub_group,Link,yes,Sub Group,used_vehicles,UsedVehiclePurchaseItem,used_vehicle,Deviation,"used_vehicles/models.py:358 -- reachable via used_vehicle.sub_group, not its own column on the line item"
+Ssbikez,Used Vehicle Invoice Child,register_number,Data,yes,Register Number,used_vehicles,UsedVehiclePurchaseItem,registration_no,Match,used_vehicles/models.py:359
+Ssbikez,Used Vehicle Invoice Child,engine_number,Data,yes,Engine Number,used_vehicles,UsedVehiclePurchaseItem,engine_no,Match,used_vehicles/models.py:361
+Ssbikez,Used Vehicle Invoice Child,chasis_number,Data,yes,Chasis Number,used_vehicles,UsedVehiclePurchaseItem,chassis_no,Match,used_vehicles/models.py:360
 Ssbikez,Used Vehicle Invoice Child,column_break_oturr,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice Child,rc_book_number,Data,yes,RC Book Number,,,,,
-Ssbikez,Used Vehicle Invoice Child,to_received,Select,yes,TO Received,,,,,
-Ssbikez,Used Vehicle Invoice Child,noc,Select,yes,NOC,,,,,
-Ssbikez,Used Vehicle Invoice Child,insurance,Select,yes,Insurance,,,,,
-Ssbikez,Used Vehicle Invoice Child,quantity,Int,yes,Quantity,,,,,
-Ssbikez,Used Vehicle Invoice Child,customer,Data,no,Customer,,,,,
-Ssbikez,Used Vehicle Invoice Child,uom,Link,yes,UOM,,,,,
-Ssbikez,Used Vehicle Invoice Child,challan_amount,Float,no,Challan Amount,,,,,
-Ssbikez,Used Vehicle Invoice,order_form_id,Link,yes,Order Form ID,,,,,
+Ssbikez,Used Vehicle Invoice Child,rc_book_number,Data,yes,RC Book Number,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no rc_book_number field on the purchase-invoice line item (only exists on the earlier PO/Receipt stage items)
+Ssbikez,Used Vehicle Invoice Child,to_received,Select,yes,TO Received,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no to_received field on the purchase-invoice line item (only exists on the earlier PO/Receipt stage items)
+Ssbikez,Used Vehicle Invoice Child,noc,Select,yes,NOC,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no noc field on the purchase-invoice line item (only exists on the earlier PO/Receipt stage items)
+Ssbikez,Used Vehicle Invoice Child,insurance,Select,yes,Insurance,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no insurance field on the purchase-invoice line item (only exists on the earlier PO/Receipt stage items)
+Ssbikez,Used Vehicle Invoice Child,quantity,Int,yes,Quantity,used_vehicles,UsedVehiclePurchaseItem,quantity,Match,used_vehicles/models.py:363
+Ssbikez,Used Vehicle Invoice Child,customer,Data,no,Customer,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no customer field on the purchase-invoice line item
+Ssbikez,Used Vehicle Invoice Child,uom,Link,yes,UOM,used_vehicles,UsedVehiclePurchaseItem,,Missing,"used_vehicles/models.py:356-371 -- no uom field on this specific item model (present on the earlier UsedVehiclePurchaseOrderItem/UsedVehiclePurchaseReceiptItem stage rows, dropped by the time it reaches the final Purchase Invoice line item)"
+Ssbikez,Used Vehicle Invoice Child,challan_amount,Float,no,Challan Amount,used_vehicles,UsedVehiclePurchaseItem,,Missing,used_vehicles/models.py:356-371 -- no challan_amount field
+Ssbikez,Used Vehicle Invoice,order_form_id,Link,yes,Order Form ID,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- ForeignKey directly to UsedVehicleSale, no separate Order Form Series master"
 Ssbikez,Used Vehicle Invoice,details_section,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,login,Data,no,Login,,,,,
+Ssbikez,Used Vehicle Invoice,login,Data,no,Login,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no login snapshot field
 Ssbikez,Used Vehicle Invoice,column_break_ajixx,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,allow_permission,Check,no,MD Approval,,,,,
+Ssbikez,Used Vehicle Invoice,allow_permission,Check,no,MD Approval,used_vehicles,UsedVehicleInvoice,md_approval_requested/md_approved,Deviation,"used_vehicles/models.py:675-676 -- split into requested vs approved booleans plus md_approved_by/md_approved_at audit fields, functionally stronger than reference's single checkbox"
 Ssbikez,Used Vehicle Invoice,section_break_sjir6,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,gst_category,Data,no,GST Category,,,,,
-Ssbikez,Used Vehicle Invoice,phone_number,Data,no,Phone Number,,,,,
+Ssbikez,Used Vehicle Invoice,gst_category,Data,no,GST Category,used_vehicles,UsedVehicleInvoice,gst_category,Match,used_vehicles/models.py:669
+Ssbikez,Used Vehicle Invoice,phone_number,Data,no,Phone Number,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.phone_number, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_m8jff,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,date,Date,no,Date,,,,,
+Ssbikez,Used Vehicle Invoice,date,Date,no,Date,used_vehicles,UsedVehicleInvoice,invoice_date,Match,used_vehicles/models.py:672
 Ssbikez,Used Vehicle Invoice,column_break_wx3vr,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,customer,Link,no,Customer Name,,,,,
+Ssbikez,Used Vehicle Invoice,customer,Link,no,Customer Name,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.customer, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_3p27v,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,payment_type,Select,no,Payment Type,,,,,
+Ssbikez,Used Vehicle Invoice,payment_type,Select,no,Payment Type,used_vehicles,UsedVehicleInvoice,payment_type,Match,"used_vehicles/models.py:655-657,673 -- Cash/Bank TextChoices (reference: Cash/Adjustment -- same 2-way split, different label)"
 Ssbikez,Used Vehicle Invoice,vehicle_details_section,Section Break,no,Vehicle Details,,,,,
-Ssbikez,Used Vehicle Invoice,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,Used Vehicle Invoice,vehicle_name,Link,no,Vehicle Name,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.vehicle_number, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_mn6ms,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,vehicle_number,Data,no,Vehicle Number,,,,,
+Ssbikez,Used Vehicle Invoice,vehicle_number,Data,no,Vehicle Number,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.vehicle_number.registration_no, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_lgbkp,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,sale_amount,Currency,no,Sale Amount,,,,,
+Ssbikez,Used Vehicle Invoice,sale_amount,Currency,no,Sale Amount,used_vehicles,UsedVehicleInvoice,subtotal,Match,used_vehicles/models.py:667
 Ssbikez,Used Vehicle Invoice,tax_details_section,Section Break,no,Exchange Details,,,,,
-Ssbikez,Used Vehicle Invoice,has_exchange,Check,no,Has Exchange,,,,,
+Ssbikez,Used Vehicle Invoice,has_exchange,Check,no,Has Exchange,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no has_exchange flag on the Invoice itself (only on Sale/Delivery)
 Ssbikez,Used Vehicle Invoice,column_break_vpyx9,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,finance_closing,Select,no,Finance Closing,,,,,
+Ssbikez,Used Vehicle Invoice,finance_closing,Select,no,Finance Closing,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no finance_closing field on the Invoice
 Ssbikez,Used Vehicle Invoice,column_break_5xwyd,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,exchange_amount,Currency,no,Exchange Amount,,,,,
+Ssbikez,Used Vehicle Invoice,exchange_amount,Currency,no,Exchange Amount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no exchange_amount field on the Invoice
 Ssbikez,Used Vehicle Invoice,section_break_4qnkk,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,items,Table,no,Items,,,,,
+Ssbikez,Used Vehicle Invoice,items,Table,no,Items,used_vehicles,UsedVehicleInvoice,items,Match,used_vehicles/models.py:706 -- related_name=items child table (UsedVehicleInvoiceItem)
 Ssbikez,Used Vehicle Invoice,section_break_z2wyq,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,advance_payment_details,Table,no,Advance Payment Details,,,,,
+Ssbikez,Used Vehicle Invoice,advance_payment_details,Table,no,Advance Payment Details,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no advance-payment child table on the Invoice (only on Sale/Delivery)
 Ssbikez,Used Vehicle Invoice,section_break_yzgno,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,item_qty,Int,no,Item Qty,,,,,
-Ssbikez,Used Vehicle Invoice,balance_amount,Currency,no,Balance Amount,,,,,
+Ssbikez,Used Vehicle Invoice,item_qty,Int,no,Item Qty,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no item_qty field
+Ssbikez,Used Vehicle Invoice,balance_amount,Currency,no,Balance Amount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no balance_amount field on the Invoice
 Ssbikez,Used Vehicle Invoice,column_break_j07k2,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,total,Currency,no,Total,,,,,
-Ssbikez,Used Vehicle Invoice,finance_amount,Currency,no,Finance Amount,,,,,
+Ssbikez,Used Vehicle Invoice,total,Currency,no,Total,used_vehicles,UsedVehicleInvoice,final_amount,Match,used_vehicles/models.py:671
+Ssbikez,Used Vehicle Invoice,finance_amount,Currency,no,Finance Amount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no finance_amount field
 Ssbikez,Used Vehicle Invoice,column_break_eo92w,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,base_rate,Currency,no,Base Rate,,,,,
-Ssbikez,Used Vehicle Invoice,invoice_discount,Currency,no,Invoice Discount,,,,,
+Ssbikez,Used Vehicle Invoice,base_rate,Currency,no,Base Rate,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no base_rate field
+Ssbikez,Used Vehicle Invoice,invoice_discount,Currency,no,Invoice Discount,used_vehicles,UsedVehicleInvoice,discount_amount,Match,used_vehicles/models.py:670
 Ssbikez,Used Vehicle Invoice,column_break_tgacs,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,additional_discount,Currency,no,Sales Additional Discount,,,,,
-Ssbikez,Used Vehicle Invoice,payment_status,Data,no,Payment Status,,,,,
+Ssbikez,Used Vehicle Invoice,additional_discount,Currency,no,Sales Additional Discount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no separate additional_discount distinct from discount_amount
+Ssbikez,Used Vehicle Invoice,payment_status,Data,no,Payment Status,used_vehicles,UsedVehicleInvoice,status,Match,"used_vehicles/models.py:659-661,679 -- Unpaid/Paid TextChoices"
 Ssbikez,Used Vehicle Invoice,column_break_bnjqu,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,advance_payment,Currency,no,Advance Payment,,,,,
+Ssbikez,Used Vehicle Invoice,advance_payment,Currency,no,Advance Payment,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no advance_payment field on the Invoice
 Ssbikez,Used Vehicle Invoice,column_break_mzvqa,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,delivery_discount,Currency,no,Delivery Discount,,,,,
+Ssbikez,Used Vehicle Invoice,delivery_discount,Currency,no,Delivery Discount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no delivery_discount field on the Invoice
 Ssbikez,Used Vehicle Invoice,section_break_pihkl,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Invoice,company,Link,no,Company,,,,,
-Ssbikez,Used Vehicle Invoice,used_vehicle_sale_id,Link,no,Used Vehicle Sale ID,,,,,
-Ssbikez,Used Vehicle Invoice,branch,Link,no,Branch,,,,,
+Ssbikez,Used Vehicle Invoice,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleInvoice,invoice_number,Deviation,"used_vehicles/models.py:682-695 -- auto-generated 'USED-INV-#####' invoice_number, not a configurable naming series -- cosmetic, low impact"
+Ssbikez,Used Vehicle Invoice,company,Link,no,Company,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no company FK (single-company app)
+Ssbikez,Used Vehicle Invoice,used_vehicle_sale_id,Link,no,Used Vehicle Sale ID,used_vehicles,UsedVehicleInvoice,sale,Match,used_vehicles/models.py:665
+Ssbikez,Used Vehicle Invoice,branch,Link,no,Branch,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.branch, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_agnnv,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,cgst,Currency,no,CGST,,,,,
+Ssbikez,Used Vehicle Invoice,cgst,Currency,no,CGST,used_vehicles,UsedVehicleInvoice,gst_amount,Deviation,"used_vehicles/models.py:668 -- single collapsed gst_amount field, not split into cgst/sgst; no split_gst() usage confirmed by grep -- same class of hardcoded/uncentralized GST gap already flagged for spares/ in Tier 4"
 Ssbikez,Used Vehicle Invoice,column_break_hunrr,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,sgst,Currency,no,SGST,,,,,
+Ssbikez,Used Vehicle Invoice,sgst,Currency,no,SGST,used_vehicles,UsedVehicleInvoice,gst_amount,Deviation,"used_vehicles/models.py:668 -- same collapsed gst_amount field as cgst above, no separate sgst column"
 Ssbikez,Used Vehicle Invoice,column_break_7xhdr,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,tax_amount,Currency,no,Tax amount,,,,,
+Ssbikez,Used Vehicle Invoice,tax_amount,Currency,no,Tax amount,used_vehicles,UsedVehicleInvoice,gst_amount,Match,used_vehicles/models.py:668
 Ssbikez,Used Vehicle Invoice,amount_details_section,Section Break,no,Amount Details,,,,,
-Ssbikez,Used Vehicle Invoice,discount,Percent,no,Discount,,,,,
+Ssbikez,Used Vehicle Invoice,discount,Percent,no,Discount,used_vehicles,UsedVehicleInvoice,discount_amount,Deviation,"used_vehicles/models.py:670 -- stored as a Currency amount, not a Percent as in reference"
 Ssbikez,Used Vehicle Invoice,column_break_dlutc,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Invoice,invoice_paid_amount,Int,no,Invoice Paid Amount,,,,,
-Ssbikez,Used Vehicle Invoice,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Used Vehicle Invoice,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleInvoice,docstatus/amend(),Match,"used_vehicles/models.py:654,663 -- DocStatusMixin + _amend_reset_number_field"
+Ssbikez,Used Vehicle Invoice,invoice_paid_amount,Int,no,Invoice Paid Amount,used_vehicles,UsedVehicleInvoice,,Missing,used_vehicles/models.py:654-702 -- no invoice_paid_amount field
+Ssbikez,Used Vehicle Invoice,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleInvoice,docstatus/amend(),Match,"used_vehicles/models.py:654,663 -- DocStatusMixin + _amend_reset_number_field"
 Ssbikez,Used Vehicle Job Card Creation Pre Service Child Items,parents,Link,yes,Parents,,,,,
 Ssbikez,Used Vehicle Job Card Creation Pre Service Child Items,items,Data,yes,Items,,,,,
 Ssbikez,Used Vehicle Job Card Creation Pre Service Topics,parent1,Data,yes,Parent,,,,,
@@ -4967,7 +4967,7 @@ Ssbikez,Used Vehicle Outwork Spares Child,total,Currency,no,Total,,,,,
 Ssbikez,Used Vehicle Outwork Spares Child,sgst,Float,no,SGST,,,,,
 Ssbikez,Used Vehicle Outwork Spares Child,cgst,Float,no,CGST,,,,,
 Ssbikez,Used Vehicle Outwork Spares Child,stock_balance,Data,no,Stock Balance,,,,,
-Ssbikez,Used Vehicle Protection Plus Types,protection_plus_type,Data,yes,Protection Plus Type,,,,,
+Ssbikez,Used Vehicle Protection Plus Types,protection_plus_type,Data,yes,Protection Plus Type,vas,WarrantyType,name,Match,"vas/models.py:58-64 -- docstring confirms this IS the reused 'Protection Plus' master (""Reference: 'Warranty Type' (Protection Plus)""), shared with new-vehicle VAS rather than a separate used-vehicle-only master"
 Ssbikez,Used Vehicle Purchase Child,item_code,Link,yes,Item Code,,,,,
 Ssbikez,Used Vehicle Purchase Child,register_number,Data,yes,Register Number,,,,,
 Ssbikez,Used Vehicle Purchase Child,engine_number,Data,yes,Engine Number,,,,,
@@ -4985,49 +4985,49 @@ Ssbikez,Used Vehicle Purchase Child,rc_book_number,Data,yes,RC Book Number,,,,,
 Ssbikez,Used Vehicle Purchase Child,customer,Data,yes,Customer,,,,,
 Ssbikez,Used Vehicle Purchase Child,sub_group,Link,yes,Sub Group,,,,,
 Ssbikez,Used Vehicle Purchase Invoice,purchase_details_section,Section Break,no,Purchase Details,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,own_purchase,Check,no,Own Purchase,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,own_purchase,Check,no,Own Purchase,used_vehicles,UsedVehiclePurchaseInvoice,own_purchase,Match,used_vehicles/models.py:302
 Ssbikez,Used Vehicle Purchase Invoice,column_break_nl9q8,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,supplier_purchase,Check,no,Supplier Purchase,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,supplier_purchase,Check,no,Supplier Purchase,used_vehicles,UsedVehiclePurchaseInvoice,supplier_purchase,Match,used_vehicles/models.py:303
 Ssbikez,Used Vehicle Purchase Invoice,section_break_lma6o,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,used_vehicle_purchase_receipt,Link,no,Used Vehicle Purchase Receipt,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,supplier,Link,no,Supplier,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,invoice_no,Data,yes,Invoice No,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,company,Link,no,Company,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,required_date,Date,no,Required Date,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,branch,Link,no,Branch,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,naming_series,Select,no,Naming Series,used_vehicles,UsedVehiclePurchaseInvoice,invoice_number,Deviation,"used_vehicles/models.py:333-346 -- auto-generated 'USED-PUR-#####' invoice_number, not a configurable naming series -- cosmetic, low impact"
+Ssbikez,Used Vehicle Purchase Invoice,used_vehicle_purchase_receipt,Link,no,Used Vehicle Purchase Receipt,used_vehicles,UsedVehiclePurchaseInvoice,purchase_receipt,Match,"used_vehicles/models.py:306-307 -- nullable, own-purchase trade-ins may skip the Receipt stage"
+Ssbikez,Used Vehicle Purchase Invoice,supplier,Link,no,Supplier,used_vehicles,UsedVehiclePurchaseInvoice,supplier,Match,used_vehicles/models.py:305
+Ssbikez,Used Vehicle Purchase Invoice,invoice_no,Data,yes,Invoice No,used_vehicles,UsedVehiclePurchaseInvoice,invoice_no,Deviation,"used_vehicles/models.py:311-314 -- field exists but is blank=True (not enforced mandatory at the model level); own docstring confirms reference makes it mandatory, 'enforced required in the form' is the claim but UsedVehiclePurchaseInvoiceForm does not override required -- see forms.py"
+Ssbikez,Used Vehicle Purchase Invoice,company,Link,no,Company,used_vehicles,UsedVehiclePurchaseInvoice,,Missing,used_vehicles/models.py:291-353 -- no company FK on this model (single-company app; company is implicit)
+Ssbikez,Used Vehicle Purchase Invoice,required_date,Date,no,Required Date,used_vehicles,UsedVehiclePurchaseInvoice,required_date,Match,used_vehicles/models.py:308
+Ssbikez,Used Vehicle Purchase Invoice,branch,Link,no,Branch,used_vehicles,UsedVehiclePurchaseInvoice,branch,Match,used_vehicles/models.py:309
 Ssbikez,Used Vehicle Purchase Invoice,column_break_mn7dc,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,payment_type,Select,yes,Payment Type,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,invoice_date,Date,yes,Invoice Date,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,payment_type,Select,yes,Payment Type,used_vehicles,UsedVehiclePurchaseInvoice,payment_type,Deviation,"used_vehicles/models.py:292-294,310 -- blank=True, not enforced mandatory even when supplier_purchase=1 (reference's eval:doc.supplier_purchase===1 mandatory gate is unenforced)"
+Ssbikez,Used Vehicle Purchase Invoice,invoice_date,Date,yes,Invoice Date,used_vehicles,UsedVehiclePurchaseInvoice,invoice_date,Match,used_vehicles/models.py:319
 Ssbikez,Used Vehicle Purchase Invoice,column_break_yceqc,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,pay_mode,Link,no,Pay Mode,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,cash_account,Link,yes,Cash Account,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,pay_mode,Link,no,Pay Mode,used_vehicles,UsedVehiclePurchaseInvoice,,Missing,used_vehicles/models.py:291-353 -- no pay_mode field; payment_type alone captures Adjustment/Cash
+Ssbikez,Used Vehicle Purchase Invoice,cash_account,Link,yes,Cash Account,used_vehicles,UsedVehiclePurchaseInvoice,cash_account,Match,"used_vehicles/models.py:315-318 -- free-text CharField (no Chart-of-Accounts master exists in this app, per existing DEVIATIONS.md finding)"
 Ssbikez,Used Vehicle Purchase Invoice,customer_details_section,Section Break,no,Customer Details,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,customer_name,Data,no,Customer Name,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,customer_name,Data,no,Customer Name,used_vehicles,UsedVehiclePurchaseInvoice,customer_name,Match,used_vehicles/models.py:320
 Ssbikez,Used Vehicle Purchase Invoice,column_break_mncm,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,phone_number,Data,no,Phone Number,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,phone_number,Data,no,Phone Number,used_vehicles,UsedVehiclePurchaseInvoice,phone_number,Match,used_vehicles/models.py:321
 Ssbikez,Used Vehicle Purchase Invoice,column_break_mlck,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,address,Small Text,no,Address,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,address,Small Text,no,Address,used_vehicles,UsedVehiclePurchaseInvoice,address,Match,used_vehicles/models.py:322
 Ssbikez,Used Vehicle Purchase Invoice,warehouse_section,Section Break,no,Warehouse Detail,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,set_target_warehouse,Link,yes,Set Target Warehouse,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,set_target_warehouse,Link,yes,Set Target Warehouse,used_vehicles,UsedVehiclePurchaseInvoice,target_warehouse,Match,used_vehicles/models.py:323
 Ssbikez,Used Vehicle Purchase Invoice,column_break_q737y,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,vehicle_status,Data,yes,Vehicle Status,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,vehicle_status,Data,yes,Vehicle Status,used_vehicles,UsedVehiclePurchaseInvoice,vehicle_status,Match,used_vehicles/models.py:324 -- default 'Not Ready' matches reference default
 Ssbikez,Used Vehicle Purchase Invoice,purchase_items_section,Section Break,no,Purchase Items,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,purchase_items,Table,no,Purchase Items,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,purchase_items,Table,no,Purchase Items,used_vehicles,UsedVehiclePurchaseInvoice,items,Match,used_vehicles/models.py:357 -- related_name=items child table (UsedVehiclePurchaseItem)
 Ssbikez,Used Vehicle Purchase Invoice,section_break_q20nk,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,total_quantity,Int,no,Total Quantity,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,total_quantity,Int,no,Total Quantity,used_vehicles,UsedVehiclePurchaseInvoice,total_quantity,Match,used_vehicles/models.py:325
 Ssbikez,Used Vehicle Purchase Invoice,column_break_ttljs,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,total_amount,Currency,no,Total Amount,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,total_amount,Currency,no,Total Amount,used_vehicles,UsedVehiclePurchaseInvoice,total_amount,Match,used_vehicles/models.py:326
 Ssbikez,Used Vehicle Purchase Invoice,total_section,Section Break,no,Total,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,discount,Currency,no,Discount(In Amount),,,,,
+Ssbikez,Used Vehicle Purchase Invoice,discount,Currency,no,Discount(In Amount),used_vehicles,UsedVehiclePurchaseInvoice,discount,Match,used_vehicles/models.py:327
 Ssbikez,Used Vehicle Purchase Invoice,column_break_x8o2c,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,grand_total,Currency,no,Grand Total,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,grand_total,Currency,no,Grand Total,used_vehicles,UsedVehiclePurchaseInvoice,grand_total,Deviation,used_vehicles/models.py:328 -- plain stored field with no save()/clean() recompute from total_amount-discount visible on this model (unlike the New Vehicle Sales Order / Invoice total-recompute fixes from Tiers 1-2); relies on the form/formset to keep it in sync
 Ssbikez,Used Vehicle Purchase Invoice,column_break_bdhuz,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,pending_amount,Currency,yes,Pending Amount,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,payment_status,Data,no,Payment Status,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,date,Date,no,Date,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Used Vehicle Purchase Invoice,pending_amount,Currency,yes,Pending Amount,used_vehicles,UsedVehiclePurchaseInvoice,pending_amount,Match,used_vehicles/models.py:329
+Ssbikez,Used Vehicle Purchase Invoice,payment_status,Data,no,Payment Status,used_vehicles,UsedVehiclePurchaseInvoice,payment_status,Match,"used_vehicles/models.py:296-298,330 -- Unpaid/Paid TextChoices"
+Ssbikez,Used Vehicle Purchase Invoice,amended_from,Link,no,Amended From,used_vehicles,UsedVehiclePurchaseInvoice,docstatus/amend(),Match,"used_vehicles/models.py:291,300 -- DocStatusMixin + _amend_reset_number_field, generic amend lifecycle"
+Ssbikez,Used Vehicle Purchase Invoice,date,Date,no,Date,used_vehicles,UsedVehiclePurchaseInvoice,,Missing,used_vehicles/models.py:291-353 -- no separate 'date' field distinct from invoice_date (reference has both; Django collapses to invoice_date only)
+Ssbikez,Used Vehicle Purchase Invoice,amended_from,Link,no,Amended From,used_vehicles,UsedVehiclePurchaseInvoice,docstatus/amend(),Match,"used_vehicles/models.py:291,300 -- DocStatusMixin + _amend_reset_number_field, generic amend lifecycle"
 Ssbikez,Used Vehicle Purchase Order,purchase_details_section,Section Break,no,Purchase Details,,,,,
 Ssbikez,Used Vehicle Purchase Order,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Used Vehicle Purchase Order,supplier,Link,yes,Supplier,,,,,
@@ -5074,17 +5074,17 @@ Ssbikez,Used Vehicle Purchase Receipt,column_break_62d9o,Column Break,no,,,,,,
 Ssbikez,Used Vehicle Purchase Receipt,payment_bending_amount,Currency,yes,Payment Bending Amount,,,,,
 Ssbikez,Used Vehicle Purchase Receipt,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Used Vehicle Purchase Receipt,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle RC Hand Over,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,Used Vehicle RC Hand Over,rc_book_received,Select,yes,RC Book Received,,,,,
+Ssbikez,Used Vehicle RC Hand Over,order_form_id,Link,yes,Order Form ID,used_vehicles,UsedVehicleRCHandOver,sale,Deviation,"used_vehicles/models.py:742 -- ForeignKey directly to UsedVehicleSale, no separate Order Form Series master"
+Ssbikez,Used Vehicle RC Hand Over,rc_book_received,Select,yes,RC Book Received,used_vehicles,UsedVehicleRCHandOver,rc_book_received,Match,"used_vehicles/models.py:752 -- gate now enforced in UsedVehicleRCHandOverForm.clean() (fixed this pass, see used_vehicles/forms.py)"
 Ssbikez,Used Vehicle RC Hand Over,column_break_8pmbs,Column Break,no,,,,,,
-Ssbikez,Used Vehicle RC Hand Over,noc,Select,yes,NOC,,,,,
-Ssbikez,Used Vehicle RC Hand Over,vehicle_received,Select,no,Vehicle Received,,,,,
+Ssbikez,Used Vehicle RC Hand Over,noc,Select,yes,NOC,used_vehicles,UsedVehicleRCHandOver,noc,Match,used_vehicles/models.py:753 -- gate now enforced in UsedVehicleRCHandOverForm.clean() (fixed this pass)
+Ssbikez,Used Vehicle RC Hand Over,vehicle_received,Select,no,Vehicle Received,used_vehicles,UsedVehicleRCHandOver,vehicle_received,Match,used_vehicles/models.py:754
 Ssbikez,Used Vehicle RC Hand Over,column_break_jo0bp,Column Break,no,,,,,,
-Ssbikez,Used Vehicle RC Hand Over,to_received,Select,no,T.O. Received,,,,,
-Ssbikez,Used Vehicle RC Hand Over,rc_book_number,Data,no,RC Book Number,,,,,
-Ssbikez,Used Vehicle RC Hand Over,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle RC Hand Over,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle RC Hand Over,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Used Vehicle RC Hand Over,to_received,Select,no,T.O. Received,used_vehicles,UsedVehicleRCHandOver,to_received,Match,used_vehicles/models.py:755
+Ssbikez,Used Vehicle RC Hand Over,rc_book_number,Data,no,RC Book Number,used_vehicles,UsedVehicleRCHandOver,rc_number,Match,used_vehicles/models.py:743
+Ssbikez,Used Vehicle RC Hand Over,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleRCHandOver,docstatus,Match,"used_vehicles/models.py:724,736-738 -- DocStatusMixin, no _amend_reset_number_field (no naming_series field to reset)"
+Ssbikez,Used Vehicle RC Hand Over,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleRCHandOver,,Missing,"used_vehicles/models.py:724-762 -- no auto-numbered document identity, only the auto integer PK"
+Ssbikez,Used Vehicle RC Hand Over,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleRCHandOver,docstatus,Match,"used_vehicles/models.py:724,736-738 -- DocStatusMixin, no _amend_reset_number_field (no naming_series field to reset)"
 Ssbikez,Used Vehicle Receipt Child,item_code,Link,yes,Item Code,,,,,
 Ssbikez,Used Vehicle Receipt Child,register_number,Data,yes,Register Number,,,,,
 Ssbikez,Used Vehicle Receipt Child,engine_number,Data,yes,Engine Number,,,,,
@@ -5100,112 +5100,112 @@ Ssbikez,Used Vehicle Receipt Child,noc,Select,yes,NOC,,,,,
 Ssbikez,Used Vehicle Receipt Child,insurance,Select,yes,Insurance,,,,,
 Ssbikez,Used Vehicle Receipt Child,model,Data,yes,Model,,,,,
 Ssbikez,Used Vehicle Receipt Child,customer,Data,yes,Customer,,,,,
-Ssbikez,Used Vehicle Register No Master,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Register No Master,vehicle_number,Data,no,Vehicle Number,,,,,
-Ssbikez,Used Vehicle Register No Master,warehouse_status,Select,no,Warehouse Status,,,,,
+Ssbikez,Used Vehicle Register No Master,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleRegisterNo,,Missing,"used_vehicles/models.py:77-121 -- no autoname/naming_series; registration_no is the manually-entered unique identifier itself, not a separate auto-numbered document series"
+Ssbikez,Used Vehicle Register No Master,vehicle_number,Data,no,Vehicle Number,used_vehicles,UsedVehicleRegisterNo,registration_no,Match,used_vehicles/models.py:98
+Ssbikez,Used Vehicle Register No Master,warehouse_status,Select,no,Warehouse Status,used_vehicles,UsedVehicleRegisterNo,warehouse_status,Match,"used_vehicles/models.py:85-88,110 -- Not Ready/Maintenance/Ready for Sale TextChoices"
 Ssbikez,Used Vehicle Register No Master,column_break_csxq,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Register No Master,vehicle_name,Data,no,Vehicle Name,,,,,
+Ssbikez,Used Vehicle Register No Master,vehicle_name,Data,no,Vehicle Name,used_vehicles,UsedVehicleRegisterNo,used_vehicle,Deviation,"used_vehicles/models.py:99 -- FK to UsedVehicleModel, not a free-text Data field as in reference (functionally stronger, but a modeling-approach difference worth noting)"
 Ssbikez,Used Vehicle Register No Master,column_break_feeb,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Register No Master,customer,Data,no,Customer,,,,,
+Ssbikez,Used Vehicle Register No Master,customer,Data,no,Customer,used_vehicles,UsedVehicleRegisterNo,customer,Match,"used_vehicles/models.py:113 -- free text, matches reference Data type"
 Ssbikez,Used Vehicle Register No Master,column_break_rxkb,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Register No Master,status,Select,no,Status,,,,,
+Ssbikez,Used Vehicle Register No Master,status,Select,no,Status,used_vehicles,UsedVehicleRegisterNo,status,Match,"used_vehicles/models.py:90-92,111 -- Unused/Used TextChoices"
 Ssbikez,Used Vehicle Register No Master,column_break_wntn,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Register No Master,vehicle_status,Select,no,Vehicle Status,,,,,
-Ssbikez,Used Vehicle Sale Item Child,item_code,Link,yes,Item Code,,,,,
-Ssbikez,Used Vehicle Sale Item Child,reference_doctype,Link,no,Reference Doctype,,,,,
-Ssbikez,Used Vehicle Sale Item Child,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,,,,,
-Ssbikez,Used Vehicle Sale Item Child,rate,Currency,no,Rate,,,,,
+Ssbikez,Used Vehicle Register No Master,vehicle_status,Select,no,Vehicle Status,used_vehicles,UsedVehicleRegisterNo,vehicle_status,Match,"used_vehicles/models.py:94-96,112 -- Used Vehicle/Exchange Vehicle TextChoices"
+Ssbikez,Used Vehicle Sale Item Child,item_code,Link,yes,Item Code,used_vehicles,UsedVehicleSaleItem,item_name,Deviation,"used_vehicles/models.py:497 -- free-text CharField item_name, not a Link to Item"
+Ssbikez,Used Vehicle Sale Item Child,reference_doctype,Link,no,Reference Doctype,used_vehicles,UsedVehicleSaleItem,,Missing,used_vehicles/models.py:495-508 -- no reference_doctype/Dynamic Link pair (no generic warranty/RSA/AMC cross-link)
+Ssbikez,Used Vehicle Sale Item Child,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,used_vehicles,UsedVehicleSaleItem,,Missing,used_vehicles/models.py:495-508 -- no dynamic-link equivalent field
+Ssbikez,Used Vehicle Sale Item Child,rate,Currency,no,Rate,used_vehicles,UsedVehicleSaleItem,rate,Match,used_vehicles/models.py:498
 Ssbikez,Used Vehicle Sale,details_section,Section Break,no,Details,,,,,
-Ssbikez,Used Vehicle Sale,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Sale,vehicle_number,Link,yes,Vehicle Number,,,,,
-Ssbikez,Used Vehicle Sale,vehicle_code,Link,yes,Vehicle Code,,,,,
-Ssbikez,Used Vehicle Sale,company,Link,no,Company,,,,,
-Ssbikez,Used Vehicle Sale,branch,Link,yes,Branch,,,,,
-Ssbikez,Used Vehicle Sale,phone_number,Data,yes,Phone Number,,,,,
-Ssbikez,Used Vehicle Sale,gst_category,Data,no,GST Category,,,,,
+Ssbikez,Used Vehicle Sale,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleSale,sale_number,Deviation,"used_vehicles/models.py:415-428 -- auto-generated 'USED-SALE-#####' sale_number, not a configurable naming series -- cosmetic, low impact"
+Ssbikez,Used Vehicle Sale,vehicle_number,Link,yes,Vehicle Number,used_vehicles,UsedVehicleSale,vehicle_number,Match,used_vehicles/models.py:394 -- FK to UsedVehicleRegisterNo
+Ssbikez,Used Vehicle Sale,vehicle_code,Link,yes,Vehicle Code,used_vehicles,UsedVehicleSale,,Missing,used_vehicles/models.py:378-475 -- no separate vehicle_code field; vehicle_number FK reaches the model/item indirectly
+Ssbikez,Used Vehicle Sale,company,Link,no,Company,used_vehicles,UsedVehicleSale,,Missing,used_vehicles/models.py:378-475 -- no company FK (single-company app)
+Ssbikez,Used Vehicle Sale,branch,Link,yes,Branch,used_vehicles,UsedVehicleSale,branch,Match,used_vehicles/models.py:395
+Ssbikez,Used Vehicle Sale,phone_number,Data,yes,Phone Number,used_vehicles,UsedVehicleSale,phone_number,Match,used_vehicles/models.py:396
+Ssbikez,Used Vehicle Sale,gst_category,Data,no,GST Category,used_vehicles,UsedVehicleSale,gst_category,Match,used_vehicles/models.py:397
 Ssbikez,Used Vehicle Sale,column_break_xvcxh,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,vehicle_name,Link,yes,Vehicle Name,,,,,
-Ssbikez,Used Vehicle Sale,order_form_id,Link,yes,Order Form Id,,,,,
-Ssbikez,Used Vehicle Sale,delivery_date,Date,yes,Delivery Date,,,,,
+Ssbikez,Used Vehicle Sale,vehicle_name,Link,yes,Vehicle Name,used_vehicles,UsedVehicleSale,vehicle_number,Deviation,"used_vehicles/models.py:394 -- reachable via vehicle_number.used_vehicle, not its own Link column"
+Ssbikez,Used Vehicle Sale,order_form_id,Link,yes,Order Form Id,used_vehicles,UsedVehicleSale,,Missing,used_vehicles/models.py:378-475 -- no Order Form Series concept anywhere in this app; sale_number is the document's own identity instead
+Ssbikez,Used Vehicle Sale,delivery_date,Date,yes,Delivery Date,used_vehicles,UsedVehicleSale,delivery_date,Match,used_vehicles/models.py:398
 Ssbikez,Used Vehicle Sale,column_break_bt1ic,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,vehicle_value,Float,no,Vehicle Value,,,,,
-Ssbikez,Used Vehicle Sale,sale_amount,Currency,yes,Sale Amount,,,,,
-Ssbikez,Used Vehicle Sale,customer,Link,yes,Customer,,,,,
-Ssbikez,Used Vehicle Sale,vehicle_amount,Currency,no,Vehicle Amount,,,,,
+Ssbikez,Used Vehicle Sale,vehicle_value,Float,no,Vehicle Value,used_vehicles,UsedVehicleSale,vehicle_value,Match,used_vehicles/models.py:399
+Ssbikez,Used Vehicle Sale,sale_amount,Currency,yes,Sale Amount,used_vehicles,UsedVehicleSale,sale_amount,Match,used_vehicles/models.py:400
+Ssbikez,Used Vehicle Sale,customer,Link,yes,Customer,used_vehicles,UsedVehicleSale,customer,Match,used_vehicles/models.py:392
+Ssbikez,Used Vehicle Sale,vehicle_amount,Currency,no,Vehicle Amount,used_vehicles,UsedVehicleSale,vehicle_amount,Match,used_vehicles/models.py:401
 Ssbikez,Used Vehicle Sale,fittings_section,Section Break,no,Fittings,,,,,
-Ssbikez,Used Vehicle Sale,fittings,Table,no,Fittings,,,,,
+Ssbikez,Used Vehicle Sale,fittings,Table,no,Fittings,used_vehicles,UsedVehicleSale,fittings,Match,used_vehicles/models.py:479 -- related_name=fittings child table (UsedVehicleFitting)
 Ssbikez,Used Vehicle Sale,exchange_details_section,Section Break,no,Exchange Details,,,,,
-Ssbikez,Used Vehicle Sale,has_exchange,Check,no,Has Exchange,,,,,
+Ssbikez,Used Vehicle Sale,has_exchange,Check,no,Has Exchange,used_vehicles,UsedVehicleSale,has_exchange,Match,used_vehicles/models.py:402
 Ssbikez,Used Vehicle Sale,column_break_gsh6x,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,finance_closing,Select,no,Finance Closing,,,,,
+Ssbikez,Used Vehicle Sale,finance_closing,Select,no,Finance Closing,used_vehicles,UsedVehicleSale,finance_closing,Match,"used_vehicles/models.py:379-381,403"
 Ssbikez,Used Vehicle Sale,column_break_1r03y,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,exchange_amount,Currency,no,Exchange Amount,,,,,
+Ssbikez,Used Vehicle Sale,exchange_amount,Currency,no,Exchange Amount,used_vehicles,UsedVehicleSale,exchange_amount,Match,used_vehicles/models.py:404
 Ssbikez,Used Vehicle Sale,section_break_6zu6d,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,items,Table,no,Items,,,,,
+Ssbikez,Used Vehicle Sale,items,Table,no,Items,used_vehicles,UsedVehicleSale,items,Match,used_vehicles/models.py:496 -- related_name=items child table (UsedVehicleSaleItem)
 Ssbikez,Used Vehicle Sale,advance_payment_details_section,Section Break,no,Advance Payment Details,,,,,
-Ssbikez,Used Vehicle Sale,advance_payment_details,Table,no,Advance Payment Details,,,,,
+Ssbikez,Used Vehicle Sale,advance_payment_details,Table,no,Advance Payment Details,used_vehicles,UsedVehicleSale,advance_payments,Match,used_vehicles/models.py:512 -- related_name=advance_payments child table (UsedVehicleAdvancePayment)
 Ssbikez,Used Vehicle Sale,section_break_thblk,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,items_qty,Int,yes,Items Qty,,,,,
+Ssbikez,Used Vehicle Sale,items_qty,Int,yes,Items Qty,used_vehicles,UsedVehicleSale,items_qty,Match,used_vehicles/models.py:405
 Ssbikez,Used Vehicle Sale,column_break_w3yoa,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,total,Currency,yes,Total,,,,,
-Ssbikez,Used Vehicle Sale,tax_amount,Currency,no,Tax Amount,,,,,
+Ssbikez,Used Vehicle Sale,total,Currency,yes,Total,used_vehicles,UsedVehicleSale,total,Match,used_vehicles/models.py:406
+Ssbikez,Used Vehicle Sale,tax_amount,Currency,no,Tax Amount,used_vehicles,UsedVehicleSale,tax_amount,Match,used_vehicles/models.py:407
 Ssbikez,Used Vehicle Sale,column_break_zyrbq,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,base_rate,Currency,no,Base Rate,,,,,
+Ssbikez,Used Vehicle Sale,base_rate,Currency,no,Base Rate,used_vehicles,UsedVehicleSale,base_rate,Match,used_vehicles/models.py:408
 Ssbikez,Used Vehicle Sale,column_break_7ytcv,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,additional_discount,Currency,no,Additional Discount,,,,,
+Ssbikez,Used Vehicle Sale,additional_discount,Currency,no,Additional Discount,used_vehicles,UsedVehicleSale,additional_discount,Match,used_vehicles/models.py:409
 Ssbikez,Used Vehicle Sale,column_break_hfr69,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,advance_payment,Currency,yes,Advance Payment,,,,,
+Ssbikez,Used Vehicle Sale,advance_payment,Currency,yes,Advance Payment,used_vehicles,UsedVehicleSale,advance_payment,Match,used_vehicles/models.py:410
 Ssbikez,Used Vehicle Sale,column_break_yos5b,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sale,balance_amount,Currency,yes,Balance Amount,,,,,
-Ssbikez,Used Vehicle Sale,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sale,date,Date,no,Date,,,,,
-Ssbikez,Used Vehicle Sale,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry Child,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry Child,actual_amount,Currency,yes,Actual Amount,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry Child,disbursement_amount,Currency,yes,Disbursement Amount,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,date,Date,yes,Date,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,bank_name,Link,no,Bank Name,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,reference_no,Data,no,Reference No(Transfer No),,,,,
+Ssbikez,Used Vehicle Sale,balance_amount,Currency,yes,Balance Amount,used_vehicles,UsedVehicleSale,balance_amount,Match,used_vehicles/models.py:411
+Ssbikez,Used Vehicle Sale,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleSale,docstatus/amend(),Match,"used_vehicles/models.py:378,389 -- DocStatusMixin + _amend_reset_number_field"
+Ssbikez,Used Vehicle Sale,date,Date,no,Date,used_vehicles,UsedVehicleSale,created_at,Deviation,"used_vehicles/models.py:413 -- auto_now_add timestamp, not a user-editable 'Today'-default Date field as in reference"
+Ssbikez,Used Vehicle Sale,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleSale,docstatus/amend(),Match,"used_vehicles/models.py:378,389 -- DocStatusMixin + _amend_reset_number_field"
+Ssbikez,Used Vehicle Sales Finance Entry Child,order_form_id,Link,yes,Order Form ID,used_vehicles,,,Missing,Child table of the missing Used Vehicle Sales Finance Entry doctype -- no equivalent
+Ssbikez,Used Vehicle Sales Finance Entry Child,actual_amount,Currency,yes,Actual Amount,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry Child,disbursement_amount,Currency,yes,Disbursement Amount,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,date,Date,yes,Date,used_vehicles,,,Missing,"grep confirms no disbursement-batch/payment-entry doctype anywhere in used_vehicles/models.py -- UsedVehicleFinanceLoan captures loan terms only, not a separate multi-vehicle disbursement voucher"
+Ssbikez,Used Vehicle Sales Finance Entry,bank_name,Link,no,Bank Name,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,reference_no,Data,no,Reference No(Transfer No),used_vehicles,,,Missing,Same -- no equivalent doctype
 Ssbikez,Used Vehicle Sales Finance Entry,column_break_n4lqq,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,payment_entry,Select,yes,Payment Entry,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,reference_date,Date,no,Reference Date,,,,,
+Ssbikez,Used Vehicle Sales Finance Entry,payment_entry,Select,yes,Payment Entry,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,reference_date,Date,no,Reference Date,used_vehicles,,,Missing,Same -- no equivalent doctype
 Ssbikez,Used Vehicle Sales Finance Entry,section_break_ccur4,Section Break,no,,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,sales_finance_entry,Table,no,Sales Finance Entry,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Used Vehicle Sales Finance Entry,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sales Finance,naming_series,Select,no,Series,,,,,
+Ssbikez,Used Vehicle Sales Finance Entry,sales_finance_entry,Table,no,Sales Finance Entry,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,amended_from,Link,no,Amended From,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,naming_series,Select,no,Naming Series,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance Entry,amended_from,Link,no,Amended From,used_vehicles,,,Missing,Same -- no equivalent doctype
+Ssbikez,Used Vehicle Sales Finance,naming_series,Select,no,Series,used_vehicles,UsedVehicleFinanceLoan,,Missing,used_vehicles/models.py:527-565 -- no auto-numbered document identity at all; UsedVehicleFinanceLoan is a plain OneToOneField record with only an auto integer PK
 Ssbikez,Used Vehicle Sales Finance,details_section,Section Break,no,Details,,,,,
-Ssbikez,Used Vehicle Sales Finance,date,Date,yes,Date,,,,,
-Ssbikez,Used Vehicle Sales Finance,order_form_id,Link,no,Order Form ID,,,,,
+Ssbikez,Used Vehicle Sales Finance,date,Date,yes,Date,used_vehicles,UsedVehicleFinanceLoan,created_at,Deviation,"used_vehicles/models.py:558 -- auto_now_add timestamp, not a user-editable Date field"
+Ssbikez,Used Vehicle Sales Finance,order_form_id,Link,no,Order Form ID,used_vehicles,UsedVehicleFinanceLoan,sale,Deviation,"used_vehicles/models.py:544 -- OneToOneField directly to UsedVehicleSale, not a separate Order Form Series link (no such master exists in this app)"
 Ssbikez,Used Vehicle Sales Finance,column_break_y46qy,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sales Finance,customer_name,Link,yes,Customer Name,,,,,
-Ssbikez,Used Vehicle Sales Finance,vehicle_name,Link,yes,Vehicle Name,,,,,
+Ssbikez,Used Vehicle Sales Finance,customer_name,Link,yes,Customer Name,used_vehicles,UsedVehicleFinanceLoan,sale,Deviation,"used_vehicles/models.py:544 -- reachable via sale.customer, not its own column"
+Ssbikez,Used Vehicle Sales Finance,vehicle_name,Link,yes,Vehicle Name,used_vehicles,UsedVehicleFinanceLoan,sale,Deviation,"used_vehicles/models.py:544 -- reachable via sale.vehicle_number, not its own column"
 Ssbikez,Used Vehicle Sales Finance,section_break_iow5p,Section Break,no,Finance Details,,,,,
-Ssbikez,Used Vehicle Sales Finance,edit_finance,Check,no,Edit Finance,,,,,
-Ssbikez,Used Vehicle Sales Finance,finance_name,Link,no,Finance Name,,,,,
-Ssbikez,Used Vehicle Sales Finance,emi_amount,Currency,no,EMI Amount,,,,,
-Ssbikez,Used Vehicle Sales Finance,emi_months,Int,no,EMI Months,,,,,
+Ssbikez,Used Vehicle Sales Finance,edit_finance,Check,no,Edit Finance,used_vehicles,UsedVehicleFinanceLoan,,Missing,used_vehicles/models.py:527-565 -- no edit_finance lock/unlock flag (reference uses it to gate whether finance fields are editable post-creation)
+Ssbikez,Used Vehicle Sales Finance,finance_name,Link,no,Finance Name,used_vehicles,UsedVehicleFinanceLoan,bank_name,Match,used_vehicles/models.py:545
+Ssbikez,Used Vehicle Sales Finance,emi_amount,Currency,no,EMI Amount,used_vehicles,UsedVehicleFinanceLoan,emi_amount,Match,used_vehicles/models.py:549
+Ssbikez,Used Vehicle Sales Finance,emi_months,Int,no,EMI Months,used_vehicles,UsedVehicleFinanceLoan,tenure_months,Match,used_vehicles/models.py:548
 Ssbikez,Used Vehicle Sales Finance,column_break_swlep,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Sales Finance,loan_amount,Currency,no,Loan Amount,,,,,
-Ssbikez,Used Vehicle Sales Finance,disbursement_amount,Currency,no,Disbursement Amount,,,,,
-Ssbikez,Used Vehicle Sales Finance,approval_date,Date,no,Approval Date,,,,,
-Ssbikez,Used Vehicle Sales Finance,approval_no,Data,no,Approval No,,,,,
-Ssbikez,Used Vehicle Sales Finance,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sales Finance,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Used Vehicle Sales Finance,loan_amount,Currency,no,Loan Amount,used_vehicles,UsedVehicleFinanceLoan,loan_amount,Match,used_vehicles/models.py:546
+Ssbikez,Used Vehicle Sales Finance,disbursement_amount,Currency,no,Disbursement Amount,used_vehicles,UsedVehicleFinanceLoan,,Missing,"used_vehicles/models.py:527-565 -- no disbursement_amount field, and consequently the reference's before_save guard (disbursement_amount can't exceed loan_amount or the sale's balance_amount) has nothing to enforce"
+Ssbikez,Used Vehicle Sales Finance,approval_date,Date,no,Approval Date,used_vehicles,UsedVehicleFinanceLoan,sanctioned_date,Match,used_vehicles/models.py:551
+Ssbikez,Used Vehicle Sales Finance,approval_no,Data,no,Approval No,used_vehicles,UsedVehicleFinanceLoan,,Missing,used_vehicles/models.py:527-565 -- no approval_no field
+Ssbikez,Used Vehicle Sales Finance,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleFinanceLoan,,Missing,"used_vehicles/models.py:527-565 -- UsedVehicleFinanceLoan is a plain models.Model, not DocStatusMixin -- no Submittable Draft/Submitted/Cancelled/amend lifecycle at all, unlike its sibling Purchase Order/Receipt/Invoice/Sale/Delivery/Invoice/RC docs in this same file"
+Ssbikez,Used Vehicle Sales Finance,amended_from,Link,no,Amended From,used_vehicles,UsedVehicleFinanceLoan,,Missing,"used_vehicles/models.py:527-565 -- UsedVehicleFinanceLoan is a plain models.Model, not DocStatusMixin -- no Submittable Draft/Submitted/Cancelled/amend lifecycle at all, unlike its sibling Purchase Order/Receipt/Invoice/Sale/Delivery/Invoice/RC docs in this same file"
 Ssbikez,Used Vehicle Sales Invoice Items,item_code,Link,yes,Item Code,,,,,
 Ssbikez,Used Vehicle Sales Invoice Items,reference_doctype,Link,no,Reference Doctype,,,,,
 Ssbikez,Used Vehicle Sales Invoice Items,warranty_rsa_amc,Dynamic Link,no,Warranty RSA AMC,,,,,
 Ssbikez,Used Vehicle Sales Invoice Items,reference_docname,Dynamic Link,no,Reference Docname,,,,,
 Ssbikez,Used Vehicle Sales Invoice Items,rate,Currency,no,Rate,,,,,
-Ssbikez,Used Vehicle Sales Setting Table,vehicle_no,Link,no,Vehicle No,,,,,
-Ssbikez,Used Vehicle Sales Setting Table,purchase_cost,Currency,yes,Purchase Cost,,,,,
-Ssbikez,Used Vehicle Sales Setting Table,maintain_cost,Currency,yes,Maintain Cost,,,,,
-Ssbikez,Used Vehicle Sales Setting Table,base_rate,Currency,yes,Base Rate,,,,,
-Ssbikez,Used Vehicle Sales Setting Table,gross_profit,Currency,yes,Gross Profit,,,,,
-Ssbikez,Used Vehicle Sales Setting,gst_percent,Data,no,GST Percent,,,,,
-Ssbikez,Used Vehicle Sales Setting,used_vehicle_sales_setting_table,Table,no,Used Vehicle Sales Setting Table,,,,,
-Ssbikez,Used Vehicle Sales Setting,naming_series,Select,no,Naming Series,,,,,
+Ssbikez,Used Vehicle Sales Setting Table,vehicle_no,Link,no,Vehicle No,used_vehicles,UsedVehicleSalesSettingItem,vehicle_no,Match,used_vehicles/models.py:1508-1511
+Ssbikez,Used Vehicle Sales Setting Table,purchase_cost,Currency,yes,Purchase Cost,used_vehicles,UsedVehicleSalesSettingItem,purchase_cost,Match,used_vehicles/models.py:1511
+Ssbikez,Used Vehicle Sales Setting Table,maintain_cost,Currency,yes,Maintain Cost,used_vehicles,UsedVehicleSalesSettingItem,maintain_cost,Match,used_vehicles/models.py:1512
+Ssbikez,Used Vehicle Sales Setting Table,base_rate,Currency,yes,Base Rate,used_vehicles,UsedVehicleSalesSettingItem,base_rate,Match,used_vehicles/models.py:1513-1514
+Ssbikez,Used Vehicle Sales Setting Table,gross_profit,Currency,yes,Gross Profit,used_vehicles,UsedVehicleSalesSettingItem,gross_profit,Match,"used_vehicles/models.py:1515-1520 -- computed as base_rate - (purchase_cost + maintain_cost) on save(), matching reference client script formula exactly"
+Ssbikez,Used Vehicle Sales Setting,gst_percent,Data,no,GST Percent,used_vehicles,UsedVehicleSalesSetting,,Missing,"used_vehicles/models.py:1478-1505 -- header has no gst_percent field, GST rate is not captured on this settings doc at all"
+Ssbikez,Used Vehicle Sales Setting,used_vehicle_sales_setting_table,Table,no,Used Vehicle Sales Setting Table,used_vehicles,UsedVehicleSalesSetting,items,Match,used_vehicles/models.py:1507 -- related_name=items child table
+Ssbikez,Used Vehicle Sales Setting,naming_series,Select,no,Naming Series,used_vehicles,UsedVehicleSalesSetting,setting_no,Deviation,"used_vehicles/models.py:1478-1505 -- auto-generated 'USED-VEH-MAS-#####'-style setting_no field, not a configurable naming series -- cosmetic, low impact"
 Ssbikez,Used Vehicle Service Complaint Child,date,Date,no,Date,,,,,
 Ssbikez,Used Vehicle Service Complaint Child,customer_complaint,Data,no,Customer Complaint,,,,,
 Ssbikez,Used Vehicle Service Complaint Child,details,Data,no,Details,,,,,
@@ -5296,7 +5296,7 @@ Ssbikez,Used Vehicle Spares Issue,service_invoice_discount,Int,no,Service Invoic
 Ssbikez,Used Vehicle Spares Issue,column_break_dm9tv,Column Break,no,,,,,,
 Ssbikez,Used Vehicle Spares Issue,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Used Vehicle Spares Issue,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Used Vehicle Sub Group,sub_group_name,Data,yes,Sub Group Name,,,,,
+Ssbikez,Used Vehicle Sub Group,sub_group_name,Data,yes,Sub Group Name,used_vehicles,UsedVehicleSubGroup,name,Match,used_vehicles/models.py:29
 Ssbikez,Vehicle Allotment,section_break_bawr,Section Break,no,,,,,,
 Ssbikez,Vehicle Allotment,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Vehicle Allotment,section_break_qvns,Section Break,no,Vehicle Allotment,,,,,
