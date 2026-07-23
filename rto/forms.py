@@ -170,8 +170,16 @@ class RCHandOverForm(AccessibleFormMixin, forms.ModelForm):
 
     def clean(self):
         cleaned = super().clean()
-        if cleaned.get('rc_book_received') == 'yes' and not cleaned.get('rc_book_number'):
+        # Reference: RC Hand Over's before_save refuses to save the form at
+        # all unless both RC Book Received and NOC are "Yes" -- the customer's
+        # old vehicle cannot be accepted as a trade-in without both documents
+        # physically in hand.
+        if cleaned.get('rc_book_received') == 'no':
+            self.add_error('rc_book_received', 'RC Book Received must be Yes before this form can be saved.')
+        elif cleaned.get('rc_book_received') == 'yes' and not cleaned.get('rc_book_number'):
             self.add_error('rc_book_number', 'Required when RC Book Received is Yes.')
+        if cleaned.get('noc') == 'no':
+            self.add_error('noc', 'NOC must be Yes before this form can be saved.')
         return cleaned
 
 

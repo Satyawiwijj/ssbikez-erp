@@ -120,6 +120,30 @@ class RCHandOverCRUDTests(_TestCase):
         form = RCHandOverForm(data={'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': ''})
         self.assertFalse(form.is_valid())
 
+    def test_rc_book_received_no_is_rejected(self):
+        # Reference: RC Hand Over's before_save blocks the save entirely
+        # unless rc_book_received == "Yes" -- confirmed live in
+        # reference_erp_spec/18_Sales_Form.md ("RC Book Received Yes and
+        # RC Book Number Need Before Save the Form").
+        from rto.forms import RCHandOverForm
+        form = RCHandOverForm(data={
+            'sales_order': self.order.pk, 'rc_book_received': 'no', 'noc': 'yes',
+            'vehicle_received': 'yes',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('rc_book_received', form.errors)
+
+    def test_noc_no_is_rejected(self):
+        # Reference: RC Hand Over's before_save also blocks the save unless
+        # noc == "Yes" ("NOC Yes Need Before Save the Form").
+        from rto.forms import RCHandOverForm
+        form = RCHandOverForm(data={
+            'sales_order': self.order.pk, 'rc_book_received': 'yes', 'rc_book_number': 'RCB-0002',
+            'noc': 'no', 'vehicle_received': 'yes',
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('noc', form.errors)
+
 
 from rto.models import Form20Creation as _Form20Creation
 
