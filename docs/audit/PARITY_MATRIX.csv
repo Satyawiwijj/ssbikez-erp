@@ -331,7 +331,7 @@ Ssbikez,Counter Sale Return,is_warranty,Check,no,Is Warranty,,,,,
 Ssbikez,Counter Sale Return,spot_sale,Check,no,Spot Sale (No Order Direct Sale),,,,,
 Ssbikez,Counter Sale Return,column_break_txsz,Column Break,no,,,,,,
 Ssbikez,Counter Sale Return,gst_category,Data,yes,GST Category,,,,,
-Ssbikez,Counter Sale Return,godown,Link,yes,Godown,spares,CounterSaleReturn,godown,Fixed,"spares/models.py:588 (model still SET_NULL/blank=True) + :616-621 (submit() now raises ValueError without godown); spares/forms.py:356-362 (CounterSaleReturnForm requires it); baa14d2; spares/tests.py::CounterSaleReturnGodownRequiredTests"
+Ssbikez,Counter Sale Return,godown,Link,yes,Godown,spares,CounterSaleReturn,godown,Fixed,spares/models.py:588 (model still SET_NULL/blank=True) + :616-621 (submit() now raises ValueError without godown); spares/forms.py:356-362 (CounterSaleReturnForm requires it); baa14d2; spares/tests.py::CounterSaleReturnGodownRequiredTests
 Ssbikez,Counter Sale Return,amended_from,Link,no,Amended From,,,,,
 Ssbikez,Counter Sale Return,section_break_zoxg,Section Break,no,,,,,,
 Ssbikez,Counter Sale Return,counter_sale_items,Table,no,Counter Sale Items,,,,,
@@ -550,8 +550,8 @@ Ssbikez,Dealer Price Creation Fields Status,iym_percentage,Float,no,Iym Percenta
 Ssbikez,Dealer Price Creation Fields Status,column_break_dbgs,Column Break,no,,,,,,
 Ssbikez,Dealer Price Creation Fields Status,discount_status,Check,no,Discount Status,,,,,
 Ssbikez,Dealer Price Creation Fields Status,discount_percentage,Float,no,Discount Percentage,,,,,
-Ssbikez,Dealer Price Creation Fields Status,rto_status,Check,no,RTO Status,,,,,
-Ssbikez,Dealer Price Creation Fields Status,rto_extra_amount,Currency,no,RTO Extra Amount,,,,,
+Ssbikez,Dealer Price Creation Fields Status,rto_status,Check,no,RTO Status,masters,,,Missing,grep for rto_status in masters/*.py returns no hits -- this bulk-update toggle field is not modeled
+Ssbikez,Dealer Price Creation Fields Status,rto_extra_amount,Currency,no,RTO Extra Amount,masters,,,Missing,grep for rto_extra_amount in masters/*.py returns no hits
 Ssbikez,Dealer Price Creation Fields Status,ltrt_percent_status,Check,no,LTRT Percent Status,,,,,
 Ssbikez,Dealer Price Creation Fields Status,charge_1_status,Check,no,Charge 1 Status,,,,,
 Ssbikez,Dealer Price Creation Fields Status,charge_1_amount,Currency,no,Charge 1 Amount,,,,,
@@ -584,8 +584,8 @@ Ssbikez,Dealer Price Creation,column_break_jq9wv,Column Break,no,,,,,,
 Ssbikez,Dealer Price Creation,column_break_uisxr,Column Break,no,,,,,,
 Ssbikez,Dealer Price Creation,column_break_m8fum,Column Break,no,,,,,,
 Ssbikez,Dealer Price Creation,ltrt_and__insurance_section,Section Break,no,LTRT and  Insurance,,,,,
-Ssbikez,Dealer Price Creation,rto_extra_charge,Check,no,RTO Extra Charge,,,,,
-Ssbikez,Dealer Price Creation,rto_extra_amount,Currency,no,RTO Extra Amount,,,,,
+Ssbikez,Dealer Price Creation,rto_extra_charge,Check,no,RTO Extra Charge,masters,DealerPriceItem,price_type/amount (generic),Deviation,"masters/models.py:363-367,402-411 -- reference's dedicated rto_extra_charge Check + rto_extra_amount Currency fields are not modeled; the generic DealerPriceItem(price_type, amount) row table could hold an RTO Extra row but nothing in the codebase creates or reads one by that name (grep for rto_extra in masters/ returns no hits)"
+Ssbikez,Dealer Price Creation,rto_extra_amount,Currency,no,RTO Extra Amount,masters,DealerPriceItem,price_type/amount (generic),Deviation,Same gap as rto_extra_charge above
 Ssbikez,Dealer Price Creation,column_break_e0cqi,Column Break,no,,,,,,
 Ssbikez,Dealer Price Creation,ltrt_percentage,Check,no,LTRT Percentage,,,,,
 Ssbikez,Dealer Price Creation,column_break_iijrw,Column Break,no,,,,,,
@@ -755,7 +755,7 @@ Ssbikez,Discount Price Master,model,Link,no,Model,,,,,
 Ssbikez,Discount Price Master,ltrt,Currency,no,LTRT,,,,,
 Ssbikez,Discount Price Master,ex_showroom_price,Currency,no,Ex Showroom Price,,,,,
 Ssbikez,Discount Price Master,insurance,Currency,no,Insurance,,,,,
-Ssbikez,Discount Price Master,rto,Currency,no,RTO,,,,,
+Ssbikez,Discount Price Master,rto,Currency,no,RTO,masters,,,Missing,grep for a dedicated rto Currency field on any discount/price model in masters/*.py returns no hits
 Ssbikez,Discount Price Master,updated_insurance_rate,Currency,no,Updated Insurance Rate,,,,,
 Ssbikez,Discount Price Master,percentage_section_section,Section Break,no,Percentage Section,,,,,
 Ssbikez,Discount Price Master,percentage,Data,yes,Percentage,,,,,
@@ -873,50 +873,50 @@ Ssbikez,Euler Discount Percentage Master,out_work_return_discount,Percent,yes,Ou
 Ssbikez,Euler Discount Percentage Master,column_break_c2xd9,Column Break,no,,,,,,
 Ssbikez,Euler Discount Percentage Master,spares_issue_alteration_discount,Percent,yes,Spares Issue Alteration Discount (%),,,,,
 Ssbikez,Euler Exchange Vehicle Master,section_break_rsj8,Section Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Euler Exchange Vehicle Master,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,Euler Exchange Vehicle Master,date,Date,no,Date,,,,,
+Ssbikez,Euler Exchange Vehicle Master,amended_from,Link,no,Amended From,sales,ExchangeVehicle,,Missing,sales/models.py:663 ExchangeVehicle is a plain models.Model (no DocStatusMixin) -- no Draft/Submitted/Cancelled/Amended lifecycle unlike reference's Submittable doctype
+Ssbikez,Euler Exchange Vehicle Master,naming_series,Select,no,Naming Series,sales,ExchangeVehicle,,Missing,"sales/models.py:663 -- no naming_series/autoname; not a Submittable doc, no docstatus lifecycle at all"
+Ssbikez,Euler Exchange Vehicle Master,date,Date,no,Date,sales,ExchangeVehicle,,Missing,"sales/models.py:707 only has created_at (auto_now_add, not user-editable) -- no user-settable transaction Date field"
 Ssbikez,Euler Exchange Vehicle Master,column_break_wdtz,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,order_form_id,Link,yes,Order Form Id,,,,,
+Ssbikez,Euler Exchange Vehicle Master,order_form_id,Link,yes,Order Form Id,sales,ExchangeVehicle,sales_order,Match,"sales/models.py:674-678 -- OneToOneField to VehicleSalesOrder, related_name='exchange_vehicle'"
 Ssbikez,Euler Exchange Vehicle Master,column_break_htkm,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,vehicle_amount,Currency,no,Vehicle Amount,,,,,
-Ssbikez,Euler Exchange Vehicle Master,transfer_to,Select,no,Transfer to,,,,,
-Ssbikez,Euler Exchange Vehicle Master,dealer_name,Link,no,Dealer Name,,,,,
-Ssbikez,Euler Exchange Vehicle Master,company,Link,no,Company,,,,,
-Ssbikez,Euler Exchange Vehicle Master,branch,Link,no,Branch,,,,,
+Ssbikez,Euler Exchange Vehicle Master,vehicle_amount,Currency,no,Vehicle Amount,sales,ExchangeVehicle,valuation_amount,Match,"sales/models.py:681 -- valuation_amount DecimalField, renamed but equivalent purpose"
+Ssbikez,Euler Exchange Vehicle Master,transfer_to,Select,no,Transfer to,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- no transfer_to field; Dealer/Own Purchase disposal routing is not modeled on ExchangeVehicle at all
+Ssbikez,Euler Exchange Vehicle Master,dealer_name,Link,no,Dealer Name,sales,ExchangeVehicle,,Missing,"sales/models.py:663-713 -- no dealer_name field on ExchangeVehicle (dealer resale is handled later via a separate ExchangeVehicleDealer transfer, sales/models.py:754, not linked back to this record)"
+Ssbikez,Euler Exchange Vehicle Master,company,Link,no,Company,sales,ExchangeVehicle,,Missing,"No multi-company Company model in repo (consistent with rest of app, e.g. Customer Payment/Supplier Payment rows)"
+Ssbikez,Euler Exchange Vehicle Master,branch,Link,no,Branch,sales,ExchangeVehicle,,Match,"Not a direct field, but reachable via sales_order.branch (sales/models.py:102) -- VehicleSalesOrder carries branch"
 Ssbikez,Euler Exchange Vehicle Master,section_break_yqyc,Section Break,no,Vehicle Details,,,,,
-Ssbikez,Euler Exchange Vehicle Master,manufacturing_company,Link,yes,Manufacturing Company,,,,,
-Ssbikez,Euler Exchange Vehicle Master,engine_number,Data,yes,Engine Number,,,,,
-Ssbikez,Euler Exchange Vehicle Master,hp_endorsement,Select,no,HP Endorsement,,,,,
-Ssbikez,Euler Exchange Vehicle Master,insurance,Select,yes,Insurance,,,,,
+Ssbikez,Euler Exchange Vehicle Master,manufacturing_company,Link,yes,Manufacturing Company,sales,ExchangeVehicle,manufacturing_company,Match,"sales/models.py:687 -- CharField, matches reference intent though reference field is a Link master and this is free text"
+Ssbikez,Euler Exchange Vehicle Master,engine_number,Data,yes,Engine Number,sales,ExchangeVehicle,engine_no,Match,sales/models.py:689
+Ssbikez,Euler Exchange Vehicle Master,hp_endorsement,Select,no,HP Endorsement,sales,ExchangeVehicle,hp_endorsement,Deviation,"sales/models.py:692 -- BooleanField, not the reference's 3-state Select (blank/No/Yes); functionally equivalent for Yes/No but cannot represent not-yet-set"
+Ssbikez,Euler Exchange Vehicle Master,insurance,Select,yes,Insurance,sales,ExchangeVehicle,insurance_valid_upto,Deviation,sales/models.py:701 -- only insurance_valid_upto (DateField) exists; reference's mandatory Insurance Received Yes/No Select has no direct equivalent (a set date does not equal a confirmed Yes)
 Ssbikez,Euler Exchange Vehicle Master,column_break_focc,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,exchange_vehicle_name,Link,yes,Exchange Vehicle Name,,,,,
-Ssbikez,Euler Exchange Vehicle Master,chasis_no,Data,yes,Chasis No,,,,,
-Ssbikez,Euler Exchange Vehicle Master,sub_group,Link,yes,Sub Group,,,,,
-Ssbikez,Euler Exchange Vehicle Master,payment_status,Select,no,Payment Status,,,,,
+Ssbikez,Euler Exchange Vehicle Master,exchange_vehicle_name,Link,yes,Exchange Vehicle Name,sales,ExchangeVehicle,old_vehicle_model,Deviation,"sales/models.py:679 -- old_vehicle_model is free-text CharField, not a Link to an Exchange Master Used Vehicle Names master (no such master exists in repo)"
+Ssbikez,Euler Exchange Vehicle Master,chasis_no,Data,yes,Chasis No,sales,ExchangeVehicle,chassis_no,Match,sales/models.py:690
+Ssbikez,Euler Exchange Vehicle Master,sub_group,Link,yes,Sub Group,sales,ExchangeVehicle,sub_group,Deviation,"sales/models.py:693 -- free-text CharField, not a Link to a Used Vehicle Sub Group master"
+Ssbikez,Euler Exchange Vehicle Master,payment_status,Select,no,Payment Status,sales,ExchangeVehicle,payment_status,Deviation,"sales/models.py:670-705 -- values are Pending/Paid, not reference's Unpaid/Completed (cosmetic value-naming difference, same 2-state semantics)"
 Ssbikez,Euler Exchange Vehicle Master,column_break_bwda,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,party_name,Link,no,Party Name,,,,,
-Ssbikez,Euler Exchange Vehicle Master,registration_number,Data,yes,Registration Number,,,,,
-Ssbikez,Euler Exchange Vehicle Master,vehicle_category,Link,yes,Vehicle Category,,,,,
+Ssbikez,Euler Exchange Vehicle Master,party_name,Link,no,Party Name,sales,ExchangeVehicle,sales_order.customer,Match,"Not a direct field, but reachable via sales_order.customer -- the exchange is always scoped to one sales order's customer"
+Ssbikez,Euler Exchange Vehicle Master,registration_number,Data,yes,Registration Number,sales,ExchangeVehicle,registration_no,Match,sales/models.py:680
+Ssbikez,Euler Exchange Vehicle Master,vehicle_category,Link,yes,Vehicle Category,sales,ExchangeVehicle,vehicle_category,Deviation,"sales/models.py:664-668,694-696 -- fixed TextChoices (motorcycle/scooter/moped/other), not a Link to a configurable Vehicle Type master"
 Ssbikez,Euler Exchange Vehicle Master,column_break_zchm,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,colour,Link,yes,Colour,,,,,
-Ssbikez,Euler Exchange Vehicle Master,year_of_make,Data,yes,Year of Make,,,,,
-Ssbikez,Euler Exchange Vehicle Master,target_warehouse,Link,yes,Target Warehouse,,,,,
+Ssbikez,Euler Exchange Vehicle Master,colour,Link,yes,Colour,sales,ExchangeVehicle,colour,Deviation,"sales/models.py:688 -- free-text CharField, not a Link to a Used Vehicle Color master"
+Ssbikez,Euler Exchange Vehicle Master,year_of_make,Data,yes,Year of Make,sales,ExchangeVehicle,year_of_make,Match,sales/models.py:691
+Ssbikez,Euler Exchange Vehicle Master,target_warehouse,Link,yes,Target Warehouse,sales,ExchangeVehicle,target_warehouse,Match,sales/models.py:697-700 -- FK to masters.Warehouse
 Ssbikez,Euler Exchange Vehicle Master,section_break_bgek,Section Break,no,Finance Details,,,,,
-Ssbikez,Euler Exchange Vehicle Master,finance_name,Data,no,Finance Name,,,,,
+Ssbikez,Euler Exchange Vehicle Master,finance_name,Data,no,Finance Name,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- entire Finance Details section (finance_name/finance_closing_amount/balance_amount) is absent from ExchangeVehicle; a financed trade-in's outstanding loan cannot be recorded
 Ssbikez,Euler Exchange Vehicle Master,column_break_cbul,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,finance_closing_amount,Currency,no,Finance Closing Amount,,,,,
+Ssbikez,Euler Exchange Vehicle Master,finance_closing_amount,Currency,no,Finance Closing Amount,sales,ExchangeVehicle,,Missing,Same gap as finance_name -- no finance payoff tracking on the traded-in vehicle
 Ssbikez,Euler Exchange Vehicle Master,column_break_ekxp,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,balance_amount,Currency,no,Balance Amount,,,,,
+Ssbikez,Euler Exchange Vehicle Master,balance_amount,Currency,no,Balance Amount,sales,ExchangeVehicle,,Missing,Same gap as finance_name -- no balance-after-finance-closure tracking
 Ssbikez,Euler Exchange Vehicle Master,section_break_ryyv,Section Break,no,NOC and Other Details,,,,,
-Ssbikez,Euler Exchange Vehicle Master,rc_book_received,Select,no,RC Book Received,,,,,
-Ssbikez,Euler Exchange Vehicle Master,rc_book_number,Data,no,RC Book Number,,,,,
+Ssbikez,Euler Exchange Vehicle Master,rc_book_received,Select,no,RC Book Received,sales,ExchangeVehicle,rc_handed_over,Deviation,"sales/models.py:684 -- BooleanField (rc_handed_over), not the reference's Select(Yes/No); reference also carries a matching rc_book_number field which is entirely absent (see next row)"
+Ssbikez,Euler Exchange Vehicle Master,rc_book_number,Data,no,RC Book Number,sales,ExchangeVehicle,,Missing,"sales/models.py:663-713 -- no field to record the exchanged vehicle's own RC book number, only a boolean rc_handed_over + rc_handover_date"
 Ssbikez,Euler Exchange Vehicle Master,column_break_zxrr,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,noc,Select,no,NOC,,,,,
-Ssbikez,Euler Exchange Vehicle Master,remarks,Data,no,Remarks,,,,,
-Ssbikez,Euler Exchange Vehicle Master,to_received,Select,no,T.O Received,,,,,
-Ssbikez,Euler Exchange Vehicle Master,insurance_received,Select,no,Insurance Received,,,,,
-Ssbikez,Euler Exchange Vehicle Master,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Euler Exchange Vehicle Master,noc,Select,no,NOC,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- no NOC (No Objection Certificate) tracking field for the traded-in vehicle at all
+Ssbikez,Euler Exchange Vehicle Master,remarks,Data,no,Remarks,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- no free-text remarks/notes field
+Ssbikez,Euler Exchange Vehicle Master,to_received,Select,no,T.O Received,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- no Transfer-of-Ownership (T.O.) received tracking field
+Ssbikez,Euler Exchange Vehicle Master,insurance_received,Select,no,Insurance Received,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- distinct from insurance_valid_upto; no explicit Yes/No confirmation field that insurance papers were received
+Ssbikez,Euler Exchange Vehicle Master,amended_from,Link,no,Amended From,sales,ExchangeVehicle,,Missing,sales/models.py:663 ExchangeVehicle is a plain models.Model (no DocStatusMixin) -- no Draft/Submitted/Cancelled/Amended lifecycle unlike reference's Submittable doctype
 Ssbikez,Euler Final Inspection Out Work Return Table,out_work_return_id,Link,yes,Out Work Return ID,,,,,
 Ssbikez,Euler Final Inspection Out Work Return Table,vendor,Link,yes,Vendor,,,,,
 Ssbikez,Euler Final Inspection Out Work Return Table,total,Currency,yes,Total,,,,,
@@ -1607,13 +1607,13 @@ Ssbikez,Euler Vehicle List,vehicle_color,Link,yes,Vehicle Color,,,,,
 Ssbikez,Euler Water Wash Done,job_card_no,Link,yes,Job Card No,,,,,
 Ssbikez,Euler Water Wash Done,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Euler Water Wash Done,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Ex RC Issue Child,vehicle_number,Data,no,Vehicle Number,,,,,
-Ssbikez,Ex RC Issue Child,exchange_vehicle_id,Link,no,Exchange Vehicle Id,,,,,
-Ssbikez,Ex RC Issue Child,party_name,Link,no,Party Name,,,,,
-Ssbikez,Ex RC Issue Child,sales_order,Link,no,Order Form ID,,,,,
-Ssbikez,Ex RC Issue Child,order_form_id_copy,Link,no,Order Form ID Copy,,,,,
-Ssbikez,Ex RC Issue Child,order_form_series,Link,no,Order Form Series,,,,,
-Ssbikez,Ex RC Issue Child,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,Ex RC Issue Child,vehicle_number,Data,no,Vehicle Number,rto,RCBookIssueItem,vehicle_number,Match,rto/models.py:548
+Ssbikez,Ex RC Issue Child,exchange_vehicle_id,Link,no,Exchange Vehicle Id,rto,RCBookIssueItem,exchange_vehicle,Match,"rto/models.py:546 -- nullable FK to sales.ExchangeVehicle, used to collapse RC Issue Child + Ex RC Issue Child into one model"
+Ssbikez,Ex RC Issue Child,party_name,Link,no,Party Name,rto,RCBookIssueItem,party_name,Match,rto/models.py:549
+Ssbikez,Ex RC Issue Child,sales_order,Link,no,Order Form ID,rto,RCBookIssueItem,,Missing,rto/models.py:544-555 -- no direct sales_order link on the row (reachable only indirectly via exchange_vehicle.sales_order)
+Ssbikez,Ex RC Issue Child,order_form_id_copy,Link,no,Order Form ID Copy,rto,RCBookIssueItem,,Missing,Same gap -- reference's redundant duplicate order link is not modeled
+Ssbikez,Ex RC Issue Child,order_form_series,Link,no,Order Form Series,rto,RCBookIssueItem,,Missing,Same gap as sales_order above
+Ssbikez,Ex RC Issue Child,vehicle_name,Link,no,Vehicle Name,rto,RCBookIssueItem,,Missing,rto/models.py:544-555 -- no vehicle_name/Item link on the row
 Ssbikez,Excel to PDF Converter,excel_file,Attach,no,Excel File,,,,,
 Ssbikez,Excel to PDF Converter,column_break_fzmq,Column Break,no,,,,,,
 Ssbikez,Excel to PDF Converter,pdf_file,Attach,no,PDF File,,,,,
@@ -1852,15 +1852,15 @@ Ssbikez,Fork Details Table,spares,Data,no,Spares,,,,,
 Ssbikez,Fork Details Table,change_need_yes,Check,no,Yes,,,,,
 Ssbikez,Fork Details Table,change_need_no,Check,no,No,,,,,
 Ssbikez,Form 20 Creation,naming_series,Select,no,Series,,,,,
-Ssbikez,Form 20 Creation,date,Date,yes,Date,,,,,
-Ssbikez,Form 20 Creation,company,Link,no,Company,,,,,
+Ssbikez,Form 20 Creation,date,Date,yes,Date,rto,Form20Creation,,Missing,"rto/models.py:213-225 Form20Creation -- no user-settable Date field, only created_at (auto_now_add)"
+Ssbikez,Form 20 Creation,company,Link,no,Company,rto,Form20Creation,,Missing,No multi-company Company model in repo (consistent with rest of app)
 Ssbikez,Form 20 Creation,column_break_azlnf,Column Break,no,,,,,,
-Ssbikez,Form 20 Creation,regn_area,Link,yes,Registration Area,,,,,
-Ssbikez,Form 20 Creation,branch,Link,no,Branch,,,,,
+Ssbikez,Form 20 Creation,regn_area,Link,yes,Registration Area,rto,Form20Creation,registration_area,Match,rto/models.py:215 -- FK to RegistrationArea
+Ssbikez,Form 20 Creation,branch,Link,no,Branch,rto,Form20Creation,,Missing,rto/models.py:213-225 -- no branch field on Form20Creation (only reachable indirectly via sales_order)
 Ssbikez,Form 20 Creation,section_break_bnaka,Section Break,no,,,,,,
-Ssbikez,Form 20 Creation,party,Table,yes,Form 20 Items,,,,,
-Ssbikez,Form 20 Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Form 20 Creation,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Form 20 Creation,party,Table,yes,Form 20 Items,rto,Form20Creation,sales_order (single FK),Deviation,"rto/models.py:213-225 -- Form20Creation is one-row-per-vehicle (single sales_order FK), not a header + Form 20 Party child table batch document like the reference; a single Form 20 application covering multiple vehicles cannot be represented"
+Ssbikez,Form 20 Creation,amended_from,Link,no,Amended From,rto,Form20Creation,docstatus/amended_from,Match,"rto/models.py:213 Form20Creation(DocStatusMixin, ...)"
+Ssbikez,Form 20 Creation,amended_from,Link,no,Amended From,rto,Form20Creation,docstatus/amended_from,Match,"rto/models.py:213 Form20Creation(DocStatusMixin, ...)"
 Ssbikez,Form 20 Digit Master,digits,Data,yes,Digits,,,,,
 Ssbikez,Form 20 Party,party_name,Link,yes,Party Name,,,,,
 Ssbikez,Form 20 Party,vehicle_name,Link,yes,Vehicle Name,,,,,
@@ -2454,8 +2454,8 @@ Ssbikez,Model Series Generate Form,column_break_d9y1i,Column Break,no,,,,,,
 Ssbikez,Model Series Generate Form,ex_other_charges,Check,no,Ex_Other charges,,,,,
 Ssbikez,Model Series Generate Form,ex_others_amount,Currency,no,Ex_Others_Amount,,,,,
 Ssbikez,Model Series Generate Form,section_break_ok6rl,Section Break,no,LTRT and Insurance,,,,,
-Ssbikez,Model Series Generate Form,rto_extra_charge,Check,no,RTO Extra Charge,,,,,
-Ssbikez,Model Series Generate Form,rto_additional_amount,Currency,no,RTO Additional Amount,,,,,
+Ssbikez,Model Series Generate Form,rto_extra_charge,Check,no,RTO Extra Charge,masters,,,Missing,No Model Series Generate Form equivalent doctype found in masters/ -- grep for rto_extra_charge repo-wide only matches reference_erp_spec/
+Ssbikez,Model Series Generate Form,rto_additional_amount,Currency,no,RTO Additional Amount,masters,,,Missing,Same as rto_extra_charge above
 Ssbikez,Model Series Generate Form,column_break_a8byk,Column Break,no,,,,,,
 Ssbikez,Model Series Generate Form,ltrt_percentage,Check,no,LTRT Percentage,,,,,
 Ssbikez,Model Series Generate Form,ltrt_percentage_value,Int,no,LTRT Percentage Value,,,,,
@@ -2885,7 +2885,7 @@ Ssbikez,Order Form Series,status,Select,no,Status,,,,,
 Ssbikez,Order Form Series,allotment,Data,no,Allotment,,,,,
 Ssbikez,Order Form Series,sales_order_id,Data,no,Sales Order ID,,,,,
 Ssbikez,Order Form Series,sales_order_status,Data,no,Sales Order Status,,,,,
-Ssbikez,Order Form Series,rto_status,Data,no,RTO Status,,,,,
+Ssbikez,Order Form Series,rto_status,Data,no,RTO Status,sales,VehicleSalesOrder,,Missing,grep for rto_status in sales/models.py returns no hits -- VehicleSalesOrder tracks no summary RTO status field of its own; RTO progress must be inferred by joining rto.RTORegistration separately
 Ssbikez,Order Form Series,f20_status,Data,no,F20 Status,,,,,
 Ssbikez,Order Form Series,ex_change_vehicle_status,Int,no,Exchange Vehicle Status,,,,,
 Ssbikez,Order Form Series,series_type,Data,no,Series Type,,,,,
@@ -3037,11 +3037,11 @@ Ssbikez,Protection Plus Invoice Items,quantity,Int,no,Quantity,,,,,
 Ssbikez,Protection Plus Invoice Items,hsn_code,Data,no,HSN Code,,,,,
 Ssbikez,Protection Plus Invoice Items,rate,Currency,yes,Rate,,,,,
 Ssbikez,Protection Plus Invoice Items,protection_plus_amount,Currency,yes,Protection Plus Amount,,,,,
-Ssbikez,RC Book Creation RTO Table,rc_book_number,Data,yes,Vehicle Number,,,,,
-Ssbikez,RC Book Creation RTO Table,party_name,Link,yes,Party Name,,,,,
-Ssbikez,RC Book Creation RTO Table,sales_order,Link,no,Order Form ID,,,,,
-Ssbikez,RC Book Creation RTO Table,order_form_series,Link,yes,Order Form Series,,,,,
-Ssbikez,RC Book Creation RTO Table,vehicle_name,Link,yes,Vehicle Name,,,,,
+Ssbikez,RC Book Creation RTO Table,rc_book_number,Data,yes,Vehicle Number,rto,RCBookCreation,rc_number,Match,"rto/models.py:512 -- header-level rc_number field (singular, since not a batch table)"
+Ssbikez,RC Book Creation RTO Table,party_name,Link,yes,Party Name,rto,RCBookCreation,rto_registration.sales_order.customer,Match,rto/models.py:509 -- reachable via rto_registration FK chain
+Ssbikez,RC Book Creation RTO Table,sales_order,Link,no,Order Form ID,rto,RCBookCreation,rto_registration.sales_order,Match,rto/models.py:509 -- reachable via rto_registration FK chain
+Ssbikez,RC Book Creation RTO Table,order_form_series,Link,yes,Order Form Series,rto,RCBookCreation,rto_registration.sales_order,Match,"rto/models.py:509 -- same relation, reference's order_form_series is a duplicate/redundant Link to the same order"
+Ssbikez,RC Book Creation RTO Table,vehicle_name,Link,yes,Vehicle Name,rto,RCBookCreation,,Missing,rto/models.py:508-521 -- no vehicle_name/Item link at all (RC Book Creation is scoped to one vehicle via rto_registration but never names it directly)
 Ssbikez,RC Book Creation,section_break_az5k,Section Break,no,,,,,,
 Ssbikez,RC Book Creation,amended_from,Link,no,Amended From,,,,,
 Ssbikez,RC Book Creation,date,Date,yes,Date,,,,,
@@ -3053,52 +3053,52 @@ Ssbikez,RC Book Creation,branch,Link,no,Branch,,,,,
 Ssbikez,RC Book Creation,column_break_gcyo,Column Break,no,,,,,,
 Ssbikez,RC Book Creation,registration_area,Link,no,Registration Area,,,,,
 Ssbikez,RC Book Creation,section_break_iwap,Section Break,no,,,,,,
-Ssbikez,RC Book Creation,post_by_rto,Check,no,Post by RTO,,,,,
-Ssbikez,RC Book Creation,rto_details,Table,no,RTO Details,,,,,
+Ssbikez,RC Book Creation,post_by_rto,Check,no,Post by RTO,rto,RCBookCreation,post_by_rto,Match,rto/models.py:511
+Ssbikez,RC Book Creation,rto_details,Table,no,RTO Details,rto,RCBookCreation,N/A (single rto_registration FK),Deviation,"rto/models.py:508-521 -- RCBookCreation is one-row-per-vehicle (single rto_registration FK), not a header + RC Book Creation RTO Table child table batch document; a single RC Book Creation run covering multiple vehicles cannot be represented"
 Ssbikez,RC Book Issue,date,Date,yes,Date,,,,,
 Ssbikez,RC Book Issue,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,RC Book Issue,has_exchange_vehicle,Check,no,Has Exchange Vehicle,,,,,
 Ssbikez,RC Book Issue,company,Link,no,Company,,,,,
 Ssbikez,RC Book Issue,branch,Link,no,Branch,,,,,
 Ssbikez,RC Book Issue,column_break_fg4st,Column Break,no,,,,,,
-Ssbikez,RC Book Issue,rc_book_creation,Link,no,RC Book,,,,,
+Ssbikez,RC Book Issue,rc_book_creation,Link,no,RC Book,rto,RCBookIssue,rc_book_creation,Deviation,"rto/models.py:526 -- FK is mandatory (on_delete=PROTECT, no null=True) for every RCBookIssue, but reference only requires rc_book_creation when has_exchange_vehicle==0 (reference_erp_spec/18_Sales_Form.md:14003); for exchange-vehicle RC-book returns there is no dealership-created RC Book Creation doc to link, since it is the customer's own original RC book -- Django forces a value that may not exist"
 Ssbikez,RC Book Issue,column_break_lvddv,Column Break,no,,,,,,
 Ssbikez,RC Book Issue,issue_type,Select,yes,Issue Type,,,,,
 Ssbikez,RC Book Issue,exchange_vehicle_id,Link,no,Exchange Vehicle Id,,,,,
-Ssbikez,RC Book Issue,rc_book_count,Int,no,RC Book Count,,,,,
+Ssbikez,RC Book Issue,rc_book_count,Int,no,RC Book Count,rto,RCBookIssue,,Missing,rto/models.py:522-541 -- no rc_book_count field; count is only implicit via len(items)
 Ssbikez,RC Book Issue,from_branch_name,Link,no,From Branch Name,,,,,
 Ssbikez,RC Book Issue,to_branch_name,Link,no,To Branch Name,,,,,
 Ssbikez,RC Book Issue,sub_dealer_name,Link,no,Sub Dealer Name,,,,,
 Ssbikez,RC Book Issue,section_break_k5lbf,Section Break,no,,,,,,
-Ssbikez,RC Book Issue,rto_table,Table,no,RTO Table,,,,,
-Ssbikez,RC Book Issue,ex_rto_table,Table,no,RTO Table,,,,,
-Ssbikez,RC Book Issue,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RC Book Issue,amended_from,Link,no,Amended From,,,,,
+Ssbikez,RC Book Issue,rto_table,Table,no,RTO Table,rto,RCBookIssue,items (RCBookIssueItem),Match,"rto/models.py:544-555 -- single RCBookIssueItem child table used for both the exchange and non-exchange case via a nullable exchange_vehicle FK (documented rto/models.py:542-544), collapsing reference's rto_table/ex_rto_table split"
+Ssbikez,RC Book Issue,ex_rto_table,Table,no,RTO Table,rto,RCBookIssue,items (RCBookIssueItem),Match,"rto/models.py:544-555 -- same collapsed child table, see rto_table row"
+Ssbikez,RC Book Issue,amended_from,Link,no,Amended From,rto,RCBookIssue,docstatus/amended_from,Match,"rto/models.py:522 RCBookIssue(DocStatusMixin, ...)"
+Ssbikez,RC Book Issue,amended_from,Link,no,Amended From,rto,RCBookIssue,docstatus/amended_from,Match,"rto/models.py:522 RCBookIssue(DocStatusMixin, ...)"
 Ssbikez,RC Hand Over List Child,vehicle_number,Data,no,Vehicle Number,,,,,
 Ssbikez,RC Hand Over List Child,vehicle_name,Data,no,Vehicle Name,,,,,
 Ssbikez,RC Hand Over List Child,engine_number,Data,no,Engine Number,,,,,
 Ssbikez,RC Hand Over List Child,chasis_number,Data,no,Chasis Number,,,,,
 Ssbikez,RC Hand Over List Child,billing_status,Select,no,Billing Status,,,,,
 Ssbikez,RC Hand Over List Child,dealer_rc_hand_over,Select,no,Dealer RC Hand Over,,,,,
-Ssbikez,RC Hand Over,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,RC Hand Over,rc_book_received,Select,yes,RC Book Received,,,,,
+Ssbikez,RC Hand Over,order_form_id,Link,yes,Order Form ID,rto,RCHandOver,sales_order,Match,rto/models.py:194 -- FK to VehicleSalesOrder
+Ssbikez,RC Hand Over,rc_book_received,Select,yes,RC Book Received,rto,RCHandOver,rc_book_received,Match,"rto/models.py:195, forms.py:160-181 -- now rejects 'no' (this dispatch's fix), matching reference before_save gate"
 Ssbikez,RC Hand Over,column_break_skaws,Column Break,no,,,,,,
-Ssbikez,RC Hand Over,noc,Select,yes,NOC,,,,,
-Ssbikez,RC Hand Over,vehicle_received,Select,yes,Vehicle Received,,,,,
-Ssbikez,RC Hand Over,year_of_make,Int,no,Year of Make,,,,,
-Ssbikez,RC Hand Over,hp_endorsement,Select,no,HP Endorsement,,,,,
+Ssbikez,RC Hand Over,noc,Select,yes,NOC,rto,RCHandOver,noc,Match,"rto/models.py:196, forms.py:160-181 -- now rejects 'no' (this dispatch's fix), matching reference before_save gate"
+Ssbikez,RC Hand Over,vehicle_received,Select,yes,Vehicle Received,rto,RCHandOver,vehicle_received,Match,rto/models.py:197-199
+Ssbikez,RC Hand Over,year_of_make,Int,no,Year of Make,rto,RCHandOver,year_of_make,Match,rto/models.py:200
+Ssbikez,RC Hand Over,hp_endorsement,Select,no,HP Endorsement,rto,RCHandOver,hp_endorsement,Match,rto/models.py:201
 Ssbikez,RC Hand Over,column_break_ix4hp,Column Break,no,,,,,,
-Ssbikez,RC Hand Over,to_received,Select,no,T.O Received,,,,,
-Ssbikez,RC Hand Over,rc_book_number,Data,no,RC Book Number,,,,,
-Ssbikez,RC Hand Over,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RC Hand Over,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,RC Hand Over,sales_order,Data,no,Sales Order,,,,,
-Ssbikez,RC Hand Over,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RC Issue Child,rc_book_number,Data,no,Vehicle Number,,,,,
-Ssbikez,RC Issue Child,party_name,Link,no,Party Name,,,,,
-Ssbikez,RC Issue Child,sales_order,Link,no,Order Form ID,,,,,
-Ssbikez,RC Issue Child,order_form_series,Link,no,Order Form Series,,,,,
-Ssbikez,RC Issue Child,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,RC Hand Over,to_received,Select,no,T.O Received,rto,RCHandOver,to_received,Match,rto/models.py:202
+Ssbikez,RC Hand Over,rc_book_number,Data,no,RC Book Number,rto,RCHandOver,rc_book_number,Match,"rto/models.py:203, forms.py:173-174 -- required when rc_book_received='yes'"
+Ssbikez,RC Hand Over,amended_from,Link,no,Amended From,rto,RCHandOver,docstatus/amended_from,Match,"rto/models.py:190 RCHandOver(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin (accounts/models.py:21-24)"
+Ssbikez,RC Hand Over,naming_series,Select,no,Naming Series,rto,RCHandOver,,Missing,rto/models.py:190-207 -- no naming_series/autoname
+Ssbikez,RC Hand Over,sales_order,Data,no,Sales Order,rto,RCHandOver,sales_order,Match,"rto/models.py:194 -- real FK, not the reference's plain Data-typed decorative field"
+Ssbikez,RC Hand Over,amended_from,Link,no,Amended From,rto,RCHandOver,docstatus/amended_from,Match,"rto/models.py:190 RCHandOver(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin (accounts/models.py:21-24)"
+Ssbikez,RC Issue Child,rc_book_number,Data,no,Vehicle Number,rto,RCBookIssueItem,vehicle_number,Match,"rto/models.py:548 -- named vehicle_number, reference labels this column 'Vehicle Number' despite fieldname rc_book_number"
+Ssbikez,RC Issue Child,party_name,Link,no,Party Name,rto,RCBookIssueItem,party_name,Match,rto/models.py:549
+Ssbikez,RC Issue Child,sales_order,Link,no,Order Form ID,rto,RCBookIssueItem,,Missing,"rto/models.py:544-555 -- no sales_order/order link on the item row (only vehicle_number/party_name text, plus exchange_vehicle FK for the exchange path)"
+Ssbikez,RC Issue Child,order_form_series,Link,no,Order Form Series,rto,RCBookIssueItem,,Missing,Same gap as sales_order above
+Ssbikez,RC Issue Child,vehicle_name,Link,no,Vehicle Name,rto,RCBookIssueItem,,Missing,rto/models.py:544-555 -- no vehicle_name/Item link on the row
 Ssbikez,RSA Creation,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,RSA Creation,rsa,Link,yes,RSA,,,,,
 Ssbikez,RSA Creation,column_break_iohqk,Column Break,no,,,,,,
@@ -3188,68 +3188,68 @@ Ssbikez,RSA,ledger_voucher_no,Link,no,Ledger Voucher No,,,,,
 Ssbikez,RSA,naming_series,Select,no,Series,,,,,
 Ssbikez,RSA,amended_from,Link,no,Amended From,,,,,
 Ssbikez,RSA,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RTO Expense Party,party_name,Link,yes,Party Name,,,,,
-Ssbikez,RTO Expense Party,sales_order,Link,yes,Order Form ID,,,,,
-Ssbikez,RTO Expense Party,flag_amount,Currency,yes,Flag Amount,,,,,
-Ssbikez,RTO Expense Party,fine_amount,Currency,yes,Fine Amount,,,,,
-Ssbikez,RTO Expense Party,license_amount,Currency,yes,License Amount,,,,,
-Ssbikez,RTO Expense Party,total_amount,Currency,yes,Total Amount,,,,,
-Ssbikez,RTO Expense Party,vehicle_name,Link,yes,Vehicle Name,,,,,
-Ssbikez,RTO Expenses Creation,naming_series,Select,no,Series,,,,,
-Ssbikez,RTO Expenses Creation,date,Date,yes,Date,,,,,
-Ssbikez,RTO Expenses Creation,company,Link,no,Company,,,,,
-Ssbikez,RTO Expenses Creation,payment_type,Select,no,Payment Type,,,,,
-Ssbikez,RTO Expenses Creation,sub_dealer_name,Link,no,Sub Dealer Name,,,,,
-Ssbikez,RTO Expenses Creation,invoice_no,Data,no,Invoice No,,,,,
+Ssbikez,RTO Expense Party,party_name,Link,yes,Party Name,rto,RTOPaymentItem,sales_order.customer,Match,rto/models.py:299
+Ssbikez,RTO Expense Party,sales_order,Link,yes,Order Form ID,rto,RTOPaymentItem,sales_order,Match,rto/models.py:299
+Ssbikez,RTO Expense Party,flag_amount,Currency,yes,Flag Amount,rto,RTOPaymentItem,flag_amount,Match,rto/models.py:301
+Ssbikez,RTO Expense Party,fine_amount,Currency,yes,Fine Amount,rto,RTOPaymentItem,fine_amount,Match,rto/models.py:302
+Ssbikez,RTO Expense Party,license_amount,Currency,yes,License Amount,rto,RTOPaymentItem,license_amount,Match,rto/models.py:303
+Ssbikez,RTO Expense Party,total_amount,Currency,yes,Total Amount,rto,RTOPaymentItem,total_amount,Match,"rto/models.py:304,307-309"
+Ssbikez,RTO Expense Party,vehicle_name,Link,yes,Vehicle Name,rto,RTOPaymentItem,,Missing,rto/models.py:298-312 -- no vehicle_name/Item link on the row
+Ssbikez,RTO Expenses Creation,naming_series,Select,no,Series,rto,RTOPayment,,Missing,Same RTOPayment model as RTO Income Creation -- no naming_series
+Ssbikez,RTO Expenses Creation,date,Date,yes,Date,rto,RTOPayment,,Missing,Same RTOPayment model -- no user-settable Date field
+Ssbikez,RTO Expenses Creation,company,Link,no,Company,rto,RTOPayment,,Missing,No multi-company Company model in repo
+Ssbikez,RTO Expenses Creation,payment_type,Select,no,Payment Type,rto,RTOPayment,pay_type,Match,rto/models.py:270-272 -- Cash/Bank choices (reused field name pay_type across both directions)
+Ssbikez,RTO Expenses Creation,sub_dealer_name,Link,no,Sub Dealer Name,rto,RTOPayment,,Missing,rto/models.py:262-296 -- no sub_dealer_name field; AgentType.SUB_DEALER exists (rto/models.py:273-274) but there is no separate Link to capture which sub-dealer
+Ssbikez,RTO Expenses Creation,invoice_no,Data,no,Invoice No,rto,RTOPayment,,Missing,rto/models.py:262-296 -- no invoice_no field
 Ssbikez,RTO Expenses Creation,column_break_fpptm,Column Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,agent_type,Select,no,Agent Type,,,,,
-Ssbikez,RTO Expenses Creation,agent_name,Link,no,Agent Name,,,,,
+Ssbikez,RTO Expenses Creation,agent_type,Select,no,Agent Type,rto,RTOPayment,agent_type,Match,rto/models.py:273-275
+Ssbikez,RTO Expenses Creation,agent_name,Link,no,Agent Name,rto,RTOPayment,agent,Match,"rto/models.py:276-277 (FK named agent, not agent_name, to masters.Supplier)"
 Ssbikez,RTO Expenses Creation,section_break_1uvab,Section Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,bank_name,Link,no,Bank Name,,,,,
-Ssbikez,RTO Expenses Creation,cash_account,Link,no,Cash Account,,,,,
+Ssbikez,RTO Expenses Creation,bank_name,Link,no,Bank Name,rto,RTOPayment,bank_name,Match,rto/models.py:277
+Ssbikez,RTO Expenses Creation,cash_account,Link,no,Cash Account,rto,RTOPayment,cash_account,Match,rto/models.py:276
 Ssbikez,RTO Expenses Creation,column_break_uqklb,Column Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,reference_notransfer_no,Data,no,Reference No (Transfer No),,,,,
+Ssbikez,RTO Expenses Creation,reference_notransfer_no,Data,no,Reference No (Transfer No),rto,RTOPayment,reference_no,Match,rto/models.py:278
 Ssbikez,RTO Expenses Creation,column_break_1j8vz,Column Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,reference_date,Date,no,Reference Date,,,,,
+Ssbikez,RTO Expenses Creation,reference_date,Date,no,Reference Date,rto,RTOPayment,reference_date,Match,rto/models.py:279
 Ssbikez,RTO Expenses Creation,section_break_x2tmv,Section Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,pay_mode,Link,no,Pay Mode,,,,,
-Ssbikez,RTO Expenses Creation,branch,Link,no,Branch,,,,,
+Ssbikez,RTO Expenses Creation,pay_mode,Link,no,Pay Mode,rto,RTOPayment,,Missing,rto/models.py:262-296 -- no separate Mode of Payment Link distinct from pay_type Cash/Bank choice
+Ssbikez,RTO Expenses Creation,branch,Link,no,Branch,rto,RTOPayment,,Missing,No header-level branch; per-row on RTOPaymentItem instead
 Ssbikez,RTO Expenses Creation,section_break_tkiq6,Section Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,party,Table,yes,Party,,,,,
+Ssbikez,RTO Expenses Creation,party,Table,yes,Party,rto,RTOPayment,items (RTOPaymentItem),Match,rto/models.py:298-312 -- shared header+item batch shape with the income direction
 Ssbikez,RTO Expenses Creation,section_break_hltuz,Section Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,total_amount,Currency,no,Total Amount,,,,,
-Ssbikez,RTO Expenses Creation,payment_status,Data,no,Payment Status,,,,,
+Ssbikez,RTO Expenses Creation,total_amount,Currency,no,Total Amount,rto,RTOPayment,total_amount,Match,rto/models.py:280
+Ssbikez,RTO Expenses Creation,payment_status,Data,no,Payment Status,rto,RTOPayment,payment_status,Match,rto/models.py:281-284
 Ssbikez,RTO Expenses Creation,column_break_zaxdo,Column Break,no,,,,,,
-Ssbikez,RTO Expenses Creation,pending_amount,Currency,no,Pending Amount,,,,,
-Ssbikez,RTO Expenses Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RTO Expenses Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RTO Income Creation,naming_series,Select,no,Series,,,,,
-Ssbikez,RTO Income Creation,date,Date,yes,Date,,,,,
-Ssbikez,RTO Income Creation,company,Link,no,Company,,,,,
-Ssbikez,RTO Income Creation,pay_type,Select,no,Pay Mode,,,,,
-Ssbikez,RTO Income Creation,cash_account,Link,no,Cash Account,,,,,
-Ssbikez,RTO Income Creation,bank_name,Link,no,Bank Name,,,,,
+Ssbikez,RTO Expenses Creation,pending_amount,Currency,no,Pending Amount,rto,RTOPayment,,Missing,rto/models.py:262-296 -- no pending_amount field (only total_amount + payment_status)
+Ssbikez,RTO Expenses Creation,amended_from,Link,no,Amended From,rto,RTOPayment,docstatus/amended_from,Match,"rto/models.py:262 RTOPayment(DocStatusMixin, ...)"
+Ssbikez,RTO Expenses Creation,amended_from,Link,no,Amended From,rto,RTOPayment,docstatus/amended_from,Match,"rto/models.py:262 RTOPayment(DocStatusMixin, ...)"
+Ssbikez,RTO Income Creation,naming_series,Select,no,Series,rto,RTOPayment,,Missing,rto/models.py:262-296 RTOPayment -- no naming_series/autoname
+Ssbikez,RTO Income Creation,date,Date,yes,Date,rto,RTOPayment,,Missing,"rto/models.py:262-296 -- no user-settable Date field, only created_at"
+Ssbikez,RTO Income Creation,company,Link,no,Company,rto,RTOPayment,,Missing,No multi-company Company model in repo
+Ssbikez,RTO Income Creation,pay_type,Select,no,Pay Mode,rto,RTOPayment,pay_type,Match,"rto/models.py:270-272,275 -- Cash/Bank choices"
+Ssbikez,RTO Income Creation,cash_account,Link,no,Cash Account,rto,RTOPayment,cash_account,Match,rto/models.py:276
+Ssbikez,RTO Income Creation,bank_name,Link,no,Bank Name,rto,RTOPayment,bank_name,Match,rto/models.py:277
 Ssbikez,RTO Income Creation,column_break_1qal3,Column Break,no,,,,,,
-Ssbikez,RTO Income Creation,payment_type,Select,yes,Payment Type,,,,,
-Ssbikez,RTO Income Creation,branch,Link,no,Branch,,,,,
-Ssbikez,RTO Income Creation,reference_no,Data,no,Reference No,,,,,
-Ssbikez,RTO Income Creation,reference_date,Date,no,Reference Date,,,,,
+Ssbikez,RTO Income Creation,payment_type,Select,yes,Payment Type,rto,RTOPayment,direction,Deviation,"rto/models.py:266-268,275 -- direction field is a generic Income/Expense flag reused to collapse both RTO Income Creation and RTO Expenses Creation into one model (documented rto/models.py:257-262); reference's payment_type is a fixed 'Payment from customer' label specific to the income doc"
+Ssbikez,RTO Income Creation,branch,Link,no,Branch,rto,RTOPayment,,Missing,rto/models.py:262-296 -- no header-level branch; branch instead lives per-row on RTOPaymentItem (rto/models.py:301)
+Ssbikez,RTO Income Creation,reference_no,Data,no,Reference No,rto,RTOPayment,reference_no,Match,rto/models.py:278
+Ssbikez,RTO Income Creation,reference_date,Date,no,Reference Date,rto,RTOPayment,reference_date,Match,rto/models.py:279
 Ssbikez,RTO Income Creation,section_break_zzcnd,Section Break,no,,,,,,
-Ssbikez,RTO Income Creation,party,Table,yes,Party,,,,,
+Ssbikez,RTO Income Creation,party,Table,yes,Party,rto,RTOPayment,items (RTOPaymentItem),Match,"rto/models.py:298-312 -- real header + item child table, matching reference's batch-document shape (confirmed live per code comment rto/models.py:257-261)"
 Ssbikez,RTO Income Creation,section_break_c9ryh,Section Break,no,,,,,,
-Ssbikez,RTO Income Creation,total_amount,Currency,no,Total Amount,,,,,
+Ssbikez,RTO Income Creation,total_amount,Currency,no,Total Amount,rto,RTOPayment,total_amount,Match,rto/models.py:280
 Ssbikez,RTO Income Creation,column_break_t0htt,Column Break,no,,,,,,
-Ssbikez,RTO Income Creation,payment_status,Select,no,Payment Status,,,,,
-Ssbikez,RTO Income Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RTO Income Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RTO Income Party,party_name,Link,yes,Party Name,,,,,
-Ssbikez,RTO Income Party,vehicle_name,Link,yes,Vehicle Name,,,,,
-Ssbikez,RTO Income Party,sales_order,Link,yes,Order Form ID,,,,,
-Ssbikez,RTO Income Party,branch,Link,yes,Branch,,,,,
-Ssbikez,RTO Income Party,flag_amount,Currency,yes,Flag Amount,,,,,
-Ssbikez,RTO Income Party,fine_amount,Currency,no,Fine Amount,,,,,
-Ssbikez,RTO Income Party,license_amount,Currency,no,License Amount,,,,,
-Ssbikez,RTO Income Party,total_amount,Currency,yes,Total Amount,,,,,
+Ssbikez,RTO Income Creation,payment_status,Select,no,Payment Status,rto,RTOPayment,payment_status,Match,rto/models.py:281-284
+Ssbikez,RTO Income Creation,amended_from,Link,no,Amended From,rto,RTOPayment,docstatus/amended_from,Match,"rto/models.py:262 RTOPayment(DocStatusMixin, ...)"
+Ssbikez,RTO Income Creation,amended_from,Link,no,Amended From,rto,RTOPayment,docstatus/amended_from,Match,"rto/models.py:262 RTOPayment(DocStatusMixin, ...)"
+Ssbikez,RTO Income Party,party_name,Link,yes,Party Name,rto,RTOPaymentItem,sales_order.customer,Match,rto/models.py:299 -- reachable via sales_order FK
+Ssbikez,RTO Income Party,vehicle_name,Link,yes,Vehicle Name,rto,RTOPaymentItem,,Missing,rto/models.py:298-312 RTOPaymentItem -- no direct vehicle_name/Item link on the row (only sales_order)
+Ssbikez,RTO Income Party,sales_order,Link,yes,Order Form ID,rto,RTOPaymentItem,sales_order,Match,rto/models.py:299
+Ssbikez,RTO Income Party,branch,Link,yes,Branch,rto,RTOPaymentItem,branch,Match,rto/models.py:300
+Ssbikez,RTO Income Party,flag_amount,Currency,yes,Flag Amount,rto,RTOPaymentItem,flag_amount,Match,rto/models.py:301
+Ssbikez,RTO Income Party,fine_amount,Currency,no,Fine Amount,rto,RTOPaymentItem,fine_amount,Match,rto/models.py:302
+Ssbikez,RTO Income Party,license_amount,Currency,no,License Amount,rto,RTOPaymentItem,license_amount,Match,rto/models.py:303
+Ssbikez,RTO Income Party,total_amount,Currency,yes,Total Amount,rto,RTOPaymentItem,total_amount,Match,"rto/models.py:304,307-309 -- auto-computed sum of the three amounts on save()"
 Ssbikez,Rack Items,item_name,Data,no,Item Name,,,,,
 Ssbikez,Rack Items,status,Check,no,Status,,,,,
 Ssbikez,Rack,rack_name,Data,yes,Rack Name,,,,,
@@ -3278,17 +3278,17 @@ Ssbikez,RegPay Base Amount,amount,Currency,no,Amount,,,,,
 Ssbikez,Register Number Master,register_number,Data,no,Register Number,,,,,
 Ssbikez,Registration Area,registration_area,Data,yes,Registration Area,,,,,
 Ssbikez,Registration No Creation,naming_series,Select,no,Series,,,,,
-Ssbikez,Registration No Creation,date,Date,yes,Date,,,,,
-Ssbikez,Registration No Creation,company,Link,no,Company,,,,,
+Ssbikez,Registration No Creation,date,Date,yes,Date,rto,RegistrationNoCreation,,Missing,"rto/models.py:228-249 -- no user-settable Date field, only created_at"
+Ssbikez,Registration No Creation,company,Link,no,Company,rto,RegistrationNoCreation,,Missing,No multi-company Company model in repo
 Ssbikez,Registration No Creation,column_break_hqnxb,Column Break,no,,,,,,
-Ssbikez,Registration No Creation,form_20_id,Link,no,Form 20 Id,,,,,
-Ssbikez,Registration No Creation,regn_area,Link,yes,Registration Area,,,,,
+Ssbikez,Registration No Creation,form_20_id,Link,no,Form 20 Id,rto,RegistrationNoCreation,form20,Deviation,"rto/models.py:231 -- FK exists but is not restricted to submitted Form20Creation records (reference's client script filters the picker to Form 20 Creation.docstatus==1 only, reference_erp_spec/18_Sales_Form.md:11424); Django allows linking a still-Draft or Cancelled Form20Creation"
+Ssbikez,Registration No Creation,regn_area,Link,yes,Registration Area,rto,RegistrationNoCreation,registration_area,Match,rto/models.py:232
 Ssbikez,Registration No Creation,column_break_xxyxp,Column Break,no,,,,,,
-Ssbikez,Registration No Creation,branch,Link,no,Branch,,,,,
+Ssbikez,Registration No Creation,branch,Link,no,Branch,rto,RegistrationNoCreation,,Missing,rto/models.py:228-249 -- no branch field
 Ssbikez,Registration No Creation,section_break_xl7zy,Section Break,no,,,,,,
-Ssbikez,Registration No Creation,party,Table,no,Party,,,,,
-Ssbikez,Registration No Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Registration No Creation,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Registration No Creation,party,Table,no,Party,rto,RegistrationNoCreation,sales_order (single FK),Deviation,"rto/models.py:228-249 -- one-row-per-vehicle, not a header + Registration No Party child table batch document"
+Ssbikez,Registration No Creation,amended_from,Link,no,Amended From,rto,RegistrationNoCreation,docstatus/amended_from,Match,"rto/models.py:228 RegistrationNoCreation(DocStatusMixin, ...)"
+Ssbikez,Registration No Creation,amended_from,Link,no,Amended From,rto,RegistrationNoCreation,docstatus/amended_from,Match,"rto/models.py:228 RegistrationNoCreation(DocStatusMixin, ...)"
 Ssbikez,Registration No Party,party_name,Link,yes,Party Name,,,,,
 Ssbikez,Registration No Party,sales_order,Link,no,Sales Order,,,,,
 Ssbikez,Registration No Party,order_form_id,Link,yes,Order Form Id,,,,,
