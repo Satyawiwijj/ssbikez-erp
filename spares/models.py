@@ -296,6 +296,7 @@ class PurchaseInvoice(models.Model):
     total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_sgst = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_cgst = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_igst = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_taxes = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     grand_total = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     payment_status = models.CharField(max_length=20, default='Unpaid')

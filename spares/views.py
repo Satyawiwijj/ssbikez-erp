@@ -364,6 +364,12 @@ def invoice_create(request):
             obj.total_amount = sum(i.amount for i in all_items)
             obj.total_sgst = sum(i.sgst_amount for i in all_items)
             obj.total_cgst = sum(i.cgst_amount for i in all_items)
+            # Interstate suppliers route their whole line GST through
+            # igst_amount instead of sgst_amount/cgst_amount (see split_gst()
+            # in billing/models.py) -- total_igst must be summed and added to
+            # grand_total the same way total_sgst/total_cgst are, otherwise an
+            # interstate invoice's grand_total silently drops its entire GST.
+            obj.total_igst = sum(i.igst_amount for i in all_items)
             # Bug fix: grand_total used to silently drop the item-level GST
             # (total_sgst/total_cgst, always populated) and only add the
             # separate header "taxes" formset (total_taxes, often empty) --
@@ -371,7 +377,7 @@ def invoice_create(request):
             # excluded the Rs.1,800 tax entirely whenever no header tax rows
             # were added. Both are real, additive amounts on this invoice.
             obj.total_taxes = sum(t.amount for t in obj.taxes.all())
-            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_taxes
+            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_igst + obj.total_taxes
             obj.save()
             # Stock is already credited by PurchaseInvoiceItem.save() itself
             # (it checks is_new and self.invoice.status == 'submitted') --
@@ -413,8 +419,9 @@ def invoice_update(request, pk):
             obj.total_amount = sum(i.amount for i in all_items)
             obj.total_sgst = sum(i.sgst_amount for i in all_items)
             obj.total_cgst = sum(i.cgst_amount for i in all_items)
+            obj.total_igst = sum(i.igst_amount for i in all_items)
             obj.total_taxes = sum(t.amount for t in obj.taxes.all())
-            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_taxes
+            obj.grand_total = obj.total_amount + obj.total_sgst + obj.total_cgst + obj.total_igst + obj.total_taxes
             obj.save()
         messages.success(request, 'Invoice updated.')
         return redirect('spares:invoice_detail', pk=pk)

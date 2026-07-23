@@ -227,6 +227,13 @@
                         <dd>₹ {{ object.total_cgst }}</dd>
                     </div>
 
+                    {% if object.total_igst %}
+                    <div class="detail-row">
+                        <dt>IGST</dt>
+                        <dd>₹ {{ object.total_igst }}</dd>
+                    </div>
+                    {% endif %}
+
                     <div class="detail-row">
                         <dt>Grand Total</dt>
                         <dd style="font-weight:700;color:#2563EB;">

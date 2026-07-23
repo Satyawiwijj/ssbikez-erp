@@ -361,3 +361,120 @@ class PurchaseInvoiceItemGSTCentralizedTests(TestCase):
         self.assertEqual(line.sgst_amount, Decimal('0.00'))
         self.assertEqual(line.cgst_amount, Decimal('0.00'))
         self.assertEqual(line.igst_amount, Decimal('120.00'))
+
+
+class PurchaseInvoiceGrandTotalIGSTTests(TestCase):
+    """Finding 1: an interstate PurchaseInvoiceItem now puts its whole GST
+    into igst_amount (via split_gst), but invoice_create/invoice_update only
+    summed total_sgst/total_cgst into grand_total -- interstate invoices
+    silently dropped the entire GST amount from their grand_total."""
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        from accounts.models import CompanySettings
+        from masters.models import Supplier, Warehouse
+        from spares.models import SparesItem
+
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('9')
+        settings_.sgst_rate = Decimal('9')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+
+        User = get_user_model()
+        self.user = User.objects.create_superuser(
+            username='pi_igst_admin', email='piigstadmin@example.com', password='Test-Pass-123!'
+        )
+        self.client.login(username='pi_igst_admin', password='Test-Pass-123!')
+
+        self.supplier = Supplier.objects.create(supplier_name='Interstate PI Supplier', state='Karnataka')
+        self.warehouse = Warehouse.objects.create(name='PI IGST Warehouse')
+        self.item = SparesItem.objects.create(item_code='PI-IGST-1', item_name='IGST Test Part', hsn_sac='1234')
+
+    def _payload(self):
+        return {
+            'supplier': self.supplier.pk, 'date': '2026-08-01', 'payment_status': 'Unpaid',
+            'items-TOTAL_FORMS': '1', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'items-0-item': self.item.pk, 'items-0-warehouse': self.warehouse.pk,
+            'items-0-quantity': '10', 'items-0-uom': 'Nos', 'items-0-rate': '100',
+            'items-0-sgst': '9', 'items-0-cgst': '9',
+            'taxes-TOTAL_FORMS': '0', 'taxes-INITIAL_FORMS': '0',
+            'taxes-MIN_NUM_FORMS': '0', 'taxes-MAX_NUM_FORMS': '1000',
+        }
+
+    def test_invoice_create_grand_total_includes_igst_for_interstate_supplier(self):
+        from spares.models import PurchaseInvoice
+
+        response = self.client.post(_reverse('spares:invoice_create'), self._payload())
+        self.assertEqual(response.status_code, 302)
+
+        invoice = PurchaseInvoice.objects.get(supplier=self.supplier)
+        # 10 * 100 = 1000 base; 9%+9% = 180 total, all routed to IGST for an
+        # interstate supplier. grand_total must include it, not just total_amount.
+        self.assertEqual(invoice.total_igst, Decimal('180.00'))
+        self.assertEqual(invoice.total_sgst, Decimal('0.00'))
+        self.assertEqual(invoice.total_cgst, Decimal('0.00'))
+        self.assertEqual(invoice.grand_total, Decimal('1180.00'))
+
+    def test_invoice_update_grand_total_includes_igst_for_interstate_supplier(self):
+        from spares.models import PurchaseInvoice, PurchaseInvoiceItem
+
+        invoice = PurchaseInvoice.objects.create(supplier=self.supplier, date='2026-08-01')
+        PurchaseInvoiceItem.objects.create(
+            invoice=invoice, item=self.item, warehouse=self.warehouse,
+            quantity=Decimal('10'), rate=Decimal('100'),
+        )
+
+        payload = self._payload()
+        payload['items-INITIAL_FORMS'] = '1'
+        payload['items-0-id'] = str(invoice.items.first().pk)
+
+        response = self.client.post(_reverse('spares:invoice_update', args=[invoice.pk]), payload)
+        self.assertEqual(response.status_code, 302)
+
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.total_igst, Decimal('180.00'))
+        self.assertEqual(invoice.grand_total, Decimal('1180.00'))
+
+
+class PurchaseInvoiceItemFormReadOnlyGSTTests(TestCase):
+    """Finding 2: PurchaseInvoiceItem.save() derives GST from
+    CompanySettings.cgst_rate/sgst_rate via split_gst() and no longer reads
+    self.sgst/self.cgst -- so the per-line SGST %/CGST % inputs must be
+    read-only, otherwise a user typing a value there has zero effect with no
+    UI indication."""
+
+    def test_sgst_and_cgst_fields_are_readonly(self):
+        from spares.forms import PurchaseInvoiceItemForm
+
+        form = PurchaseInvoiceItemForm()
+        self.assertTrue(form.fields['sgst'].widget.attrs.get('readonly'))
+        self.assertTrue(form.fields['cgst'].widget.attrs.get('readonly'))
+
+    def test_submitting_non_default_sgst_cgst_does_not_change_computed_tax(self):
+        from accounts.models import CompanySettings
+        from masters.models import Supplier, Warehouse
+        from spares.models import SparesItem, PurchaseInvoice, PurchaseInvoiceItem
+
+        settings_ = CompanySettings.get_instance()
+        settings_.cgst_rate = Decimal('9')
+        settings_.sgst_rate = Decimal('9')
+        settings_.state = 'Tamil Nadu'
+        settings_.save()
+
+        supplier = Supplier.objects.create(supplier_name='Readonly GST Supplier', state='Tamil Nadu')
+        warehouse = Warehouse.objects.create(name='Readonly GST Warehouse')
+        item = SparesItem.objects.create(item_code='RO-GST-1', item_name='Readonly Test Part', hsn_sac='1234')
+        invoice = PurchaseInvoice.objects.create(supplier=supplier, date='2026-08-01')
+
+        # sgst/cgst submitted as wildly different from the company rate --
+        # save() must still derive tax from CompanySettings, ignoring these.
+        line = PurchaseInvoiceItem.objects.create(
+            invoice=invoice, item=item, warehouse=warehouse,
+            quantity=Decimal('10'), rate=Decimal('100'),
+            sgst=Decimal('50'), cgst=Decimal('50'),
+        )
+        line.refresh_from_db()
+        self.assertEqual(line.sgst_amount, Decimal('90.00'))
+        self.assertEqual(line.cgst_amount, Decimal('90.00'))

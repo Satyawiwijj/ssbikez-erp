@@ -220,7 +220,7 @@ class PurchaseInvoiceForm(AccessibleFormMixin, forms.ModelForm):
         # PurchaseInvoice.submit()/.cancel() (see invoice_submit/invoice_cancel
         # views), which correctly credits/reverses every item.
         exclude = ['invoice_no', 'created_at', 'updated_at', 'created_by',
-                   'total_quantity', 'total_amount', 'total_sgst', 'total_cgst',
+                   'total_quantity', 'total_amount', 'total_sgst', 'total_cgst', 'total_igst',
                    'total_taxes', 'grand_total', 'amended_from', 'status']
         widgets = {
             'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
@@ -259,6 +259,21 @@ class PurchaseInvoiceItemForm(AccessibleFormMixin, forms.ModelForm):
             'item_category': forms.TextInput(attrs={'class': 'form-control', 'style': 'min-width:100px'}),
             'part_no': forms.TextInput(attrs={'class': 'form-control', 'style': 'min-width:90px'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # PurchaseInvoiceItem.save() derives GST from CompanySettings.cgst_rate/
+        # sgst_rate via split_gst() and no longer reads self.sgst/self.cgst --
+        # these are display-only now, so mark them read-only and show the
+        # effective company-configured rate rather than letting a user type a
+        # value here that silently has zero effect.
+        from accounts.models import CompanySettings
+        self.fields['sgst'].widget.attrs['readonly'] = True
+        self.fields['cgst'].widget.attrs['readonly'] = True
+        if not self.instance.pk:
+            company_settings = CompanySettings.get_instance()
+            self.fields['sgst'].initial = company_settings.sgst_rate
+            self.fields['cgst'].initial = company_settings.cgst_rate
 
 
 PurchaseInvoiceItemFormSet = inlineformset_factory(
