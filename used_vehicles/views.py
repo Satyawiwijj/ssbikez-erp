@@ -139,6 +139,7 @@ def purchase_create(request):
             obj = form.save()
             formset.instance = obj
             formset.save()
+            obj.recompute_totals()
             log_action(request, 'Used Vehicle Purchase Invoice', 'create', obj.pk)
             messages.success(request, f'{obj} created.')
             return redirect('used_vehicles:purchase_detail', pk=obj.pk)

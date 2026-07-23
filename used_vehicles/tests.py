@@ -531,3 +531,28 @@ class DuplicateRegistrationNoGuardTests(TestCase):
         existing.refresh_from_db()
         self.assertEqual(existing.chassis_no, 'CHASSIS-NEW')
         self.assertEqual(existing.stock_status, UsedVehicleRegisterNo.StockStatus.AVAILABLE)
+
+
+class UsedVehiclePurchaseInvoiceGrandTotalRecomputeTests(TestCase):
+    """UsedVehiclePurchaseInvoice.grand_total/pending_amount used to be plain
+    stored fields with no save()/clean() recompute tying them to
+    total_amount - discount, so a stale grand_total entered on the form (or
+    left at its default) would silently diverge from the real total."""
+
+    def test_grand_total_reflects_total_amount_minus_discount(self):
+        invoice = UsedVehiclePurchaseInvoice.objects.create(
+            invoice_date='2026-08-03', own_purchase=True, supplier_purchase=False,
+            total_amount=Decimal('100000'), discount=Decimal('2000'), grand_total=Decimal('0'),
+        )
+        invoice.recompute_totals()
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.grand_total, Decimal('98000'))
+
+    def test_grand_total_with_zero_discount_equals_total_amount(self):
+        invoice = UsedVehiclePurchaseInvoice.objects.create(
+            invoice_date='2026-08-03', own_purchase=True, supplier_purchase=False,
+            total_amount=Decimal('50000'), discount=Decimal('0'), grand_total=Decimal('0'),
+        )
+        invoice.recompute_totals()
+        invoice.refresh_from_db()
+        self.assertEqual(invoice.grand_total, Decimal('50000'))

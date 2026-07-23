@@ -345,6 +345,16 @@ class UsedVehiclePurchaseInvoice(DocStatusMixin, models.Model):
         else:
             super().save(*args, **kwargs)
 
+    def recompute_totals(self):
+        """grand_total used to be a plain stored field with no save()/clean()
+        recompute tying it to total_amount - discount, so a stale value
+        entered on the form (or left at its default) would silently diverge
+        from the real total. pending_amount is left untouched here -- there's
+        no amount_paid/Payment model on this record to derive it from."""
+        from decimal import Decimal
+        self.grand_total = (self.total_amount or Decimal('0')) - (self.discount or Decimal('0'))
+        self.save(update_fields=['grand_total'])
+
     def __str__(self):
         return self.invoice_number
 
