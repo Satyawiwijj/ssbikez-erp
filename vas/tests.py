@@ -50,6 +50,75 @@ class StockSafetyGuardTests(TestCase):
         self.assertEqual(package.docstatus, 1)
 
 
+class StockRestoreOnCancelTests(TestCase):
+    """Tier 7 (VAS) audit -- verifies the round-3 adversarial-QA fix ('cancelling an
+    AMC/RSA/Protection Plus package never returned its stock') is still correct: cancel()
+    must post a reversing PURCHASE movement so the plan type's stock comes back, and doing
+    so must be idempotent (no double-credit if cancel is somehow invoked twice)."""
+
+    def setUp(self):
+        self.amc_type = AMCType.objects.create(code='CANCELTEST-AMC', name='Cancel Test AMC')
+        self.rsa_type = _RSAType.objects.create(code='CANCELTEST-RSA', name='Cancel Test RSA')
+        from vas.models import WarrantyType
+        self.warranty_type = WarrantyType.objects.create(code='CANCELTEST-PP', name='Cancel Test PP')
+        for kwargs in (
+            {'amc_type': self.amc_type}, {'rsa_type': self.rsa_type}, {'warranty_type': self.warranty_type},
+        ):
+            ledger = VASStockLedger.get_or_create_for(**kwargs)
+            VASStockLedger.objects.filter(pk=ledger.pk).update(current_stock=1)
+        self.customer_vehicle, _ = _make_customer_vehicle('CANCEL1')
+        self.user = User.objects.create_user(username='vascancel', email='vascancel@example.com', password='Test-Pass-123!')
+
+    def test_amc_cancel_restores_stock(self):
+        package = AMCPackage.objects.create(customer_vehicle=self.customer_vehicle, amc_type=self.amc_type)
+        package.submit(self.user)
+        ledger = VASStockLedger.objects.get(amc_type=self.amc_type)
+        self.assertEqual(ledger.current_stock, 0)
+
+        package.cancel(self.user)
+        ledger.refresh_from_db()
+        self.assertEqual(ledger.current_stock, 1)
+
+    def test_rsa_cancel_restores_stock(self):
+        from vas.models import RSAPackage
+        package = RSAPackage.objects.create(customer_vehicle=self.customer_vehicle, rsa_type=self.rsa_type)
+        package.submit(self.user)
+        ledger = VASStockLedger.objects.get(rsa_type=self.rsa_type)
+        self.assertEqual(ledger.current_stock, 0)
+
+        package.cancel(self.user)
+        ledger.refresh_from_db()
+        self.assertEqual(ledger.current_stock, 1)
+
+    def test_protection_plus_cancel_restores_stock(self):
+        from vas.models import ProtectionPlusPackage
+        package = ProtectionPlusPackage.objects.create(
+            customer_vehicle=self.customer_vehicle, warranty_type=self.warranty_type,
+        )
+        package.submit(self.user)
+        ledger = VASStockLedger.objects.get(warranty_type=self.warranty_type)
+        self.assertEqual(ledger.current_stock, 0)
+
+        package.cancel(self.user)
+        ledger.refresh_from_db()
+        self.assertEqual(ledger.current_stock, 1)
+
+    def test_cancel_reversal_is_idempotent(self):
+        """A second cancel() call (e.g. a double form submit) must not credit stock twice.
+        DocStatusMixin.cancel() itself already blocks re-cancelling a non-Submitted doc
+        (accounts/models.py:63), which is the primary guard; this confirms it holds for VAS
+        packages and that stock isn't double-credited in the attempt."""
+        package = AMCPackage.objects.create(customer_vehicle=self.customer_vehicle, amc_type=self.amc_type)
+        package.submit(self.user)
+        package.cancel(self.user)
+
+        with self.assertRaises(ValueError):
+            package.cancel(self.user)
+
+        ledger = VASStockLedger.objects.get(amc_type=self.amc_type)
+        self.assertEqual(ledger.current_stock, 1)
+
+
 class AutoInvoiceTests(TestCase):
     """The post-submit signal that auto-creates a billing.Invoice from the
     package's own computed amount fields (Phase 11b)."""
