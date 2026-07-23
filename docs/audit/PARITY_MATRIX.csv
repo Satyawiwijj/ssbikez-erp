@@ -1,105 +1,105 @@
 module,doctype,field,fieldtype,mandatory,reference_note,django_app,django_model,django_field,status,evidence
-Ssbikez,AMC Invoice items,amc_type,Link,yes,AMC Type,,,,,
-Ssbikez,AMC Invoice items,quantity,Int,yes,Quantity,,,,,
-Ssbikez,AMC Invoice items,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,AMC Invoice items,rate,Currency,yes,Rate,,,,,
-Ssbikez,AMC Invoice items,amc_amount,Currency,yes,AMC Amount,,,,,
+Ssbikez,AMC Invoice items,amc_type,Link,yes,AMC Type,vas,VASSupplierInvoiceItem,amc_type,Match,vas/models.py:448
+Ssbikez,AMC Invoice items,quantity,Int,yes,Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
+Ssbikez,AMC Invoice items,hsn_code,Data,no,HSN Code,vas,VASSupplierInvoiceItem,hsn_code,Match,vas/models.py:452
+Ssbikez,AMC Invoice items,rate,Currency,yes,Rate,vas,VASSupplierInvoiceItem,rate,Match,vas/models.py:453
+Ssbikez,AMC Invoice items,amc_amount,Currency,yes,AMC Amount,vas,VASSupplierInvoiceItem,amount,Match,"vas/models.py:454 -- shared generic 'amount' field name (row also used for rsa_type/warranty_type items, see VASSupplierInvoiceItem.clean() exactly-one-of check at 456-459)"
 Ssbikez,AMC Invoice,section_break_ixyh,Section Break,no,,,,,,
-Ssbikez,AMC Invoice,amended_from,Link,no,Amended From,,,,,
-Ssbikez,AMC Invoice,company,Link,no,Company,,,,,
-Ssbikez,AMC Invoice,invoice_no,Data,yes,Invoice No,,,,,
-Ssbikez,AMC Invoice,supplier,Link,yes,Supplier,,,,,
-Ssbikez,AMC Invoice,gst_,Link,yes,GST %,,,,,
-Ssbikez,AMC Invoice,pay_mode,Link,no,Pay Mode,,,,,
-Ssbikez,AMC Invoice,amc_type,Link,no,AMC Type,,,,,
-Ssbikez,AMC Invoice,amc_amount,Currency,no,AMC Amount,,,,,
+Ssbikez,AMC Invoice,amended_from,Link,no,Amended From,vas,VASSupplierInvoice,docstatus/amended_from,Match,"vas/models.py:399 VASSupplierInvoice(DocStatusMixin, ...)"
+Ssbikez,AMC Invoice,company,Link,no,Company,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no company field
+Ssbikez,AMC Invoice,invoice_no,Data,yes,Invoice No,vas,VASSupplierInvoice,invoice_number,Match,"vas/models.py:410, 423-436 -- auto-generated VAS-INV-##### sequence, not reference's naming_series pattern, but same unique-identifier role"
+Ssbikez,AMC Invoice,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,AMC Invoice,gst_,Link,yes,GST %,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no GST% Link field anywhere on VASSupplierInvoice/VASSupplierInvoiceItem
+Ssbikez,AMC Invoice,pay_mode,Link,no,Pay Mode,vas,VASSupplierInvoice,pay_mode,Match,vas/models.py:415
+Ssbikez,AMC Invoice,amc_type,Link,no,AMC Type,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level amc_type doesn't exist on the shared invoice; only present per-line on VASSupplierInvoiceItem
+Ssbikez,AMC Invoice,amc_amount,Currency,no,AMC Amount,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.amount not carried
 Ssbikez,AMC Invoice,column_break_idhf,Column Break,no,,,,,,
-Ssbikez,AMC Invoice,invoice_date,Date,yes,Invoice Date,,,,,
-Ssbikez,AMC Invoice,branch,Link,yes,Branch,,,,,
-Ssbikez,AMC Invoice,quantity,Int,no,Quantity,,,,,
-Ssbikez,AMC Invoice,payment_type,Select,no,Payment Type,,,,,
-Ssbikez,AMC Invoice,status,Data,no,Status,,,,,
-Ssbikez,AMC Invoice,payment_status,Data,no,Payment Status,,,,,
-Ssbikez,AMC Invoice,naming_series,Select,no,Naming Series,,,,,
+Ssbikez,AMC Invoice,invoice_date,Date,yes,Invoice Date,vas,VASSupplierInvoice,invoice_date,Match,vas/models.py:412
+Ssbikez,AMC Invoice,branch,Link,yes,Branch,vas,VASSupplierInvoice,branch,Match,vas/models.py:413
+Ssbikez,AMC Invoice,quantity,Int,no,Quantity,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.quantity not carried
+Ssbikez,AMC Invoice,payment_type,Select,no,Payment Type,vas,VASSupplierInvoice,payment_type,Match,vas/models.py:414
+Ssbikez,AMC Invoice,status,Data,no,Status,vas,VASSupplierInvoice,docstatus,Match,"vas/models.py:399 -- structured Draft/Submitted/Cancelled enum via DocStatusMixin, replaces reference's free-text Data field"
+Ssbikez,AMC Invoice,payment_status,Data,no,Payment Status,vas,VASSupplierInvoice,payment_status,Match,vas/models.py:416
+Ssbikez,AMC Invoice,naming_series,Select,no,Naming Series,vas,VASSupplierInvoice,,Missing,"vas/models.py:410 -- invoice_number is a flat auto-sequence (VAS-INV-00001), not a YYYY-based naming series"
 Ssbikez,AMC Invoice,section_break_gurm,Section Break,no,,,,,,
-Ssbikez,AMC Invoice,amc_invoice_items,Table,no,AMC Invoice items,,,,,
+Ssbikez,AMC Invoice,amc_invoice_items,Table,no,AMC Invoice items,vas,VASSupplierInvoiceItem,"invoice (reverse FK, items filtered to amc_type set)",Match,vas/models.py:446-469 -- shared VASSupplierInvoiceItem table used for AMC/RSA/Warranty rows via VASSupplierInvoiceItem.clean() exactly-one-of discriminator
 Ssbikez,AMC Invoice,section_break_uyug,Section Break,no,,,,,,
-Ssbikez,AMC Invoice,total_amount,Currency,yes,Total Amount,,,,,
+Ssbikez,AMC Invoice,total_amount,Currency,yes,Total Amount,vas,VASSupplierInvoice,total_amount,Match,vas/models.py:419
 Ssbikez,AMC Invoice,column_break_mxdb,Column Break,no,,,,,,
-Ssbikez,AMC Invoice,pending_amount,Currency,yes,Pending Amount,,,,,
-Ssbikez,AMC Stock History,date,Date,yes,Date,,,,,
-Ssbikez,AMC Stock History,branch,Link,yes,Branch,,,,,
-Ssbikez,AMC Stock History,supplier,Data,yes,Supplier,,,,,
-Ssbikez,AMC Stock History,quantity,Int,yes,Quantity,,,,,
-Ssbikez,AMC Stock History,updated_quantity,Int,no,Balance Quantity,,,,,
-Ssbikez,AMC Stock,amc,Link,yes,AMC,,,,,
-Ssbikez,AMC Stock,stock,Int,no,Stock,,,,,
+Ssbikez,AMC Invoice,pending_amount,Currency,yes,Pending Amount,vas,VASSupplierInvoice,pending_amount,Match,vas/models.py:420
+Ssbikez,AMC Stock History,date,Date,yes,Date,vas,VASStockMovement,date,Match,vas/models.py:333
+Ssbikez,AMC Stock History,branch,Link,yes,Branch,vas,VASStockMovement,branch,Match,vas/models.py:334
+Ssbikez,AMC Stock History,supplier,Data,yes,Supplier,vas,VASStockMovement,supplier,Match,vas/models.py:335 -- Django upgrades this to a real Supplier FK vs. reference's free-text Data field
+Ssbikez,AMC Stock History,quantity,Int,yes,Quantity,vas,VASStockMovement,quantity,Match,vas/models.py:337
+Ssbikez,AMC Stock History,updated_quantity,Int,no,Balance Quantity,vas,VASStockMovement,updated_quantity,Match,"vas/models.py:338, 350-364 -- computed atomically via F() increment on save(), not read-then-written"
+Ssbikez,AMC Stock,amc,Link,yes,AMC,vas,VASStockLedger,amc_type,Match,"vas/models.py:292 -- OneToOneField(AMCType), reference's 'amc' Link -> AMC Types confirmed in reference_erp_spec/21_Reports.md:68"
+Ssbikez,AMC Stock,stock,Int,no,Stock,vas,VASStockLedger,current_stock,Match,vas/models.py:295
 Ssbikez,AMC Stock,column_break_usdhk,Column Break,no,,,,,,
-Ssbikez,AMC Stock,purchase_order_details,Small Text,no,Purchase Order Details,,,,,
+Ssbikez,AMC Stock,purchase_order_details,Small Text,no,Purchase Order Details,vas,VASStockLedger,,Missing,vas/models.py:291-323 -- no free-text purchase-order-details field
 Ssbikez,AMC Stock,section_break_haphh,Section Break,no,,,,,,
-Ssbikez,AMC Stock,stock_history,Table,no,Stock History,,,,,
-Ssbikez,AMC Stock,amended_from,Link,no,Amended From,,,,,
-Ssbikez,AMC Types,company,Link,no,Company,,,,,
-Ssbikez,AMC Types,amc_type,Data,yes,AMC Type,,,,,
-Ssbikez,AMC Types,amc_validity_days,Int,yes,AMC Validity Days,,,,,
+Ssbikez,AMC Stock,stock_history,Table,no,Stock History,vas,VASStockMovement,ledger (reverse FK),Match,vas/models.py:326-372 -- VASStockMovement rows for the ledger replace the reference's embedded child table
+Ssbikez,AMC Stock,amended_from,Link,no,Amended From,vas,VASStockLedger,,Missing,"vas/models.py:291-323 -- VASStockLedger is a plain running-balance row, not a DocStatusMixin submittable document (design note vas/models.py:283-289: replaces the 3 parallel 'X Stock' + 'Add X Stock' doctypes entirely)"
+Ssbikez,AMC Types,company,Link,no,Company,vas,AMCType,,Missing,vas/models.py:15-38 -- AMCType has no company FK; VAS has no Company integration at all
+Ssbikez,AMC Types,amc_type,Data,yes,AMC Type,vas,AMCType,code,Match,vas/models.py:17 -- code is the unique plan identifier (reference autonames on this field too)
+Ssbikez,AMC Types,amc_validity_days,Int,yes,AMC Validity Days,vas,AMCType,amc_validity_days,Match,vas/models.py:19
 Ssbikez,AMC Types,column_break_jqeo,Column Break,no,,,,,,
-Ssbikez,AMC Types,branch,Link,no,Branch,,,,,
-Ssbikez,AMC Types,amc_amount,Currency,no,AMC Amount,,,,,
-Ssbikez,AMC Types,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,AMC Types,reference_number,Data,no,Reference Number,,,,,
+Ssbikez,AMC Types,branch,Link,no,Branch,vas,AMCType,,Missing,"vas/models.py:15-38 -- no branch scoping on AMCType, plan is global"
+Ssbikez,AMC Types,amc_amount,Currency,no,AMC Amount,vas,AMCType,amc_amount,Match,vas/models.py:20
+Ssbikez,AMC Types,hsn_code,Data,no,HSN Code,vas,AMCType,hsn_code,Match,vas/models.py:21
+Ssbikez,AMC Types,reference_number,Data,no,Reference Number,vas,AMCType,,Missing,vas/models.py:15-38 -- no reference_number field
 Ssbikez,AMC Types,section_break_bveb,Section Break,no,,,,,,
-Ssbikez,AMC Types,ss_bikes,Check,no,SS Bikes,,,,,
+Ssbikez,AMC Types,ss_bikes,Check,no,SS Bikes,vas,AMCType,ss_bikes,Match,vas/models.py:22
 Ssbikez,AMC Types,column_break_tymz,Column Break,no,,,,,,
-Ssbikez,AMC Types,yamaha,Check,no,Yamaha,,,,,
+Ssbikez,AMC Types,yamaha,Check,no,Yamaha,vas,AMCType,yamaha,Match,vas/models.py:23
 Ssbikez,AMC Types,column_break_bnsk,Column Break,no,,,,,,
-Ssbikez,AMC Types,deactivate_amc,Check,no,Deactivate AMC,,,,,
+Ssbikez,AMC Types,deactivate_amc,Check,no,Deactivate AMC,vas,AMCType,deactivate_amc,Match,vas/models.py:24
 Ssbikez,AMC Types,section_break_pdzn,Section Break,no,,,,,,
-Ssbikez,AMC Types,vehicle_type,Link,no,Vehicle Type,,,,,
+Ssbikez,AMC Types,vehicle_type,Link,no,Vehicle Type,vas,AMCType,vehicle_type,Match,"vas/models.py:25 -- deliberate difference: plain text snapshot label, not a Link (no Vehicle Type master exists in Django yet, per inline comment)"
 Ssbikez,AMC Types,column_break_rwob,Column Break,no,,,,,,
-Ssbikez,AMC Types,no_of_service,Int,no,No of Service,,,,,
+Ssbikez,AMC Types,no_of_service,Int,no,No of Service,vas,AMCType,no_of_service,Match,vas/models.py:26
 Ssbikez,AMC Types,column_break_zpwh,Column Break,no,,,,,,
-Ssbikez,AMC Types,water_wash_count_free,Int,no,Water Wash Count (Free),,,,,
+Ssbikez,AMC Types,water_wash_count_free,Int,no,Water Wash Count (Free),vas,AMCType,water_wash_count_free,Match,vas/models.py:27
 Ssbikez,AMC Types,column_break_yloh,Column Break,no,,,,,,
-Ssbikez,AMC Types,service_interval_days,Int,no,Service Interval (days),,,,,
+Ssbikez,AMC Types,service_interval_days,Int,no,Service Interval (days),vas,AMCType,service_interval_days,Match,vas/models.py:28
 Ssbikez,AMC Types,column_break_eqjw,Column Break,no,,,,,,
-Ssbikez,AMC Types,grace_days,Int,no,Grace Days,,,,,
+Ssbikez,AMC Types,grace_days,Int,no,Grace Days,vas,AMCType,grace_days,Match,vas/models.py:29
 Ssbikez,AMC,amc_type_section,Section Break,no,AMC Type,,,,,
-Ssbikez,AMC,ss_bikes,Check,no,SS Bikes,,,,,
+Ssbikez,AMC,ss_bikes,Check,no,SS Bikes,vas,AMCPackage,ss_bikes,Match,vas/models.py:99
 Ssbikez,AMC,column_break_tb7jg,Column Break,no,,,,,,
-Ssbikez,AMC,yamaha,Check,no,YAMAHA,,,,,
+Ssbikez,AMC,yamaha,Check,no,YAMAHA,vas,AMCPackage,yamaha,Match,vas/models.py:100
 Ssbikez,AMC,section_break_uohvy,Section Break,no,,,,,,
-Ssbikez,AMC,date,Date,yes,Date,,,,,
-Ssbikez,AMC,amount,Currency,yes,Amount,,,,,
-Ssbikez,AMC,branch,Link,yes,Branch,,,,,
-Ssbikez,AMC,company,Link,no,Company,,,,,
-Ssbikez,AMC,naming_series,Select,no,Series,,,,,
+Ssbikez,AMC,date,Date,yes,Date,vas,AMCPackage,,Missing,vas/models.py:78-159 -- no user-set sale date field; only auto_now_add created_at exists
+Ssbikez,AMC,amount,Currency,yes,Amount,vas,AMCPackage,amount,Match,vas/models.py:94
+Ssbikez,AMC,branch,Link,yes,Branch,vas,AMCPackage,,Missing,"vas/models.py:78-159 -- mandatory in reference, but AMCPackage has no branch FK at all (RSAPackage/ProtectionPlusPackage have the same gap; only VASStockMovement tracks branch)"
+Ssbikez,AMC,company,Link,no,Company,vas,AMCPackage,,Missing,vas/models.py:78-159 -- no company field anywhere in vas app
+Ssbikez,AMC,naming_series,Select,no,Series,vas,AMCPackage,,Missing,"vas/models.py:78-159 -- no VHL-AMC-YYYY- naming series, uses plain pk (str() shows 'AMC-{pk}')"
 Ssbikez,AMC,column_break_npokz,Column Break,no,,,,,,
-Ssbikez,AMC,order_form_id,Link,no,Order Form ID,,,,,
-Ssbikez,AMC,gst,Link,yes,GST %,,,,,
+Ssbikez,AMC,order_form_id,Link,no,Order Form ID,vas,AMCPackage,sales_order,Match,vas/models.py:90 -- FK to sales.VehicleSalesOrder
+Ssbikez,AMC,gst,Link,yes,GST %,vas,AMCPackage,,Missing,vas/models.py:78-159 -- no GST% Link field; gst_amount is stored directly with no on-select auto-calc (reference's gst_ onchange handler computing gst_amount/with_out_gst_amount from a GST% template has no Django equivalent)
 Ssbikez,AMC,column_break_fikng,Column Break,no,,,,,,
-Ssbikez,AMC,vehicle_number,Data,no,Vehicle Number,,,,,
-Ssbikez,AMC,total_amount,Currency,yes,Total Amount,,,,,
-Ssbikez,AMC,ledger_voucher_no,Link,no,Ledger Voucher No,,,,,
+Ssbikez,AMC,vehicle_number,Data,no,Vehicle Number,vas,AMCPackage,vehicle_number,Match,vas/models.py:97
+Ssbikez,AMC,total_amount,Currency,yes,Total Amount,vas,AMCPackage,,Missing,vas/models.py:78-159 -- reference carries amount and total_amount as two parallel mandatory Currency fields (client script sets both to the same plan amount); Django keeps only amount
+Ssbikez,AMC,ledger_voucher_no,Link,no,Ledger Voucher No,vas,AMCPackage,invoice,Match,"vas/models.py:91, 530-550 -- FK to billing.Invoice, auto-populated by _create_vas_invoice() on submit (same role as reference's on_submit auto-created Sales Invoice link)"
 Ssbikez,AMC,column_break_kisvt,Column Break,no,,,,,,
-Ssbikez,AMC,chasis_number,Data,no,Chasis Number,,,,,
-Ssbikez,AMC,gst_amount,Currency,no,GST Amount,,,,,
-Ssbikez,AMC,customer,Link,no,Customer,,,,,
+Ssbikez,AMC,chasis_number,Data,no,Chasis Number,vas,AMCPackage,chasis_number,Match,vas/models.py:98
+Ssbikez,AMC,gst_amount,Currency,no,GST Amount,vas,AMCPackage,gst_amount,Match,vas/models.py:95
+Ssbikez,AMC,customer,Link,no,Customer,vas,AMCPackage,customer_vehicle.customer,Match,"vas/models.py:84-88 -- reachable via customer_vehicle FK chain, no direct customer field"
 Ssbikez,AMC,column_break_dstgb,Column Break,no,,,,,,
-Ssbikez,AMC,amc_no,Link,yes,AMC Plan,,,,,
-Ssbikez,AMC,with_out_gst_amount,Currency,no,Taxable Amount,,,,,
-Ssbikez,AMC,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,AMC,amc_no,Link,yes,AMC Plan,vas,AMCPackage,amc_type,Match,vas/models.py:89 -- FK to AMCType
+Ssbikez,AMC,with_out_gst_amount,Currency,no,Taxable Amount,vas,AMCPackage,without_gst_amount,Match,vas/models.py:96
+Ssbikez,AMC,vehicle_name,Link,no,Vehicle Name,vas,AMCPackage,customer_vehicle.vehicle,Match,"vas/models.py:84-88 -- reachable via customer_vehicle FK chain, no direct vehicle_name Item link"
 Ssbikez,AMC,section_break_4vtnl,Section Break,no,,,,,,
-Ssbikez,AMC,vehicle_group,Link,no,Vehicle Group,,,,,
+Ssbikez,AMC,vehicle_group,Link,no,Vehicle Group,vas,AMCPackage,vehicle_group,Match,"vas/models.py:105 -- deliberate difference: plain text snapshot, not a Link to Vehicle Type"
 Ssbikez,AMC,column_break_w2sbp,Column Break,no,,,,,,
-Ssbikez,AMC,no_of_service,Int,no,No of Service,,,,,
+Ssbikez,AMC,no_of_service,Int,no,No of Service,vas,AMCPackage,no_of_service,Match,"vas/models.py:101, 116-117 -- snapshotted from amc_type at save time"
 Ssbikez,AMC,column_break_dfnnt,Column Break,no,,,,,,
-Ssbikez,AMC,water_wash_count_free,Int,no,Water Wash Count (Free),,,,,
+Ssbikez,AMC,water_wash_count_free,Int,no,Water Wash Count (Free),vas,AMCPackage,water_wash_count_free,Match,"vas/models.py:102, 117"
 Ssbikez,AMC,column_break_tdlmv,Column Break,no,,,,,,
-Ssbikez,AMC,service_interval,Int,no,Service Interval(Days),,,,,
+Ssbikez,AMC,service_interval,Int,no,Service Interval(Days),vas,AMCPackage,service_interval,Match,"vas/models.py:103, 118"
 Ssbikez,AMC,column_break_ujdqk,Column Break,no,,,,,,
-Ssbikez,AMC,grace_days,Int,no,Grace Days,,,,,
-Ssbikez,AMC,amended_from,Link,no,Amended From,,,,,
-Ssbikez,AMC,amended_from,Link,no,Amended From,,,,,
+Ssbikez,AMC,grace_days,Int,no,Grace Days,vas,AMCPackage,grace_days,Match,"vas/models.py:104, 119"
+Ssbikez,AMC,amended_from,Link,no,Amended From,vas,AMCPackage,docstatus/amended_from,Match,"vas/models.py:78 AMCPackage(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin"
+Ssbikez,AMC,amended_from,Link,no,Amended From,vas,AMCPackage,docstatus/amended_from,Match,"vas/models.py:78 AMCPackage(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin"
 Ssbikez,Add AMC Stock,purchase_type,Link,yes,Purchase Type,,,,,
 Ssbikez,Add AMC Stock,company,Data,no,Company,,,,,
 Ssbikez,Add AMC Stock,branch,Link,yes,Branch,,,,,
@@ -3032,11 +3032,11 @@ Ssbikez,Post Paid Insurance Supplier Limit,supplier_type,Data,yes,Supplier Type,
 Ssbikez,Post Paid Insurance Supplier Limit,limit_amount,Currency,yes,Limit Amount,,,,,
 Ssbikez,Product Color,color_name,Data,yes,Color Name,,,,,
 Ssbikez,Product Color,color_code,Data,yes,Color Code,,,,,
-Ssbikez,Protection Plus Invoice Items,protection_plus_type,Link,yes,Protection Plus Type,,,,,
-Ssbikez,Protection Plus Invoice Items,quantity,Int,no,Quantity,,,,,
-Ssbikez,Protection Plus Invoice Items,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,Protection Plus Invoice Items,rate,Currency,yes,Rate,,,,,
-Ssbikez,Protection Plus Invoice Items,protection_plus_amount,Currency,yes,Protection Plus Amount,,,,,
+Ssbikez,Protection Plus Invoice Items,protection_plus_type,Link,yes,Protection Plus Type,vas,VASSupplierInvoiceItem,warranty_type,Match,vas/models.py:450
+Ssbikez,Protection Plus Invoice Items,quantity,Int,no,Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
+Ssbikez,Protection Plus Invoice Items,hsn_code,Data,no,HSN Code,vas,VASSupplierInvoiceItem,hsn_code,Match,vas/models.py:452
+Ssbikez,Protection Plus Invoice Items,rate,Currency,yes,Rate,vas,VASSupplierInvoiceItem,rate,Match,vas/models.py:453
+Ssbikez,Protection Plus Invoice Items,protection_plus_amount,Currency,yes,Protection Plus Amount,vas,VASSupplierInvoiceItem,amount,Match,vas/models.py:454 -- shared generic 'amount' field
 Ssbikez,RC Book Creation RTO Table,rc_book_number,Data,yes,Vehicle Number,rto,RCBookCreation,rc_number,Match,"rto/models.py:512 -- header-level rc_number field (singular, since not a batch table)"
 Ssbikez,RC Book Creation RTO Table,party_name,Link,yes,Party Name,rto,RCBookCreation,rto_registration.sales_order.customer,Match,rto/models.py:509 -- reachable via rto_registration FK chain
 Ssbikez,RC Book Creation RTO Table,sales_order,Link,no,Order Form ID,rto,RCBookCreation,rto_registration.sales_order,Match,rto/models.py:509 -- reachable via rto_registration FK chain
@@ -3099,95 +3099,95 @@ Ssbikez,RC Issue Child,party_name,Link,no,Party Name,rto,RCBookIssueItem,party_n
 Ssbikez,RC Issue Child,sales_order,Link,no,Order Form ID,rto,RCBookIssueItem,,Missing,"rto/models.py:544-555 -- no sales_order/order link on the item row (only vehicle_number/party_name text, plus exchange_vehicle FK for the exchange path)"
 Ssbikez,RC Issue Child,order_form_series,Link,no,Order Form Series,rto,RCBookIssueItem,,Missing,Same gap as sales_order above
 Ssbikez,RC Issue Child,vehicle_name,Link,no,Vehicle Name,rto,RCBookIssueItem,,Missing,rto/models.py:544-555 -- no vehicle_name/Item link on the row
-Ssbikez,RSA Creation,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,RSA Creation,rsa,Link,yes,RSA,,,,,
+Ssbikez,RSA Creation,naming_series,Select,no,Naming Series,vas,RSACreation,,Missing,"vas/models.py:379-391 -- no naming series, str() shows plain 'RSA-CRE-{pk}'"
+Ssbikez,RSA Creation,rsa,Link,yes,RSA,vas,RSACreation,rsa_type,Match,vas/models.py:380
 Ssbikez,RSA Creation,column_break_iohqk,Column Break,no,,,,,,
-Ssbikez,RSA Creation,rsa_amount,Currency,no,RSA Amount,,,,,
+Ssbikez,RSA Creation,rsa_amount,Currency,no,RSA Amount,vas,RSACreation,rsa_amount,Match,vas/models.py:381
 Ssbikez,RSA Creation,column_break_7sutq,Column Break,no,,,,,,
-Ssbikez,RSA Creation,supplier,Link,yes,Supplier,,,,,
+Ssbikez,RSA Creation,supplier,Link,yes,Supplier,vas,RSACreation,supplier,Match,vas/models.py:382
 Ssbikez,RSA Creation,column_break_ekewc,Column Break,no,,,,,,
-Ssbikez,RSA Creation,expected_date,Date,yes,Expected Date,,,,,
-Ssbikez,RSA Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RSA Creation,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RSA Invoice Items,rsa_type,Link,yes,RSA Type,,,,,
-Ssbikez,RSA Invoice Items,rsa_amount,Currency,yes,RSA Amount,,,,,
-Ssbikez,RSA Invoice Items,expected_date,Date,no,Expected Date,,,,,
-Ssbikez,RSA Invoice Items,pending_amount,Currency,no,Pending Amount,,,,,
-Ssbikez,RSA Invoice Items,pay_now,Check,no,Pay now,,,,,
+Ssbikez,RSA Creation,expected_date,Date,yes,Expected Date,vas,RSACreation,expected_date,Match,vas/models.py:383
+Ssbikez,RSA Creation,amended_from,Link,no,Amended From,vas,RSACreation,docstatus/amended_from,Match,"vas/models.py:379 RSACreation(DocStatusMixin, ...)"
+Ssbikez,RSA Creation,amended_from,Link,no,Amended From,vas,RSACreation,docstatus/amended_from,Match,"vas/models.py:379 RSACreation(DocStatusMixin, ...)"
+Ssbikez,RSA Invoice Items,rsa_type,Link,yes,RSA Type,vas,VASSupplierInvoiceItem,rsa_type,Match,vas/models.py:449
+Ssbikez,RSA Invoice Items,rsa_amount,Currency,yes,RSA Amount,vas,VASSupplierInvoiceItem,amount,Match,vas/models.py:454 -- shared generic 'amount' field
+Ssbikez,RSA Invoice Items,expected_date,Date,no,Expected Date,vas,VASSupplierInvoiceItem,,Missing,vas/models.py:446-469 -- no per-item expected_date; only header-level VASSupplierInvoice.expected_date exists
+Ssbikez,RSA Invoice Items,pending_amount,Currency,no,Pending Amount,vas,VASSupplierInvoiceItem,,Missing,vas/models.py:446-469 -- no per-item pending_amount
+Ssbikez,RSA Invoice Items,pay_now,Check,no,Pay now,vas,VASSupplierInvoiceItem,,Missing,vas/models.py:446-469 -- no per-item pay_now checkbox
 Ssbikez,RSA Invoice Items,column_break_cmjn,Column Break,no,,,,,,
-Ssbikez,RSA Invoice Items,quantity,Int,no,Quantity,,,,,
-Ssbikez,RSA Invoice Items,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,RSA Invoice Items,rate,Currency,no,Rate,,,,,
-Ssbikez,RSA Invoice Items,branch,Link,no,Branch,,,,,
-Ssbikez,RSA Invoice Items,update_quantity,Int,no,Update Quantity,,,,,
+Ssbikez,RSA Invoice Items,quantity,Int,no,Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
+Ssbikez,RSA Invoice Items,hsn_code,Data,no,HSN Code,vas,VASSupplierInvoiceItem,hsn_code,Match,vas/models.py:452
+Ssbikez,RSA Invoice Items,rate,Currency,no,Rate,vas,VASSupplierInvoiceItem,rate,Match,vas/models.py:453
+Ssbikez,RSA Invoice Items,branch,Link,no,Branch,vas,VASSupplierInvoiceItem,,Missing,vas/models.py:446-469 -- no per-item branch; only header-level VASSupplierInvoice.branch exists
+Ssbikez,RSA Invoice Items,update_quantity,Int,no,Update Quantity,vas,VASSupplierInvoiceItem,,Missing,"vas/models.py:446-469 -- no per-item running-balance snapshot on the invoice item (VASStockMovement.updated_quantity plays that role, but on the movement record, not the invoice line)"
 Ssbikez,RSA Invoice Items,column_break_ukxu,Column Break,no,,,,,,
 Ssbikez,RSA Invoice Items,column_break_mljq,Column Break,no,,,,,,
 Ssbikez,RSA Invoice,section_break_9dm4,Section Break,no,,,,,,
-Ssbikez,RSA Invoice,company,Link,no,Company,,,,,
-Ssbikez,RSA Invoice,rsa_type,Link,no,RSA Type,,,,,
-Ssbikez,RSA Invoice,rsa_no,Data,no,RSA No,,,,,
-Ssbikez,RSA Invoice,invoice_no,Data,yes,Invoice No,,,,,
-Ssbikez,RSA Invoice,supplier,Link,yes,Supplier,,,,,
-Ssbikez,RSA Invoice,gst_,Link,yes,GST %,,,,,
-Ssbikez,RSA Invoice,rsa_amount,Currency,no,RSA Amount,,,,,
-Ssbikez,RSA Invoice,amended_from,Link,no,Amended From,,,,,
+Ssbikez,RSA Invoice,company,Link,no,Company,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no company field
+Ssbikez,RSA Invoice,rsa_type,Link,no,RSA Type,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level rsa_type doesn't exist; only per-line on VASSupplierInvoiceItem
+Ssbikez,RSA Invoice,rsa_no,Data,no,RSA No,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no back-reference field to an originating RSA transaction number
+Ssbikez,RSA Invoice,invoice_no,Data,yes,Invoice No,vas,VASSupplierInvoice,invoice_number,Match,"vas/models.py:410, 423-436 -- auto-generated VAS-INV-##### sequence"
+Ssbikez,RSA Invoice,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,RSA Invoice,gst_,Link,yes,GST %,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no GST% Link field
+Ssbikez,RSA Invoice,rsa_amount,Currency,no,RSA Amount,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.amount not carried
+Ssbikez,RSA Invoice,amended_from,Link,no,Amended From,vas,VASSupplierInvoice,docstatus/amended_from,Match,"vas/models.py:399 VASSupplierInvoice(DocStatusMixin, ...)"
 Ssbikez,RSA Invoice,column_break_hhbu,Column Break,no,,,,,,
-Ssbikez,RSA Invoice,invoice_date,Date,yes,Invoice Date,,,,,
-Ssbikez,RSA Invoice,branch,Link,yes,Branch,,,,,
-Ssbikez,RSA Invoice,payment_type,Select,yes,Payment Type,,,,,
-Ssbikez,RSA Invoice,pay_mode,Link,yes,Pay Mode,,,,,
-Ssbikez,RSA Invoice,expected_date,Date,no,Expected Date,,,,,
-Ssbikez,RSA Invoice,total,Currency,no,Total,,,,,
-Ssbikez,RSA Invoice,quantity,Int,no,Quantity,,,,,
-Ssbikez,RSA Invoice,status,Data,no,Status,,,,,
-Ssbikez,RSA Invoice,naming_series,Select,no,Naming Series,,,,,
-Ssbikez,RSA Invoice,cash_account,Link,no,Cash Account,,,,,
+Ssbikez,RSA Invoice,invoice_date,Date,yes,Invoice Date,vas,VASSupplierInvoice,invoice_date,Match,vas/models.py:412
+Ssbikez,RSA Invoice,branch,Link,yes,Branch,vas,VASSupplierInvoice,branch,Match,vas/models.py:413
+Ssbikez,RSA Invoice,payment_type,Select,yes,Payment Type,vas,VASSupplierInvoice,payment_type,Match,vas/models.py:414
+Ssbikez,RSA Invoice,pay_mode,Link,yes,Pay Mode,vas,VASSupplierInvoice,pay_mode,Match,vas/models.py:415
+Ssbikez,RSA Invoice,expected_date,Date,no,Expected Date,vas,VASSupplierInvoice,expected_date,Match,"vas/models.py:417 -- explicitly scoped 'RSA invoices only' in the field help_text, matching reference note"
+Ssbikez,RSA Invoice,total,Currency,no,Total,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- reference carries total and total_amount as two parallel Currency fields; Django keeps only total_amount
+Ssbikez,RSA Invoice,quantity,Int,no,Quantity,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.quantity not carried
+Ssbikez,RSA Invoice,status,Data,no,Status,vas,VASSupplierInvoice,docstatus,Match,vas/models.py:399 -- structured enum via DocStatusMixin
+Ssbikez,RSA Invoice,naming_series,Select,no,Naming Series,vas,VASSupplierInvoice,,Missing,"vas/models.py:410 -- flat auto-sequence, not a YYYY-based naming series"
+Ssbikez,RSA Invoice,cash_account,Link,no,Cash Account,vas,VASSupplierInvoice,cash_account,Match,"vas/models.py:418 -- explicitly scoped 'RSA invoices only' in the field help_text, matching reference note"
 Ssbikez,RSA Invoice,section_break_ecin,Section Break,no,,,,,,
-Ssbikez,RSA Invoice,rsa_invoice_items,Table,no,RSA Invoice Items,,,,,
+Ssbikez,RSA Invoice,rsa_invoice_items,Table,no,RSA Invoice Items,vas,VASSupplierInvoiceItem,"invoice (reverse FK, items filtered to rsa_type set)",Match,vas/models.py:446-469 -- shared VASSupplierInvoiceItem table
 Ssbikez,RSA Invoice,section_break_iiht,Section Break,no,,,,,,
-Ssbikez,RSA Invoice,total_amount,Currency,no,Total Amount,,,,,
+Ssbikez,RSA Invoice,total_amount,Currency,no,Total Amount,vas,VASSupplierInvoice,total_amount,Match,vas/models.py:419
 Ssbikez,RSA Invoice,column_break_plwx,Column Break,no,,,,,,
-Ssbikez,RSA Invoice,pending_amount,Currency,no,Pending Amount,,,,,
-Ssbikez,RSA Invoice,payment_status,Data,no,Payment Status,,,,,
-Ssbikez,RSA Stock History,date,Date,yes,Date,,,,,
-Ssbikez,RSA Stock History,branch,Link,no,Branch,,,,,
-Ssbikez,RSA Stock History,supplier,Data,yes,Supplier,,,,,
-Ssbikez,RSA Stock History,quantity,Int,yes,Quantity,,,,,
-Ssbikez,RSA Stock,rsa,Link,yes,RSA,,,,,
-Ssbikez,RSA Stock,stock,Int,no,Stock,,,,,
+Ssbikez,RSA Invoice,pending_amount,Currency,no,Pending Amount,vas,VASSupplierInvoice,pending_amount,Match,vas/models.py:420
+Ssbikez,RSA Invoice,payment_status,Data,no,Payment Status,vas,VASSupplierInvoice,payment_status,Match,vas/models.py:416
+Ssbikez,RSA Stock History,date,Date,yes,Date,vas,VASStockMovement,date,Match,vas/models.py:333
+Ssbikez,RSA Stock History,branch,Link,no,Branch,vas,VASStockMovement,branch,Match,vas/models.py:334
+Ssbikez,RSA Stock History,supplier,Data,yes,Supplier,vas,VASStockMovement,supplier,Match,vas/models.py:335
+Ssbikez,RSA Stock History,quantity,Int,yes,Quantity,vas,VASStockMovement,quantity,Match,vas/models.py:337
+Ssbikez,RSA Stock,rsa,Link,yes,RSA,vas,VASStockLedger,rsa_type,Match,"vas/models.py:293 -- OneToOneField(RSAType), reference's 'rsa' Link -> RSA Types confirmed in reference_erp_spec/27_not_in_main_nav.md:17184"
+Ssbikez,RSA Stock,stock,Int,no,Stock,vas,VASStockLedger,current_stock,Match,vas/models.py:295
 Ssbikez,RSA Stock,section_break_haphh,Section Break,no,,,,,,
-Ssbikez,RSA Stock,stock_history,Table,no,Stock History,,,,,
-Ssbikez,RSA Stock,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RSA Types,disabled,Check,no,Disabled,,,,,
+Ssbikez,RSA Stock,stock_history,Table,no,Stock History,vas,VASStockMovement,ledger (reverse FK),Match,vas/models.py:326-372
+Ssbikez,RSA Stock,amended_from,Link,no,Amended From,vas,VASStockLedger,,Missing,"vas/models.py:291-323 -- VASStockLedger is not a submittable document, see AMC Stock row"
+Ssbikez,RSA Types,disabled,Check,no,Disabled,vas,RSAType,is_active,Match,vas/models.py:41-55 -- inverted boolean sense (is_active vs disabled) but same concept
 Ssbikez,RSA Types,section_break_wqxr,Section Break,no,,,,,,
-Ssbikez,RSA Types,company,Link,no,Company,,,,,
-Ssbikez,RSA Types,branch,Link,no,Branch,,,,,
-Ssbikez,RSA Types,rsa_type,Data,yes,RSA Type,,,,,
+Ssbikez,RSA Types,company,Link,no,Company,vas,RSAType,,Missing,vas/models.py:41-55 -- no company field
+Ssbikez,RSA Types,branch,Link,no,Branch,vas,RSAType,,Missing,vas/models.py:41-55 -- no branch field
+Ssbikez,RSA Types,rsa_type,Data,yes,RSA Type,vas,RSAType,code,Match,vas/models.py:43 -- code is the unique plan identifier
 Ssbikez,RSA Types,column_break_wluv,Column Break,no,,,,,,
-Ssbikez,RSA Types,rsa_amount,Currency,no,RSA Amount,,,,,
+Ssbikez,RSA Types,rsa_amount,Currency,no,RSA Amount,vas,RSAType,rsa_amount,Match,vas/models.py:45
 Ssbikez,RSA Types,column_break_cqwv,Column Break,no,,,,,,
-Ssbikez,RSA Types,reference_number,Data,no,Reference Number,,,,,
-Ssbikez,RSA Types,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,RSA Types,rsa_stock_total,Int,no,RSA Stock Total,,,,,
-Ssbikez,RSA,date,Date,yes,Date,,,,,
-Ssbikez,RSA,rsa_amount,Currency,yes,RSA Amount,,,,,
-Ssbikez,RSA,branch,Link,no,Branch,,,,,
-Ssbikez,RSA,company,Link,no,Company,,,,,
+Ssbikez,RSA Types,reference_number,Data,no,Reference Number,vas,RSAType,,Missing,vas/models.py:41-55 -- no reference_number field
+Ssbikez,RSA Types,hsn_code,Data,no,HSN Code,vas,RSAType,hsn_code,Match,vas/models.py:46
+Ssbikez,RSA Types,rsa_stock_total,Int,no,RSA Stock Total,vas,RSAType,stock_ledger.current_stock,Match,"vas/models.py:291-323 -- reachable via the RSAType.stock_ledger reverse OneToOne, not a field on RSAType itself"
+Ssbikez,RSA,date,Date,yes,Date,vas,RSAPackage,,Missing,"vas/models.py:162-220 -- no user-set sale date field, only auto_now_add created_at"
+Ssbikez,RSA,rsa_amount,Currency,yes,RSA Amount,vas,RSAPackage,amount,Match,vas/models.py:179
+Ssbikez,RSA,branch,Link,no,Branch,vas,RSAPackage,,Missing,vas/models.py:162-220 -- no branch FK on RSAPackage (same gap as AMCPackage/ProtectionPlusPackage)
+Ssbikez,RSA,company,Link,no,Company,vas,RSAPackage,,Missing,vas/models.py:162-220 -- no company field
 Ssbikez,RSA,column_break_r7lpu,Column Break,no,,,,,,
-Ssbikez,RSA,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,RSA,gst_,Link,yes,GST %,,,,,
-Ssbikez,RSA,customer,Link,no,Customer,,,,,
+Ssbikez,RSA,order_form_id,Link,yes,Order Form ID,vas,RSAPackage,sales_order,Match,vas/models.py:174 -- FK to sales.VehicleSalesOrder
+Ssbikez,RSA,gst_,Link,yes,GST %,vas,RSAPackage,,Missing,vas/models.py:162-220 -- no GST% Link field; gst_amount stored directly with no auto-calc
+Ssbikez,RSA,customer,Link,no,Customer,vas,RSAPackage,customer_vehicle.customer,Match,vas/models.py:168-172 -- reachable via customer_vehicle FK chain
 Ssbikez,RSA,column_break_746rf,Column Break,no,,,,,,
-Ssbikez,RSA,rsa_no,Data,no,RSA Portal No,,,,,
-Ssbikez,RSA,gst_amount,Currency,no,GST Amount,,,,,
-Ssbikez,RSA,vehicle_name,Link,no,Vehicle Name,,,,,
+Ssbikez,RSA,rsa_no,Data,no,RSA Portal No,vas,RSAPackage,rsa_portal_no,Match,vas/models.py:176
+Ssbikez,RSA,gst_amount,Currency,no,GST Amount,vas,RSAPackage,gst_amount,Match,vas/models.py:180
+Ssbikez,RSA,vehicle_name,Link,no,Vehicle Name,vas,RSAPackage,customer_vehicle.vehicle,Match,vas/models.py:168-172 -- reachable via customer_vehicle FK chain
 Ssbikez,RSA,column_break_icito,Column Break,no,,,,,,
-Ssbikez,RSA,rsa,Link,yes,RSA,,,,,
-Ssbikez,RSA,without_gst_amount,Currency,no,Taxable Amount,,,,,
-Ssbikez,RSA,ledger_voucher_no,Link,no,Ledger Voucher No,,,,,
-Ssbikez,RSA,naming_series,Select,no,Series,,,,,
-Ssbikez,RSA,amended_from,Link,no,Amended From,,,,,
-Ssbikez,RSA,amended_from,Link,no,Amended From,,,,,
+Ssbikez,RSA,rsa,Link,yes,RSA,vas,RSAPackage,rsa_type,Match,vas/models.py:173 -- FK to RSAType
+Ssbikez,RSA,without_gst_amount,Currency,no,Taxable Amount,vas,RSAPackage,without_gst_amount,Match,vas/models.py:181
+Ssbikez,RSA,ledger_voucher_no,Link,no,Ledger Voucher No,vas,RSAPackage,invoice,Match,"vas/models.py:175, 530-550 -- FK to billing.Invoice, auto-populated by _create_vas_invoice() on submit"
+Ssbikez,RSA,naming_series,Select,no,Series,vas,RSAPackage,,Missing,"vas/models.py:162-220 -- no VHL-RSA-YYYY- naming series, uses plain pk"
+Ssbikez,RSA,amended_from,Link,no,Amended From,vas,RSAPackage,docstatus/amended_from,Match,"vas/models.py:162 RSAPackage(DocStatusMixin, ...)"
+Ssbikez,RSA,amended_from,Link,no,Amended From,vas,RSAPackage,docstatus/amended_from,Match,"vas/models.py:162 RSAPackage(DocStatusMixin, ...)"
 Ssbikez,RTO Expense Party,party_name,Link,yes,Party Name,rto,RTOPaymentItem,sales_order.customer,Match,rto/models.py:299
 Ssbikez,RTO Expense Party,sales_order,Link,yes,Order Form ID,rto,RTOPaymentItem,sales_order,Match,rto/models.py:299
 Ssbikez,RTO Expense Party,flag_amount,Currency,yes,Flag Amount,rto,RTOPaymentItem,flag_amount,Match,rto/models.py:301
@@ -5461,73 +5461,73 @@ Ssbikez,Voucher Items Table,voucher_number,Link,yes,Voucher Number,,,,,
 Ssbikez,Voucher Items Table,amount,Currency,yes,Amount,,,,,
 Ssbikez,Voucher Type Master,types,Data,no,Types,,,,,
 Ssbikez,Warranty Invoice,section_break_dokx,Section Break,no,,,,,,
-Ssbikez,Warranty Invoice,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Warranty Invoice,invoice_no,Data,yes,Invoice No,,,,,
-Ssbikez,Warranty Invoice,company,Link,no,Company,,,,,
-Ssbikez,Warranty Invoice,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Warranty Invoice,gst_,Link,yes,GST %,,,,,
-Ssbikez,Warranty Invoice,pay_mode,Link,no,Pay Mode,,,,,
-Ssbikez,Warranty Invoice,warranty_type,Link,no,Warranty Type,,,,,
-Ssbikez,Warranty Invoice,warranty_amount,Currency,no,Warranty Amount,,,,,
-Ssbikez,Warranty Invoice,total,Currency,no,Total,,,,,
+Ssbikez,Warranty Invoice,amended_from,Link,no,Amended From,vas,VASSupplierInvoice,docstatus/amended_from,Match,"vas/models.py:399 VASSupplierInvoice(DocStatusMixin, ...)"
+Ssbikez,Warranty Invoice,invoice_no,Data,yes,Invoice No,vas,VASSupplierInvoice,invoice_number,Match,"vas/models.py:410, 423-436"
+Ssbikez,Warranty Invoice,company,Link,no,Company,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no company field
+Ssbikez,Warranty Invoice,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,Warranty Invoice,gst_,Link,yes,GST %,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- no GST% Link field
+Ssbikez,Warranty Invoice,pay_mode,Link,no,Pay Mode,vas,VASSupplierInvoice,pay_mode,Match,vas/models.py:415
+Ssbikez,Warranty Invoice,warranty_type,Link,no,Warranty Type,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level warranty_type doesn't exist; only per-line on VASSupplierInvoiceItem
+Ssbikez,Warranty Invoice,warranty_amount,Currency,no,Warranty Amount,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.amount not carried
+Ssbikez,Warranty Invoice,total,Currency,no,Total,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- reference carries total and total_amount as two parallel fields; Django keeps only total_amount
 Ssbikez,Warranty Invoice,column_break_nhgq,Column Break,no,,,,,,
-Ssbikez,Warranty Invoice,invoice_date,Date,yes,Invoice Date,,,,,
-Ssbikez,Warranty Invoice,branch,Link,yes,Branch,,,,,
-Ssbikez,Warranty Invoice,payment_type,Select,no,Payment Type,,,,,
-Ssbikez,Warranty Invoice,quantity,Int,no,Quantity,,,,,
-Ssbikez,Warranty Invoice,payment_status,Data,no,Payment Status,,,,,
-Ssbikez,Warranty Invoice,naming_series,Select,no,Naming Series,,,,,
+Ssbikez,Warranty Invoice,invoice_date,Date,yes,Invoice Date,vas,VASSupplierInvoice,invoice_date,Match,vas/models.py:412
+Ssbikez,Warranty Invoice,branch,Link,yes,Branch,vas,VASSupplierInvoice,branch,Match,vas/models.py:413
+Ssbikez,Warranty Invoice,payment_type,Select,no,Payment Type,vas,VASSupplierInvoice,payment_type,Match,vas/models.py:414
+Ssbikez,Warranty Invoice,quantity,Int,no,Quantity,vas,VASSupplierInvoice,,Missing,vas/models.py:399-443 -- header-level duplicate of item.quantity not carried
+Ssbikez,Warranty Invoice,payment_status,Data,no,Payment Status,vas,VASSupplierInvoice,payment_status,Match,vas/models.py:416
+Ssbikez,Warranty Invoice,naming_series,Select,no,Naming Series,vas,VASSupplierInvoice,,Missing,"vas/models.py:410 -- flat auto-sequence, not a YYYY-based naming series"
 Ssbikez,Warranty Invoice,section_break_bwfv,Section Break,no,,,,,,
-Ssbikez,Warranty Invoice,pp_invoice_items,Table,no,PP Invoice Items,,,,,
+Ssbikez,Warranty Invoice,pp_invoice_items,Table,no,PP Invoice Items,vas,VASSupplierInvoiceItem,"invoice (reverse FK, items filtered to warranty_type set)",Match,vas/models.py:446-469 -- shared VASSupplierInvoiceItem table
 Ssbikez,Warranty Invoice,section_break_opla,Section Break,no,,,,,,
-Ssbikez,Warranty Invoice,total_amount,Currency,yes,Total Amount,,,,,
+Ssbikez,Warranty Invoice,total_amount,Currency,yes,Total Amount,vas,VASSupplierInvoice,total_amount,Match,vas/models.py:419
 Ssbikez,Warranty Invoice,column_break_ngln,Column Break,no,,,,,,
-Ssbikez,Warranty Invoice,pending_amount,Currency,yes,Pending Amount,,,,,
-Ssbikez,Warranty Setting,purchase_type,Link,yes,Purchase Type,,,,,
-Ssbikez,Warranty Setting,branch,Link,yes,Branch,,,,,
+Ssbikez,Warranty Invoice,pending_amount,Currency,yes,Pending Amount,vas,VASSupplierInvoice,pending_amount,Match,vas/models.py:420
+Ssbikez,Warranty Setting,purchase_type,Link,yes,Purchase Type,vas,VASSupplierInvoiceItem,warranty_type,Match,vas/models.py:450 -- the reference's single-doctype 'quick add stock' screen is replaced by creating+submitting a VASSupplierInvoice with a warranty_type line item (vas/models.py:283-289 design note)
+Ssbikez,Warranty Setting,branch,Link,yes,Branch,vas,VASSupplierInvoice,branch,Match,vas/models.py:413
 Ssbikez,Warranty Setting,column_break_t5vbe,Column Break,no,,,,,,
-Ssbikez,Warranty Setting,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Warranty Setting,purchase_details,Small Text,no,Purchase Details,,,,,
+Ssbikez,Warranty Setting,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,Warranty Setting,purchase_details,Small Text,no,Purchase Details,vas,VASSupplierInvoice,,Missing,vas/models.py:399-469 -- no free-text purchase-details field on invoice or item
 Ssbikez,Warranty Setting,column_break_dyn09,Column Break,no,,,,,,
-Ssbikez,Warranty Setting,quantity,Int,yes,Purchase Quantity,,,,,
+Ssbikez,Warranty Setting,quantity,Int,yes,Purchase Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
 Ssbikez,Warranty Setting,section_break_cutl6,Section Break,no,,,,,,
-Ssbikez,Warranty Setting,update_stock,Button,no,Update Stock,,,,,
-Ssbikez,Warranty Stock History,date,Date,yes,Date,,,,,
-Ssbikez,Warranty Stock History,branch,Link,yes,Branch,,,,,
-Ssbikez,Warranty Stock History,supplier,Data,yes,Supplier,,,,,
-Ssbikez,Warranty Stock History,quantity,Int,no,Quantity,,,,,
-Ssbikez,Warranty Stock History,updated_quantity,Int,yes,Balance Quantity,,,,,
-Ssbikez,Warranty Stock,warranty,Link,yes,Warranty,,,,,
-Ssbikez,Warranty Stock,stock,Int,no,Stock,,,,,
+Ssbikez,Warranty Setting,update_stock,Button,no,Update Stock,vas,VASSupplierInvoice,submit() -> on_vas_supplier_invoice_submitted signal,Match,"vas/models.py:477-491 -- the 'Update Stock' button's server call is replaced by submitting the invoice, which posts a VASStockMovement per item via the post_save signal"
+Ssbikez,Warranty Stock History,date,Date,yes,Date,vas,VASStockMovement,date,Match,vas/models.py:333
+Ssbikez,Warranty Stock History,branch,Link,yes,Branch,vas,VASStockMovement,branch,Match,vas/models.py:334
+Ssbikez,Warranty Stock History,supplier,Data,yes,Supplier,vas,VASStockMovement,supplier,Match,vas/models.py:335
+Ssbikez,Warranty Stock History,quantity,Int,no,Quantity,vas,VASStockMovement,quantity,Match,vas/models.py:337
+Ssbikez,Warranty Stock History,updated_quantity,Int,yes,Balance Quantity,vas,VASStockMovement,updated_quantity,Match,"vas/models.py:338, 350-364"
+Ssbikez,Warranty Stock,warranty,Link,yes,Warranty,vas,VASStockLedger,warranty_type,Match,"vas/models.py:294 -- OneToOneField(WarrantyType), reference's 'warranty' Link -> Warranty Type confirmed in reference_erp_spec/21_Reports.md:10"
+Ssbikez,Warranty Stock,stock,Int,no,Stock,vas,VASStockLedger,current_stock,Match,vas/models.py:295
 Ssbikez,Warranty Stock,section_break_vgxcb,Section Break,no,,,,,,
-Ssbikez,Warranty Stock,stock_history_tab,Table,no,Stock HIstory,,,,,
-Ssbikez,Warranty Type,disabled,Check,no,Disabled,,,,,
+Ssbikez,Warranty Stock,stock_history_tab,Table,no,Stock HIstory,vas,VASStockMovement,ledger (reverse FK),Match,vas/models.py:326-372
+Ssbikez,Warranty Type,disabled,Check,no,Disabled,vas,WarrantyType,is_active,Match,vas/models.py:58-71 -- inverted boolean sense but same concept
 Ssbikez,Warranty Type,section_break_umge,Section Break,no,,,,,,
-Ssbikez,Warranty Type,warranty_type,Data,yes,Warranty Type,,,,,
+Ssbikez,Warranty Type,warranty_type,Data,yes,Warranty Type,vas,WarrantyType,code,Match,vas/models.py:60 -- code is the unique plan identifier
 Ssbikez,Warranty Type,column_break_ztxh,Column Break,no,,,,,,
-Ssbikez,Warranty Type,hsn_code,Data,no,HSN Code,,,,,
-Ssbikez,Warranty Type,company,Link,no,Company,,,,,
-Ssbikez,Warranty Type,branch,Link,no,Branch,,,,,
-Ssbikez,Warranty Type,reference_number,Data,no,Reference Number,,,,,
-Ssbikez,Warranty,date,Date,yes,Date,,,,,
-Ssbikez,Warranty,protection_plus_id,Data,yes,Protection Plus ID,,,,,
-Ssbikez,Warranty,company,Link,no,Company,,,,,
-Ssbikez,Warranty,branch,Link,no,Branch,,,,,
+Ssbikez,Warranty Type,hsn_code,Data,no,HSN Code,vas,WarrantyType,hsn_code,Match,vas/models.py:62
+Ssbikez,Warranty Type,company,Link,no,Company,vas,WarrantyType,,Missing,vas/models.py:58-71 -- no company field
+Ssbikez,Warranty Type,branch,Link,no,Branch,vas,WarrantyType,,Missing,vas/models.py:58-71 -- no branch field
+Ssbikez,Warranty Type,reference_number,Data,no,Reference Number,vas,WarrantyType,,Missing,vas/models.py:58-71 -- no reference_number field
+Ssbikez,Warranty,date,Date,yes,Date,vas,ProtectionPlusPackage,,Missing,"vas/models.py:223-280 -- no user-set sale date, only auto_now_add created_at"
+Ssbikez,Warranty,protection_plus_id,Data,yes,Protection Plus ID,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no separate autoname text ID; pk serves as record identity
+Ssbikez,Warranty,company,Link,no,Company,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no company field
+Ssbikez,Warranty,branch,Link,no,Branch,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no branch FK (same gap as AMCPackage/RSAPackage)
 Ssbikez,Warranty,column_break_5mqu5,Column Break,no,,,,,,
-Ssbikez,Warranty,order_form_id,Link,yes,Order Form ID,,,,,
-Ssbikez,Warranty,gst_,Link,yes,GST %,,,,,
-Ssbikez,Warranty,gst_amount,Currency,no,GST Amount,,,,,
-Ssbikez,Warranty,ledger_voucher_no,Link,no,Ledger Voucher No,,,,,
+Ssbikez,Warranty,order_form_id,Link,yes,Order Form ID,vas,ProtectionPlusPackage,sales_order,Match,vas/models.py:235 -- FK to sales.VehicleSalesOrder
+Ssbikez,Warranty,gst_,Link,yes,GST %,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no GST% Link field; gst_amount stored directly with no auto-calc
+Ssbikez,Warranty,gst_amount,Currency,no,GST Amount,vas,ProtectionPlusPackage,gst_amount,Match,vas/models.py:240
+Ssbikez,Warranty,ledger_voucher_no,Link,no,Ledger Voucher No,vas,ProtectionPlusPackage,invoice,Match,"vas/models.py:236, 530-550 -- FK to billing.Invoice, auto-populated by _create_vas_invoice() on submit"
 Ssbikez,Warranty,column_break_3mpwy,Column Break,no,,,,,,
-Ssbikez,Warranty,protection_plus,Link,yes,Protection Plus,,,,,
-Ssbikez,Warranty,without_gst_amount,Currency,no,Taxable Amount,,,,,
-Ssbikez,Warranty,customer,Link,no,Customer,,,,,
-Ssbikez,Warranty,vehicle_name,Link,no,Vehicle Name,,,,,
-Ssbikez,Warranty,warranty_no,Link,no,Warranty No,,,,,
-Ssbikez,Warranty,naming_series,Select,no,Series,,,,,
-Ssbikez,Warranty,amount,Currency,no,Amount,,,,,
-Ssbikez,Warranty,amended_from,Link,no,Amended From,,,,,
-Ssbikez,Warranty,amended_from,Link,no,Amended From,,,,,
+Ssbikez,Warranty,protection_plus,Link,yes,Protection Plus,vas,ProtectionPlusPackage,warranty_type,Match,vas/models.py:234 -- FK to WarrantyType
+Ssbikez,Warranty,without_gst_amount,Currency,no,Taxable Amount,vas,ProtectionPlusPackage,without_gst_amount,Match,vas/models.py:241
+Ssbikez,Warranty,customer,Link,no,Customer,vas,ProtectionPlusPackage,customer_vehicle.customer,Match,vas/models.py:229-233 -- reachable via customer_vehicle FK chain
+Ssbikez,Warranty,vehicle_name,Link,no,Vehicle Name,vas,ProtectionPlusPackage,customer_vehicle.vehicle,Match,vas/models.py:229-233 -- reachable via customer_vehicle FK chain
+Ssbikez,Warranty,warranty_no,Link,no,Warranty No,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- reference's warranty_no is a redundant second Link to Warranty Type alongside protection_plus (same target doctype); Django has no equivalent second field
+Ssbikez,Warranty,naming_series,Select,no,Series,vas,ProtectionPlusPackage,,Missing,"vas/models.py:223-280 -- no VHL-WARR-YYYY- naming series, uses plain pk"
+Ssbikez,Warranty,amount,Currency,no,Amount,vas,ProtectionPlusPackage,amount,Match,vas/models.py:239
+Ssbikez,Warranty,amended_from,Link,no,Amended From,vas,ProtectionPlusPackage,docstatus/amended_from,Match,"vas/models.py:223 ProtectionPlusPackage(DocStatusMixin, ...)"
+Ssbikez,Warranty,amended_from,Link,no,Amended From,vas,ProtectionPlusPackage,docstatus/amended_from,Match,"vas/models.py:223 ProtectionPlusPackage(DocStatusMixin, ...)"
 Ssbikez,Water Wash Done,job_card_no,Link,yes,Job Card No,,,,,
 Ssbikez,Water Wash Done,naming_series,Select,no,Naming Series,,,,,
 Ssbikez,Water Wash Done,amended_from,Link,no,Amended From,,,,,
@@ -5552,3 +5552,15 @@ service,Job Card Creation (workflow),service_status pipeline,Workflow,yes,"Refer
 service,Job Card Creation (workflow),stage submission order enforcement,Workflow,yes,(implicit in reference: each stage doctype naturally follows the prior one in the UI flow),service,JobCard/_advance_job_card_status + stage create views,service_status,Deviation,"service/models.py:767-770 (_advance_job_card_status unconditionally overwrites service_status whenever it differs, no check against current value) + service/views.py:1033-1043 (bay_in_create), 1070-1080 (bay_out_create) etc. have no precondition on the JobCard current service_status -- a stage document (e.g. Bay Out Creation) can be created and submitted before its predecessor (Bay In Creation) exists, letting a Job Card skip stages forward, or regress backward to an earlier status if an earlier-stage doc is submitted after a later one already advanced it"
 service,Job Card Creation (workflow),manual status override bypasses stage pipeline,Workflow,yes,(reference has no manual status field to override -- status is always the byproduct of which stage doctype was last submitted),service,JobCard,service_status (jobcard_status_update view),Deviation,"service/views.py:362-385 -- jobcard_status_update lets any user with service/edit permission and ownership of the Job Card POST an arbitrary service_status value (any pipeline stage, forward or backward) with no stage document created or submitted at all; the only guard is that status is locked once a Service Invoice exists (line 375). This is a UI-exposed escape hatch (used from jobcard_detail.html) that bypasses the entire stage-document audit trail the reference workflow relies on"
 service,Job Card Creation (workflow),Service Invoice requires Job Card at Ready,Workflow,yes,"PRODUCTION_DELIVERY_REPORT.md:156 -- Cashier workflow is ""Search a completed job card -> review labor + spares + outwork + GST -> ... -> generate invoice"", implying only a completed (Ready) job card should be invoiced",service,service_invoice_create view,service_status,Fixed,"service/views.py (service_invoice_create) now rejects invoice creation unless job_card.service_status == JobCard.ServiceStatus.READY, redirecting with an error message; previously had zero status check at all, so a brand-new Job Card at Pending could be invoiced immediately, skipping the entire workshop pipeline. Fixed this session with TDD -- see service/tests.py::ServiceInvoiceCreateStatusGateTests, commit 6e8278d"
+Ssbikez,Add AMC Stock,purchase_type,Link,yes,Purchase Type (AMC Types),vas,VASSupplierInvoiceItem,amc_type,Match,"vas/models.py:448, 283-289 design note -- reference's single-doctype 'quick add stock' screen (reference_erp_spec/01_New_Vehicle_Purchase.md:85-150) is replaced by creating+submitting a VASSupplierInvoice with an amc_type line item; no row previously existed in the matrix for this doctype"
+Ssbikez,Add AMC Stock,company,Data,no,Company,vas,VASSupplierInvoiceItem,,Missing,vas/models.py:446-469 -- no company field
+Ssbikez,Add AMC Stock,branch,Link,yes,Branch,vas,VASSupplierInvoice,branch,Match,vas/models.py:413
+Ssbikez,Add AMC Stock,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,Add AMC Stock,purchase_order_details,Small Text,no,Purchase Order Details,vas,VASSupplierInvoice,,Missing,vas/models.py:399-469 -- no free-text purchase-order-details field on invoice or item
+Ssbikez,Add AMC Stock,purchase_quantity,Int,yes,Purchase Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
+Ssbikez,Add AMC Stock,update_stock,Button,no,Update Stock,vas,VASSupplierInvoice,submit() -> on_vas_supplier_invoice_submitted signal,Match,"vas/models.py:477-491 -- the button action is replaced by submitting the invoice, which posts a VASStockMovement per item via the post_save signal"
+Ssbikez,Add RSA Stock,purchase_type,Link,yes,Purchase Type (RSA Types),vas,VASSupplierInvoiceItem,rsa_type,Match,"vas/models.py:449, 283-289 design note -- reference's single-doctype 'quick add stock' screen (reference_erp_spec/27_not_in_main_nav.md:8-55) is replaced by creating+submitting a VASSupplierInvoice with an rsa_type line item; no row previously existed in the matrix for this doctype"
+Ssbikez,Add RSA Stock,rsa_type,Data,no,RSA Type,vas,VASSupplierInvoiceItem,rsa_type,Match,vas/models.py:449 -- reference auto-copies purchase_type into this display-only Data field client-side (reference_erp_spec/27_not_in_main_nav.md:29-34); Django needs only the one Link field
+Ssbikez,Add RSA Stock,supplier,Link,yes,Supplier,vas,VASSupplierInvoice,supplier,Match,vas/models.py:411
+Ssbikez,Add RSA Stock,purchase_quantity,Int,yes,Purchase Quantity,vas,VASSupplierInvoiceItem,quantity,Match,vas/models.py:451
+Ssbikez,Add RSA Stock,update_stock,Button,no,Update Stock,vas,VASSupplierInvoice,submit() -> on_vas_supplier_invoice_submitted signal,Match,"vas/models.py:477-491 -- the button action is replaced by submitting the invoice, which posts a VASStockMovement per item via the post_save signal"
