@@ -100,16 +100,9 @@ Ssbikez,AMC,column_break_ujdqk,Column Break,no,,,,,,
 Ssbikez,AMC,grace_days,Int,no,Grace Days,vas,AMCPackage,grace_days,Match,"vas/models.py:104, 119"
 Ssbikez,AMC,amended_from,Link,no,Amended From,vas,AMCPackage,docstatus/amended_from,Match,"vas/models.py:78 AMCPackage(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin"
 Ssbikez,AMC,amended_from,Link,no,Amended From,vas,AMCPackage,docstatus/amended_from,Match,"vas/models.py:78 AMCPackage(DocStatusMixin, ...) -- inherits amended_from from accounts.DocStatusMixin"
-Ssbikez,Add AMC Stock,purchase_type,Link,yes,Purchase Type,,,,,
-Ssbikez,Add AMC Stock,company,Data,no,Company,,,,,
-Ssbikez,Add AMC Stock,branch,Link,yes,Branch,,,,,
 Ssbikez,Add AMC Stock,column_break_mswd,Column Break,no,,,,,,
-Ssbikez,Add AMC Stock,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Add AMC Stock,purchase_order_details,Small Text,no,Purchase Order Details,,,,,
 Ssbikez,Add AMC Stock,column_break_zjyz,Column Break,no,,,,,,
-Ssbikez,Add AMC Stock,purchase_quantity,Int,yes,Purchase Quantity,,,,,
 Ssbikez,Add AMC Stock,section_break_ziaz,Section Break,no,,,,,,
-Ssbikez,Add AMC Stock,update_stock,Button,no,Update Stock,,,,,
 Ssbikez,Add New Spares,disable,Check,no,Disable,,,,,
 Ssbikez,Add New Spares,section_break_fmg7p,Section Break,no,,,,,,
 Ssbikez,Add New Spares,category,Select,yes,Category,,,,,
@@ -146,11 +139,6 @@ Ssbikez,Add New Vehicle,vehicle_color,Table,yes,Vehicle Color,,,,,
 Ssbikez,Add New Vehicle,update_color,Button,no,Update Color,,,,,
 Ssbikez,Add New Vehicle,section_break_mkvdz,Section Break,no,Helmet,,,,,
 Ssbikez,Add New Vehicle,special_helmet,Table,no,Normal Helmet,,,,,
-Ssbikez,Add RSA Stock,purchase_type,Link,yes,Purchase Type,,,,,
-Ssbikez,Add RSA Stock,rsa_type,Data,no,RSA Type,,,,,
-Ssbikez,Add RSA Stock,supplier,Link,yes,Supplier,,,,,
-Ssbikez,Add RSA Stock,purchase_quantity,Int,yes,Purchase Quantity,,,,,
-Ssbikez,Add RSA Stock,update_stock,Button,no,Update Stock,,,,,
 Ssbikez,Add Used Vehicle,disabled,Check,no,Disabled,used_vehicles,UsedVehicleModel,disabled,Match,used_vehicles/models.py:61
 Ssbikez,Add Used Vehicle,section_break_ve9dr,Section Break,no,,,,,,
 Ssbikez,Add Used Vehicle,used_vehicle_code,Data,no,Used Vehicle Code,used_vehicles,UsedVehicleModel,code,Match,used_vehicles/models.py:62
