@@ -340,6 +340,19 @@ class UsedVehicleRCHandOverForm(AccessibleFormMixin, forms.ModelForm):
             'notes':         forms.Textarea(attrs={'rows': 2}),
         }
 
+    def clean(self):
+        cleaned = super().clean()
+        # Reference (07_Used_Vehicle_Sale.md:2926-2935): Used Vehicle RC Hand
+        # Over's before_save script refuses to save the form at all unless
+        # both RC Book Received and NOC are "Yes" -- same gate already
+        # enforced for the RTO module's RCHandOverForm; this is a separate
+        # doctype instance for the used-vehicle sale pipeline that never got it.
+        if cleaned.get('rc_book_received') == 'no':
+            self.add_error('rc_book_received', 'RC Book Received must be Yes before this form can be saved.')
+        if cleaned.get('noc') == 'no':
+            self.add_error('noc', 'NOC must be Yes before this form can be saved.')
+        return cleaned
+
 
 class UsedVechileRCBookIssueForm(AccessibleFormMixin, forms.ModelForm):
     class Meta:

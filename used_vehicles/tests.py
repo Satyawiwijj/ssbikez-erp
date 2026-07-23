@@ -347,3 +347,53 @@ class UsedVehiclePurchaseReceiptCreateTests(TestCase):
         self.assertEqual(response.status_code, 302)
         from used_vehicles.models import UsedVehiclePurchaseReceipt
         self.assertTrue(UsedVehiclePurchaseReceipt.objects.filter(purchase_order=self.po).exists())
+
+
+class UsedVehicleRCHandOverFormGateTests(TestCase):
+    """Tier 6 audit finding: reference's Used Vehicle RC Hand Over before_save
+    script (reference_erp_spec/07_Used_Vehicle_Sale.md:2926-2935) refuses to
+    save the form at all unless RC Book Received == 'Yes' AND NOC == 'Yes' --
+    a trade-in vehicle cannot be accepted without both documents physically in
+    hand. This is the same class of bug already fixed in rto.forms.RCHandOverForm
+    (see DEVIATIONS.md), but used_vehicles.forms.UsedVehicleRCHandOverForm --
+    a separate doctype instance for used-vehicle sales -- never got the gate."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(username='uvrc_admin', email='uvrcadmin@example.com', password='Test-Pass-123!')
+        customer = Customer.objects.create(full_name='UV RC Customer', phone='6000000099')
+        manufacturer = ManufacturingCompany.objects.create(name='Bajaj Used')
+        sub_group = UsedVehicleSubGroup.objects.create(name='125cc')
+        used_model = UsedVehicleModel.objects.create(code='UVM-RC', manufacturer=manufacturer, used_vehicle_name='Bajaj Pulsar (Used)', sub_group=sub_group)
+        register_no = UsedVehicleRegisterNo.objects.create(registration_no='UV-RC-001', used_vehicle=used_model)
+        self.sale = UsedVehicleSale.objects.create(
+            customer=customer, vehicle_number=register_no,
+            delivery_date='2026-08-05', sale_amount=Decimal('55000'),
+        )
+
+    def _payload(self, **overrides):
+        payload = {
+            'sale': self.sale.pk,
+            'status': 'pending',
+            'rc_book_received': 'yes',
+            'noc': 'yes',
+            'rc_number': 'RC-12345',
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_rc_book_received_no_is_rejected(self):
+        from used_vehicles.forms import UsedVehicleRCHandOverForm
+        form = UsedVehicleRCHandOverForm(self._payload(rc_book_received='no'))
+        self.assertFalse(form.is_valid())
+        self.assertIn('rc_book_received', form.errors)
+
+    def test_noc_no_is_rejected(self):
+        from used_vehicles.forms import UsedVehicleRCHandOverForm
+        form = UsedVehicleRCHandOverForm(self._payload(noc='no'))
+        self.assertFalse(form.is_valid())
+        self.assertIn('noc', form.errors)
+
+    def test_both_yes_is_accepted(self):
+        from used_vehicles.forms import UsedVehicleRCHandOverForm
+        form = UsedVehicleRCHandOverForm(self._payload())
+        self.assertTrue(form.is_valid(), form.errors)
