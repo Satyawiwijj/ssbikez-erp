@@ -405,3 +405,20 @@ class RCBookIssueExchangeVehiclePathTests(_TestCase):
         response = self.client.post(_reverse('rto:rc_book_issue_create'), payload)
         self.assertEqual(response.status_code, 200)
         self.assertIn('rc_book_creation', response.context['form'].errors)
+
+
+class RegistrationNoCreationForm20SubmittedOnlyTests(_TestCase):
+
+    def test_rejects_a_draft_form20(self):
+        from sales.models import VehicleSalesOrder
+        from customers.models import Customer
+        from rto.models import Form20Creation
+        from rto.forms import RegistrationNoCreationForm
+
+        customer = Customer.objects.create(full_name='Reg No Test Customer', phone='9000000600')
+        order = VehicleSalesOrder.objects.create(customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        draft_form20 = Form20Creation.objects.create(sales_order=order)
+
+        form = RegistrationNoCreationForm(data={'sales_order': order.pk, 'form20': draft_form20.pk})
+        self.assertFalse(form.is_valid())
+        self.assertIn('form20', form.errors)

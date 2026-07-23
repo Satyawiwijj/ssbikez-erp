@@ -203,6 +203,13 @@ class RegistrationNoCreationForm(AccessibleFormMixin, forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields['registration_area'].required = True
 
+    def clean(self):
+        cleaned = super().clean()
+        form20 = cleaned.get('form20')
+        if form20 and form20.docstatus != Form20Creation.DocStatus.SUBMITTED:
+            self.add_error('form20', 'The linked Form 20 must be Submitted before a registration number can be created against it.')
+        return cleaned
+
 
 class RTOPaymentForm(AccessibleFormMixin, forms.ModelForm):
     reference_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=False)
