@@ -204,6 +204,10 @@ class BayInCreationCRUDTests(TestCase):
         self.user = User.objects.create_superuser(username='bayin_admin', email='bayinadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.job_card = _make_job_card(self.user, 'BAYIN1')
+        # Bay In requires the Job Card to have already completed Water Wash
+        # (see JobCardStageOrderEnforcementTests / service.models.check_stage_order).
+        self.job_card.service_status = JobCard.ServiceStatus.WATER_WASH
+        self.job_card.save(update_fields=['service_status'])
 
     def test_create(self):
         response = self.client.post(reverse('service:bay_in_create'), {
@@ -218,6 +222,10 @@ class FinalInspectionCreateTests(TestCase):
         self.user = User.objects.create_superuser(username='fi_admin', email='fiadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.job_card = _make_job_card(self.user, 'FI1')
+        # Final Inspection requires the Job Card to have already completed
+        # Outwork (see JobCardStageOrderEnforcementTests / check_stage_order).
+        self.job_card.service_status = JobCard.ServiceStatus.OUTWORK
+        self.job_card.save(update_fields=['service_status'])
 
     def test_create(self):
         response = self.client.post(reverse('service:final_inspection_create'), {
@@ -232,6 +240,11 @@ class OutworkEntryIssueCreateTests(TestCase):
         self.user = User.objects.create_superuser(username='oei_admin', email='oeiadmin@example.com', password='Test-Pass-123!')
         self.client.force_login(self.user)
         self.job_card = _make_job_card(self.user, 'OEI1')
+        # Outwork Entry Issue requires the Job Card to have already completed
+        # Bay Out (In Progress) (see JobCardStageOrderEnforcementTests /
+        # check_stage_order).
+        self.job_card.service_status = JobCard.ServiceStatus.IN_PROGRESS
+        self.job_card.save(update_fields=['service_status'])
         from masters.models import Supplier
         self.vendor = Supplier.objects.create(supplier_name='Outwork Vendor Co')
 
@@ -300,3 +313,93 @@ class ServiceInvoiceCreateStatusGateTests(TestCase):
         self.assertTrue(ServiceInvoice.objects.filter(job_card=self.job_card).exists())
         self.job_card.refresh_from_db()
         self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.INVOICED)
+
+
+class JobCardStageOrderEnforcementTests(TestCase):
+    """The workshop pipeline (Pending -> Water Wash -> In Bay -> In Progress
+    -> Outwork -> Final Inspection -> Ready -> Invoiced) is meaningless if a
+    later stage document can be created before the Job Card has actually
+    reached the required predecessor status -- every earlier gate would be
+    purely cosmetic and skippable. Each stage-create view must reject the
+    submission (and must NOT create the document or advance the status) when
+    the Job Card hasn't reached the required minimum prior status."""
+
+    def setUp(self):
+        self.user = User.objects.create_superuser(
+            username='stage_order_admin', email='stageorder@example.com', password='Test-Pass-123!'
+        )
+        self.client.force_login(self.user)
+        self.job_card = _make_job_card(self.user, 'STGORD1')
+
+    def test_bay_out_creation_rejected_before_bay_in(self):
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+        from service.models import BayOutCreation
+        response = self.client.post(reverse('service:bay_out_create'), {
+            'job_card': self.job_card.pk,
+            'vehicle_code': 'VC-1',
+            'remarks': 'test remarks',
+            'date_time': '2024-01-01 10:00:00',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(BayOutCreation.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+
+    def test_bay_in_creation_rejected_before_water_wash(self):
+        from service.models import BayInCreation
+        response = self.client.post(reverse('service:bay_in_create'), {
+            'job_card': self.job_card.pk,
+            'vehicle_code': 'VC-1',
+            'register_no': 'REG-1',
+            'date_time': '2024-01-01 10:00:00',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(BayInCreation.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+
+    def test_final_inspection_creation_rejected_before_outwork(self):
+        from service.models import FinalInspection
+        response = self.client.post(reverse('service:final_inspection_create'), {
+            'job_card': self.job_card.pk, 'final_inspection_remarks': 'All checks OK',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(FinalInspection.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+
+    def test_outwork_issue_creation_rejected_before_in_progress(self):
+        from masters.models import Supplier
+        from service.models import OutworkEntryIssue
+        vendor = Supplier.objects.create(supplier_name='Outwork Vendor Co')
+        payload = {'job_card': self.job_card.pk, 'vendor_name': vendor.pk}
+        for prefix in ('work', 'spares'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('service:outwork_issue_create'), payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(OutworkEntryIssue.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)
+
+    def test_outwork_return_creation_rejected_before_outwork(self):
+        from masters.models import Supplier
+        from service.models import OutworkEntryIssue, OutworkEntryReturn
+        vendor = Supplier.objects.create(supplier_name='Outwork Vendor Co 2')
+        issue = OutworkEntryIssue.objects.create(job_card=self.job_card, vendor_name=vendor)
+        payload = {
+            'outwork_issue': issue.pk, 'job_card': self.job_card.pk, 'payment_type': 'cash',
+            'actual_amount': '0', 'billing_amount': '0', 'vendor_spares_amount': '0', 'pending_amount': '0',
+        }
+        for prefix in ('details', 'spares'):
+            payload.update({
+                f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+                f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+            })
+        response = self.client.post(reverse('service:outwork_return_create'), payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(OutworkEntryReturn.objects.filter(job_card=self.job_card).exists())
+        self.job_card.refresh_from_db()
+        self.assertEqual(self.job_card.service_status, JobCard.ServiceStatus.PENDING)

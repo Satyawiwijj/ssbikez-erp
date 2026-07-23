@@ -3,6 +3,7 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
@@ -27,7 +28,7 @@ from .models import (BayAssignment, BayInCreation, BayOutCreation, FinalInspecti
                      JobCard, LaborCharge, LaborChargesAlteration, OutworkEntry,
                      OutworkEntryIssue, OutworkEntryReturn, ServiceAppointment,
                      ServiceBay, ServiceEnquiry, ServiceInvoice, VehicleServiceMaster,
-                     WaterWashDone)
+                     WaterWashDone, check_stage_order)
 
 logger = logging.getLogger(__name__)
 
@@ -1012,6 +1013,11 @@ def water_wash_create(request):
         initial['job_card'] = request.GET['jc']
     form = WaterWashDoneForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        try:
+            check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.PENDING)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return render(request, 'service/water_wash_form.html', {'form': form, 'title': 'Water Wash Done'})
         obj = form.save()
         log_action(request, 'Water Wash Done', 'create', obj.pk)
         messages.success(request, 'Water Wash Done recorded.')
@@ -1049,6 +1055,11 @@ def bay_in_create(request):
         initial['job_card'] = request.GET['jc']
     form = BayInCreationForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        try:
+            check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.WATER_WASH)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return render(request, 'service/bay_in_form.html', {'form': form, 'title': 'Bay In Creation'})
         obj = form.save()
         log_action(request, 'Bay In Creation', 'create', obj.pk)
         messages.success(request, 'Bay In recorded.')
@@ -1086,6 +1097,11 @@ def bay_out_create(request):
         initial['job_card'] = request.GET['jc']
     form = BayOutCreationForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        try:
+            check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.IN_BAY)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return render(request, 'service/bay_out_form.html', {'form': form, 'title': 'Bay Out Creation'})
         obj = form.save()
         log_action(request, 'Bay Out Creation', 'create', obj.pk)
         messages.success(request, 'Bay Out recorded.')
@@ -1123,6 +1139,11 @@ def final_inspection_create(request):
         initial['job_card'] = request.GET['jc']
     form = FinalInspectionForm(request.POST or None, initial=initial)
     if request.method == 'POST' and form.is_valid():
+        try:
+            check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.OUTWORK)
+        except ValidationError as e:
+            messages.error(request, str(e))
+            return render(request, 'service/final_inspection_form.html', {'form': form, 'title': 'Final Inspection'})
         obj = form.save()
         log_action(request, 'Final Inspection', 'create', obj.pk)
         messages.success(request, 'Final Inspection recorded.')
@@ -1163,6 +1184,14 @@ def outwork_issue_create(request):
     spares_formset = OutworkSpareItemFormSet(request.POST or None, prefix='spares')
     if request.method == 'POST':
         if form.is_valid() and work_formset.is_valid() and spares_formset.is_valid():
+            try:
+                check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.IN_PROGRESS)
+            except ValidationError as e:
+                messages.error(request, str(e))
+                return render(request, 'service/outwork_issue_form.html', {
+                    'form': form, 'work_formset': work_formset, 'spares_formset': spares_formset,
+                    'title': 'Outwork Entry Issue',
+                })
             obj = form.save()
             work_formset.instance = obj
             work_formset.save()
@@ -1213,6 +1242,14 @@ def outwork_return_create(request):
     spares_formset = OutworkReturnSpareItemFormSet(request.POST or None, prefix='spares')
     if request.method == 'POST':
         if form.is_valid() and details_formset.is_valid() and spares_formset.is_valid():
+            try:
+                check_stage_order(form.cleaned_data['job_card'], JobCard.ServiceStatus.OUTWORK)
+            except ValidationError as e:
+                messages.error(request, str(e))
+                return render(request, 'service/outwork_return_form.html', {
+                    'form': form, 'details_formset': details_formset, 'spares_formset': spares_formset,
+                    'title': 'Outwork Entry Return',
+                })
             obj = form.save()
             details_formset.instance = obj
             details_formset.save()

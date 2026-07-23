@@ -770,6 +770,34 @@ def _advance_job_card_status(job_card, new_status):
         job_card.save(update_fields=['service_status'])
 
 
+STAGE_ORDER = [
+    JobCard.ServiceStatus.PENDING,
+    JobCard.ServiceStatus.WATER_WASH,
+    JobCard.ServiceStatus.IN_BAY,
+    JobCard.ServiceStatus.IN_PROGRESS,
+    JobCard.ServiceStatus.OUTWORK,
+    JobCard.ServiceStatus.FINAL_INSPECTION,
+    JobCard.ServiceStatus.READY,
+    JobCard.ServiceStatus.INVOICED,
+]
+
+
+def check_stage_order(job_card, required_min_status):
+    """Raise ValidationError if job_card hasn't yet reached required_min_status
+    in the pipeline. Called from each stage-create view before allowing a
+    new stage document — the reference's chain-of-Submittable-documents
+    design implicitly enforces this ordering; this app's single-status-field
+    reimplementation needs an explicit check for the same guarantee."""
+    from django.core.exceptions import ValidationError
+    current_idx = STAGE_ORDER.index(job_card.service_status)
+    required_idx = STAGE_ORDER.index(required_min_status)
+    if current_idx < required_idx:
+        raise ValidationError(
+            f"This Job Card is at '{job_card.get_service_status_display()}' — "
+            f"it must reach '{dict(JobCard.ServiceStatus.choices)[required_min_status]}' first."
+        )
+
+
 class WaterWashDone(DocStatusMixin, models.Model):
     job_card        = models.ForeignKey(JobCard, on_delete=models.PROTECT, related_name='water_wash_entries')
     register_number = models.CharField(max_length=50, blank=True)
