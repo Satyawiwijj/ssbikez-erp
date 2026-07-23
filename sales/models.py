@@ -464,7 +464,7 @@ class VehicleSalesOrder(DocStatusMixin, models.Model):
         return f"{self.order_number or f'ORD-{self.pk}'} | {cust} — {veh}"
 
     def save(self, *args, **kwargs):
-        if not self.gst_category and self.customer_id:
+        if self.customer_id:
             self.gst_category = self.customer.gst_category
         if not self.order_number:
             with transaction.atomic():

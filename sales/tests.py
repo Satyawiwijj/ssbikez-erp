@@ -579,3 +579,21 @@ class SubmittedDocumentLockedPageTests(TestCase):
         # back to the order detail page, where Cancel & Amend lives.
         self.assertContains(response, reverse('sales:order_detail', args=[order.pk]), status_code=403)
         self.assertContains(response, 'Cancel', status_code=403)
+
+
+class SalesOrderGSTCategoryResyncTests(TestCase):
+
+    def test_gst_category_resyncs_when_customer_changes(self):
+        from customers.models import Customer
+        from sales.models import VehicleSalesOrder
+
+        customer_a = Customer.objects.create(full_name='GST Resync Customer A', phone='9000000200', gst_category='Registered')
+        customer_b = Customer.objects.create(full_name='GST Resync Customer B', phone='9000000201', gst_category='Unregistered')
+
+        order = VehicleSalesOrder.objects.create(customer=customer_a, booking_amount=Decimal('1000'), total_amount=Decimal('50000'))
+        self.assertEqual(order.gst_category, 'Registered')
+
+        order.customer = customer_b
+        order.save()
+        order.refresh_from_db()
+        self.assertEqual(order.gst_category, 'Unregistered')
