@@ -299,12 +299,12 @@ class RCBookCreationForm(AccessibleFormMixin, forms.ModelForm):
 
 
 class RCBookIssueForm(AccessibleFormMixin, forms.ModelForm):
-    # Not a model field -- RCBookIssueItem.exchange_vehicle is the real
-    # per-item signal for the exchange-vehicle path, but that lives on the
-    # inline item formset, not the parent. This bridges the signal into the
-    # parent form's clean() so rc_book_creation can be conditionally required.
-    is_exchange_vehicle = forms.BooleanField(required=False)
-
+    # rc_book_creation is only conditionally required -- waived when any item
+    # row in the inline RCBookIssueItemFormSet carries an exchange_vehicle.
+    # The form has no visibility into the formset, so it never enforces this
+    # requirement itself; the view (rc_book_issue_create) checks both
+    # form.is_valid() and the formset's per-item exchange_vehicle data
+    # together and re-adds the error there when neither is present.
     class Meta:
         model  = RCBookIssue
         fields = ('rc_book_creation', 'issue_type', 'from_branch', 'to_branch', 'sub_dealer_name')
@@ -314,14 +314,6 @@ class RCBookIssueForm(AccessibleFormMixin, forms.ModelForm):
         for f in ('from_branch', 'to_branch', 'sub_dealer_name'):
             self.fields[f].required = False
         self.fields['rc_book_creation'].required = False
-
-    def clean(self):
-        cleaned = super().clean()
-        is_exchange = cleaned.get('is_exchange_vehicle')
-        rc_book_creation = cleaned.get('rc_book_creation')
-        if not is_exchange and not rc_book_creation:
-            self.add_error('rc_book_creation', 'This field is required unless issuing an exchange vehicle\'s own RC book.')
-        return cleaned
 
 
 class RCBookIssueItemForm(AccessibleFormMixin, forms.ModelForm):

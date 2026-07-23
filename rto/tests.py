@@ -369,21 +369,39 @@ class BackfillRtoGstAmountsMigrationTests(TransactionTestCase):
         self.assertEqual(doc.rate + doc.cgst_amount + doc.sgst_amount + doc.igst_amount, doc.total)
 
 
-class RCBookIssueExchangeVehiclePathTests(TestCase):
+from sales.models import ExchangeVehicle as _ExchangeVehicle
+
+
+class RCBookIssueExchangeVehiclePathTests(_TestCase):
     """Reference only requires rc_book_creation when has_exchange_vehicle == 0.
     RCBookIssue has no document-level exchange-vehicle flag of its own --
-    RCBookIssueItem.exchange_vehicle is the real per-item signal -- so
-    RCBookIssueForm gains a non-model is_exchange_vehicle field purely to
-    bridge that signal into the parent form's clean()."""
+    RCBookIssueItem.exchange_vehicle (on the inline item formset) is the real
+    per-item signal. The waiver is therefore driven by the item formset data
+    at the view level (rc_book_issue_create), checked after both form and
+    formset validate -- not a phantom form-only field with no real wiring."""
 
-    def test_rc_book_creation_not_required_for_exchange_vehicle_issue(self):
-        from rto.forms import RCBookIssueForm
-        form = RCBookIssueForm(data={'issue_type': 'customer', 'is_exchange_vehicle': True})
-        form.is_valid()
-        self.assertNotIn('rc_book_creation', form.errors)
+    def setUp(self):
+        self.user = _User.objects.create_superuser(username='rcbi_ex_admin', email='rcbiexadmin@example.com', password='Test-Pass-123!')
+        self.client.force_login(self.user)
+        exchange_order = _make_order('RCBIEX1')
+        self.exchange_vehicle = _ExchangeVehicle.objects.create(sales_order=exchange_order)
 
-    def test_rc_book_creation_still_required_when_not_exchange_vehicle(self):
-        from rto.forms import RCBookIssueForm
-        form = RCBookIssueForm(data={'issue_type': 'customer'})
-        form.is_valid()
-        self.assertIn('rc_book_creation', form.errors)
+    def test_rc_book_creation_not_required_when_item_has_exchange_vehicle(self):
+        payload = {
+            'issue_type': 'customer',
+            'items-TOTAL_FORMS': '1', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+            'items-0-exchange_vehicle': self.exchange_vehicle.pk,
+        }
+        response = self.client.post(_reverse('rto:rc_book_issue_create'), payload)
+        self.assertEqual(response.status_code, 302)
+
+    def test_rc_book_creation_still_required_without_exchange_vehicle_item(self):
+        payload = {
+            'issue_type': 'customer',
+            'items-TOTAL_FORMS': '0', 'items-INITIAL_FORMS': '0',
+            'items-MIN_NUM_FORMS': '0', 'items-MAX_NUM_FORMS': '1000',
+        }
+        response = self.client.post(_reverse('rto:rc_book_issue_create'), payload)
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('rc_book_creation', response.context['form'].errors)

@@ -599,12 +599,18 @@ def rc_book_issue_create(request):
     items_formset = RCBookIssueItemFormSet(request.POST or None, prefix='items')
     if request.method == 'POST':
         if form.is_valid() and items_formset.is_valid():
-            obj = form.save()
-            items_formset.instance = obj
-            items_formset.save()
-            log_action(request, 'RC Book Issue', 'create', obj.pk)
-            messages.success(request, f'RCBI-{obj.pk} created.')
-            return redirect('rto:rc_book_issue_detail', pk=obj.pk)
+            has_exchange_vehicle = any(
+                item.get('exchange_vehicle') for item in items_formset.cleaned_data if not item.get('DELETE')
+            )
+            if not has_exchange_vehicle and not form.cleaned_data.get('rc_book_creation'):
+                form.add_error('rc_book_creation', 'This field is required unless issuing an exchange vehicle\'s own RC book.')
+            else:
+                obj = form.save()
+                items_formset.instance = obj
+                items_formset.save()
+                log_action(request, 'RC Book Issue', 'create', obj.pk)
+                messages.success(request, f'RCBI-{obj.pk} created.')
+                return redirect('rto:rc_book_issue_detail', pk=obj.pk)
         messages.error(request, 'Please correct the errors below.')
     return render(request, 'rto/rc_book_issue_form.html', {
         'form': form, 'title': 'New RC Book Issue', 'items_formset': items_formset,
