@@ -58,6 +58,15 @@ class AMCPackageForm(AccessibleFormMixin, forms.ModelForm):
         for f in ('amc_type', 'amount'):
             self.fields[f].required = True
 
+    def clean(self):
+        cleaned = super().clean()
+        sales_order = cleaned.get('sales_order')
+        if sales_order:
+            existing = AMCPackage.objects.filter(sales_order=sales_order).exclude(pk=self.instance.pk)
+            if existing.exists():
+                self.add_error('sales_order', 'This Sales Order already has an AMC package linked to it.')
+        return cleaned
+
 
 class RSAPackageForm(AccessibleFormMixin, forms.ModelForm):
     start_date = forms.DateField(widget=_DATE_WIDGET, required=False)
@@ -75,6 +84,15 @@ class RSAPackageForm(AccessibleFormMixin, forms.ModelForm):
         for f in ('rsa_type', 'amount'):
             self.fields[f].required = True
 
+    def clean(self):
+        cleaned = super().clean()
+        sales_order = cleaned.get('sales_order')
+        if sales_order:
+            existing = RSAPackage.objects.filter(sales_order=sales_order).exclude(pk=self.instance.pk)
+            if existing.exists():
+                self.add_error('sales_order', 'This Sales Order already has an RSA package linked to it.')
+        return cleaned
+
 
 class ProtectionPlusPackageForm(AccessibleFormMixin, forms.ModelForm):
     start_date = forms.DateField(widget=_DATE_WIDGET, required=False)
@@ -91,6 +109,15 @@ class ProtectionPlusPackageForm(AccessibleFormMixin, forms.ModelForm):
             self.fields[f].required = False
         for f in ('warranty_type', 'amount'):
             self.fields[f].required = True
+
+    def clean(self):
+        cleaned = super().clean()
+        sales_order = cleaned.get('sales_order')
+        if sales_order:
+            existing = ProtectionPlusPackage.objects.filter(sales_order=sales_order).exclude(pk=self.instance.pk)
+            if existing.exists():
+                self.add_error('sales_order', 'This Sales Order already has a Protection Plus package linked to it.')
+        return cleaned
 
 
 # ---------------------------------------------------------------------------

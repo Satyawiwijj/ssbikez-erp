@@ -425,3 +425,62 @@ class VASPackageBranchFieldTests(TestCase):
         )
         package.refresh_from_db()
         self.assertEqual(package.branch_id, self.branch.pk)
+
+
+class VASPackageDuplicateSalesOrderTests(TestCase):
+    """reference explicitly rejects reusing an Order Form ID for a second
+    AMC/RSA/Warranty package -- sales_order was a plain nullable FK with no
+    duplicate check on the Django port."""
+
+    def test_cannot_create_a_second_amc_package_for_the_same_sales_order(self):
+        from vas.forms import AMCPackageForm
+
+        cv, customer = _make_customer_vehicle('amc-dup')
+        amc_type = AMCType.objects.create(code='DUP', name='Dup AMC')
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'),
+        )
+        AMCPackage.objects.create(customer_vehicle=cv, sales_order=order, amount=Decimal('1000'))
+
+        form = AMCPackageForm(data={
+            'customer_vehicle': cv.pk, 'amc_type': amc_type.pk, 'sales_order': order.pk,
+            'amount': '1000', 'status': AMCPackage.Status.ACTIVE,
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('sales_order', form.errors)
+
+    def test_cannot_create_a_second_rsa_package_for_the_same_sales_order(self):
+        from vas.forms import RSAPackageForm
+        from vas.models import RSAPackage, RSAType
+
+        cv, customer = _make_customer_vehicle('rsa-dup')
+        rsa_type = RSAType.objects.create(code='DUP', name='Dup RSA')
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'),
+        )
+        RSAPackage.objects.create(customer_vehicle=cv, sales_order=order, amount=Decimal('500'))
+
+        form = RSAPackageForm(data={
+            'customer_vehicle': cv.pk, 'rsa_type': rsa_type.pk, 'sales_order': order.pk,
+            'amount': '500', 'status': RSAPackage.Status.ACTIVE,
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('sales_order', form.errors)
+
+    def test_cannot_create_a_second_protection_plus_package_for_the_same_sales_order(self):
+        from vas.forms import ProtectionPlusPackageForm
+        from vas.models import ProtectionPlusPackage, WarrantyType
+
+        cv, customer = _make_customer_vehicle('pp-dup')
+        warranty_type = WarrantyType.objects.create(code='DUP', name='Dup Warranty')
+        order = VehicleSalesOrder.objects.create(
+            customer=customer, booking_amount=Decimal('1000'), total_amount=Decimal('50000'),
+        )
+        ProtectionPlusPackage.objects.create(customer_vehicle=cv, sales_order=order, amount=Decimal('2000'))
+
+        form = ProtectionPlusPackageForm(data={
+            'customer_vehicle': cv.pk, 'warranty_type': warranty_type.pk, 'sales_order': order.pk,
+            'amount': '2000', 'status': ProtectionPlusPackage.Status.ACTIVE,
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('sales_order', form.errors)
