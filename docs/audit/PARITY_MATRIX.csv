@@ -70,7 +70,7 @@ Ssbikez,AMC,yamaha,Check,no,YAMAHA,vas,AMCPackage,yamaha,Match,vas/models.py:100
 Ssbikez,AMC,section_break_uohvy,Section Break,no,,,,,,
 Ssbikez,AMC,date,Date,yes,Date,vas,AMCPackage,,Missing,vas/models.py:78-159 -- no user-set sale date field; only auto_now_add created_at exists
 Ssbikez,AMC,amount,Currency,yes,Amount,vas,AMCPackage,amount,Match,vas/models.py:94
-Ssbikez,AMC,branch,Link,yes,Branch,vas,AMCPackage,,Missing,"vas/models.py:78-159 -- mandatory in reference, but AMCPackage has no branch FK at all (RSAPackage/ProtectionPlusPackage have the same gap; only VASStockMovement tracks branch)"
+Ssbikez,AMC,branch,Link,yes,Branch,vas,AMCPackage,branch,Fixed,"branch FK added to AMCPackage/RSAPackage/ProtectionPlusPackage (Deviations Fix Pass Task 10, commit aa5ff8e). See vas/tests.py::VASPackageBranchFieldTests"
 Ssbikez,AMC,company,Link,no,Company,vas,AMCPackage,,Missing,vas/models.py:78-159 -- no company field anywhere in vas app
 Ssbikez,AMC,naming_series,Select,no,Series,vas,AMCPackage,,Missing,"vas/models.py:78-159 -- no VHL-AMC-YYYY- naming series, uses plain pk (str() shows 'AMC-{pk}')"
 Ssbikez,AMC,column_break_npokz,Column Break,no,,,,,,
@@ -891,11 +891,11 @@ Ssbikez,Euler Exchange Vehicle Master,colour,Link,yes,Colour,sales,ExchangeVehic
 Ssbikez,Euler Exchange Vehicle Master,year_of_make,Data,yes,Year of Make,sales,ExchangeVehicle,year_of_make,Match,sales/models.py:691
 Ssbikez,Euler Exchange Vehicle Master,target_warehouse,Link,yes,Target Warehouse,sales,ExchangeVehicle,target_warehouse,Match,sales/models.py:697-700 -- FK to masters.Warehouse
 Ssbikez,Euler Exchange Vehicle Master,section_break_bgek,Section Break,no,Finance Details,,,,,
-Ssbikez,Euler Exchange Vehicle Master,finance_name,Data,no,Finance Name,sales,ExchangeVehicle,,Missing,sales/models.py:663-713 -- entire Finance Details section (finance_name/finance_closing_amount/balance_amount) is absent from ExchangeVehicle; a financed trade-in's outstanding loan cannot be recorded
+Ssbikez,Euler Exchange Vehicle Master,finance_name,Data,no,Finance Name,sales,ExchangeVehicle,finance_name,Fixed,"Added to ExchangeVehicleForm.Meta.fields (Deviations Fix Pass Task 8, commit f4db74a). See sales/tests.py::ExchangeVehicleFinanceDetailsTests"
 Ssbikez,Euler Exchange Vehicle Master,column_break_cbul,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,finance_closing_amount,Currency,no,Finance Closing Amount,sales,ExchangeVehicle,,Missing,Same gap as finance_name -- no finance payoff tracking on the traded-in vehicle
+Ssbikez,Euler Exchange Vehicle Master,finance_closing_amount,Currency,no,Finance Closing Amount,sales,ExchangeVehicle,finance_closing_amount,Fixed,"Added to ExchangeVehicleForm.Meta.fields (Deviations Fix Pass Task 8, commit f4db74a). See sales/tests.py::ExchangeVehicleFinanceDetailsTests"
 Ssbikez,Euler Exchange Vehicle Master,column_break_ekxp,Column Break,no,,,,,,
-Ssbikez,Euler Exchange Vehicle Master,balance_amount,Currency,no,Balance Amount,sales,ExchangeVehicle,,Missing,Same gap as finance_name -- no balance-after-finance-closure tracking
+Ssbikez,Euler Exchange Vehicle Master,balance_amount,Currency,no,Balance Amount,sales,ExchangeVehicle,balance_amount,Fixed,"Added to ExchangeVehicleForm.Meta.fields (Deviations Fix Pass Task 8, commit f4db74a). See sales/tests.py::ExchangeVehicleFinanceDetailsTests"
 Ssbikez,Euler Exchange Vehicle Master,section_break_ryyv,Section Break,no,NOC and Other Details,,,,,
 Ssbikez,Euler Exchange Vehicle Master,rc_book_received,Select,no,RC Book Received,sales,ExchangeVehicle,rc_handed_over,Deviation,"sales/models.py:684 -- BooleanField (rc_handed_over), not the reference's Select(Yes/No); reference also carries a matching rc_book_number field which is entirely absent (see next row)"
 Ssbikez,Euler Exchange Vehicle Master,rc_book_number,Data,no,RC Book Number,sales,ExchangeVehicle,,Missing,"sales/models.py:663-713 -- no field to record the exchanged vehicle's own RC book number, only a boolean rc_handed_over + rc_handover_date"
@@ -2374,7 +2374,7 @@ Ssbikez,Labor Spares Items,cgst,Percent,no,CGST,,,,,
 Ssbikez,Labour Work Vehicle Child,vehicle,Link,no,Vehicle,,,,,
 Ssbikez,Labour Work,disable,Check,no,Disable,,,,,
 Ssbikez,Labour Work,labour_work,Data,yes,Labour Work,,,,,
-Ssbikez,Ledger Creation Date Master,allowed_days,Int,yes,Allowed Days,,,,Missing,"No backdating-window setting anywhere in accounts.CompanySettings (accounts/models.py:163-215) or billing/forms.py -- JournalEntryForm has no clean_entry_date, so a manual Journal Entry's entry_date can be set to any date with no min/max validation."
+Ssbikez,Ledger Creation Date Master,allowed_days,Int,yes,Allowed Days,accounts,CompanySettings,gl_backdating_days,Fixed,"CompanySettings.gl_backdating_days (default 90) + JournalEntryForm.clean_entry_date added (Deviations Fix Pass Task 14, commit 5cfc3db). See billing/tests.py::JournalEntryBackdatingWindowTests"
 Ssbikez,Ledger Creation,naming_series,Select,no,Naming Series,billing,JournalEntry,pk,Deviation,"Django uses auto PK, no naming series -- cosmetic, low impact."
 Ssbikez,Ledger Creation,ledger_name,Link,yes,Ledger Name,,,,Missing,"billing/models.py:522 JournalEntryLine.account is a free-text CharField -- no 'Ledger Name List' or Chart-of-Accounts master exists anywhere in the repo (grep for 'class Account\b' returns zero hits outside reference_erp_spec/), so account names are typed by hand with no validation."
 Ssbikez,Ledger Creation,voucher_type,Link,yes,Voucher Type,,,,Missing,No voucher_type concept -- reference branches from_account query rules and payment_mode default by voucher_type (Purchase Invoice/Sales Invoice/Bank Entry/Journal Entry); Django's journal_entry_create (billing/_gap14_31_views.py:166-192) has no such branching.
@@ -2384,7 +2384,7 @@ Ssbikez,Ledger Creation,description,Small Text,yes,Description,billing,JournalEn
 Ssbikez,Ledger Creation,voucher_name,Data,no,Voucher Name,,,,Missing,No equivalent field.
 Ssbikez,Ledger Creation,voucher_name_sales,Data,no,Voucher Name,,,,Missing,No equivalent field.
 Ssbikez,Ledger Creation,column_break_mvn1a,Column Break,no,,,,,N/A,"UI layout marker (Column Break/Section Break), not a data field."
-Ssbikez,Ledger Creation,date,Date,yes,Date,billing,JournalEntry,entry_date,Deviation,"billing/models.py:471 entry_date = DateField() exists and is mandatory (Match at the field level), but the reference's backdating-window enforcement (Ledger Creation Date Master.allowed_days, before_save client script) has no Django equivalent -- see the Ledger Creation Date Master row."
+Ssbikez,Ledger Creation,date,Date,yes,Date,billing,JournalEntry,entry_date,Fixed,"entry_date now enforced by JournalEntryForm.clean_entry_date against CompanySettings.gl_backdating_days (Deviations Fix Pass Task 14, commit 5cfc3db) -- see the Ledger Creation Date Master row"
 Ssbikez,Ledger Creation,amount,Currency,yes,Amount,billing,JournalEntry,lines,Deliberate-difference,"Reference posts a single amount plus a Voucher Amount Split Up department table; Django instead requires a full double-entry JournalEntryLine breakdown (debit/credit per account, checked balanced in billing/_gap14_31_views.py:171-182) -- a stricter, not weaker, accounting model, so this is an intentional design improvement rather than a gap."
 Ssbikez,Ledger Creation,payment_mode,Select,yes,Payment Mode,,,,Missing,"No payment_mode field on JournalEntry -- account/payment-instrument is only expressed via free-text JournalEntryLine.account, not a structured Cash/Bank selector."
 Ssbikez,Ledger Creation,reference_number,Data,no,Reference Number,billing,JournalEntry,reference_number,Match,"billing/models.py:478 reference_number = CharField(blank=True) exists (also reused internally as the CANCEL-REVERSAL marker, billing/models.py:154)."
@@ -2686,8 +2686,8 @@ Ssbikez,New Vehicle Sales Order,insurance_name,Link,no,Insurance Name,,,,,
 Ssbikez,New Vehicle Sales Order,sales_finance_id,Link,no,Sales Finance Id,,,,,
 Ssbikez,New Vehicle Sales Order,column_break_n2fud,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,branch,Link,yes,Branch,,,,,
-Ssbikez,New Vehicle Sales Order,gst_category,Data,yes,GST Category,sales,VehicleSalesOrder,gst_category,Deviation,sales/models.py:466-468; sales/forms.py:186
-Ssbikez,New Vehicle Sales Order,sales_enquiry_form,Link,no,Sales Enquiry Form,sales,VehicleSalesOrder,enquiry,Missing,sales/models.py:352-357; accounts/models.py:93-106 (no Branch.allow_without_enquiry_form)
+Ssbikez,New Vehicle Sales Order,gst_category,Data,yes,GST Category,sales,VehicleSalesOrder,gst_category,Fixed,"sales/models.py save() now unconditionally resyncs gst_category from the linked customer on every save (Deviations Fix Pass Task 6, commit 5c2efda). See sales/tests.py::SalesOrderGSTCategoryResyncTests"
+Ssbikez,New Vehicle Sales Order,sales_enquiry_form,Link,no,Sales Enquiry Form,sales,VehicleSalesOrder,enquiry,Fixed,"Branch.allow_without_enquiry_form added, per-branch requiredness merged into VehicleSalesOrderForm.clean() (Deviations Fix Pass Task 7, commit 4087d50). See sales/tests.py::SalesOrderPerBranchEnquiryRequirednessTests"
 Ssbikez,New Vehicle Sales Order,column_break_4zw5o,Column Break,no,,,,,,
 Ssbikez,New Vehicle Sales Order,delivery_date,Date,yes,Delivery Date,,,,,
 Ssbikez,New Vehicle Sales Order,order_form_id,Link,no,Order Form ID,,,,,
@@ -3049,7 +3049,7 @@ Ssbikez,RC Book Issue,has_exchange_vehicle,Check,no,Has Exchange Vehicle,,,,,
 Ssbikez,RC Book Issue,company,Link,no,Company,,,,,
 Ssbikez,RC Book Issue,branch,Link,no,Branch,,,,,
 Ssbikez,RC Book Issue,column_break_fg4st,Column Break,no,,,,,,
-Ssbikez,RC Book Issue,rc_book_creation,Link,no,RC Book,rto,RCBookIssue,rc_book_creation,Deviation,"rto/models.py:526 -- FK is mandatory (on_delete=PROTECT, no null=True) for every RCBookIssue, but reference only requires rc_book_creation when has_exchange_vehicle==0 (reference_erp_spec/18_Sales_Form.md:14003); for exchange-vehicle RC-book returns there is no dealership-created RC Book Creation doc to link, since it is the customer's own original RC book -- Django forces a value that may not exist"
+Ssbikez,RC Book Issue,rc_book_creation,Link,no,RC Book,rto,RCBookIssue,rc_book_creation,Fixed,"rc_book_creation made null=True/blank=True; waiver derived in rc_book_issue_create from RCBookIssueItem.exchange_vehicle formset data (Deviations Fix Pass Task 12, commits 2c54f6d/7228000). See rto/tests.py::RCBookIssueExchangeVehiclePathTests"
 Ssbikez,RC Book Issue,column_break_lvddv,Column Break,no,,,,,,
 Ssbikez,RC Book Issue,issue_type,Select,yes,Issue Type,,,,,
 Ssbikez,RC Book Issue,exchange_vehicle_id,Link,no,Exchange Vehicle Id,,,,,
@@ -3159,7 +3159,7 @@ Ssbikez,RSA Types,hsn_code,Data,no,HSN Code,vas,RSAType,hsn_code,Match,vas/model
 Ssbikez,RSA Types,rsa_stock_total,Int,no,RSA Stock Total,vas,RSAType,stock_ledger.current_stock,Match,"vas/models.py:291-323 -- reachable via the RSAType.stock_ledger reverse OneToOne, not a field on RSAType itself"
 Ssbikez,RSA,date,Date,yes,Date,vas,RSAPackage,,Missing,"vas/models.py:162-220 -- no user-set sale date field, only auto_now_add created_at"
 Ssbikez,RSA,rsa_amount,Currency,yes,RSA Amount,vas,RSAPackage,amount,Match,vas/models.py:179
-Ssbikez,RSA,branch,Link,no,Branch,vas,RSAPackage,,Missing,vas/models.py:162-220 -- no branch FK on RSAPackage (same gap as AMCPackage/ProtectionPlusPackage)
+Ssbikez,RSA,branch,Link,no,Branch,vas,RSAPackage,branch,Fixed,"branch FK added (Deviations Fix Pass Task 10, commit aa5ff8e). See vas/tests.py::VASPackageBranchFieldTests"
 Ssbikez,RSA,company,Link,no,Company,vas,RSAPackage,,Missing,vas/models.py:162-220 -- no company field
 Ssbikez,RSA,column_break_r7lpu,Column Break,no,,,,,,
 Ssbikez,RSA,order_form_id,Link,yes,Order Form ID,vas,RSAPackage,sales_order,Match,vas/models.py:174 -- FK to sales.VehicleSalesOrder
@@ -3269,7 +3269,7 @@ Ssbikez,Registration No Creation,naming_series,Select,no,Series,,,,,
 Ssbikez,Registration No Creation,date,Date,yes,Date,rto,RegistrationNoCreation,,Missing,"rto/models.py:228-249 -- no user-settable Date field, only created_at"
 Ssbikez,Registration No Creation,company,Link,no,Company,rto,RegistrationNoCreation,,Missing,No multi-company Company model in repo
 Ssbikez,Registration No Creation,column_break_hqnxb,Column Break,no,,,,,,
-Ssbikez,Registration No Creation,form_20_id,Link,no,Form 20 Id,rto,RegistrationNoCreation,form20,Deviation,"rto/models.py:231 -- FK exists but is not restricted to submitted Form20Creation records (reference's client script filters the picker to Form 20 Creation.docstatus==1 only, reference_erp_spec/18_Sales_Form.md:11424); Django allows linking a still-Draft or Cancelled Form20Creation"
+Ssbikez,Registration No Creation,form_20_id,Link,no,Form 20 Id,rto,RegistrationNoCreation,form20,Fixed,"RegistrationNoCreationForm.clean() now rejects a form20 whose docstatus != Form20Creation.DocStatus.SUBMITTED (Deviations Fix Pass Task 13, commit a2cf5ae). See rto/tests.py::RegistrationNoCreationForm20SubmittedOnlyTests"
 Ssbikez,Registration No Creation,regn_area,Link,yes,Registration Area,rto,RegistrationNoCreation,registration_area,Match,rto/models.py:232
 Ssbikez,Registration No Creation,column_break_xxyxp,Column Break,no,,,,,,
 Ssbikez,Registration No Creation,branch,Link,no,Branch,rto,RegistrationNoCreation,,Missing,rto/models.py:228-249 -- no branch field
@@ -4271,7 +4271,7 @@ Ssbikez,Spares Receipt Child,column_break_b4sza,Column Break,no,,,,,,
 Ssbikez,Spares Receipt Child,gst_,Float,no,GST %,,,,,
 Ssbikez,Spares Receipt Child,rack,Link,no,Rack,,,,,
 Ssbikez,Spares Receipt Child,bin,Link,no,Bin,,,,,
-Ssbikez,Spares Receipt Child,cgst_,Float,no,CGST %,spares,PurchaseInvoiceItem,cgst,Deviation,"spares/models.py:412-413 default=9 hardcoded on every GST-bearing line across the app (PurchaseOrderItem:?, PurchaseInvoiceItem, CounterSaleReturnItem via gst_percent, SparesIssueAlteration lines, ServiceSparesIssueReturnItem, SparesMRPPriceRevisionItem) -- no import of billing.models.split_gst anywhere in spares/models.py (confirmed by grep). Same class of bug as RTO's pre-fix hardcoded 9%/9% split (fixed in fdb3740): not driven by CompanySettings.cgst_rate/sgst_rate and no IGST field/branch exists for interstate spares sales at all. Reference itself also has no igst field in this doctype (confirmed by grep), so this is a Django-internal consistency gap vs the now-centralized split_gst() helper, not a reference-parity gap. Recorded per audit instructions, not fixed this pass (would be new scope)"
+Ssbikez,Spares Receipt Child,cgst_,Float,no,CGST %,spares,PurchaseInvoiceItem,cgst,Fixed,"All GST-bearing spares line models now route through billing.models.split_gst() (Deviations Fix Pass Tasks 1-2, commits 1ea130d/fe12402/4e9fb03), with an igst_amount/total_igst field added for interstate sales. See spares/tests.py::PurchaseInvoiceItemGSTCentralizedTests, ::SparesIssueAlterationGSTCentralizedTests"
 Ssbikez,Spares Receipt Child,column_break_zf1av,Column Break,no,,,,,,
 Ssbikez,Spares Receipt Child,sgst_,Float,no,SGST %,,,,,
 Ssbikez,Spares Receipt Child,cgst_amount,Currency,no,CGST Amount,,,,,
@@ -4739,7 +4739,7 @@ Ssbikez,Used Vehicle Invoice,company,Link,no,Company,used_vehicles,UsedVehicleIn
 Ssbikez,Used Vehicle Invoice,used_vehicle_sale_id,Link,no,Used Vehicle Sale ID,used_vehicles,UsedVehicleInvoice,sale,Match,used_vehicles/models.py:665
 Ssbikez,Used Vehicle Invoice,branch,Link,no,Branch,used_vehicles,UsedVehicleInvoice,sale,Deviation,"used_vehicles/models.py:665 -- reachable via sale.branch, not its own column"
 Ssbikez,Used Vehicle Invoice,column_break_agnnv,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Invoice,cgst,Currency,no,CGST,used_vehicles,UsedVehicleInvoice,gst_amount,Deviation,"used_vehicles/models.py:668 -- single collapsed gst_amount field, not split into cgst/sgst; no split_gst() usage confirmed by grep -- same class of hardcoded/uncentralized GST gap already flagged for spares/ in Tier 4"
+Ssbikez,Used Vehicle Invoice,cgst,Currency,no,CGST,used_vehicles,UsedVehicleInvoice,gst_amount,Fixed,"split_gst(gst_amount, customer=sale.customer) now applied (Deviations Fix Pass Task 3, commit 960fe2b); kept the single collapsed gst_amount field (verified no template needs a cgst/sgst breakdown), igst_amount added for interstate sales. See used_vehicles/tests.py::UsedVehicleInvoiceGSTCentralizedTests"
 Ssbikez,Used Vehicle Invoice,column_break_hunrr,Column Break,no,,,,,,
 Ssbikez,Used Vehicle Invoice,sgst,Currency,no,SGST,used_vehicles,UsedVehicleInvoice,gst_amount,Deviation,"used_vehicles/models.py:668 -- same collapsed gst_amount field as cgst above, no separate sgst column"
 Ssbikez,Used Vehicle Invoice,column_break_7xhdr,Column Break,no,,,,,,
@@ -5009,7 +5009,7 @@ Ssbikez,Used Vehicle Purchase Invoice,total_amount,Currency,no,Total Amount,used
 Ssbikez,Used Vehicle Purchase Invoice,total_section,Section Break,no,Total,,,,,
 Ssbikez,Used Vehicle Purchase Invoice,discount,Currency,no,Discount(In Amount),used_vehicles,UsedVehiclePurchaseInvoice,discount,Match,used_vehicles/models.py:327
 Ssbikez,Used Vehicle Purchase Invoice,column_break_x8o2c,Column Break,no,,,,,,
-Ssbikez,Used Vehicle Purchase Invoice,grand_total,Currency,no,Grand Total,used_vehicles,UsedVehiclePurchaseInvoice,grand_total,Deviation,used_vehicles/models.py:328 -- plain stored field with no save()/clean() recompute from total_amount-discount visible on this model (unlike the New Vehicle Sales Order / Invoice total-recompute fixes from Tiers 1-2); relies on the form/formset to keep it in sync
+Ssbikez,Used Vehicle Purchase Invoice,grand_total,Currency,no,Grand Total,used_vehicles,UsedVehiclePurchaseInvoice,grand_total,Fixed,"grand_total now recomputed server-side from total_amount/discount on every save (Deviations Fix Pass Task 9, commit e5a7740). See used_vehicles/tests.py::UsedVehiclePurchaseInvoiceGrandTotalRecomputeTests"
 Ssbikez,Used Vehicle Purchase Invoice,column_break_bdhuz,Column Break,no,,,,,,
 Ssbikez,Used Vehicle Purchase Invoice,pending_amount,Currency,yes,Pending Amount,used_vehicles,UsedVehiclePurchaseInvoice,pending_amount,Match,used_vehicles/models.py:329
 Ssbikez,Used Vehicle Purchase Invoice,payment_status,Data,no,Payment Status,used_vehicles,UsedVehiclePurchaseInvoice,payment_status,Match,"used_vehicles/models.py:296-298,330 -- Unpaid/Paid TextChoices"
@@ -5500,7 +5500,7 @@ Ssbikez,Warranty Type,reference_number,Data,no,Reference Number,vas,WarrantyType
 Ssbikez,Warranty,date,Date,yes,Date,vas,ProtectionPlusPackage,,Missing,"vas/models.py:223-280 -- no user-set sale date, only auto_now_add created_at"
 Ssbikez,Warranty,protection_plus_id,Data,yes,Protection Plus ID,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no separate autoname text ID; pk serves as record identity
 Ssbikez,Warranty,company,Link,no,Company,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no company field
-Ssbikez,Warranty,branch,Link,no,Branch,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no branch FK (same gap as AMCPackage/RSAPackage)
+Ssbikez,Warranty,branch,Link,no,Branch,vas,ProtectionPlusPackage,branch,Fixed,"branch FK added (Deviations Fix Pass Task 10, commit aa5ff8e). See vas/tests.py::VASPackageBranchFieldTests"
 Ssbikez,Warranty,column_break_5mqu5,Column Break,no,,,,,,
 Ssbikez,Warranty,order_form_id,Link,yes,Order Form ID,vas,ProtectionPlusPackage,sales_order,Match,vas/models.py:235 -- FK to sales.VehicleSalesOrder
 Ssbikez,Warranty,gst_,Link,yes,GST %,vas,ProtectionPlusPackage,,Missing,vas/models.py:223-280 -- no GST% Link field; gst_amount stored directly with no auto-calc
@@ -5534,10 +5534,10 @@ Ssbikez,Workshop Voucher Creation,type,Data,no,Type,,,,,
 Ssbikez,Workshop Voucher Creation,leger_name,Data,no,Leger Name,,,,,
 Ssbikez,Workshop Voucher Creation,cash,Data,no,Cash,,,,,
 Ssbikez,Workshop Voucher Creation,amount,Currency,no,Amount,,,,,
-Ssbikez,Branch,allow_without_enquiry_form,Check,no,"Dynamically gates whether New Vehicle Sales Order.sales_enquiry_form is mandatory, per branch (confirmed live: Coimbatore/Sulur - E/Tiruppur = 0/required, Gobi/Nambiyur/Puliampatti/Sathyamangalam/Sulur/Trichy = 1/not required)",accounts,Branch,(none),Missing,accounts/models.py:93-106 (full Branch field list -- no allow_without_enquiry_form field; sales/forms.py has no branch-conditional requiredness logic for enquiry/sales_enquiry_form)
+Ssbikez,Branch,allow_without_enquiry_form,Check,no,"Dynamically gates whether New Vehicle Sales Order.sales_enquiry_form is mandatory, per branch (confirmed live: Coimbatore/Sulur - E/Tiruppur = 0/required, Gobi/Nambiyur/Puliampatti/Sathyamangalam/Sulur/Trichy = 1/not required)",accounts,Branch,allow_without_enquiry_form,Fixed,"allow_without_enquiry_form (default True) added to Branch, per-branch requiredness logic added to VehicleSalesOrderForm.clean() (Deviations Fix Pass Task 7, commit 4087d50). See sales/tests.py::SalesOrderPerBranchEnquiryRequirednessTests"
 Ssbikez,New Vehicle Sales Invoice,gst_split_cgst_sgst_igst,Computed,no,GST split (CGST/SGST vs IGST) depends on customer state vs company state -- interstate sales route the full GST amount to IGST,billing,split_gst (module function),"split_gst(gst_amount, customer)",Match,"billing/models.py:9-39 (customer.state vs CompanySettings.state comparison, IGST branch at lines 29-34); billing/views.py:90 (call site passing invoice.sales_order.customer)"
 service,Job Card Creation (workflow),service_status pipeline,Workflow,yes,"Reference has no single status field -- workflow is a chain of separate Submittable doctypes (Job Card Creation -> Water Wash Done -> Bay In/Out Creation -> Outwork Entry Issue/Return -> Final Inspection -> Service Invoice), documented in PRODUCTION_DELIVERY_REPORT.md:151 as Pending -> Water Wash -> In Bay -> In Progress -> Outwork (if needed) -> Final Inspection -> Ready -> Invoiced",service,JobCard.ServiceStatus + stage doc post_save signals,service_status,Match,"service/models.py:92-101 (enum), 767-1173 (WaterWashDone/BayInCreation/BayOutCreation/OutworkEntryIssue/OutworkEntryReturn/FinalInspection stage models + post_save signals at 1139-1173 that advance service_status on submit) -- correctly reimplements the reference chain-of-doctypes as one status field advanced by signals"
-service,Job Card Creation (workflow),stage submission order enforcement,Workflow,yes,(implicit in reference: each stage doctype naturally follows the prior one in the UI flow),service,JobCard/_advance_job_card_status + stage create views,service_status,Deviation,"service/models.py:767-770 (_advance_job_card_status unconditionally overwrites service_status whenever it differs, no check against current value) + service/views.py:1033-1043 (bay_in_create), 1070-1080 (bay_out_create) etc. have no precondition on the JobCard current service_status -- a stage document (e.g. Bay Out Creation) can be created and submitted before its predecessor (Bay In Creation) exists, letting a Job Card skip stages forward, or regress backward to an earlier status if an earlier-stage doc is submitted after a later one already advanced it"
+service,Job Card Creation (workflow),stage submission order enforcement,Workflow,yes,(implicit in reference: each stage doctype naturally follows the prior one in the UI flow),service,check_stage_order + stage create views,service_status,Fixed,"check_stage_order() added to service/models.py, wired into all 6 stage-create views that advance service_status (Deviations Fix Pass Task 15, commit 691bd0e). See service/tests.py::JobCardStageOrderEnforcementTests"
 service,Job Card Creation (workflow),manual status override bypasses stage pipeline,Workflow,yes,(reference has no manual status field to override -- status is always the byproduct of which stage doctype was last submitted),service,JobCard,service_status (jobcard_status_update view),Deviation,"service/views.py:362-385 -- jobcard_status_update lets any user with service/edit permission and ownership of the Job Card POST an arbitrary service_status value (any pipeline stage, forward or backward) with no stage document created or submitted at all; the only guard is that status is locked once a Service Invoice exists (line 375). This is a UI-exposed escape hatch (used from jobcard_detail.html) that bypasses the entire stage-document audit trail the reference workflow relies on"
 service,Job Card Creation (workflow),Service Invoice requires Job Card at Ready,Workflow,yes,"PRODUCTION_DELIVERY_REPORT.md:156 -- Cashier workflow is ""Search a completed job card -> review labor + spares + outwork + GST -> ... -> generate invoice"", implying only a completed (Ready) job card should be invoiced",service,service_invoice_create view,service_status,Fixed,"service/views.py (service_invoice_create) now rejects invoice creation unless job_card.service_status == JobCard.ServiceStatus.READY, redirecting with an error message; previously had zero status check at all, so a brand-new Job Card at Pending could be invoiced immediately, skipping the entire workshop pipeline. Fixed this session with TDD -- see service/tests.py::ServiceInvoiceCreateStatusGateTests, commit 6e8278d"
 Ssbikez,Add AMC Stock,purchase_type,Link,yes,Purchase Type (AMC Types),vas,VASSupplierInvoiceItem,amc_type,Match,"vas/models.py:448, 283-289 design note -- reference's single-doctype 'quick add stock' screen (reference_erp_spec/01_New_Vehicle_Purchase.md:85-150) is replaced by creating+submitting a VASSupplierInvoice with an amc_type line item; no row previously existed in the matrix for this doctype"
